@@ -1,11 +1,11 @@
 <template>
 	<div>
-		<inertia-link :href="route('internships.show', internship)" class="block">
+		<Link :href="route('internships.show', internship)" class="block">
 			<card class="transform hover:-translate-y-1 transition-transform duration-100">
 				<div class="p-6" :class="{ 'lg:px-7 lg:pb-7': full }">
 					<div class="flex justify-between items-start">
 						<internship-header :internship="internship" :full="full" :truncateTitle="truncateTitle" />
-						<div v-if="isStudent" class="flex-shrink-0">
+						<div v-if="isStudent" class="shrink-0">
 							<button type="button" @click.prevent="toggleLike(internship)"
 								class="text-red-600 hover:bg-red-50 p-2 text-sm font-medium rounded-lg transition-colors duration-200 flex items-center"
 							>
@@ -18,21 +18,21 @@
 						{{ truncate(internship.description, 350) }}
 					</p>
 					<div class="mt-2 flex items-end">
-						<skills v-if="full" />
+						<skills v-if="full" :skills="internship.skills" />
 						<div v-if="isStudent && internship.application !== null" class="ml-auto text-xs text-gray-500 uppercase font-medium">
 							Applied {{ internship.application.created_at }}
 						</div>
 					</div>
 				</div>
 			</card>
-		</inertia-link>
+		</Link>
 	</div>
 </template>
 
 <script>
-import InternshipHeader from "@/Components/Internship/Header";
-import Skills from "@/Components/Skills";
-import Like from "@/Mixins/Like";
+import InternshipHeader from "@/Components/Internship/Header.vue";
+import Skills from "@/Components/Skills.vue";
+import Like from "@/Mixins/Like.js";
 
 export default {
 	mixins: [Like],

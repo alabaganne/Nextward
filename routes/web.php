@@ -12,7 +12,6 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SkillController;
 use App\Http\Controllers\StudentController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -47,7 +46,7 @@ Route::get('/sitemap.xml', function () {
         config('app.url') . '/about',
         config('app.url') . '/contact',
     ])->merge($blogPosts)
-        ->merge(\App\Models\Internship::latest()->take(500)->get()->map(fn ($internship) => config('app.url') . '/internships/' . $internship->id));
+        ->merge(\App\Models\Internship::open()->latest()->take(500)->get()->map(fn ($internship) => config('app.url') . '/internships/' . $internship->id));
 
     $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "
 ";
@@ -64,10 +63,10 @@ Route::get('/sitemap.xml', function () {
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
+        'posts' => collect(config('internly_blog'))
+            ->take(3)
+            ->map(fn ($post) => collect($post)->only('slug', 'category', 'title', 'excerpt', 'read_time'))
+            ->values(),
     ]);
 })->name('home');
 Route::inertia('/about', 'About')->name('about');

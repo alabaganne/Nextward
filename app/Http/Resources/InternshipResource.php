@@ -29,6 +29,7 @@ class InternshipResource extends JsonResource
 			'title' => $this->title,
 			'description' => $this->description,
 			'closing_at' => $this->closing_at->format('F d, Y'),
+			'is_open' => $this->isOpen(),
 			'created_at' => $this->created_at->diffForHumans(),
 			'company' => [
 				'id' => $this->company->id,
@@ -40,6 +41,7 @@ class InternshipResource extends JsonResource
 			'field' => [
 				'name' => $this->field->name,
 			],
+			'skills' => $this->skills->pluck('name'),
 			'attachments' => $this->attachments ?: [],
 			'application' => $application ? [
 				'created_at' => $application->created_at->format('F d, Y')

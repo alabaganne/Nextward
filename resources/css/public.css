@@ -1,0 +1,75 @@
+/* Public website: brand buttons, focus rings and restrained motion. */
+
+.focus-ring:focus-visible {
+	outline: 2px solid var(--color-brand);
+	outline-offset: 3px;
+}
+
+.cta {
+	@apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl px-5 py-3 text-center font-semibold transition duration-200;
+}
+.cta-primary {
+	@apply bg-brand text-white shadow-[0_10px_24px_-12px_rgb(37_99_235/0.8)] hover:bg-brand-dark;
+}
+.cta-secondary {
+	@apply bg-white text-navy shadow-xs ring-1 ring-inset ring-navy/10 hover:text-brand hover:ring-brand/40;
+}
+
+.eyebrow {
+	@apply text-sm font-semibold uppercase tracking-[0.14em] text-brand;
+}
+
+/* Entrances: v-reveal adds .reveal only once its observer is ready, so content stays visible without it. */
+.reveal {
+	opacity: 0;
+	transform: translateY(16px);
+	transition:
+		opacity 500ms ease-out var(--reveal-delay, 0ms),
+		transform 500ms cubic-bezier(0.2, 0.7, 0.2, 1) var(--reveal-delay, 0ms);
+}
+.reveal.is-revealed {
+	opacity: 1;
+	transform: none;
+}
+
+/* The workflow connector draws itself once its list is revealed. */
+.reveal .flow-line-x,
+.reveal .flow-line-y {
+	transition: transform 700ms cubic-bezier(0.3, 0.7, 0.2, 1) 250ms;
+}
+.reveal .flow-line-x {
+	transform: scaleX(0);
+	transform-origin: left;
+}
+.reveal .flow-line-y {
+	transform: scaleY(0);
+	transform-origin: top;
+}
+.reveal.is-revealed .flow-line-x,
+.reveal.is-revealed .flow-line-y {
+	transform: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.cta:hover,
+	.lift:hover {
+		transform: translateY(-2px);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.reveal,
+	.reveal .flow-line-x,
+	.reveal .flow-line-y {
+		opacity: 1;
+		transform: none;
+		transition: none;
+	}
+}
+
+@media print {
+	.reveal {
+		opacity: 1;
+		transform: none;
+	}
+}

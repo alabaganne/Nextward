@@ -17,10 +17,13 @@ class InternshipController extends Controller
 {
     public function index(Request $request)
     {
+		$user = $request->user();
+
         return Inertia::render('Internships/Index', [
 			'filters' => $request->only('fields', 'cities', 'companies', 'search'),
 			'internships' => InternshipResource::collection(
 				Internship::with('company', 'field', 'city', 'skills')
+					->listedFor($user)
 					->withFilters(
 						$request->input('fields', []),
 						$request->input('companies', []),
@@ -30,8 +33,8 @@ class InternshipController extends Controller
 					->latest()
 					->paginate(7)
 			),
-			'fields' => Field::withCount(['internships' => function ($query) use ($request) {
-					$query->withFilters(
+			'fields' => Field::withCount(['internships' => function ($query) use ($request, $user) {
+					$query->listedFor($user)->withFilters(
 						// [$request->input('fields', [])],
 						[],
 						$request->input('companies', []),
@@ -40,8 +43,8 @@ class InternshipController extends Controller
 					);
 				}])
 				->get(),
-			'cities' => City::withCount(['internships' => function ($query) use ($request) {
-					$query->withFilters(
+			'cities' => City::withCount(['internships' => function ($query) use ($request, $user) {
+					$query->listedFor($user)->withFilters(
 						$request->input('fields', []),
 						$request->input('companies', []),
 						// $request->input('cities', []),
@@ -50,8 +53,8 @@ class InternshipController extends Controller
 					);
 				}])
 				->get(),
-			'companies' => auth()->check() && auth()->user()->isCompany() ? [] : Company::withCount(['internships' => function ($query) use ($request) {
-					$query->withFilters(
+			'companies' => $user && $user->isCompany() ? [] : Company::withCount(['internships' => function ($query) use ($request, $user) {
+					$query->listedFor($user)->withFilters(
 						$request->input('fields', []),
 						[],
 						$request->input('cities', []),
@@ -116,7 +119,9 @@ class InternshipController extends Controller
 				'title' => $internship->title,
 				'description' => $internship->description,
 				'closing_at' => $internship->closing_at->format('F d, Y'),
+				'is_open' => $internship->isOpen(),
 				'created_at' => $internship->created_at->diffForHumans(),
+				'skills' => $internship->skills->pluck('name'),
 				'field' => [
 					'name' => $internship->field->name,
 				],

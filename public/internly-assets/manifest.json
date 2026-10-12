@@ -1,0 +1,122 @@
+{
+  "base_url": "/internly-assets/",
+  "palette": {
+    "blue": "#2563EB",
+    "navy": "#0A1738",
+    "pale": "#F6F8FC"
+  },
+  "assets": [
+    {
+      "file": "stills/company-workspace.png",
+      "url": "/internly-assets/stills/company-workspace.png",
+      "bytes": 1439444,
+      "sha256": "fcb2f8385fa27d78fd2f0ac2a0b5190ccab52c88e122ff13849b6ded06e41f6d",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "file": "stills/conversation.png",
+      "url": "/internly-assets/stills/conversation.png",
+      "bytes": 1816682,
+      "sha256": "0af97d7cbb52e8193202099c1e701052c7006a37729820fdfd625360cd8c218e",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "file": "stills/recruiter-avatar.png",
+      "url": "/internly-assets/stills/recruiter-avatar.png",
+      "bytes": 1324409,
+      "sha256": "ce5b4bc1977b10fa3bb7f0b449e12122f40d3922d2ce0a6ff0b0ce62e5aae778",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "file": "stills/shared-success.png",
+      "url": "/internly-assets/stills/shared-success.png",
+      "bytes": 1547651,
+      "sha256": "145a1b53f547b9c9de8008c3087f1a4afe463feb594c306200dc7b45d6c29d0d",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "file": "stills/student-avatar.png",
+      "url": "/internly-assets/stills/student-avatar.png",
+      "bytes": 1330684,
+      "sha256": "9ac50c3fa8f3f049ffd46ee4efed834e093f61b0a31be5971ce8032c5a35f269",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "file": "stills/student-workspace.png",
+      "url": "/internly-assets/stills/student-workspace.png",
+      "bytes": 1536898,
+      "sha256": "3296baf3c06af44ac9b7cd806d30705ea986d7634af45c146eb66badebdb3e3e",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "file": "loops/conversation-poster.png",
+      "url": "/internly-assets/loops/conversation-poster.png",
+      "bytes": 661966,
+      "sha256": "173a37d1d0c002626c2602fa34d1a37c1c62d4d70458afdffa90977060faee6d",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "file": "loops/conversation.mp4",
+      "url": "/internly-assets/loops/conversation.mp4",
+      "bytes": 119637,
+      "sha256": "0434001f00daca869968e2ea237b0aad37a2494856a803e3481afeb3baabbb4a",
+      "width": 1200,
+      "height": 800,
+      "seconds": 6,
+      "fps": 30,
+      "audio": false,
+      "transparent": false
+    },
+    {
+      "file": "loops/conversation.webm",
+      "url": "/internly-assets/loops/conversation.webm",
+      "bytes": 456018,
+      "sha256": "083ab91e808488f69397901faa52349b7f7c59bb0e20fcfe137b763710787a13",
+      "width": 1200,
+      "height": 800,
+      "seconds": 6,
+      "fps": 30,
+      "audio": false,
+      "transparent": true
+    },
+    {
+      "file": "loops/success-poster.png",
+      "url": "/internly-assets/loops/success-poster.png",
+      "bytes": 470393,
+      "sha256": "c81c0b1a66fc9c20066d9e75b04d5660822c00bdd2a622453d8071f64ebf6ab5",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "file": "loops/success.mp4",
+      "url": "/internly-assets/loops/success.mp4",
+      "bytes": 99932,
+      "sha256": "81bbe9b56c64f5b7a10144399e545e70078e6f79118bb9f517c3718554e9ce49",
+      "width": 1200,
+      "height": 800,
+      "seconds": 6,
+      "fps": 30,
+      "audio": false,
+      "transparent": false
+    },
+    {
+      "file": "loops/success.webm",
+      "url": "/internly-assets/loops/success.webm",
+      "bytes": 481515,
+      "sha256": "2f9b2cd9aeed884ab4ebece7c9a040cf073ab7a5aed10e763788119982deb8c9",
+      "width": 1200,
+      "height": 800,
+      "seconds": 6,
+      "fps": 30,
+      "audio": false,
+      "transparent": true
+    }
+  ]
+}

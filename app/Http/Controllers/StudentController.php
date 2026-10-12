@@ -97,6 +97,7 @@ class StudentController extends Controller
 				'email' => $student->user->email,
 				'phone_number' => $student->user->phone_number,
 				'image' => $student->user->image,
+				'skills' => $student->skills->pluck('name'),
 				'field' => [
 					'name' => $student->field->name,
 				],

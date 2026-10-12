@@ -29,7 +29,7 @@
                 $description = 'Discover internships on Internly. Students can browse public internship opportunities, apply online, and connect with companies looking for emerging talent.';
             } elseif (request()->routeIs('internships.index')) {
                 $title = 'Browse internships - Internly';
-                $description = 'Browse public internship opportunities by field, city, and company on Internly. Find student internships and apply with a free account.';
+                $description = 'Browse public internship opportunities by field, city, and company on Internly. Find student internships and apply with a student account.';
             } elseif (request()->routeIs('internships.show') && request()->route('internship')) {
                 $internship = request()->route('internship');
                 $companyName = optional(optional($internship->company)->user)->name;
@@ -118,16 +118,19 @@
 
         <script type="application/ld+json">{!! json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 
-        <!-- Fonts -->
-        <!-- <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap"> -->
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
+        <link rel="icon" href="/favicon.ico" sizes="any">
+        <link rel="icon" href="/brand/internly/favicon.svg" type="image/svg+xml">
+        <link rel="apple-touch-icon" href="/brand/internly/apple-touch-icon.png">
+        <meta name="theme-color" content="#2563EB">
 
-        <!-- Styles -->
-        <link rel="stylesheet" href="{{ mix('css/app.css') }}">
+        <!-- Fonts: Inter for text, Space Grotesk for display headings, in one request. -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap">
 
         <!-- Scripts -->
         @routes
-        <script src="{{ mix('js/app.js') }}" defer></script>
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">
         @inertia

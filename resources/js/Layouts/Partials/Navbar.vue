@@ -4,7 +4,7 @@
 			<icon name="menu" solid />
 		</button>
 		<div class="flex items-center space-x-2">
-			<inertia-link
+			<Link
 				v-if="currentUser.userable_type === 'student'"
 				:href="route('likes.index')"
 				class="p-2 hover:bg-gray-100 rounded-full block"
@@ -13,15 +13,15 @@
 				}"
 			>
 				<icon name="heart" solid />
-			</inertia-link>
+			</Link>
 
-			<inertia-link
+			<Link
 				v-if="['student', 'company'].includes(currentUser.userable_type)"
 				:href="route('messages.index')"
 				class="p-2 hover:bg-gray-100 rounded-full"
 			>
 				<icon name="chat-alt-2" solid />
-			</inertia-link>
+			</Link>
 
 			<notifications-slide-over :key="routeUrl" />
 
@@ -37,7 +37,7 @@
 				</template>
 				<template v-slot:content>
 						<div class="flex items-center px-5 py-4">
-							<div class="flex-shrink-0">
+							<div class="shrink-0">
 								<img
 									class="h-12 w-12 rounded-full"
 									src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80"
@@ -49,8 +49,7 @@
 								<div class="text-sm leading-none text-gray-500">{{ currentUser.email }}</div>
 							</div>
 						</div>
-						<breeze-dropdown-link v-if="currentUser.is_admin" href="#">Manage Users</breeze-dropdown-link>
-						<breeze-dropdown-link :href="route('profile.show')">My Profile</breeze-dropdown-link>
+												<breeze-dropdown-link :href="route('profile.show')">My Profile</breeze-dropdown-link>
 						<breeze-dropdown-link :href="route('logout')" as="button" method="POST">Logout</breeze-dropdown-link>
 				</template>
 			</breeze-dropdown>
@@ -59,9 +58,9 @@
 </template>
 
 <script>
-import BreezeDropdown from '@/Components/Breeze/Dropdown';
-import BreezeDropdownLink from '@/Components/Breeze/DropdownLink';
-import NotificationsSlideOver from './NotificationsSlideOver';
+import BreezeDropdown from '@/Components/Breeze/Dropdown.vue';
+import BreezeDropdownLink from '@/Components/Breeze/DropdownLink.vue';
+import NotificationsSlideOver from './NotificationsSlideOver.vue';
 
 import { mapActions, mapGetters } from 'vuex';
 

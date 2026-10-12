@@ -21,8 +21,6 @@ class Internship extends Model
         'closing_at'
     ];
 
-    protected $dates = ['created_at', 'updated_at', 'closing_at'];
-
     protected $casts = [
         'attachments' => 'array',
         'closing_at' => 'datetime:Y-m-d'
@@ -49,6 +47,30 @@ class Internship extends Model
             ->withPivot(['cover_letter', 'message', 'attachments', 'created_at'])
             ->withTimestamps();
     }
+
+	// Open = the closing date is today or later. This is the public definition used by the board and sitemap.
+	public function scopeOpen($query) {
+		return $query->whereDate('closing_at', '>=', today());
+	}
+
+	// The board shows open internships. Companies also see their own closed ones and admins see all, so they can still manage them.
+	public function scopeListedFor($query, $user = null) {
+		if ($user && $user->isAdmin()) {
+			return $query;
+		}
+
+		return $query->where(function ($query) use ($user) {
+			$query->open();
+
+			if ($user && $user->isCompany()) {
+				$query->orWhere('company_id', $user->userable_id);
+			}
+		});
+	}
+
+	public function isOpen() {
+		return $this->closing_at && ! $this->closing_at->copy()->startOfDay()->lt(today());
+	}
 
 	public function scopeWithFilters($query, $fields, $companies, $cities, $search) {
 		return $query->when(count($fields), function ($query) use ($fields) {

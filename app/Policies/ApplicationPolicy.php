@@ -50,7 +50,9 @@ class ApplicationPolicy
      */
     public function create(User $user)
     {
-        if(!$user->isStudent() || Application::where('internship_id', Route::current()->internship->id)->where('student_id', Auth::user()->userable->id)->exists()) {
+        $internship = Route::current()->internship;
+
+        if(!$user->isStudent() || ! $internship->isOpen() || Application::where('internship_id', $internship->id)->where('student_id', Auth::user()->userable->id)->exists()) {
             return false;
         }
 

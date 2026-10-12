@@ -7,7 +7,6 @@ use App\Models\City;
 use App\Models\Company;
 use App\Models\Field;
 use App\Models\Student;
-use App\Providers\RouteServiceProvider;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,11 +21,12 @@ class RegisteredUserController extends Controller
      *
      * @return \Illuminate\View\View
      */
-    public function create()
+    public function create(Request $request)
     {
         return Inertia::render('Auth/Register', [
             'cities' => City::select('id', 'name')->orderBy('name')->get(),
             'fields' => Field::select('id', 'name')->orderBy('name')->get(),
+            'accountType' => $request->query('account') === 'company' ? 'company' : 'student',
         ]);
     }
 
@@ -110,6 +110,6 @@ class RegisteredUserController extends Controller
                 'type' => 'store',
                 'message' => 'Company profile completed. You can now post internships.'
             ])
-            : redirect(RouteServiceProvider::HOME);
+            : redirect(route('dashboard', absolute: false));
     }
 }

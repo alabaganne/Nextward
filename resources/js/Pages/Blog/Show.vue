@@ -3,7 +3,7 @@
 		<article>
 			<header class="bg-white border-b border-gray-200">
 				<div class="max-w-4xl mx-auto px-6 py-14 lg:py-18">
-					<inertia-link :href="route('blog.index')" class="text-sm font-semibold text-blue-700 hover:text-blue-800">← Back to blog</inertia-link>
+					<Link :href="route('blog.index')" class="text-sm font-semibold text-blue-700 hover:text-blue-800">← Back to blog</Link>
 					<div class="mt-6 flex flex-wrap items-center gap-3 text-sm">
 						<span class="px-3 py-1 rounded-full bg-blue-50 text-blue-700 font-semibold border border-blue-100">{{ post.category }}</span>
 						<span class="text-gray-500">{{ formatDate(post.published_at) }}</span>
@@ -16,7 +16,7 @@
 			</header>
 
 			<section class="max-w-4xl mx-auto px-6 py-12">
-				<div class="bg-white border border-gray-200 rounded-3xl p-7 md:p-10 shadow-sm">
+				<div class="bg-white border border-gray-200 rounded-3xl p-7 md:p-10 shadow-xs">
 					<section v-for="section in post.sections" :key="section.heading" class="mb-10 last:mb-0">
 						<h2 class="text-2xl font-extrabold text-gray-900">{{ section.heading }}</h2>
 						<p class="mt-4 text-gray-700 leading-8 text-lg">{{ section.body }}</p>
@@ -27,11 +27,11 @@
 
 		<section class="max-w-4xl mx-auto px-6 pb-16">
 			<div class="rounded-3xl bg-blue-600 text-white p-8 md:p-10">
-				<h2 class="text-2xl md:text-3xl font-extrabold">Use Internly to move faster</h2>
+				<h2 class="text-2xl md:text-3xl font-extrabold">Put it into practice on Internly</h2>
 				<p class="mt-3 text-blue-50 leading-7">Students can browse internships and companies can publish opportunities, review applications, and manage communication from one workspace.</p>
 				<div class="mt-6 flex flex-col sm:flex-row gap-3">
-					<inertia-link :href="route('internships.index')" class="px-5 py-3 rounded-xl bg-white text-blue-700 font-semibold text-center hover:bg-blue-50 transition">Browse internships</inertia-link>
-					<inertia-link :href="route('register')" class="px-5 py-3 rounded-xl bg-blue-700 text-white font-semibold text-center hover:bg-blue-800 transition">Create account</inertia-link>
+					<Link :href="route('internships.index')" class="px-5 py-3 rounded-xl bg-white text-blue-700 font-semibold text-center hover:bg-blue-50 transition">Browse internships</Link>
+					<Link :href="route('register')" class="px-5 py-3 rounded-xl bg-blue-700 text-white font-semibold text-center hover:bg-blue-800 transition">Create account</Link>
 				</div>
 			</div>
 		</section>
@@ -39,7 +39,7 @@
 </template>
 
 <script>
-import PublicLayout from '@/Layouts/Public'
+import PublicLayout from '@/Layouts/Public.vue'
 
 export default {
 	components: { PublicLayout },

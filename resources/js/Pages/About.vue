@@ -11,8 +11,8 @@
 						Internly is an internship discovery platform built to make early-career hiring simpler: students can browse public opportunities and apply online, while companies can publish internships and manage applications from one focused workspace.
 					</p>
 					<div class="mt-8 flex flex-wrap gap-3">
-						<inertia-link :href="route('internships.index')" class="px-5 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">Browse internships</inertia-link>
-						<inertia-link :href="route('register')" class="px-5 py-3 rounded-xl bg-gray-100 text-gray-900 font-semibold hover:bg-gray-200 transition">Create account</inertia-link>
+						<Link :href="route('internships.index')" class="px-5 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">Browse internships</Link>
+						<Link :href="route('register')" class="px-5 py-3 rounded-xl bg-gray-100 text-gray-900 font-semibold hover:bg-gray-200 transition">Create account</Link>
 					</div>
 				</div>
 
@@ -20,7 +20,7 @@
 					<div class="text-sm font-semibold text-blue-300 uppercase tracking-wide">What it solves</div>
 					<div class="mt-6 space-y-5">
 						<div v-for="item in highlights" :key="item.title" class="flex gap-4">
-							<div class="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">✓</div>
+							<div class="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">✓</div>
 							<div>
 								<h3 class="font-bold">{{ item.title }}</h3>
 								<p class="mt-1 text-gray-300 leading-6">{{ item.text }}</p>
@@ -33,11 +33,11 @@
 
 		<section class="max-w-7xl mx-auto px-6 py-16">
 			<div class="grid lg:grid-cols-3 gap-8">
-				<div class="lg:col-span-2 bg-white border border-gray-200 rounded-3xl p-8 shadow-sm">
+				<div class="lg:col-span-2 bg-white border border-gray-200 rounded-3xl p-8 shadow-xs">
 					<div class="text-sm font-semibold text-blue-600 uppercase tracking-wide">Built by</div>
 					<h2 class="mt-3 text-3xl font-extrabold text-gray-900">Ala Baganne</h2>
 					<p class="mt-5 text-gray-700 leading-8 text-lg">I’m a software engineer and builder focused on practical SaaS products, clean user experiences, and reliable full-stack execution. I enjoy taking an idea from rough requirements to a working deployed product: frontend, backend, database, authentication, permissions, deployment, and the final details that make a demo feel real.</p>
-					<p class="mt-4 text-gray-700 leading-8 text-lg">Internly is part of that builder journey: a real product-style application with public SEO-friendly pages, role-based student/company flows, company onboarding, application management, uploads, messaging, and admin controls.</p>
+					<p class="mt-4 text-gray-700 leading-8 text-lg">Internly is part of that builder journey: a working application with public internship pages, separate student and company accounts, company onboarding, application management, file uploads, and messaging.</p>
 					<p class="mt-4 text-gray-700 leading-8 text-lg">I’m open to strong engineering opportunities, especially roles where I can build useful products end to end. If you have a product idea, an MVP to launch, or a business workflow you want turned into software, I’m also open to building for people and helping bring practical ideas to life.</p>
 
 					<div class="mt-8 grid sm:grid-cols-3 gap-4">
@@ -56,7 +56,7 @@
 					</div>
 				</div>
 
-				<aside class="bg-blue-600 text-white rounded-3xl p-8 shadow-sm">
+				<aside class="bg-blue-600 text-white rounded-3xl p-8 shadow-xs">
 					<h3 class="text-2xl font-extrabold">Developer contact</h3>
 					<div class="mt-6 space-y-4 text-blue-50">
 						<a href="mailto:alabaganne9@gmail.com" class="block hover:text-white break-all">alabaganne9@gmail.com</a>
@@ -71,7 +71,7 @@
 </template>
 
 <script>
-import PublicLayout from '@/Layouts/Public'
+import PublicLayout from '@/Layouts/Public.vue'
 
 export default {
 	components: { PublicLayout },
@@ -79,8 +79,8 @@ export default {
 		return {
 			highlights: [
 				{ title: 'Public discovery', text: 'Internship listings are accessible without logging in, making opportunities easier to find and share.' },
-				{ title: 'Role-aware workflows', text: 'Students, companies, and admins each get the permissions and screens they need.' },
-				{ title: 'Company onboarding', text: 'Companies complete their profile before posting, helping students evaluate opportunities with more trust.' },
+				{ title: 'Separate student and company workspaces', text: 'Students apply and track applications; companies publish internships and review applicants.' },
+				{ title: 'Company onboarding', text: 'Companies add a website, city, and description before posting, so students can see who is hiring.' },
 			]
 		}
 	}

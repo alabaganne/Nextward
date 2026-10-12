@@ -51,7 +51,7 @@
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                     <breeze-label for="city_id" value="City" />
-                    <select id="city_id" v-model="form.city_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
+                    <select id="city_id" v-model="form.city_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-300 focus:ring-3 focus:ring-indigo-200/50" required>
                         <option :value="null" disabled>Select city</option>
                         <option v-for="city in cities" :key="city.id" :value="city.id">{{ city.name }}</option>
                     </select>
@@ -65,7 +65,7 @@
 
             <div v-if="form.account_type === 'student'">
                 <breeze-label for="field_id" value="Field of study" />
-                <select id="field_id" v-model="form.field_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
+                <select id="field_id" v-model="form.field_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-300 focus:ring-3 focus:ring-indigo-200/50" required>
                     <option :value="null" disabled>Select field</option>
                     <option v-for="field in fields" :key="field.id" :value="field.id">{{ field.name }}</option>
                 </select>
@@ -97,13 +97,13 @@
 
             <div>
                 <breeze-label for="about" :value="form.account_type === 'company' ? 'About your company' : 'Short bio (optional)'" />
-                <textarea id="about" v-model="form.about" :required="form.account_type === 'company'" rows="5" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" :placeholder="form.account_type === 'company' ? 'What do you build, what is your culture like, and why should students apply?' : 'Tell companies a little about yourself.'"></textarea>
+                <textarea id="about" v-model="form.about" :required="form.account_type === 'company'" rows="5" class="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-300 focus:ring-3 focus:ring-indigo-200/50" :placeholder="form.account_type === 'company' ? 'What do you build, what is your culture like, and why should students apply?' : 'Tell companies a little about yourself.'"></textarea>
             </div>
 
             <div class="flex items-center justify-between pt-2">
-                <inertia-link :href="route('login')" class="underline text-sm text-gray-600 hover:text-gray-900">
+                <Link :href="route('login')" class="underline text-sm text-gray-600 hover:text-gray-900">
                     Already registered?
-                </inertia-link>
+                </Link>
 
                 <breeze-button class="ml-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
                     {{ form.account_type === 'company' ? 'Complete onboarding' : 'Create account' }}
@@ -114,11 +114,12 @@
 </template>
 
 <script>
-    import BreezeButton from '@/Components/Breeze/Button'
-    import BreezeGuestLayout from '@/Layouts/Guest'
-    import BreezeInput from '@/Components/Breeze/Input'
-    import BreezeLabel from '@/Components/Breeze/Label'
-    import BreezeValidationErrors from '@/Components/ValidationErrors'
+    import { useForm } from '@inertiajs/vue3';
+    import BreezeButton from '@/Components/Breeze/Button.vue'
+    import BreezeGuestLayout from '@/Layouts/Guest.vue'
+    import BreezeInput from '@/Components/Breeze/Input.vue'
+    import BreezeLabel from '@/Components/Breeze/Label.vue'
+    import BreezeValidationErrors from '@/Components/ValidationErrors.vue'
 
     export default {
         layout: BreezeGuestLayout,
@@ -133,12 +134,16 @@
         props: {
             cities: Array,
             fields: Array,
+            accountType: {
+                type: String,
+                default: 'student',
+            },
         },
 
         data() {
             return {
-                form: this.$inertia.form({
-                    account_type: 'student',
+                form: useForm({
+                    account_type: this.accountType,
                     name: '',
                     email: '',
                     password: '',
@@ -159,7 +164,7 @@
                 const active = this.form.account_type === type
                 return [
                     'flex flex-col items-start gap-1 rounded-xl border p-4 text-left transition',
-                    active ? 'border-indigo-500 bg-white shadow-sm ring-2 ring-indigo-100' : 'border-gray-200 bg-gray-50 hover:bg-white'
+                    active ? 'border-indigo-500 bg-white shadow-xs ring-2 ring-indigo-100' : 'border-gray-200 bg-gray-50 hover:bg-white'
                 ]
             },
             handleLogo(event) {
