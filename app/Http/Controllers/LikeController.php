@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\InternshipResource;
 use App\Models\Internship;
-use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 
 class LikeController extends Controller // only students are authorized to access this controller
@@ -22,6 +21,6 @@ class LikeController extends Controller // only students are authorized to acces
         abort_unless(auth()->user()->isStudent(), 403);
         auth()->user()->userable->likes()->toggle($internship);
 
-        return response()->json();
+        return back();
     }
 }

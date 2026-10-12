@@ -1,6 +1,6 @@
 <template>
-	<div class="w-96 flex-shrink-0 bg-white border-r flex flex-col">
-		<div class="flex-shrink-0">
+	<div class="w-96 shrink-0 bg-white border-r flex flex-col">
+		<div class="shrink-0">
 			<div class="px-4 h-20 flex items-center border-b">
 				<div>
 					<h3 class="text-lg leading-6 font-medium text-gray-900">Messages</h3>
@@ -14,7 +14,7 @@
 		</div>
 		<div class="border-t flex-1 overflow-y-auto" scroll-region>
 			<template v-if="contacts.length > 0">
-				<inertia-link
+				<Link
 					class="text-left hover:bg-gray-50 p-4 flex items-start w-full border-b"
 					v-for="contact in contacts"
 					:key="contact.id"
@@ -29,7 +29,7 @@
 						<p class="text-gray-500 text-sm">{{ truncate(contact.latest_message.text, 85) }}</p>
 						<span class="mt-1 text-xs text-blue-500 font-medium">{{ contact.latest_message.created_at }}</span>
 					</div>
-				</inertia-link>
+				</Link>
 			</template>
 			<div v-else class="p-4 text-sm text-gray-700">No messages found</div>
 		</div>

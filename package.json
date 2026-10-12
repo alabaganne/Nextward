@@ -1,33 +1,26 @@
 {
 	"private": true,
+	"type": "module",
 	"scripts": {
-		"dev": "npm run development",
-		"development": "mix",
-		"watch": "mix watch",
-		"watch-poll": "mix watch -- --watch-options-poll=1000",
-		"hot": "mix watch --hot",
-		"prod": "npm run production",
-		"production": "mix --production"
+		"build": "vite build",
+		"dev": "vite"
 	},
 	"devDependencies": {
-		"@inertiajs/inertia": "^0.8.4",
-		"@inertiajs/inertia-vue3": "^0.3.5",
-		"@inertiajs/progress": "^0.2.4",
-		"@tailwindcss/forms": "^0.2.1",
-		"@vue/compiler-sfc": "^3.0.5",
-		"autoprefixer": "^10.2.4",
-		"axios": "^0.21",
-		"laravel-echo": "^1.10.0",
-		"laravel-mix": "^6.0.6",
-		"lodash": "^4.17.21",
-		"postcss-import": "^12.0.1",
-		"pusher-js": "^7.0.3",
-		"tailwindcss": "^2.0.3",
-		"vue": "^3.0.5",
-		"vue-loader": "^16.1.2"
+		"@inertiajs/vue3": "^3.9.1",
+		"@tailwindcss/forms": "^0.5.11",
+		"@tailwindcss/vite": "^4.3.3",
+		"@vitejs/plugin-vue": "^6.0.10",
+		"axios": "^1.20.0",
+		"concurrently": "^10.0.6",
+		"laravel-echo": "^2.6.1",
+		"laravel-vite-plugin": "^3.2.0",
+		"lodash-es": "^4.18.1",
+		"pusher-js": "^8.6.0",
+		"tailwindcss": "^4.3.3",
+		"vite": "^8.3.4",
+		"vue": "^3.5.43"
 	},
 	"dependencies": {
-		"@tailwindcss/typography": "^0.4.0",
-		"vuex": "^4.0.0"
+		"vuex": "^4.1.0"
 	}
 }

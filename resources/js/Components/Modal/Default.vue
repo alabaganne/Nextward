@@ -13,7 +13,7 @@
 					leave-from-class="opacity-100"
 					leave-to-class="opacity-0"
 				>
-					<div v-show="open" @click="close" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+					<div v-show="open" @click="close" class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
 				</transition>
 
 				<!-- This element is to trick the browser into centering the modal contents. -->

@@ -13,7 +13,7 @@
 						</div>
 					</div>
 					<template v-slot:footer class="px-6 py-4 bg-gray-50">
-						<inertia-link :href="card.link" class="link text-sm">View all -></inertia-link>
+						<Link :href="card.link" class="link text-sm">View all -></Link>
 					</template>
 				</card>
 			</template>
@@ -25,7 +25,7 @@
 				</div>
 				<template v-if="applications.length  >= 4" v-slot:footer>
 					<div class="flex justify-end">
-						<inertia-link :href="route('applications.index')" class="btn btn-primary rounded-lg">View all -></inertia-link>
+						<Link :href="route('applications.index')" class="btn btn-primary rounded-lg">View all -></Link>
 					</div>
 				</template>
 				<div v-if="applications.length === 0" class="p-6">No records found.</div>
@@ -35,8 +35,8 @@
 </template>
 
 <script>
-import MainLayout from "@/Layouts/Main";
-import ApplicationCard from "@/Components/Application/Card";
+import MainLayout from "@/Layouts/Main.vue";
+import ApplicationCard from "@/Components/Application/Card.vue";
 
 export default {
 	components: {

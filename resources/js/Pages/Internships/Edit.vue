@@ -44,10 +44,11 @@
 </template>
 
 <script>
-import MainLayout from "@/Layouts/Main";
-import BreezeValidationErrors from "@/Components/ValidationErrors";
-import AppForm from "@/Components/Form";
-import FilesUpload from "@/Components/FilesUpload";
+import { useForm } from '@inertiajs/vue3';
+import MainLayout from "@/Layouts/Main.vue";
+import BreezeValidationErrors from "@/Components/ValidationErrors.vue";
+import AppForm from "@/Components/Form.vue";
+import FilesUpload from "@/Components/FilesUpload.vue";
 
 export default {
 	components: {
@@ -68,7 +69,7 @@ export default {
 	},
 	data() {
 		return {
-			form: this.$inertia.form({
+			form: useForm({
 				title: "",
 				description: "",
 				attachments: [],

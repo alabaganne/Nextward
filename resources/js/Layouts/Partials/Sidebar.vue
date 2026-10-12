@@ -1,5 +1,5 @@
 <template>
-	<aside id="sidebar" v-show="sidebarActive" class="w-80 bg-gray-800 text-white flex-shrink-0 fixed top-0 min-h-screen lg:relative z-50">
+	<aside id="sidebar" v-show="sidebarActive" class="w-80 bg-gray-800 text-white shrink-0 fixed top-0 min-h-screen lg:relative z-50">
 		<div class="h-20 px-7 flex justify-between items-center border-gray-700">
 			<brand-logo dark />
 			<button @click="closeSidebar" class="text-gray-200 p-1 rounded-lg hover:bg-gray-700 lg:hidden">
@@ -8,7 +8,7 @@
 		</div>
 		<div class="px-2.5 pb-6 space-y-1">
 			<template v-for="link in mainLinks" :key="link.name">
-				<inertia-link
+				<Link
 					v-if="link.show"
 					:href="route(link.name)"
 					class="px-4 py-3 flex items-center text-white rounded-lg"
@@ -16,11 +16,11 @@
 				>
 					<icon :name="link.icon" class="text-gray-400" />
 					<span class="ml-4">{{ link.label }}</span>
-				</inertia-link>
+				</Link>
 			</template>
 		</div>
 		<div class="px-2.5 py-6 border-t border-gray-700 space-y-1">
-			<inertia-link
+			<Link
 				v-for="link in secondaryLinks"
 				:key="link.name"
 				:href="route(link.name)"
@@ -28,7 +28,7 @@
 			>
 				<icon :name="link.icon" class="text-gray-400" />
 				<span class="ml-4">{{ link.label }}</span>
-			</inertia-link>
+			</Link>
 		</div>
 	</aside>
 </template>

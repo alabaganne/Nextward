@@ -1,7 +1,7 @@
 <template>
 	<main-layout title="Profile" :subtitle="subtitle" maxWidthClass="max-w-7xl">
 		<template v-slot:header-right>
-			<inertia-link :href="route('profile.edit')" class="btn btn-dark">Edit profile -></inertia-link>
+			<Link :href="route('profile.edit')" class="btn btn-dark">Edit profile -></Link>
 		</template>
 
 		<card>
@@ -49,7 +49,7 @@
 </template>
 
 <script>
-import MainLayout from "@/Layouts/Main";
+import MainLayout from "@/Layouts/Main.vue";
 
 export default {
 	components: { MainLayout },

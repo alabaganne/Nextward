@@ -14,17 +14,18 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Faker\Factory as FakerFactory;
 
 class DatabaseSeeder extends Seeder
 {
     public function run()
     {
-        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        Schema::disableForeignKeyConstraints();
         foreach (['messages','notifications','likes','applications','skillables','internships','users','students','companies','skills','fields','cities'] as $table) {
             DB::table($table)->truncate();
         }
-        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        Schema::enableForeignKeyConstraints();
 
         $cities = collect(['Tunis','Ariana','Sousse','Sfax','Jendouba','Nabeul','Monastir','Remote'])->mapWithKeys(fn ($name) => [$name => City::create(['name' => $name])]);
         $fields = collect(['Software Engineering','Web Development','Data Science & AI','UI/UX Design','Digital Marketing','Business Intelligence','DevOps & Cloud'])->mapWithKeys(fn ($name) => [$name => Field::create(['name' => $name])]);

@@ -47,10 +47,11 @@
 </template>
 
 <script>
-import MainLayout from "@/Layouts/Main";
-import InternshipCard from "@/Components/Internship/Card";
-import FilesUpload from "@/Components/FilesUpload";
-import AppForm from "@/Components/Form";
+import { useForm } from '@inertiajs/vue3';
+import MainLayout from "@/Layouts/Main.vue";
+import InternshipCard from "@/Components/Internship/Card.vue";
+import FilesUpload from "@/Components/FilesUpload.vue";
+import AppForm from "@/Components/Form.vue";
 
 export default {
 	components: {
@@ -65,7 +66,7 @@ export default {
 	},
 	data() {
 		return {
-			form: this.$inertia.form({
+			form: useForm({
 				cover_letter: "",
 				message: "",
 				attachments: [],

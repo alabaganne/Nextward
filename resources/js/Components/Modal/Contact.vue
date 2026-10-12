@@ -21,7 +21,8 @@
 </template>
 
 <script>
-import Modal from "./Default";
+import { router } from '@inertiajs/vue3';
+import Modal from "./Default.vue";
 
 export default {
 	components: {
@@ -53,7 +54,7 @@ export default {
 		sendMessage() {
 			if (!this.user || (!this.user.user_id && !this.user.id) || this.message.trim() === '') return;
 
-			this.$inertia.post(route('messages.store'), {
+			router.post(route('messages.store'), {
 				to_id: this.user.user_id || this.user.id,
 				text: this.message
 			})

@@ -25,19 +25,18 @@ Internly is a comprehensive internship management platform designed for the Tuni
 ## Tech Stack
 
 ### Backend
-- **Laravel 8** - PHP web framework
-- **PHP 7.3+ or 8.0+** - Server-side language
+- **Laravel 13** - PHP web framework
+- **PHP 8.3+** - Server-side language
 - **MySQL/PostgreSQL** - Database
-- **Laravel Sanctum** - API authentication
-- **Laravel Breeze** - Authentication scaffolding
+- **Laravel Breeze-style auth** - Authentication controllers and pages
 - **Pusher** - Real-time messaging and notifications
 - **Laravel Echo** - WebSocket client
 
 ### Frontend
 - **Vue.js 3** - Progressive JavaScript framework
-- **Inertia.js** - Modern monolith approach (SPA-like experience)
-- **Tailwind CSS** - Utility-first CSS framework
-- **Laravel Mix** - Asset compilation
+- **Inertia.js 3** - Modern monolith approach (SPA-like experience)
+- **Tailwind CSS 4** - Utility-first CSS framework
+- **Vite** - Asset compilation
 - **Vuex 4** - State management
 - **Axios** - HTTP client
 
@@ -45,9 +44,10 @@ Internly is a comprehensive internship management platform designed for the Tuni
 
 Before running this application, make sure you have the following installed:
 
-- **PHP 7.3+ or 8.0+** with extensions: BCMath, Ctype, JSON, Mbstring, OpenSSL, PDO, Tokenizer, XML
+- **PHP 8.3+** with extensions: BCMath, Ctype, cURL, DOM/XML, Mbstring, OpenSSL, PDO (MySQL, and SQLite for the test suite), Tokenizer
+  - Ubuntu: `sudo apt install php8.5-curl php8.5-xml php8.5-mbstring php8.5-mysql php8.5-sqlite3 php8.5-bcmath`
 - **Composer** - PHP dependency manager
-- **Node.js & NPM** - For frontend asset compilation
+- **Node.js 20.19+ (or 22.12+) & NPM** - For frontend asset compilation
 - **MySQL/PostgreSQL** - Database server
 - **Pusher Account** - For real-time features (optional for development)
 
@@ -117,7 +117,7 @@ npm run dev
 
 For production:
 ```bash
-npm run production
+npm run build
 ```
 
 ### 8. Start the Development Server
@@ -161,41 +161,6 @@ php artisan migrate:rollback
 # Seed database
 php artisan db:seed
 ```
-
-## Laravel Version Migration
-
-**Note**: This project is currently running on Laravel 8. Plans are in place to migrate to the latest Laravel version.
-
-### Migration Checklist
-
-When migrating to the latest Laravel version, consider the following:
-
-1. **Update Dependencies**
-   - Update Laravel framework version
-   - Update all packages to compatible versions
-   - Check for breaking changes in major dependencies
-
-2. **Code Updates**
-   - Review deprecated methods and classes
-   - Update middleware configurations
-   - Check for changes in authentication system
-   - Review route definitions
-
-3. **Frontend Updates**
-   - Update Inertia.js to latest version
-   - Update Vue.js and related packages
-   - Review asset compilation setup
-   - Update Tailwind CSS configuration
-
-4. **Database**
-   - Review migration files for compatibility
-   - Check for changes in Eloquent ORM
-   - Update model relationships if needed
-
-5. **Testing**
-   - Update test configurations
-   - Review test methods for compatibility
-   - Ensure all tests pass after migration
 
 ## Project Structure
 

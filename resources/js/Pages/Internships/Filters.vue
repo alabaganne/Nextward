@@ -1,5 +1,5 @@
 <template>
-	<div class="flex-shrink-0 2xl:w-96 order-2 2xl:order-first mt-6 2xl:mt-0">
+	<div class="shrink-0 2xl:w-96 order-2 2xl:order-first mt-6 2xl:mt-0">
 		<card title="Filters" subtitle="Use the filters below to find the internships that interest you.">
 			<div class="sm:flex flex-wrap">
 				<form @submit.prevent="filter" autocomplete="off" class="p-6 w-full">
@@ -73,7 +73,8 @@
 </template>
 
 <script>
-import { throttle } from "lodash";
+import { router } from '@inertiajs/vue3';
+import { throttle } from "lodash-es";
 
 export default {
 	props: {
@@ -120,7 +121,7 @@ export default {
 	},
 	methods: {
 		filter() {
-			this.$inertia.get(
+			router.get(
 				this.route('internships.index'),
 				{
 					...this.selected,
@@ -135,7 +136,7 @@ export default {
 			this.$emit('filter', this.selected);
 		},
 		reset() {
-			this.$inertia.get(this.route('internships.index'))
+			router.get(this.route('internships.index'))
 		},
 		noFilters(arr) {
 			return arr.filter(el => el.internships_count !== 0).length === 0;

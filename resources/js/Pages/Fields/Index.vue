@@ -1,7 +1,7 @@
 <template>
 	<main-layout title="Fields" subtitle="View">
 		<template v-slot:header-right>
-			<inertia-link :href="route('fields.create')" class="btn btn-lg btn-primary">Add Field of Studies -></inertia-link>
+			<Link :href="route('fields.create')" class="btn btn-lg btn-primary">Add Field of Studies -></Link>
 		</template>
 		<div v-if="fields.data.length > 0">
 			<app-table :fields="['Name', 'Number of Internships', 'Number of Students', 'Actions']">
@@ -19,9 +19,9 @@
 					<td>{{ field.internships_count }}</td>
 					<td>{{ field.students_count }}</td>
 					<td class="text-right">
-						<inertia-link :href="route('fields.edit', field.id)" class="btn btn-sm btn-dark">
+						<Link :href="route('fields.edit', field.id)" class="btn btn-sm btn-dark">
 							Edit
-						</inertia-link>
+						</Link>
 					</td>
 				</tr>
 			</app-table>
@@ -34,8 +34,8 @@
 </template>
 
 <script>
-import MainLayout from "@/Layouts/Main";
-import Pagination from "@/Components/Pagination";
+import MainLayout from "@/Layouts/Main.vue";
+import Pagination from "@/Components/Pagination.vue";
 
 export default {
 	components: {

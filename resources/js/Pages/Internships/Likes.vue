@@ -12,8 +12,8 @@
 </template>
 
 <script>
-import MainLayout from "@/Layouts/Main";
-import InternshipCard from "@/Components/Internship/Card";
+import MainLayout from "@/Layouts/Main.vue";
+import InternshipCard from "@/Components/Internship/Card.vue";
 
 export default {
 	components: {

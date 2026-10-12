@@ -15,9 +15,9 @@
 </template>
 
 <script>
-import MainLayout from "@/Layouts/Main";
-import ApplicationCard from "@/Components/Application/Card";
-import Pagination from '@/Components/Pagination';
+import MainLayout from "@/Layouts/Main.vue";
+import ApplicationCard from "@/Components/Application/Card.vue";
+import Pagination from '@/Components/Pagination.vue';
 
 export default {
 	components: {

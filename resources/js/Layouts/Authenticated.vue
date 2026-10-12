@@ -12,9 +12,9 @@
 </template>
 
 <script>
-import Sidebar from './Partials/Sidebar';
-import Navbar from './Partials/Navbar';
-import Toast from './Partials/Toast';
+import Sidebar from './Partials/Sidebar.vue';
+import Navbar from './Partials/Navbar.vue';
+import Toast from './Partials/Toast.vue';
 
 export default {
 	components: { Sidebar, Navbar, Toast },

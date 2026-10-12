@@ -1,13 +1,13 @@
 <template>
 	<main-layout title="Company" subtitle="View">
 		<template v-slot:header-right>
-			<inertia-link v-if="currentUser.userable_type === 'company' && currentUser.userable_id === company.id" :href="route('internships.create')" class="btn btn-lg btn-primary">Add Internship -></inertia-link>
+			<Link v-if="currentUser.userable_type === 'company' && currentUser.userable_id === company.id" :href="route('internships.create')" class="btn btn-lg btn-primary">Add Internship -></Link>
 		</template>
 		<div class="lg:grid lg:grid-cols-3 gap-6">
 			<div class="col-span-1">
 				<card class="p-6">
 					<div>
-						<div v-if="company.image" class="mb-5 h-24 w-24 overflow-hidden rounded-2xl border border-gray-100 bg-gray-50 shadow-sm">
+						<div v-if="company.image" class="mb-5 h-24 w-24 overflow-hidden rounded-2xl border border-gray-100 bg-gray-50 shadow-xs">
 							<img :src="`/storage/${company.image}`" :alt="`${company.name} logo`" class="h-full w-full object-cover" />
 						</div>
 						<h1 class="text-3xl font-extrabold">{{ company.name }}</h1>
@@ -36,9 +36,9 @@
 							Send Message
 						</button>
 						<div v-if="currentUser.is_admin || currentUser.id === company.user_id" class="flex">
-							<inertia-link :href="route('companies.edit', company)" class="btn btn-dark">
+							<Link :href="route('companies.edit', company)" class="btn btn-dark">
 								Edit
-							</inertia-link>
+							</Link>
 							<delete-modal
 								v-if="currentUser.is_admin"
 								title="Delete Company"
@@ -68,11 +68,11 @@
 </template>
 
 <script>
-import MainLayout from "@/Layouts/Main";
-import InternshipCard from "@/Components/Internship/Card";
-import DeleteModal from "@/Components/Modal/Delete";
-import ContactModal from "@/Components/Modal/Contact";
-import Pagination from "@/Components/Pagination";
+import MainLayout from "@/Layouts/Main.vue";
+import InternshipCard from "@/Components/Internship/Card.vue";
+import DeleteModal from "@/Components/Modal/Delete.vue";
+import ContactModal from "@/Components/Modal/Contact.vue";
+import Pagination from "@/Components/Pagination.vue";
 
 export default {
 	components: {

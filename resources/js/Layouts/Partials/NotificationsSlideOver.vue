@@ -19,7 +19,7 @@
 					class="p-4 border-b border-gray-200 hover:bg-gray-50 cursor-pointer text-left flex"
 				>
 					<div
-						class="h-16 w-16 flex-shrink-0 flex-center rounded-full"
+						class="h-16 w-16 shrink-0 flex-center rounded-full"
 						:class="notification.read_at === null
 							? 'bg-red-100 text-red-600'
 							: 'bg-gray-200 text-gray-800'
@@ -36,24 +36,25 @@
 			</div>
 			<div v-else class="p-4 text-center">No notifications found.</div>
 			<div class="p-4 text-center">
-				<inertia-link
+				<Link
 					v-if="currentUser.notifications.data.length > 3"
 					:href="route('notifications.clear')"
 					class="link font-medium text-sm"
-				>Clear All</inertia-link>
+				>Clear All</Link>
 			</div>
 		</template>
 	</slide-over>
 </template>
 
 <script>
-import SlideOver from '@/Components/SlideOver';
+import { router } from '@inertiajs/vue3';
+import SlideOver from '@/Components/SlideOver.vue';
 
 export default {
 	components: { SlideOver },
 	methods: {
 		markAsRead(notification) {
-			this.$inertia.get(notification.data.action);
+			router.get(notification.data.action);
 			if(! notification.read_at) {
 				axios.post(route('notifications.store', notification.id))
 					.then(() => {
@@ -67,7 +68,7 @@ export default {
 			this.$refs.slideOver.toggle();
 		},
 		reloadNotification() {
-			this.$inertia.reload({ only: ['auth'] });
+			router.reload({ only: ['auth'] });
 		}
 	},
 	mounted() {

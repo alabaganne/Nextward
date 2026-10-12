@@ -18,10 +18,10 @@
 						</delete-modal>
 					</div>
 					<div>
-						<button type="button" @click="reset" class="btn btn-dark rounded">Reset</button>
+						<button type="button" @click="reset" class="btn btn-dark rounded-sm">Reset</button>
 						<button
 							type="submit"
-							class="ml-1 btn btn-primary rounded"
+							class="ml-1 btn btn-primary rounded-sm"
 						>{{ editing ? 'Update' : 'Create' }}</button>
 					</div>
 				</div>
@@ -31,9 +31,9 @@
 </template>
 
 <script>
-import MainLayout from "@/Layouts/Main";
-import BreezeValidationErrors from "@/Components/ValidationErrors";
-import DeleteModal from "@/Components/Modal/Delete";
+import MainLayout from "@/Layouts/Main.vue";
+import BreezeValidationErrors from "@/Components/ValidationErrors.vue";
+import DeleteModal from "@/Components/Modal/Delete.vue";
 import { nextTick } from 'vue';
 
 export default {

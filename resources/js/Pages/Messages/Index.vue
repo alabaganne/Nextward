@@ -9,8 +9,9 @@
 </template>
 
 <script>
-import ContactsList from "./ContactsList";
-import Conversation from "./Conversation";
+import { router } from '@inertiajs/vue3';
+import ContactsList from "./ContactsList.vue";
+import Conversation from "./Conversation.vue";
 
 export default {
 	components: { Conversation, ContactsList },
@@ -32,7 +33,7 @@ export default {
 			.listen('.messages', message => {
 				console.log(message);
 				if(route().current('messages.index')) {
-					this.$inertia.reload();
+					router.reload();
 				}
 			});
 	},

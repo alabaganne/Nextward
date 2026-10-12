@@ -14,8 +14,8 @@
 </template>
 
 <script>
-import MainLayout from "@/Layouts/Main";
-import ApplicationCard from "@/Components/Application/Card";
+import MainLayout from "@/Layouts/Main.vue";
+import ApplicationCard from "@/Components/Application/Card.vue";
 
 
 export default {

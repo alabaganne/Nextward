@@ -20,11 +20,12 @@
 </template>
 
 <script>
-    import BreezeButton from '@/Components/Breeze/Button'
-    import BreezeGuestLayout from "@/Layouts/Guest"
-    import BreezeInput from '@/Components/Breeze/Input'
-    import BreezeLabel from '@/Components/Breeze/Label'
-    import BreezeValidationErrors from '@/Components/ValidationErrors'
+    import { useForm } from '@inertiajs/vue3';
+    import BreezeButton from '@/Components/Breeze/Button.vue'
+    import BreezeGuestLayout from "@/Layouts/Guest.vue"
+    import BreezeInput from '@/Components/Breeze/Input.vue'
+    import BreezeLabel from '@/Components/Breeze/Label.vue'
+    import BreezeValidationErrors from '@/Components/ValidationErrors.vue'
 
     export default {
         layout: BreezeGuestLayout,
@@ -38,7 +39,7 @@
 
         data() {
             return {
-                form: this.$inertia.form({
+                form: useForm({
                     password: '',
                 })
             }

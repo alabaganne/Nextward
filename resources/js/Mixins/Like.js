@@ -1,9 +1,9 @@
-import { Inertia } from '@inertiajs/inertia';
+import { router } from '@inertiajs/vue3';
 
 export default {
     methods: {
         toggleLike(internship) {
-            Inertia.post(route('likes.store', internship.id), {}, {
+            router.post(route('likes.store', internship.id), {}, {
                 preserveScroll: true,
             });
         }

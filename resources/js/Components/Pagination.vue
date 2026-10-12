@@ -1,19 +1,19 @@
 <template>
   <div class="flex items-center justify-between">
     <div class="flex-1 flex justify-between sm:hidden">
-      <inertia-link
+      <Link
 				v-if="links[0].url"
 				:href="links[0].url"
 				class="mr-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:text-gray-500"
 				v-text="'<- Previous'"
 			/>
-      <inertia-link
+      <Link
 				v-if="links[links.length - 1].url"
 				:href="links[links.length - 1].url"
 				class="ml-auto relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:text-gray-500"
 			>
         Next ->
-      </inertia-link>
+      </Link>
     </div>
     <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
       <div class="py-1">
@@ -28,9 +28,9 @@
         </p>
       </div>
       <div v-if="links.length > 3">
-        <nav class="relative z-0 inline-flex rounded-md shadow-sm border border-gray-300 divide-x divide-gray-300 overflow-hidden -space-x-px" aria-label="Pagination">
+        <nav class="relative z-0 inline-flex rounded-md shadow-xs border border-gray-300 divide-x divide-gray-300 overflow-hidden -space-x-px" aria-label="Pagination">
           <template v-for="(link, i) in links" :key="i">
-            <inertia-link
+            <Link
 							v-if="link.url && !link.active"
 							:href="link.url"
 							:data="routeParams"
@@ -40,7 +40,7 @@
 							<span v-if="link.label.includes('Previous')" v-text="'<- Previous'" />
 							<span v-else-if="link.label.includes('Next')" v-text="'Next ->'" />
 							<span v-else>{{ link.label }}</span>
-						</inertia-link>
+						</Link>
             <span
 							v-else
 							class="relative inline-flex items-center px-4 py-2 bg-gray-100 text-sm font-medium text-gray-700"

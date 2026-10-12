@@ -1,5 +1,5 @@
 <template>
-	<div class="bg-white rounded-lg shadow overflow-hidden">
+	<div class="bg-white rounded-lg shadow-sm overflow-hidden">
 		<div v-if="title" class="p-6 border-b flex justify-between items-center">
 			<div>
 				<h3 class="text-lg leading-6 font-medium text-gray-900">{{ title }}</h3>

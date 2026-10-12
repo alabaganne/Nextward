@@ -13,14 +13,15 @@
                 Resend Verification Email
             </breeze-button>
 
-            <inertia-link :href="route('logout')" method="post" as="button" class="underline text-sm text-gray-600 hover:text-gray-900">Log Out</inertia-link>
+            <Link :href="route('logout')" method="post" as="button" class="underline text-sm text-gray-600 hover:text-gray-900">Log Out</Link>
         </div>
     </form>
 </template>
 
 <script>
-    import BreezeButton from '@/Components/Breeze/Button'
-    import BreezeGuestLayout from "@/Layouts/Guest"
+    import { useForm } from '@inertiajs/vue3';
+    import BreezeButton from '@/Components/Breeze/Button.vue'
+    import BreezeGuestLayout from "@/Layouts/Guest.vue"
 
     export default {
         layout: BreezeGuestLayout,
@@ -35,7 +36,7 @@
 
         data() {
             return {
-                form: this.$inertia.form()
+                form: useForm()
             }
         },
 

@@ -21,8 +21,9 @@
 </template>
 
 <script>
-import MainLayout from "@/Layouts/Main";
-import AppForm from "@/Components/Form";
+import { useForm } from '@inertiajs/vue3';
+import MainLayout from "@/Layouts/Main.vue";
+import AppForm from "@/Components/Form.vue";
 
 export default {
 	components: {
@@ -37,7 +38,7 @@ export default {
 	},
 	data() {
 		return {
-			form: this.$inertia.form({
+			form: useForm({
 				name: "",
 			})
 		}

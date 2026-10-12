@@ -39,12 +39,13 @@
 				class="text-sm bg-transparent border-none focus:placeholder-transparent focus:ring-0 w-full"
 				placeholder="Aa"
 			/>
-			<button type="submit" class="ml-4 flex-shrink-0 btn btn-primary">Send -></button>
+			<button type="submit" class="ml-4 shrink-0 btn btn-primary">Send -></button>
 		</form>
 	</div>
 </template>
 
 <script>
+import { router } from '@inertiajs/vue3';
 import { nextTick } from 'vue';
 
 export default {
@@ -74,7 +75,7 @@ export default {
 		sendMessage() {
 			if(this.newMessage === '') return;
 
-			this.$inertia.post(
+			router.post(
 				this.route('messages.store'),
 				{ to_id: this.contact.id, text: this.newMessage },
 				{ preserveScroll: true, onSuccess: () => { this.newMessage = '' } },

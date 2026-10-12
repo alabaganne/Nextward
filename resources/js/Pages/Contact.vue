@@ -14,7 +14,7 @@
 
 		<section class="max-w-7xl mx-auto px-6 py-16">
 			<div class="grid lg:grid-cols-3 gap-8">
-				<div class="lg:col-span-2 bg-white rounded-3xl border border-gray-200 p-8 shadow-sm">
+				<div class="lg:col-span-2 bg-white rounded-3xl border border-gray-200 p-8 shadow-xs">
 					<h2 class="text-2xl font-extrabold text-gray-900">Get in touch</h2>
 					<p class="mt-3 text-gray-600 leading-7">For job opportunities, freelance work, product feedback, MVP builds, or questions about this app, email is the fastest way to reach me.</p>
 
@@ -31,14 +31,14 @@
 							<div class="text-sm font-semibold text-gray-500">LinkedIn</div>
 							<div class="mt-2 font-bold text-gray-900 group-hover:text-blue-700">linkedin.com/in/alabaganne</div>
 						</a>
-						<inertia-link :href="route('internships.index')" class="group rounded-2xl border border-gray-200 p-5 hover:border-blue-300 hover:bg-blue-50 transition">
+						<Link :href="route('internships.index')" class="group rounded-2xl border border-gray-200 p-5 hover:border-blue-300 hover:bg-blue-50 transition">
 							<div class="text-sm font-semibold text-gray-500">Explore the product</div>
 							<div class="mt-2 font-bold text-gray-900 group-hover:text-blue-700">Browse internships</div>
-						</inertia-link>
+						</Link>
 					</div>
 				</div>
 
-				<aside class="rounded-3xl bg-gray-900 text-white p-8 shadow-sm">
+				<aside class="rounded-3xl bg-gray-900 text-white p-8 shadow-xs">
 					<h3 class="text-2xl font-extrabold">About the developer</h3>
 					<p class="mt-4 text-gray-300 leading-7">Ala Baganne is a software engineer and SaaS-focused builder who likes shipping practical full-stack products with clean interfaces, solid auth, useful role permissions, and real deployment polish. He is open to good engineering opportunities and to helping people turn product ideas into working software.</p>
 					<div class="mt-8 space-y-3 text-sm text-gray-300">
@@ -62,7 +62,7 @@
 </template>
 
 <script>
-import PublicLayout from '@/Layouts/Public'
+import PublicLayout from '@/Layouts/Public.vue'
 
 export default {
 	components: { PublicLayout }
