@@ -4,6 +4,8 @@
 /public/storage
 /storage/*.key
 /vendor
+/output/**/.hyperframes/
+/output/**/.thumbnails/
 .env.backup
 .phpunit.cache
 .phpunit.result.cache

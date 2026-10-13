@@ -39,7 +39,7 @@
 				class="text-sm bg-transparent border-none focus:placeholder-transparent focus:ring-0 w-full"
 				placeholder="Aa"
 			/>
-			<button type="submit" class="ml-4 shrink-0 btn btn-primary">Send -></button>
+			<button type="submit" class="ml-4 shrink-0 btn btn-primary">Send <icon name="arrow-right" class="ml-2 inline-block h-4 w-4 align-middle" /></button>
 		</form>
 	</div>
 </template>

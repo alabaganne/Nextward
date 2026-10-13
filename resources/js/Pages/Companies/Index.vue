@@ -1,7 +1,7 @@
 <template>
 	<main-layout title="Companies" subtitle="View">
 		<template v-slot:header-right>
-			<Link v-if="currentUser.is_admin" :href="route('companies.create')" class="btn btn-lg btn-primary">Add Company -></Link>
+			<Link v-if="currentUser.is_admin" :href="route('companies.create')" class="btn btn-lg btn-primary">Add Company <icon name="arrow-right" class="ml-2 inline-block h-4 w-4 align-middle" /></Link>
 		</template>
 		<template v-if="companies.data.length > 0">
 			<app-table :fields="['Name', 'Email', 'City', 'Number of Internships', 'Actions']">

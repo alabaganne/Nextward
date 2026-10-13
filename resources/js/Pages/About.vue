@@ -20,7 +20,7 @@
 					<div class="text-sm font-semibold text-blue-300 uppercase tracking-wide">What it solves</div>
 					<div class="mt-6 space-y-5">
 						<div v-for="item in highlights" :key="item.title" class="flex gap-4">
-							<div class="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">✓</div>
+							<div class="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0"><icon name="check" class="h-5 w-5" /></div>
 							<div>
 								<h3 class="font-bold">{{ item.title }}</h3>
 								<p class="mt-1 text-gray-300 leading-6">{{ item.text }}</p>

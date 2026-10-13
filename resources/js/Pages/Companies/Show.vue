@@ -1,7 +1,7 @@
 <template>
 	<main-layout title="Company" subtitle="View">
 		<template v-slot:header-right>
-			<Link v-if="currentUser.userable_type === 'company' && currentUser.userable_id === company.id" :href="route('internships.create')" class="btn btn-lg btn-primary">Add Internship -></Link>
+			<Link v-if="currentUser.userable_type === 'company' && currentUser.userable_id === company.id" :href="route('internships.create')" class="btn btn-lg btn-primary">Add Internship <icon name="arrow-right" class="ml-2 inline-block h-4 w-4 align-middle" /></Link>
 		</template>
 		<div class="lg:grid lg:grid-cols-3 gap-6">
 			<div class="col-span-1">

@@ -1,0 +1,109 @@
+{
+  "illustrations": [
+    {
+      "file": "stills/company-workspace.png",
+      "width": 1536,
+      "height": 1024,
+      "mode": "RGBA",
+      "bytes": 1439444,
+      "transparent_corner": false
+    },
+    {
+      "file": "stills/conversation.png",
+      "width": 1536,
+      "height": 1024,
+      "mode": "RGBA",
+      "bytes": 1816682,
+      "transparent_corner": true
+    },
+    {
+      "file": "stills/recruiter-avatar.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "bytes": 1324409,
+      "transparent_corner": true
+    },
+    {
+      "file": "stills/shared-success.png",
+      "width": 1536,
+      "height": 1024,
+      "mode": "RGBA",
+      "bytes": 1547651,
+      "transparent_corner": true
+    },
+    {
+      "file": "stills/student-avatar.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "bytes": 1330684,
+      "transparent_corner": true
+    },
+    {
+      "file": "stills/student-workspace.png",
+      "width": 1536,
+      "height": 1024,
+      "mode": "RGBA",
+      "bytes": 1536898,
+      "transparent_corner": true
+    }
+  ],
+  "loops": [
+    {
+      "file": "loops/conversation.webm",
+      "width": 1200,
+      "height": 800,
+      "fps": 30,
+      "frames": 180,
+      "seconds": 6,
+      "audio": false,
+      "alpha": true,
+      "bytes": 456018,
+      "first_last_mean_absolute_rgba_difference": [
+        0.031453125,
+        0.027630208333333333,
+        0.03612395833333333,
+        0.0004166666666666667
+      ],
+      "mp4_bytes": 119637,
+      "mp4_background_rgba": [
+        246,
+        247,
+        252,
+        255
+      ]
+    },
+    {
+      "file": "loops/success.webm",
+      "width": 1200,
+      "height": 800,
+      "fps": 30,
+      "frames": 180,
+      "seconds": 6,
+      "audio": false,
+      "alpha": true,
+      "bytes": 481515,
+      "first_last_mean_absolute_rgba_difference": [
+        0.004015625,
+        0.0033614583333333335,
+        0.004852083333333333,
+        0.00019270833333333333
+      ],
+      "mp4_bytes": 99932,
+      "mp4_background_rgba": [
+        246,
+        247,
+        252,
+        255
+      ]
+    }
+  ],
+  "hyperframes": {
+    "result": "passed",
+    "runtime_errors": 0,
+    "layout_issues": 0,
+    "motion_errors": 0,
+    "reviewed_warnings": "Two nested-structure suggestions per project. Intentional single-scene compositions; no need for sub-compositions."
+  }
+}

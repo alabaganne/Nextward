@@ -3,7 +3,7 @@
 		<article>
 			<header class="bg-white border-b border-gray-200">
 				<div class="max-w-4xl mx-auto px-6 py-14 lg:py-18">
-					<Link :href="route('blog.index')" class="text-sm font-semibold text-blue-700 hover:text-blue-800">← Back to blog</Link>
+					<Link :href="route('blog.index')" class="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-800"><icon name="arrow-left" class="h-4 w-4" /> Back to blog</Link>
 					<div class="mt-6 flex flex-wrap items-center gap-3 text-sm">
 						<span class="px-3 py-1 rounded-full bg-blue-50 text-blue-700 font-semibold border border-blue-100">{{ post.category }}</span>
 						<span class="text-gray-500">{{ formatDate(post.published_at) }}</span>

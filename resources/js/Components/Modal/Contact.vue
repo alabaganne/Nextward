@@ -14,7 +14,7 @@
 				</form>
 			</template>
 			<template v-slot:action-button>
-				<button class="btn btn-primary" @click="sendMessage">Send -></button>
+				<button class="btn btn-primary" @click="sendMessage">Send <icon name="arrow-right" class="ml-2 inline-block h-4 w-4 align-middle" /></button>
 			</template>
 		</modal>
 	</div>

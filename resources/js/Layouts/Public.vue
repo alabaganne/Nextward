@@ -1,9 +1,9 @@
 <template>
-	<div class="min-h-screen bg-gray-50 text-gray-900 flex flex-col">
-		<a href="#main" class="focus-ring sr-only z-50 rounded-lg bg-white px-4 py-2 font-semibold text-navy shadow focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Skip to content</a>
+	<div class="min-h-screen bg-[#faf9f6] text-navy flex flex-col">
+		<a href="#main" class="focus-ring sr-only z-50 rounded-lg bg-white px-4 py-2 font-semibold text-navy focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Skip to content</a>
 
-		<header class="sticky top-0 z-40 border-b border-navy/5 bg-white/90 backdrop-blur-md">
-			<div class="max-w-7xl mx-auto px-4 sm:px-6 h-18 flex items-center justify-between gap-6">
+		<header class="sticky top-0 z-40 border-b border-navy/10 bg-[#faf9f6]/95 backdrop-blur-md">
+			<div class="public-container h-20 flex items-center justify-between gap-6">
 				<Link href="/" class="focus-ring flex items-center rounded-lg">
 					<brand-logo />
 				</Link>
@@ -37,8 +37,7 @@
 					@click="menuOpen = !menuOpen"
 				>
 					<span class="sr-only">{{ menuOpen ? 'Close menu' : 'Open menu' }}</span>
-					<svg v-if="menuOpen" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" d="M6 6l12 12M18 6L6 18" /></svg>
-					<svg v-else class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" d="M4 7h16M4 12h16M4 17h16" /></svg>
+					<icon :name="menuOpen ? 'x' : 'menu'" class="h-6 w-6" />
 				</button>
 			</div>
 
@@ -69,8 +68,8 @@
 			<slot />
 		</main>
 
-		<footer class="border-t border-navy/5 bg-white">
-			<div class="max-w-7xl mx-auto px-4 sm:px-6 py-12 grid gap-10 md:grid-cols-[1.4fr_1fr] md:items-start">
+		<footer class="border-t border-navy/10 bg-[#faf9f6]">
+			<div class="public-container py-12 grid gap-10 md:grid-cols-[1.4fr_1fr] md:items-start">
 				<div class="max-w-sm">
 					<Link href="/" class="focus-ring inline-flex rounded-lg">
 						<brand-logo size="sm" />
@@ -82,7 +81,7 @@
 				</nav>
 			</div>
 			<div class="border-t border-navy/5">
-				<div class="max-w-7xl mx-auto px-4 sm:px-6 py-5 text-sm text-slate-500">
+				<div class="public-container py-5 text-xs text-slate-500">
 					Built by <a href="https://www.linkedin.com/in/alabaganne/" target="_blank" rel="noopener" class="focus-ring rounded font-medium text-slate-700 hover:text-brand">Ala Baganne</a>
 				</div>
 			</div>

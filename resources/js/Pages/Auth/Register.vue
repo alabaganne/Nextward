@@ -14,12 +14,12 @@
                 <breeze-label value="I am joining as" />
                 <div class="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <button type="button" @click="form.account_type = 'student'" :class="accountTypeClass('student')">
-                        <span class="text-lg">🎓</span>
+                        <icon name="academic-cap" class="h-5 w-5" />
                         <span class="font-semibold">Student</span>
                         <span class="text-xs text-gray-500">Find and apply to internships.</span>
                     </button>
                     <button type="button" @click="form.account_type = 'company'" :class="accountTypeClass('company')">
-                        <span class="text-lg">🏢</span>
+                        <icon name="office-building" class="h-5 w-5" />
                         <span class="font-semibold">Company</span>
                         <span class="text-xs text-gray-500">Complete onboarding before posting.</span>
                     </button>

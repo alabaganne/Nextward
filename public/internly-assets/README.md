@@ -2,6 +2,8 @@
 
 Ready-to-use assets for the landing page and public website. Browser URLs start with `/internly-assets/`, not `/public/internly-assets/`.
 
+The current landing page uses the lighter editorial assets in [`landing/`](landing/README.md). The illustrations and loops below remain available for other uses.
+
 | PNG | Dimensions | Suggested use |
 |---|---|---|
 | `stills/student-avatar.png` | 1254 × 1254 | Student role introduction |

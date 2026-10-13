@@ -34,7 +34,7 @@
 				:href="route('internships.create')"
 				class="btn btn-lg btn-primary"
 			>
-				Add Internship ->
+				Add Internship <icon name="arrow-right" class="ml-2 inline-block h-4 w-4 align-middle" />
 			</Link>
 		</template>
 		<internships-content

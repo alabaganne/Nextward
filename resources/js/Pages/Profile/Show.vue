@@ -1,7 +1,7 @@
 <template>
 	<main-layout title="Profile" :subtitle="subtitle" maxWidthClass="max-w-7xl">
 		<template v-slot:header-right>
-			<Link :href="route('profile.edit')" class="btn btn-dark">Edit profile -></Link>
+			<Link :href="route('profile.edit')" class="btn btn-dark">Edit profile <icon name="arrow-right" class="ml-2 inline-block h-4 w-4 align-middle" /></Link>
 		</template>
 
 		<card>
@@ -37,8 +37,8 @@
 							<div v-if="profile.phone_number" class="flex items-center"><icon name="phone" class="h-5 w-5 text-blue-400 mr-3" />{{ profile.phone_number }}</div>
 							<div v-if="profile.city" class="flex items-center"><icon name="location-marker" class="h-5 w-5 text-blue-400 mr-3" />{{ profile.city.name }}</div>
 							<div v-if="profile.field" class="flex items-center"><icon name="light-bulb" class="h-5 w-5 text-blue-400 mr-3" />{{ profile.field.name }}</div>
-							<div v-if="profile.website" class="flex items-center"><icon name="cursor-click" class="h-5 w-5 text-blue-400 mr-3" /><a :href="profile.website" target="_blank" class="link text-base text-blue-500">Company website -></a></div>
-							<div v-if="profile.linkedin_profile_url" class="flex items-center"><icon name="cursor-click" class="h-5 w-5 text-blue-400 mr-3" /><a :href="profile.linkedin_profile_url" target="_blank" class="link text-base text-blue-500">LinkedIn profile -></a></div>
+							<div v-if="profile.website" class="flex items-center"><icon name="cursor-click" class="h-5 w-5 text-blue-400 mr-3" /><a :href="profile.website" target="_blank" class="link text-base text-blue-500">Company website <icon name="arrow-right" class="ml-2 inline-block h-4 w-4 align-middle" /></a></div>
+							<div v-if="profile.linkedin_profile_url" class="flex items-center"><icon name="cursor-click" class="h-5 w-5 text-blue-400 mr-3" /><a :href="profile.linkedin_profile_url" target="_blank" class="link text-base text-blue-500">LinkedIn profile <icon name="arrow-right" class="ml-2 inline-block h-4 w-4 align-middle" /></a></div>
 							<div v-if="profile.userable_type === 'company'" class="flex items-center"><icon name="briefcase" class="h-5 w-5 text-blue-400 mr-3" />{{ profile.internships_count }} internships posted</div>
 						</div>
 					</div>

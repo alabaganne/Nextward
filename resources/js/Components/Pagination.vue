@@ -5,14 +5,15 @@
 				v-if="links[0].url"
 				:href="links[0].url"
 				class="mr-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:text-gray-500"
-				v-text="'<- Previous'"
-			/>
+			>
+        <icon name="arrow-left" class="mr-2 h-4 w-4" /> Previous
+      </Link>
       <Link
 				v-if="links[links.length - 1].url"
 				:href="links[links.length - 1].url"
 				class="ml-auto relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:text-gray-500"
 			>
-        Next ->
+        Next <icon name="arrow-right" class="ml-2 h-4 w-4" />
       </Link>
     </div>
     <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
@@ -37,16 +38,16 @@
 							class="relative inline-flex items-center px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
 							preserve-state
 						>
-							<span v-if="link.label.includes('Previous')" v-text="'<- Previous'" />
-							<span v-else-if="link.label.includes('Next')" v-text="'Next ->'" />
+							<span v-if="link.label.includes('Previous')" class="inline-flex items-center gap-2"><icon name="arrow-left" class="h-4 w-4" /> Previous</span>
+							<span v-else-if="link.label.includes('Next')" class="inline-flex items-center gap-2">Next <icon name="arrow-right" class="h-4 w-4" /></span>
 							<span v-else>{{ link.label }}</span>
 						</Link>
             <span
 							v-else
 							class="relative inline-flex items-center px-4 py-2 bg-gray-100 text-sm font-medium text-gray-700"
 						>
-							<span v-if="link.label.includes('Previous')" v-text="'<- Previous'" />
-							<span v-else-if="link.label.includes('Next')" v-text="'Next ->'" />
+							<span v-if="link.label.includes('Previous')" class="inline-flex items-center gap-2"><icon name="arrow-left" class="h-4 w-4" /> Previous</span>
+							<span v-else-if="link.label.includes('Next')" class="inline-flex items-center gap-2">Next <icon name="arrow-right" class="h-4 w-4" /></span>
 							<span v-else>{{ link.label }}</span>
 						</span>
           </template>

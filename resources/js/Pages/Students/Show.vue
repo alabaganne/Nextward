@@ -2,7 +2,7 @@
 	<main-layout title="Profile" subtitle="Student" maxWidthClass="max-w-7xl">
 		<template v-slot:header-right>
 			<Link :href="route('students.edit', student.id)" class="btn btn-dark">
-				Edit ->
+				Edit <icon name="arrow-right" class="ml-2 inline-block h-4 w-4 align-middle" />
 			</Link>
 			<delete-modal
 				title="Delete Student"
@@ -63,7 +63,7 @@
 							</div>
 							<div v-if="student.linkedin_profile_url" class="flex items-center">
 								<icon name="cursor-click" class="shrink-0 h-5 w-5 text-blue-400 mr-3" />
-								<a :href="student.linkedin_profile_url" target="_blank" class="link text-base text-blue-500">Linkedin profile -></a>
+								<a :href="student.linkedin_profile_url" target="_blank" class="link text-base text-blue-500">Linkedin profile <icon name="arrow-right" class="ml-2 inline-block h-4 w-4 align-middle" /></a>
 							</div>
 						</div>
 					</div>

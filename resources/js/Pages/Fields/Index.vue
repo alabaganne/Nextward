@@ -1,7 +1,7 @@
 <template>
 	<main-layout title="Fields" subtitle="View">
 		<template v-slot:header-right>
-			<Link :href="route('fields.create')" class="btn btn-lg btn-primary">Add Field of Studies -></Link>
+			<Link :href="route('fields.create')" class="btn btn-lg btn-primary">Add Field of Studies <icon name="arrow-right" class="ml-2 inline-block h-4 w-4 align-middle" /></Link>
 		</template>
 		<div v-if="fields.data.length > 0">
 			<app-table :fields="['Name', 'Number of Internships', 'Number of Students', 'Actions']">

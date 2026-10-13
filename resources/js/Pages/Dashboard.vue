@@ -13,7 +13,7 @@
 						</div>
 					</div>
 					<template v-slot:footer class="px-6 py-4 bg-gray-50">
-						<Link :href="card.link" class="link text-sm">View all -></Link>
+						<Link :href="card.link" class="link text-sm">View all <icon name="arrow-right" class="ml-2 inline-block h-4 w-4 align-middle" /></Link>
 					</template>
 				</card>
 			</template>
@@ -25,7 +25,7 @@
 				</div>
 				<template v-if="applications.length  >= 4" v-slot:footer>
 					<div class="flex justify-end">
-						<Link :href="route('applications.index')" class="btn btn-primary rounded-lg">View all -></Link>
+						<Link :href="route('applications.index')" class="btn btn-primary rounded-lg">View all <icon name="arrow-right" class="ml-2 inline-block h-4 w-4 align-middle" /></Link>
 					</div>
 				</template>
 				<div v-if="applications.length === 0" class="p-6">No records found.</div>
