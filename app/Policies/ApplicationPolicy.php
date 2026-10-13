@@ -20,14 +20,14 @@ class ApplicationPolicy
      */
     public function viewAny(User $user)
     {
-        return $user->isAdmin() || $user->isStudent() || $user->isCompany();
+        return $user->isAdmin() || $user->isCandidate() || $user->isCompany();
     }
 
     public function belongsTo(User $user, Application $application)
     {
         return $user->isAdmin()
-            || ($user->isStudent() && $user->userable->id === $application->student_id)
-            || ($user->isCompany() && $user->userable->id === $application->company_id);
+            || ($user->isCandidate() && $user->userable_id === $application->student_id)
+            || ($application->channel === 'internal' && $user->isCompany() && $user->userable_id === $application->company_id);
     }
 
     /**
@@ -52,7 +52,7 @@ class ApplicationPolicy
     {
         $internship = Route::current()->internship;
 
-        if(!$user->isStudent() || ! $internship->isOpen() || Application::where('internship_id', $internship->id)->where('student_id', Auth::user()->userable->id)->exists()) {
+        if(!$user->isCandidate() || !$internship || $internship->application_mode !== 'internal' || !$internship->company?->user || ! $internship->isOpen() || Application::where('internship_id', $internship->id)->where('student_id', $user->userable_id)->exists()) {
             return false;
         }
 
@@ -68,12 +68,12 @@ class ApplicationPolicy
      */
     public function update(User $user, Application $application)
     {
-        return $user->isAdmin() || ($user->isStudent() && $user->userable_id === $application->student_id && ! in_array($application->status, ['offer', 'closed'], true));
+        return $application->channel === 'internal' && ($user->isAdmin() || ($user->isCandidate() && $user->userable_id === $application->student_id && ! in_array($application->status, ['offer', 'closed'], true)));
     }
 
     public function reply(User $user, Application $application)
     {
-        return $user->isAdmin() || ($user->isCompany() && $user->userable_id === $application->company_id);
+        return $application->channel === 'internal' && ($user->isAdmin() || ($user->isCompany() && $user->userable_id === $application->company_id));
     }
 
     /**
@@ -85,7 +85,7 @@ class ApplicationPolicy
      */
     public function delete(User $user, Application $application)
     {
-        return $user->isAdmin() || ($user->isStudent() && $user->userable->id === $application->student_id && ! in_array($application->status, ['offer', 'closed'], true));
+        return $user->isAdmin() || ($user->isCandidate() && $user->userable_id === $application->student_id && ($application->channel === 'external' || ! in_array($application->status, ['offer', 'closed'], true)));
     }
 
     /**

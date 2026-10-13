@@ -16,7 +16,7 @@ class SaveAndMessageTest extends TestCase
     {
         parent::setUp();
 
-        $this->seed();
+        $this->seed(\Tests\Fixtures\DemoSeeder::class);
     }
 
     public function test_student_can_toggle_a_saved_role(): void

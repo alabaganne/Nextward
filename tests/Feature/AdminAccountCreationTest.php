@@ -48,7 +48,7 @@ class AdminAccountCreationTest extends TestCase
         Notification::assertNothingSent();
     }
 
-    public function test_admin_student_creation_validates_required_profile_references(): void
+    public function test_admin_student_creation_validates_supplied_profile_references(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
 
@@ -56,10 +56,37 @@ class AdminAccountCreationTest extends TestCase
             'name' => 'New student',
             'email' => 'student@example.com',
             'field_id' => 9999,
+            'city_id' => 9999,
         ])->assertSessionHasErrors(['field_id', 'city_id']);
 
         $this->assertDatabaseCount('students', 0);
         $this->assertDatabaseCount('users', 1);
+    }
+
+    public function test_admin_can_create_worldwide_candidates_without_local_profile_references(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        foreach (['professional', 'student'] as $stage) {
+            $country = $stage === 'professional' ? 'FR' : null;
+            $location = $stage === 'professional' ? 'Paris' : null;
+            $this->actingAs($admin)->post(route('students.store'), [
+                'name' => 'New '.$stage,
+                'email' => $stage.'@example.com',
+                'career_stage' => $stage,
+                'country_code' => $country,
+                'location' => $location,
+                'field_id' => null,
+                'city_id' => null,
+            ])->assertRedirect(route('students.index'))->assertSessionHasNoErrors();
+
+            $profile = User::where('email', $stage.'@example.com')->firstOrFail()->userable;
+            $this->assertSame($stage, $profile->career_stage);
+            $this->assertSame($country, $profile->country_code);
+            $this->assertSame($location, $profile->location);
+            $this->assertNull($profile->field_id);
+            $this->assertNull($profile->city_id);
+        }
     }
 
     public function test_members_cannot_create_other_accounts_through_admin_routes(): void

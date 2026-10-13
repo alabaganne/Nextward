@@ -27,6 +27,9 @@ class RegisteredUserController extends Controller
             'cities' => City::select('id', 'name')->orderBy('name')->get(),
             'fields' => Field::select('id', 'name')->orderBy('name')->get(),
             'accountType' => $request->query('account') === 'company' ? 'company' : 'student',
+            'careerStage' => in_array($request->query('career_stage'), ['student', 'graduate', 'professional'], true)
+                ? $request->query('career_stage')
+                : ($request->query('audience') === 'professional' ? 'professional' : 'student'),
         ]);
     }
 
@@ -40,51 +43,66 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request)
     {
-        // Keep the enhanced onboarding fields while remaining compatible with
-        // minimal registration payloads used by tests/API clients.
-        $defaultCityId = City::query()->value('id') ?? City::create(['name' => 'Tunis'])->id;
-        $defaultFieldId = Field::query()->value('id') ?? Field::create(['name' => 'Software Engineering'])->id;
-
         $request->merge([
             'account_type' => $request->input('account_type', 'student'),
-            'city_id' => $request->input('city_id', $defaultCityId),
-            'field_id' => $request->input('field_id', $defaultFieldId),
+            'country_code' => is_string($request->input('country_code')) ? strtoupper(trim($request->input('country_code'))) : $request->input('country_code'),
         ]);
 
         $data = $request->validate([
-            'account_type' => 'required|in:student,company',
+            'account_type' => 'required|in:student,candidate,company',
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|confirmed|min:8',
             'phone_number' => 'nullable|string|max:255|unique:users,phone_number',
             'linkedin_profile_url' => 'nullable|url|max:255',
-            'city_id' => 'required|exists:cities,id',
-
-            'field_id' => 'required_if:account_type,student|nullable|exists:fields,id',
+            'city_id' => 'nullable|exists:cities,id',
+            'field_id' => 'nullable|exists:fields,id',
+            'country_code' => 'nullable|string|size:2|regex:/^[A-Z]{2}$/',
+            'location' => 'nullable|string|max:255',
+            'career_stage' => 'nullable|in:student,graduate,professional',
+            'preferences' => 'nullable|array:kinds,countries,work_types,fields,skills,seniority,include_unknown_eligibility',
+            'preferences.kinds' => 'nullable|array|max:2',
+            'preferences.kinds.*' => 'in:internship,job',
+            'preferences.countries' => 'nullable|array|max:30',
+            'preferences.countries.*' => 'string|size:2|regex:/^[A-Z]{2}$/',
+            'preferences.work_types' => 'nullable|array|max:3',
+            'preferences.work_types.*' => 'in:onsite,hybrid,remote',
+            'preferences.fields' => 'nullable|array|max:20',
+            'preferences.fields.*' => 'integer|exists:fields,id',
+            'preferences.skills' => 'nullable|array|max:30',
+            'preferences.skills.*' => 'string|max:80',
+            'preferences.seniority' => 'nullable|array|max:10',
+            'preferences.seniority.*' => 'string|max:30',
+            'preferences.include_unknown_eligibility' => 'nullable|boolean',
             'about' => 'required_if:account_type,company|nullable|string|min:30',
-            'website' => 'required_if:account_type,company|nullable|url|max:255',
+            'website' => 'required_if:account_type,company|nullable|url:http,https|max:255',
             'company_logo' => 'required_if:account_type,company|nullable|image|max:2048',
         ], [
-            'account_type.required' => 'Choose whether you are creating a student or company account.',
-            'field_id.required_if' => 'Choose your field of study.',
-            'city_id.required' => 'Choose your city.',
+            'account_type.required' => 'Choose whether you want to find opportunities or hire candidates.',
             'company_logo.required_if' => 'Upload a company logo before creating a company account.',
             'website.required_if' => 'Add your company website before creating a company account.',
-            'about.required_if' => 'Tell students about your company before creating a company account.',
+            'about.required_if' => 'Tell candidates about your company before creating a company account.',
             'about.min' => 'The company description should be at least 30 characters.',
         ]);
 
         $user = DB::transaction(function () use ($request, $data) {
             $profile = $data['account_type'] === 'company'
                 ? Company::create([
+                    'name' => $data['name'],
                     'website' => $data['website'],
                     'about' => $data['about'],
-                    'city_id' => $data['city_id'],
+                    'city_id' => $data['city_id'] ?? null,
+                    'country_code' => $data['country_code'] ?? null,
+                    'location' => $data['location'] ?? null,
                 ])
                 : Student::create([
                     'about' => $data['about'] ?? null,
-                    'field_id' => $data['field_id'],
-                    'city_id' => $data['city_id'],
+                    'field_id' => $data['field_id'] ?? null,
+                    'city_id' => $data['city_id'] ?? null,
+                    'career_stage' => $data['career_stage'] ?? 'student',
+                    'country_code' => $data['country_code'] ?? null,
+                    'location' => $data['location'] ?? null,
+                    'preferences' => $data['preferences'] ?? [],
                 ]);
 
             $logoPath = $request->hasFile('company_logo')
@@ -108,7 +126,7 @@ class RegisteredUserController extends Controller
         return $user->isCompany()
             ? redirect()->route('companies.show', $user->userable)->with('toast', [
                 'type' => 'store',
-                'message' => 'Company profile completed. You can now post internships.'
+                'message' => 'Company profile completed. You can now post internships and jobs.'
             ])
             : redirect(route('dashboard', absolute: false));
     }

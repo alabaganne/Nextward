@@ -36,6 +36,16 @@ class AppServiceProvider extends ServiceProvider
             'internship' => \App\Models\Internship::class,
         ]);
 
+        \App\Models\Internship::observe(\App\Observers\OpportunityIndexingObserver::class);
+
+        \Illuminate\Support\Facades\Event::listen(\Inertia\Ssr\SsrRenderFailed::class, function ($event) {
+            \Illuminate\Support\Facades\Log::error('Public server rendering failed.', [
+                'component' => $event->component(),
+                'path' => parse_url($event->url(), PHP_URL_PATH),
+                'type' => $event->type->value,
+            ]);
+        });
+
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });

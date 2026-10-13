@@ -25,7 +25,7 @@
 				class="focus-ring absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-navy shadow-sm ring-1 ring-navy/10 transition hover:bg-white hover:text-brand"
 				:aria-label="shared.paused ? 'Play animation' : 'Pause animation'"
 				:title="shared.paused ? 'Play animation' : 'Pause animation'"
-				@click="shared.paused = !shared.paused"
+				@click="shared.paused = !this.shared.paused"
 			>
 				<icon :name="shared.paused ? 'play' : 'pause'" solid class="h-4 w-4" />
 			</button>
@@ -34,14 +34,10 @@
 </template>
 
 <script>
-import { reactive } from 'vue';
-
-// Shared by every loop on the page: pausing one pauses them all.
-const shared = reactive({ paused: false });
 
 export default {
 	props: {
-		// File name in /internly-assets/loops, e.g. "conversation" or "success".
+		// File name in /nextward-assets/loops, e.g. "conversation" or "success".
 		name: {
 			type: String,
 			required: true,
@@ -54,15 +50,15 @@ export default {
 	},
 	data() {
 		return {
-			shared,
-			reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+			shared: { paused: false },
+			reducedMotion: true,
 			near: !this.lazy,
 			visible: false,
 		};
 	},
 	computed: {
 		base() {
-			return `/internly-assets/loops/${this.name}`;
+			return `/nextward-assets/loops/${this.name}`;
 		},
 		poster() {
 			return `${this.base}-poster.png`;
@@ -74,6 +70,7 @@ export default {
 		},
 	},
 	mounted() {
+		this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 		if (this.reducedMotion || !('IntersectionObserver' in window)) {
 			this.near = true;
 			return;
@@ -106,7 +103,7 @@ export default {
 			const video = this.$refs.video;
 			if (!video) return;
 
-			if (this.visible && !shared.paused) {
+			if (this.visible && !this.shared.paused) {
 				video.play().catch(() => {});
 			} else {
 				video.pause();

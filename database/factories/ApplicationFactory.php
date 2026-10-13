@@ -17,7 +17,7 @@ class ApplicationFactory extends Factory
             "I am a final year Computer Science student at ESPRIT with strong web development skills in Laravel and Vue.js. I am excited about this opportunity as it aligns perfectly with my academic background and career goals. I have worked on several projects involving RESTful APIs and responsive front-end interfaces, and I am confident I can contribute meaningfully to your team from day one.",
             "As a Data Science student at INSAT, I have developed solid skills in Python, machine learning, and data visualization. Your company's use of advanced analytics directly matches my interests and coursework. I am eager to apply my knowledge to real-world datasets and grow under the mentorship of experienced data professionals.",
             "I am passionate about mobile development and have built two personal React Native applications currently live on the Play Store. Your internship offer is exactly the kind of hands-on experience I am seeking to strengthen my skills and contribute to a real product used by real users.",
-            "Cybersecurity is my passion — I actively participate in CTF competitions and practice on HackTheBox. Your company's security-focused environment is the perfect place for me to develop professionally. I am familiar with OWASP Top 10, penetration testing tools, and I am motivated to contribute to your security operations.",
+            "Cybersecurity is my passion. I actively participate in CTF competitions and practice on HackTheBox. Your company's security-focused environment is the perfect place for me to develop professionally. I am familiar with OWASP Top 10, penetration testing tools, and I am motivated to contribute to your security operations.",
             "I have been self-studying DevOps practices for the past year, including Docker, CI/CD, and AWS. Your internship offer is an incredible opportunity to bridge the gap between my academic background and real infrastructure experience. I am a fast learner and a highly motivated team player.",
             "With a strong interest in UI/UX design and a portfolio of mobile and web prototypes built in Figma, I believe I can add real value to your design team. I care deeply about user experience and accessibility, and I am excited to collaborate with your engineers to bring designs to life.",
             "As a Business Intelligence student with hands-on experience in SQL and Power BI, I am excited about the opportunity to work on real business data. I enjoy transforming raw data into actionable insights, and I am confident my analytical skills will make a positive contribution to your analytics team.",
@@ -32,27 +32,20 @@ class ApplicationFactory extends Factory
             "I have attached my CV and portfolio for your review. I look forward to hearing from you.",
         ];
 
-        $internshipIds = Internship::pluck('id')->toArray();
-        $studentIds = Student::pluck('id')->toArray();
-
-        if (empty($internshipIds) || empty($studentIds)) {
-            return [
-                'internship_id' => 1,
-                'student_id'    => 1,
-                'company_id'    => 1,
-                'cover_letter'  => $this->faker->randomElement($coverLetters),
-                'message'       => $this->faker->randomElement($messages),
-            ];
-        }
-
-        $internship = Internship::find($this->faker->randomElement($internshipIds));
+        $internship = Internship::available()->inRandomOrder()->first() ?? Internship::factory()->create();
+        $student = Student::inRandomOrder()->first() ?? Student::factory()->create();
 
         return [
             'internship_id' => $internship->id,
-            'student_id'    => $this->faker->randomElement($studentIds),
-            'company_id'    => $internship->company_id,
-            'cover_letter'  => $this->faker->randomElement($coverLetters),
-            'message'       => $this->faker->randomElement($messages),
+            'student_id' => $student->id,
+            'company_id' => fn (array $attributes) => Internship::findOrFail($attributes['internship_id'])->company_id,
+            'channel' => fn (array $attributes) => Internship::findOrFail($attributes['internship_id'])->application_mode === 'external' ? 'external' : 'internal',
+            'applied_at' => now()->subDays($this->faker->numberBetween(0, 7))->toDateString(),
+            'status' => 'submitted',
+            'cover_letter' => fn (array $attributes) => $attributes['channel'] === 'external' ? null : 'Fictional demo application. '.$this->faker->randomElement($coverLetters),
+            'message' => fn (array $attributes) => $attributes['channel'] === 'external' ? null : $this->faker->randomElement($messages),
+            'candidate_notes' => fn (array $attributes) => $attributes['channel'] === 'external' ? 'Private fictional tracking note. No application has been submitted by Nextward.' : null,
+            'attachments' => [],
         ];
     }
 }

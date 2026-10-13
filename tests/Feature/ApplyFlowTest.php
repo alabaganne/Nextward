@@ -16,7 +16,7 @@ class ApplyFlowTest extends TestCase
     {
         parent::setUp();
 
-        $this->seed();
+        $this->seed(\Tests\Fixtures\DemoSeeder::class);
     }
 
     public function test_student_can_apply_to_an_internship(): void

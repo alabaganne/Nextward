@@ -27,10 +27,10 @@ class StudentController extends Controller
     public function index()
     {
         return Inertia::render('Students/Index', [
-            'students' => Student::with('field')
+            'students' => Student::with('field', 'user')
                     ->latest()
                     ->where(function ($query) {
-                        if (auth()->user()->isStudent()) {
+                        if (auth()->user()->isCandidate()) {
                             $query->where('id', '<>', auth()->user()->userable->id);
                         }
                     })
@@ -40,10 +40,11 @@ class StudentController extends Controller
 							'id' => $student->id,
 							'user_id' => $student->user->id,
 							'name' => $student->user->name,
+							'career_stage' => $student->career_stage,
 							'email' => $student->user->email,
 							'image' => $student->user->image,
 							'field' => [
-								'name' => $student->field->name
+								'name' => $student->field?->name
 							]
 						];
 					}),
@@ -72,7 +73,7 @@ class StudentController extends Controller
     public function store(StudentRequest $request)
     {
         DB::transaction(function () use ($request) {
-            Student::create($request->only('about', 'field_id', 'city_id'))->user()->create([
+            Student::create($request->only('about', 'field_id', 'city_id', 'career_stage', 'headline', 'experience_years', 'country_code', 'location'))->user()->create([
                 ...$request->only('name', 'email', 'phone_number'),
                 'password' => Hash::make(Str::random(64)),
             ]);
@@ -80,7 +81,7 @@ class StudentController extends Controller
 
         return Redirect::route('students.index')->with('toast', [
             'type' => 'store',
-            'message' => 'Student created successfully.'
+            'message' => 'Candidate created successfully.'
         ]);
     }
 
@@ -96,7 +97,12 @@ class StudentController extends Controller
             'student' => [
 				'id' => $student->id,
 				'about' => $student->about,
-				'linkedin_profile_url' => $student->linkedin_profile_url,
+                'career_stage' => $student->career_stage,
+                'headline' => $student->headline,
+                'experience_years' => $student->experience_years,
+                'country_code' => $student->country_code,
+                'location' => $student->location,
+				'linkedin_profile_url' => $student->user->linkedin_profile_url,
 				'user_id' => $student->user->id,
 				'name' => $student->user->name,
 				'email' => $student->user->email,
@@ -104,10 +110,10 @@ class StudentController extends Controller
 				'image' => $student->user->image,
 				'skills' => $student->skills->pluck('name'),
 				'field' => [
-					'name' => $student->field->name,
+					'name' => $student->field?->name,
 				],
 				'city' => [
-					'name' => $student->city->name
+					'name' => $student->city?->name
 				]
 			]
         ]);
@@ -128,6 +134,11 @@ class StudentController extends Controller
 				'email' => $student->user->email,
 				'phone_number' => $student->user->phone_number,
 				'about' => $student->about,
+                'career_stage' => $student->career_stage,
+                'headline' => $student->headline,
+                'experience_years' => $student->experience_years,
+                'country_code' => $student->country_code,
+                'location' => $student->location,
 				'field_id' => $student->field_id,
 				'city_id' => $student->city_id,
 			],
@@ -145,13 +156,13 @@ class StudentController extends Controller
      */
     public function update(StudentRequest $request, Student $student)
     {
-        $student->update($request->only('about', 'field_id', 'city_id'));
+        $student->update($request->only('about', 'field_id', 'city_id', 'career_stage', 'headline', 'experience_years', 'country_code', 'location'));
 
         $student->user()->update($request->only('name', 'email', 'phone_number'));
 
         return Redirect::route('students.show', $student)->with('toast', [
             'type' => 'update',
-            'message' => 'Student updated successfully.'
+            'message' => 'Candidate updated successfully.'
         ]);
     }
 
@@ -168,7 +179,7 @@ class StudentController extends Controller
 
         return Redirect::route('students.index')->with('toast', [
             'type' => 'destroy',
-            'message' => 'Student deleted successfully.'
+            'message' => 'Candidate deleted successfully.'
         ]);
     }
 }

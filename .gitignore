@@ -4,8 +4,12 @@
 /public/storage
 /storage/*.key
 /vendor
+/bootstrap/ssr
 /output/**/.hyperframes/
 /output/**/.thumbnails/
+.env
+.env.*
+!.env.example
 .env.backup
 .phpunit.cache
 .phpunit.result.cache

@@ -27,10 +27,10 @@
 
 		<section class="max-w-4xl mx-auto px-6 pb-16">
 			<div class="rounded-3xl bg-blue-600 text-white p-8 md:p-10">
-				<h2 class="text-2xl md:text-3xl font-extrabold">Put it into practice on Internly</h2>
-				<p class="mt-3 text-blue-50 leading-7">Students can browse internships and companies can publish opportunities, review applications, and manage communication from one workspace.</p>
+				<h2 class="text-2xl md:text-3xl font-extrabold">Put it into practice on Nextward</h2>
+				<p class="mt-3 text-blue-50 leading-7">Students and professionals can explore internships and jobs. Employers can publish opportunities and review native applications in one workspace.</p>
 				<div class="mt-6 flex flex-col sm:flex-row gap-3">
-					<Link :href="route('internships.index')" class="px-5 py-3 rounded-xl bg-white text-blue-700 font-semibold text-center hover:bg-blue-50 transition">Browse internships</Link>
+					<Link :href="route('opportunities.index')" class="px-5 py-3 rounded-xl bg-white text-blue-700 font-semibold text-center hover:bg-blue-50 transition">Browse opportunities</Link>
 					<Link :href="route('register')" class="px-5 py-3 rounded-xl bg-blue-700 text-white font-semibold text-center hover:bg-blue-800 transition">Create account</Link>
 				</div>
 			</div>

@@ -9,6 +9,7 @@ use App\Models\Internship;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -32,12 +33,14 @@ class PublicInternshipListingTest extends TestCase
 
     public function test_guests_only_see_internships_whose_closing_date_has_not_passed()
     {
+        $this->travelTo(Carbon::parse('2026-10-13 23:30:00', 'UTC'));
+        $today = today(config('importer.timezone', 'Africa/Tunis'));
         $company = $this->company('Atlas Cloud');
-        $this->internship($company, 'Closes tomorrow', now()->addDay());
-        $this->internship($company, 'Closes today', today());
-        $this->internship($company, 'Closed yesterday', now()->subDay());
+        $this->internship($company, 'Closes tomorrow', $today->copy()->addDay());
+        $this->internship($company, 'Closes today', $today);
+        $this->internship($company, 'Closed yesterday', $today->copy()->subDay());
 
-        $this->get('/internships')->assertInertia(fn (Assert $page) => $page
+        $this->get('/opportunities/internships')->assertInertia(fn (Assert $page) => $page
             ->component('Internships/Index')
             ->has('internships.data', 2)
             ->where('internships.data.0.is_open', true)
@@ -51,24 +54,78 @@ class PublicInternshipListingTest extends TestCase
     {
         $this->internship($this->company('Atlas Cloud'), 'Closed last month', now()->subMonth());
 
-        $this->get('/internships')->assertInertia(fn (Assert $page) => $page
+        $this->get('/opportunities/internships')->assertInertia(fn (Assert $page) => $page
             ->has('internships.data', 0)
             ->where('fields.0.internships_count', 0)
-            ->where('companies.0.internships_count', 0)
+            ->has('companies', 0)
         );
     }
 
     public function test_companies_still_see_their_own_closed_internships()
     {
         $company = $this->company('Atlas Cloud');
-        $this->internship($company, 'Our closed role', now()->subDay());
-        $this->internship($this->company('Other Co'), 'Their closed role', now()->subDay());
+        $closed = $this->internship($company, 'Our closed role', now()->subDay());
+        $otherCompany = $this->company('Other Co');
+        $otherClosed = $this->internship($otherCompany, 'Their closed role', now()->subDay());
 
-        $this->actingAs($company->user)->get('/internships')->assertInertia(fn (Assert $page) => $page
-            ->has('internships.data', 1)
-            ->where('internships.data.0.title', 'Our closed role')
-            ->where('internships.data.0.is_open', false)
+        $this->actingAs($company->user)->get(route('companies.show', $company))->assertInertia(fn (Assert $page) => $page
+            ->component('Companies/Show')
+            ->has('company.internships.data', 1)
+            ->where('company.internships.data.0.id', $closed->id)
+            ->where('company.internships.data.0.is_open', false)
         );
+        $this->get(route('companies.show', $otherCompany))->assertInertia(fn (Assert $page) => $page
+            ->has('company.internships.data', 0));
+        $this->get(route('internships.edit', $closed))->assertOk();
+        $this->get(route('internships.edit', $otherClosed))->assertForbidden();
+        $this->get('/opportunities')->assertInertia(fn (Assert $page) => $page->has('internships.data', 0));
+    }
+
+    public function test_company_management_paginates_owned_drafts_and_closed_roles_without_exposing_them_to_other_accounts()
+    {
+        $company = $this->company('Atlas Cloud');
+        $openRoles = collect(range(1, 10))->map(fn ($number) => $this->internship($company, 'Open role '.$number, now()->addWeek()));
+        $closed = $this->internship($company, 'Closed role', now()->subDay());
+        $draft = $this->internship($company, 'Draft job', null);
+        $draft->update(['kind' => 'job', 'publication_status' => 'draft']);
+        $otherCompany = $this->company('Other Co');
+        $otherDraft = $this->internship($otherCompany, 'Other draft', null);
+        $otherDraft->update(['publication_status' => 'draft']);
+
+        $response = $this->actingAs($company->user)->get(route('companies.show', $company));
+        $response->assertOk()->assertHeader('X-Robots-Tag', 'noindex, nofollow')
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Companies/Show')
+                ->has('company.internships.data', 10)
+                ->where('company.internships.meta.total', 12)
+                ->where('company.internships.meta.last_page', 2)
+                ->where('company.internships.data.0.id', $draft->id)
+                ->where('company.internships.data.0.publication_status', 'draft')
+                ->where('company.internships.data.1.id', $closed->id)
+                ->where('company.internships.data.1.is_open', false)
+                ->where('company.internships.links.next', route('companies.show', [$company, 'page' => 2])));
+        $this->assertStringContainsString('private', $response->headers->get('Cache-Control'));
+        $this->assertStringContainsString('no-store', $response->headers->get('Cache-Control'));
+        $this->get(route('companies.show', [$company, 'page' => 2]))->assertInertia(fn (Assert $page) => $page
+            ->has('company.internships.data', 2)
+            ->where('company.internships.data.0.id', $openRoles[1]->id)
+            ->where('company.internships.data.1.id', $openRoles[0]->id)
+            ->where('company.internships.meta.current_page', 2));
+        $this->get(route('internships.edit', $draft))->assertOk();
+        $this->get(route('internships.edit', $otherDraft))->assertForbidden();
+        $this->get($draft->public_url)->assertNotFound();
+        $this->get('/opportunities')->assertInertia(fn (Assert $page) => $page
+            ->has('internships.data', 10));
+
+        $this->actingAs($otherCompany->user)->get(route('companies.show', $company))->assertInertia(fn (Assert $page) => $page
+            ->has('company.internships.data', 10)
+            ->where('company.internships.meta.total', 10)
+            ->where('company.internships.data.0.id', $openRoles->last()->id));
+        $this->actingAs($this->student())->get(route('companies.show', $company))->assertInertia(fn (Assert $page) => $page
+            ->where('company.internships.meta.total', 10)
+            ->where('company.internships.data.0.id', $openRoles->last()->id));
+        $this->get(route('internships.edit', $draft))->assertForbidden();
+        $this->get($draft->public_url)->assertNotFound();
     }
 
     public function test_students_cannot_apply_after_the_closing_date()
@@ -84,9 +141,12 @@ class PublicInternshipListingTest extends TestCase
             'cover_letter' => str_repeat('I would love to join your team. ', 10),
         ])->assertForbidden();
 
-        $this->get(route('internships.show', $closed))->assertInertia(fn (Assert $page) => $page
+        $this->get(route('internships.show', $closed))->assertStatus(301)->assertRedirect($closed->public_url);
+        $this->get($closed->public_url)->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('Internships/Show')
             ->where('internship.is_open', false)
+            ->where('seo.robots', 'noindex, follow')
+            ->where('seo.structured_data', [])
         );
     }
 
@@ -97,8 +157,16 @@ class PublicInternshipListingTest extends TestCase
         $closed = $this->internship($company, 'Closed role', now()->subDay());
 
         $this->get('/sitemap.xml')
-            ->assertSee('/internships/'.$open->id.'<', false)
-            ->assertDontSee('/internships/'.$closed->id.'<', false);
+            ->assertOk()
+            ->assertSee('<sitemapindex ', false)
+            ->assertSee('/sitemaps/pages.xml<', false)
+            ->assertSee('/sitemaps/opportunities-1.xml<', false);
+        $this->get('/sitemaps/opportunities-1.xml')
+            ->assertOk()
+            ->assertSee('<urlset ', false)
+            ->assertSee('<loc>'.$open->public_url.'</loc>', false)
+            ->assertDontSee($closed->public_url, false)
+            ->assertDontSee('/internships/', false);
     }
 
     public function test_explicitly_closed_roles_are_hidden_and_reject_applications_before_the_deadline()
@@ -107,10 +175,11 @@ class PublicInternshipListingTest extends TestCase
         $internship = $this->internship($company, 'Closed early', now()->addWeek());
         $internship->update(['status' => 'closed']);
 
-        $this->get('/internships')->assertInertia(fn (Assert $page) => $page
+        $this->get('/opportunities')->assertInertia(fn (Assert $page) => $page
             ->has('internships.data', 0)
             ->where('fields.0.internships_count', 0));
-        $this->get('/sitemap.xml')->assertDontSee('/internships/'.$internship->id.'<', false);
+        $this->get('/sitemap.xml')->assertDontSee('/sitemaps/opportunities-', false);
+        $this->get('/sitemaps/opportunities-1.xml')->assertNotFound();
 
         $this->actingAs($this->student())
             ->get(route('applications.create', $internship))->assertForbidden();
@@ -118,20 +187,33 @@ class PublicInternshipListingTest extends TestCase
             'cover_letter' => str_repeat('I would love to join your team. ', 10),
         ])->assertForbidden();
 
-        $this->actingAs($company->user)->get('/internships')
+        $this->actingAs($company->user)->get(route('companies.show', $company))
             ->assertInertia(fn (Assert $page) => $page
-                ->has('internships.data', 1)
-                ->where('internships.data.0.is_open', false));
+                ->has('company.internships.data', 1)
+                ->where('company.internships.data.0.is_open', false));
     }
 
-    public function test_home_page_does_not_turn_records_into_social_proof()
+    public function test_home_page_receives_real_open_internships_and_jobs_without_social_proof_counts()
     {
-        $this->internship($this->company('Atlas Cloud'), 'Software Engineering Intern', now()->addWeek());
+        $company = $this->company('Atlas Cloud');
+        $internship = $this->internship($company, 'Software Engineering Intern', now()->addWeek());
+        $job = $this->internship($company, 'Senior Software Engineer', now()->addWeek());
+        $job->update(['kind' => 'job']);
+        $this->internship($company, 'Closed role', now()->subDay());
 
         $this->get('/')
-            ->assertInertia(fn (Assert $page) => $page->component('Welcome')->has('posts', 3))
-            ->assertDontSee('Atlas Cloud')
-            ->assertDontSee('Software Engineering Intern');
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Welcome')
+                ->has('posts', 3)
+                ->has('opportunities', 2)
+                ->where('opportunities.0.id', $job->id)
+                ->where('opportunities.0.kind', 'job')
+                ->where('opportunities.1.id', $internship->id)
+                ->where('opportunities.1.kind', 'internship')
+                ->where('opportunities.1.company.name', 'Atlas Cloud')
+                ->missing('companies_count')
+                ->missing('students_count')
+                ->missing('placements_count'));
     }
 
     private function company(string $name): Company

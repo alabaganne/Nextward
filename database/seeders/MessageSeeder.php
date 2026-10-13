@@ -14,6 +14,10 @@ class MessageSeeder extends Seeder
      */
     public function run()
     {
+        if (! app()->environment(['local', 'testing'])) {
+            throw new \RuntimeException('Demo data can only be seeded in local or testing environments.');
+        }
+
         Message::factory(100)->create();
     }
 }

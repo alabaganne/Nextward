@@ -61,6 +61,10 @@ class User extends Authenticatable
         return $this->userable_type === 'student';
     }
 
+    public function isCandidate() {
+        return $this->userable_type === 'student';
+    }
+
     public function isAdmin() {
         return (bool) $this->is_admin && !$this->isCompany() && !$this->isStudent();
     }

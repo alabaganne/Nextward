@@ -1,6 +1,6 @@
 <template>
 	<div class="auth-shell" :class="{ 'auth-wide': isRegister }">
-		<Head :title="`${pageTitle} | Internly`" />
+		<Head :title="`${pageTitle} | Nextward`" />
 		<a href="#auth-main" class="auth-skip focus-ring">Skip to form</a>
 		<header class="auth-header">
 			<Link href="/" class="focus-ring auth-brand"><brand-logo /></Link>
@@ -12,9 +12,9 @@
 				<div class="auth-story-inner">
 					<p class="auth-kicker">Your next chapter</p>
 					<h2>Small step.<br /><span>Big beginning.</span></h2>
-					<p class="auth-story-description">Find your first opportunity, make your introduction, and see where it takes you.</p>
-					<img src="/internly-assets/landing/career-steps.webp" alt="" width="1254" height="1254" decoding="async" class="auth-illustration" />
-					<Link :href="route('internships.index')" class="auth-story-link focus-ring"><span>Just looking? Explore internships</span><icon name="arrow-up-right" /></Link>
+					<p class="auth-story-description">Find internships and jobs for students and professionals, in Tunisia and worldwide.</p>
+					<img src="/nextward-assets/landing/career-steps.webp" alt="" width="1254" height="1254" decoding="async" class="auth-illustration" />
+					<Link :href="route('opportunities.index')" class="auth-story-link focus-ring"><span>Just looking? Explore opportunities</span><icon name="arrow-up-right" /></Link>
 					<p class="auth-story-note">No account needed to explore.</p>
 				</div>
 			</aside>

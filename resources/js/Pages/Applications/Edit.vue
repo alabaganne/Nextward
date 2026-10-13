@@ -44,7 +44,7 @@ const pickFiles = (event) => {
 
 const tips = [
 	'Lead with your strongest, most relevant qualification.',
-	'Show evidence — projects, links, numbers — not adjectives.',
+	'Show evidence , projects, links, numbers , not adjectives.',
 	'Keep it short: cut anything that isn’t earning its place.',
 ];
 </script>
@@ -52,9 +52,9 @@ const tips = [
 <template>
 	<div class="px-10 max-[680px]:px-5 pt-7 pb-14 w-full max-w-wrap mx-auto">
 		<div class="flex items-center gap-2 text-[13.5px] text-muted font-medium mb-[22px] [&_svg]:w-3.5 [&_svg]:h-3.5 [&_svg]:text-muted-2">
-			<Link class="hover:text-blue-700" :href="route('internships.index')">Internships</Link>
+			<Link class="hover:text-blue-700" :href="route('opportunities.index')">Opportunities</Link>
 			<component :is="icons.chevron" aria-hidden="true" />
-			<Link class="hover:text-blue-700" :href="route('internships.show', internship.id)">{{ internship.title }}</Link>
+			<Link class="hover:text-blue-700" :href="internship.public_url || route('internships.show', internship.id)">{{ internship.title }}</Link>
 			<component :is="icons.chevron" aria-hidden="true" />
 			<span class="text-ink-700 font-semibold">{{ editing ? 'Edit application' : 'Apply' }}</span>
 		</div>
@@ -62,7 +62,7 @@ const tips = [
 		<div class="mb-6">
 			<span class="block font-display text-[12.5px] font-semibold tracking-[.18em] uppercase text-blue-600 mb-2">{{ editing ? 'Your application' : 'One step left' }}</span>
 			<h1 class="font-display text-[32px] font-semibold tracking-[-.02em]">{{ editing ? 'Edit your application' : 'Introduce yourself' }}</h1>
-			<p class="text-muted text-[15px] mt-1.5">What makes you a strong candidate for this internship?</p>
+			<p class="text-muted text-[15px] mt-1.5">What makes you a strong candidate for this opportunity?</p>
 		</div>
 
 		<div class="grid grid-cols-[1fr_350px] gap-6 items-start max-[1080px]:grid-cols-1">
@@ -71,7 +71,7 @@ const tips = [
 				<div class="px-8 max-[560px]:px-5 py-[26px]">
 					<div class="mb-6">
 						<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="cover_letter">Cover letter</label>
-						<p class="text-[13px] text-muted mb-2.5">Tell the company a little bit about yourself and any work you’ve done that’s relevant to this internship.</p>
+						<p class="text-[13px] text-muted mb-2.5">Tell the company a little bit about yourself and any work you’ve done that’s relevant to this opportunity.</p>
 						<textarea id="cover_letter" v-model="form.cover_letter" class="fld !min-h-[220px]" rows="10"></textarea>
 						<div class="flex justify-between mt-[7px] text-xs">
 							<span class="text-[#dc2626]">{{ form.errors.cover_letter }}</span>
@@ -81,7 +81,7 @@ const tips = [
 
 					<div class="mb-6">
 						<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="message">Message <span class="text-muted-2 font-medium">(optional)</span></label>
-						<p class="text-[13px] text-muted mb-2.5">Any questions about this internship or the company — you can even request a video call.</p>
+						<p class="text-[13px] text-muted mb-2.5">Any questions about this opportunity or the company , you can even request a video call.</p>
 						<textarea id="message" v-model="form.message" class="fld !min-h-[130px]" rows="6"></textarea>
 						<div class="flex justify-between mt-[7px] text-xs">
 							<span class="text-[#dc2626]">{{ form.errors.message }}</span>
@@ -91,8 +91,8 @@ const tips = [
 
 					<div>
 						<label class="block text-[13px] font-semibold mb-[7px] text-ink-700">Attachments</label>
-						<p class="text-[13px] text-muted mb-2.5">Up to 10 files, 10&nbsp;MB each — résumé, work samples, or anything that supports your application.</p>
-						<input class="fld !py-[9px]" type="file" multiple @input="pickFiles">
+						<p class="text-[13px] text-muted mb-2.5">Up to 10 files, 10&nbsp;MB each. PDF, Word, text, or RTF files. Your résumé, work samples, or anything that supports your application.</p>
+						<input class="fld !py-[9px]" type="file" accept=".pdf,.doc,.docx,.txt,.rtf" multiple @input="pickFiles">
 						<div v-if="form.errors.attachment_files" class="text-xs text-[#dc2626] mt-[7px]">{{ form.errors.attachment_files }}</div>
 						<div v-if="application?.attachments?.length" class="flex flex-wrap gap-2 mt-3">
 							<span v-for="attachment in application.attachments" :key="attachment.url || attachment.name" class="inline-flex items-center px-[11px] py-[5px] rounded-lg text-xs font-semibold bg-paper-3 text-ink-700">{{ attachment.name }}</span>
@@ -100,7 +100,7 @@ const tips = [
 					</div>
 				</div>
 				<div class="px-8 max-[560px]:px-5 py-4 border-t border-line-2 flex justify-end gap-2.5 bg-white rounded-b-[18px]">
-					<Link class="cbtn bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700" :href="editing ? route('applications.show', application.id) : route('internships.show', internship.id)">Cancel</Link>
+					<Link class="cbtn bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700" :href="editing ? route('applications.show', application.id) : internship.public_url || route('internships.show', internship.id)">Cancel</Link>
 					<button class="cbtn bg-blue-600 text-white hover:bg-blue-700 [&_svg]:w-[17px] [&_svg]:h-[17px]" type="submit" :disabled="form.processing">
 						{{ editing ? 'Save changes' : 'Submit application' }} <component :is="icons.arrow" aria-hidden="true" />
 					</button>
@@ -115,11 +115,11 @@ const tips = [
 						<CompanyLogo class="w-[46px] h-[46px] rounded-[12px] text-base" :name="internship.company.name" />
 						<div>
 							<b class="font-display text-base block">{{ internship.title }}</b>
-							<span class="text-[13px] text-muted">{{ internship.company.name }} · {{ internship.city.name }}</span>
+							<span class="text-[13px] text-muted">{{ internship.company.name }} · {{ internship.location_label || internship.city?.name }}</span>
 						</div>
 					</div>
 					<div class="flex flex-col gap-0.5 [&_.ci]:flex [&_.ci]:items-center [&_.ci]:gap-3 [&_.ci]:py-2.5 [&_.ci]:text-sm [&_.ci]:text-ink-700 [&_svg]:w-[17px] [&_svg]:h-[17px] [&_svg]:text-muted-2 [&_svg]:shrink-0">
-						<div class="ci"><component :is="icons.clock" aria-hidden="true" />Closes {{ internship.closing_at }}</div>
+						<div class="ci"><component :is="icons.clock" aria-hidden="true" />{{ internship.closing_at ? `Closes ${internship.closing_at}` : 'No deadline listed' }}</div>
 						<div v-if="internship.duration_weeks" class="ci"><component :is="icons.pin" aria-hidden="true" />{{ internship.duration_weeks }} weeks<template v-if="internship.term"> · {{ internship.term }}</template></div>
 					</div>
 				</section>

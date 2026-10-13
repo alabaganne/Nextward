@@ -4,9 +4,9 @@
 			<div class="max-w-7xl mx-auto px-6 py-16 lg:py-20">
 				<div class="max-w-3xl">
 					<div class="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm font-semibold border border-blue-100">Contact</div>
-					<h1 class="mt-6 text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900">Let’s talk about Internly or engineering opportunities.</h1>
+					<h1 class="mt-6 text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900">Let’s talk about your next opportunity.</h1>
 					<p class="mt-6 text-lg text-gray-600 leading-8">
-						Whether you’re a student, company, recruiter, or engineering team, you can reach the developer directly using the links below.
+						Whether you’re a student, professional, employer, source partner, or recruiter, you can reach the developer directly using the links below.
 					</p>
 				</div>
 			</div>
@@ -15,8 +15,8 @@
 		<section class="max-w-7xl mx-auto px-6 py-16">
 			<div class="grid lg:grid-cols-3 gap-8">
 				<div class="lg:col-span-2 bg-white rounded-3xl border border-gray-200 p-8 shadow-xs">
-					<h2 class="text-2xl font-extrabold text-gray-900">Get in touch</h2>
-					<p class="mt-3 text-gray-600 leading-7">For job opportunities, freelance work, product feedback, MVP builds, or questions about this app, email is the fastest way to reach me.</p>
+					<h2 class="text-2xl font-extrabold text-gray-900">Get in touch</h2><p class="mt-4 text-gray-600 leading-7">To request a listing correction or removal, include its URL and explain which information should change. Source owners can also contact us about permission, attribution, or approved feeds. Please do not send passwords or CV attachments with a general support message.</p>
+					<p class="mt-3 text-gray-600 leading-7">For employer posts, source partnerships, product feedback, or problems with a listing, use the contact links below. Please include the opportunity URL when reporting an issue.</p>
 
 					<div class="mt-8 grid sm:grid-cols-2 gap-4">
 						<a href="mailto:alabaganne9@gmail.com" class="group rounded-2xl border border-gray-200 p-5 hover:border-blue-300 hover:bg-blue-50 transition">
@@ -31,9 +31,9 @@
 							<div class="text-sm font-semibold text-gray-500">LinkedIn</div>
 							<div class="mt-2 font-bold text-gray-900 group-hover:text-blue-700">linkedin.com/in/alabaganne</div>
 						</a>
-						<Link :href="route('internships.index')" class="group rounded-2xl border border-gray-200 p-5 hover:border-blue-300 hover:bg-blue-50 transition">
+						<Link :href="route('opportunities.index')" class="group rounded-2xl border border-gray-200 p-5 hover:border-blue-300 hover:bg-blue-50 transition">
 							<div class="text-sm font-semibold text-gray-500">Explore the product</div>
-							<div class="mt-2 font-bold text-gray-900 group-hover:text-blue-700">Browse internships</div>
+							<div class="mt-2 font-bold text-gray-900 group-hover:text-blue-700">Browse opportunities</div>
 						</Link>
 					</div>
 				</div>

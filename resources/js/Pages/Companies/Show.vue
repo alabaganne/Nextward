@@ -1,9 +1,9 @@
 <script setup>
 import { ArrowRight, Briefcase, ChevronRight, Clock3, Globe2, Mail, MapPin, Phone } from '@lucide/vue';
 import { computed, h } from 'vue';
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link, useForm, usePage } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
-import CompanyLogo from '@/Components/Ui/CompanyLogo.vue';
+import Pagination from '@/Components/Ui/Pagination.vue';
 import { gradientFor } from '@/utils/brand';
 
 defineOptions({
@@ -26,9 +26,21 @@ const icons = {
 };
 
 const internships = computed(() => props.company.internships?.data ?? props.company.internships ?? []);
+const pagination = computed(() => props.company.internships?.meta);
+const totalRoles = computed(() => pagination.value?.total ?? internships.value.length);
 const page = usePage();
 const ownsCompany = computed(() => page.props.auth?.user?.id === props.company.user_id);
 const canEdit = computed(() => ownsCompany.value || page.props.auth?.user?.is_admin);
+const canManageRole = (role) => canEdit.value && (page.props.auth?.user?.is_admin || role.origin === 'native');
+const roleHref = (role) => canManageRole(role)
+	? route('internships.edit', role.id)
+	: role.publication_status === 'published' ? role.public_url : null;
+const roleStatus = (role) => role.publication_status === 'draft' ? 'Draft'
+	: role.publication_status === 'suppressed' ? 'Suppressed'
+	: role.is_open ? 'Open' : 'Closed';
+const canClaim = computed(() => page.props.auth?.user?.userable_type === 'company' && !props.company.user_id && !props.company.claimed_by_company_id);
+const claimForm = useForm({ evidence: '' });
+const requestClaim = () => claimForm.post(route('companies.claim', props.company.id), { preserveScroll: true, onSuccess: () => claimForm.reset() });
 const roleInitials = (title) =>
 	title
 		.split(/\s+/)
@@ -61,7 +73,7 @@ const roleInitials = (title) =>
 				</div>
 				<div class="ml-auto flex gap-2.5 max-[760px]:ml-0 max-[760px]:w-full">
 					<Link v-if="canEdit" class="inline-flex items-center justify-center font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors" :href="route('companies.edit', company.id)">Edit company</Link>
-					<Link v-if="!ownsCompany" class="inline-flex items-center justify-center font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-navy-900 hover:bg-[#eef2f7] transition-colors" :href="route('messages.show', company.user_id)">Message company</Link>
+					<Link v-if="!ownsCompany && company.user_id" class="inline-flex items-center justify-center font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-navy-900 hover:bg-[#eef2f7] transition-colors" :href="route('messages.show', company.user_id)">Message company</Link>
 				</div>
 			</div>
 		</div>
@@ -75,46 +87,57 @@ const roleInitials = (title) =>
 					<p class="text-[15px] leading-[1.72] text-ink-700 whitespace-pre-line">{{ company.about }}</p>
 				</section>
 
-				<!-- OPEN ROLES -->
-				<section class="bg-white border border-line rounded-[18px]">
+				<!-- OPPORTUNITIES -->
+				<section id="opportunities" class="bg-white border border-line rounded-[18px] scroll-mt-24">
 					<div class="flex items-center justify-between px-[26px] pt-[22px]">
-						<h2 class="font-display text-[18px] font-semibold">Internships</h2>
-						<span class="text-[13px] text-muted font-semibold bg-paper-2 border border-line-2 px-[11px] py-1 rounded-full">{{ internships.length }} {{ internships.length === 1 ? 'role' : 'roles' }}</span>
+						<h2 class="font-display text-[18px] font-semibold">{{ canEdit ? 'Manage opportunities' : 'Open opportunities' }}</h2>
+						<span class="text-[13px] text-muted font-semibold bg-paper-2 border border-line-2 px-[11px] py-1 rounded-full">{{ totalRoles }} {{ totalRoles === 1 ? 'role' : 'roles' }}</span>
 					</div>
 					<div class="px-3.5 pt-2.5 pb-3.5">
-						<Link
+						<component
+							:is="roleHref(internship) ? Link : 'div'"
 							v-for="(internship, index) in internships"
 							:key="internship.id"
-							class="flex items-center gap-4 px-3 py-[18px] rounded-[14px] transition-colors cursor-pointer hover:bg-paper-2 no-underline"
-							:class="{ 'border-t border-line-2': index !== 0 }"
-							:href="route('internships.show', internship.id)"
+							class="flex items-center gap-4 px-3 py-[18px] rounded-[14px] transition-colors no-underline"
+							:class="{ 'border-t border-line-2': index !== 0, 'hover:bg-paper-2': roleHref(internship) }"
+							:href="roleHref(internship) || undefined"
 						>
 							<span class="w-[46px] h-[46px] rounded-[12px] grid place-items-center text-white font-bold font-display text-base shrink-0" :style="{ background: gradientFor(company.name) }">{{ roleInitials(internship.title) }}</span>
 							<span class="flex-1 min-w-0">
 								<b class="text-base font-semibold block">{{ internship.title }}</b>
 								<span class="flex flex-wrap gap-3.5 mt-[7px] text-muted text-[13px] [&_span]:inline-flex [&_span]:items-center [&_span]:gap-[5px] [&_svg]:w-[13px] [&_svg]:h-[13px] [&_svg]:text-muted-2">
-									<span><component :is="icons.pin" aria-hidden="true" />{{ internship.city?.name }}</span>
-									<span><component :is="icons.clock" aria-hidden="true" />Closes {{ internship.closing_at }}</span>
+									<span><component :is="icons.pin" aria-hidden="true" />{{ internship.location_label }}</span>
+									<span><component :is="icons.clock" aria-hidden="true" />{{ internship.closing_at ? `Closes ${internship.closing_at}` : 'No deadline listed' }}</span>
+									<span class="font-semibold">{{ roleStatus(internship) }}</span>
 								</span>
+								<span v-if="canManageRole(internship)" class="block mt-2 text-[13px] text-blue-700 font-semibold">Edit opportunity</span>
 							</span>
-						</Link>
-						<div v-if="!internships.length" class="px-3 py-6 text-[14px] text-muted">No internships posted yet.</div>
+						</component>
+						<div v-if="!internships.length" class="px-3 py-6 text-[14px] text-muted">No opportunities posted yet.</div>
+						<Pagination v-if="pagination" :meta="pagination" />
 					</div>
 				</section>
 			</div>
 
 			<!-- RIGHT -->
 			<div class="flex flex-col gap-4 sticky top-[94px]">
+				<form v-if="canClaim" class="bg-white border border-line rounded-[18px] px-6 py-[22px]" @submit.prevent="requestClaim">
+					<h3 class="font-display font-semibold mb-2">Represent this company?</h3>
+					<p class="text-sm text-muted mb-4">Request a review of your connection to this employer. Imported applications keep their original destination.</p>
+					<label class="text-sm font-semibold">Proof of ownership<textarea v-model="claimForm.evidence" class="fld mt-2" required maxlength="3000" placeholder="Describe your company domain and how your connection can be verified."></textarea></label>
+					<p v-if="claimForm.errors.evidence" class="text-sm text-red-600 mt-2" role="alert">{{ claimForm.errors.evidence }}</p>
+					<button type="submit" class="cbtn bg-blue-600 text-white mt-3" :disabled="claimForm.processing">Request company review</button>
+				</form>
 				<section class="bg-white border border-line rounded-[18px] px-6 py-[22px]">
 					<h3 class="text-sm tracking-[.04em] text-muted font-bold font-display mb-4">OVERVIEW</h3>
 					<div class="flex gap-3">
 						<div class="flex-1 text-center bg-paper-2 border border-line-2 rounded-[12px] px-2 py-4">
-							<div class="font-display text-2xl font-semibold leading-none">{{ internships.length }}</div>
+							<div class="font-display text-2xl font-semibold leading-none">{{ totalRoles }}</div>
 							<div class="text-xs text-muted mt-1.5">Roles</div>
 						</div>
 					</div>
-					<Link class="w-full justify-center mt-[18px] inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors [&_svg]:w-[17px] [&_svg]:h-[17px]" :href="route('internships.index', { companies: [company.id] })">
-						View all roles <component :is="icons.arrow" aria-hidden="true" />
+					<Link class="w-full justify-center mt-[18px] inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors [&_svg]:w-[17px] [&_svg]:h-[17px]" :href="canEdit ? `${route('companies.show', company.id)}#opportunities` : route('opportunities.index', { companies: [company.id] })">
+						{{ canEdit ? 'Manage opportunities' : 'View open roles' }} <component :is="icons.arrow" aria-hidden="true" />
 					</Link>
 				</section>
 

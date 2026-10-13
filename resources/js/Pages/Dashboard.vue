@@ -18,6 +18,7 @@ const props = defineProps({
 	interviews_count: { type: Number, default: 0 },
 	applications: { type: Array, default: () => [] },
 	recommended: { type: Array, default: () => [] },
+	recommendation_reasons: { type: Array, default: () => [] },
 });
 
 const icons = {
@@ -35,23 +36,23 @@ const user = computed(() => page.props.auth?.user);
 const firstName = computed(() => (user.value?.name || '').split(' ')[0]);
 const isAdmin = computed(() => !!user.value?.is_admin);
 const isCompany = computed(() => user.value?.userable_type === 'company');
-const managedRolesHref = computed(() => route('internships.index', { companies: [user.value?.userable_id] }));
+const managedRolesHref = computed(() => `${route('companies.show', user.value?.userable_id)}#opportunities`);
 const isMember = computed(() => ['student', 'company'].includes(user.value?.userable_type));
 const partyName = (application) => (user.value?.userable_type === 'student' ? application.company?.name : application.student?.name) || '';
 const welcomeNote = computed(() => {
-	if (user.value?.is_admin) return 'Keep track of internships, companies, and students across Internly.';
+	if (user.value?.is_admin) return 'Keep track of opportunities, companies, and candidates across Nextward.';
 	if (user.value?.userable_type === 'company') return 'Review your roles and keep candidate applications moving.';
-	return "Here’s what’s happening with your internship search.";
+	return "Here’s what’s happening with your opportunity search.";
 });
 
 const cards = computed(() =>
 	[
 		{
-			label: 'Open internships',
+			label: 'Open opportunities',
 			value: props.internships_count,
 			icon: icons.briefcase,
 			gradient: 'linear-gradient(140deg,#3b82f6,#1d4ed8)',
-			href: route('internships.index'),
+			href: route('opportunities.index'),
 			show: true,
 		},
 		{
@@ -79,7 +80,7 @@ const cards = computed(() =>
 			show: isMember.value,
 		},
 		{
-			label: 'Students',
+			label: 'Candidates',
 			value: props.students_count,
 			icon: icons.people,
 			gradient: 'linear-gradient(140deg,#10b981,#047857)',
@@ -98,7 +99,7 @@ const cards = computed(() =>
 				<h1 class="font-display text-[32px] font-semibold tracking-[-.02em]">Welcome back, {{ firstName }}</h1>
 				<p class="text-muted text-[15px] mt-1.5">{{ welcomeNote }}</p>
 			</div>
-			<Link class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all [&_svg]:w-[17px] [&_svg]:h-[17px]" :href="isCompany ? managedRolesHref : route('internships.index')">
+			<Link class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all [&_svg]:w-[17px] [&_svg]:h-[17px]" :href="isCompany ? managedRolesHref : route('opportunities.index')">
 				{{ isCompany ? 'Manage your roles' : 'Browse all roles' }}
 				<component :is="icons.arrow" aria-hidden="true" />
 			</Link>
@@ -125,7 +126,7 @@ const cards = computed(() =>
 				<div class="flex items-center justify-between px-[22px] py-5 border-b border-line-2">
 					<div>
 						<h3 class="font-display text-[17px] font-semibold">{{ isAdmin ? 'Manage your workspace' : 'Recent applications' }}</h3>
-						<p class="text-[13px] text-muted mt-0.5">{{ isAdmin ? 'Keep company profiles, student accounts, and fields up to date.' : isCompany ? 'Review the latest applications for your internships.' : 'Track your recent applications and their status.' }}</p>
+						<p class="text-[13px] text-muted mt-0.5">{{ isAdmin ? 'Keep company profiles, candidate accounts, and fields up to date.' : isCompany ? 'Review the latest applications for your opportunities.' : 'Track your recent applications and their status.' }}</p>
 					</div>
 					<Link v-if="!isAdmin" class="text-[13.5px] font-semibold text-blue-700" :href="route('applications.index')">View all</Link>
 				</div>
@@ -151,18 +152,18 @@ const cards = computed(() =>
 					<template v-if="isAdmin">
 						<div class="flex flex-wrap gap-x-6 gap-y-3">
 							<Link class="font-semibold text-blue-700" :href="route('companies.index')">Manage companies</Link>
-							<Link class="font-semibold text-blue-700" :href="route('students.index')">Manage students</Link>
+							<Link class="font-semibold text-blue-700" :href="route('students.index')">Manage candidates</Link>
 							<Link class="font-semibold text-blue-700" :href="route('fields.index')">Manage fields</Link>
 						</div>
 					</template>
 					<template v-else-if="isCompany">
 						No applications received yet.
-						<Link class="font-semibold text-blue-700" :href="managedRolesHref">Manage your internships</Link>
+						<Link class="font-semibold text-blue-700" :href="managedRolesHref">Manage your opportunities</Link>
 						and keep your role details up to date.
 					</template>
 					<template v-else>
 						No applications yet.
-						<Link class="font-semibold text-blue-700" :href="route('internships.index')">Browse internships</Link>
+						<Link class="font-semibold text-blue-700" :href="route('opportunities.index')">Browse opportunities</Link>
 						to get started.
 					</template>
 				</div>
@@ -173,22 +174,22 @@ const cards = computed(() =>
 				<!-- recommended -->
 				<section v-if="recommended.length" class="bg-white border border-line rounded-[18px] overflow-hidden">
 					<div class="flex items-center justify-between px-[22px] py-5 border-b border-line-2">
-						<div><h3 class="font-display text-[17px] font-semibold">Recommended for you</h3></div>
-						<Link class="text-[13.5px] font-semibold text-blue-700" :href="route('internships.index')">More</Link>
+						<div><h3 class="font-display text-[17px] font-semibold">Opportunities for you</h3></div>
+						<Link class="text-[13.5px] font-semibold text-blue-700" :href="route('opportunities.index')">More</Link>
 					</div>
+					<p class="px-[22px] pt-4 text-sm text-muted">{{ recommendation_reasons.join('. ') }} <Link class="text-blue-700" :href="route('settings')">Edit preferences</Link></p>
 					<div class="py-2">
 						<Link
 							v-for="item in recommended"
 							:key="item.id"
 							class="flex items-center gap-3 px-[22px] py-[13px] transition-colors hover:bg-paper-2"
-							:href="route('internships.show', item.id)"
+							:href="item.public_url || route('internships.show', item.id)"
 						>
-							<CompanyLogo class="w-10 h-10 rounded-[10px] text-[13px]" :name="item.company" />
+							<CompanyLogo class="w-10 h-10 rounded-[10px] text-[13px]" :name="item.company?.name || ''" />
 							<div>
 								<b class="text-sm font-semibold block">{{ item.title }}</b>
-								<span class="text-[12.5px] text-muted">{{ item.company }} · {{ item.city }}</span>
+								<span class="text-[12.5px] text-muted">{{ item.company?.name }} · {{ item.location || item.city?.name || item.country_code }}</span>
 							</div>
-							<span v-if="item.match" class="ml-auto text-xs font-bold text-blue-700 bg-blue-50 px-[9px] py-1 rounded-[7px] whitespace-nowrap">{{ item.match }}%</span>
 						</Link>
 					</div>
 				</section>

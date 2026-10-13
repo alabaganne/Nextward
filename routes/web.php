@@ -14,6 +14,8 @@ use App\Http\Controllers\SkillController;
 use App\Http\Controllers\StudentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\PublicPageController;
+use App\Http\Controllers\SitemapController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,68 +34,55 @@ require __DIR__.'/auth.php';
 Route::get('/robots.txt', function () {
     return response("User-agent: *
 Allow: /
-Sitemap: " . url('/sitemap.xml') . "
+Sitemap: " . rtrim(config('app.url'), '/').'/sitemap.xml' . "
 ", 200)->header('Content-Type', 'text/plain');
 });
 
-Route::get('/sitemap.xml', function () {
-    $blogPosts = collect(config('internly_blog'))->map(fn ($post) => config('app.url') . '/blog/' . $post['slug']);
+Route::get('/sitemap.xml', [SitemapController::class, 'index']);
+Route::get('/sitemaps/pages.xml', [SitemapController::class, 'pages']);
+Route::get('/sitemaps/opportunities-{page}.xml', [SitemapController::class, 'opportunities'])->whereNumber('page');
 
-    $urls = collect([
-        config('app.url'),
-        config('app.url') . '/internships',
-        config('app.url') . '/blog',
-        config('app.url') . '/about',
-        config('app.url') . '/contact',
-    ])->merge($blogPosts)
-        ->merge(\App\Models\Internship::open()->latest()->take(500)->get()->map(fn ($internship) => config('app.url') . '/internships/' . $internship->id));
-
-    $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "
-";
-    $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "
-";
-    foreach ($urls as $url) {
-        $xml .= '  <url><loc>' . e($url) . '</loc></url>' . "
-";
-    }
-    $xml .= '</urlset>';
-
-    return response($xml, 200)->header('Content-Type', 'application/xml');
+Route::get('/', [PublicPageController::class, 'home'])->name('home');
+Route::get('/for-students', [PublicPageController::class, 'audience'])->defaults('audience', 'students')->name('audience.students');
+Route::get('/for-professionals', [PublicPageController::class, 'audience'])->defaults('audience', 'professionals')->name('audience.professionals');
+Route::prefix('fr')->name('fr.')->group(function () {
+    Route::get('/', [PublicPageController::class, 'home'])->name('home');
+    Route::get('/for-students', [PublicPageController::class, 'audience'])->defaults('audience', 'students')->name('students');
+    Route::get('/for-professionals', [PublicPageController::class, 'audience'])->defaults('audience', 'professionals')->name('professionals');
+    Route::get('/opportunities', [InternshipController::class, 'index'])->name('opportunities');
+    Route::get('/opportunities/{category}', [InternshipController::class, 'index'])->whereIn('category', ['internships', 'jobs', 'tunisia', 'remote-from-tunisia', 'relocation'])->name('category');
 });
-
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'posts' => collect(config('internly_blog'))
-            ->take(3)
-            ->map(fn ($post) => collect($post)->only('slug', 'category', 'title', 'excerpt', 'read_time'))
-            ->values(),
-    ]);
-})->name('home');
 Route::inertia('/about', 'About')->name('about');
 Route::inertia('/contact', 'Contact')->name('contact');
 
 Route::get('/blog', function () {
     return Inertia::render('Blog/Index', [
-        'posts' => config('internly_blog'),
+        'posts' => config('nextward_blog'),
     ]);
 })->name('blog.index');
 
 Route::get('/blog/{slug}', function (string $slug) {
-    $post = collect(config('internly_blog'))->firstWhere('slug', $slug);
+    $post = collect(config('nextward_blog'))->firstWhere('slug', $slug);
 
     abort_unless($post, 404);
 
     return Inertia::render('Blog/Show', [
         'post' => $post,
-        'related' => collect(config('internly_blog'))->where('slug', '!=', $slug)->take(3)->values(),
+        'related' => collect(config('nextward_blog'))->where('slug', '!=', $slug)->take(3)->values(),
     ]);
 })->name('blog.show');
 
-// Public internship discovery pages for SEO and unauthenticated students.
-Route::get('/internships', [InternshipController::class, 'index'])->name('internships.index');
+Route::get('/opportunities', [InternshipController::class, 'index'])->name('opportunities.index');
+Route::get('/opportunities/{category}', [InternshipController::class, 'index'])
+    ->whereIn('category', ['internships', 'jobs', 'tunisia', 'remote-from-tunisia', 'relocation'])->name('opportunities.category');
+Route::get('/opportunities/{opportunity}', [InternshipController::class, 'publicShow'])
+    ->where('opportunity', '[0-9]+(?:-[a-z0-9-]+)?')->name('opportunities.show');
+Route::get('/internships', function (\Illuminate\Http\Request $request) {
+    $query = $request->only('search', 'fields', 'cities', 'companies', 'page', 'work_type', 'country');
+    return redirect('/opportunities/internships'.($query ? '?'.http_build_query($query) : ''), 301);
+})->name('internships.index');
 Route::get('/internships/{internship}', [InternshipController::class, 'show'])
-    ->whereNumber('internship')
-    ->name('internships.show');
+    ->whereNumber('internship')->name('internships.show');
 
 Route::group(['middleware' => 'auth'], function() {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
@@ -134,3 +123,6 @@ Route::group(['middleware' => 'auth'], function() {
 	Route::get('/notifications/clear', [NotificationController::class, 'clear'])->name('notifications.clear');
     Route::post('/notifications/{notification}', [NotificationController::class, 'store'])->name('notifications.store');
 });
+
+require __DIR__.'/candidate_workflows.php';
+require __DIR__.'/opportunity_tools.php';

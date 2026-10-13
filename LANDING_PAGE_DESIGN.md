@@ -1,8 +1,8 @@
-# Landing page design — Internly
+# Landing page design — Nextward
 
 ## Direction
 
-A warm, editorial page about taking the first step into a career. Keep the existing Internly logo, cobalt blue, and navy identity. Use Space Grotesk for headings and Inter for body text.
+A warm, editorial page about taking the first step into a career. Keep the existing Nextward logo, cobalt blue, and navy identity. Use Space Grotesk for headings and Inter for body text.
 
 - Warm ivory (`#FAF9F6`) and white surfaces, generous spacing, and thin dividers.
 - Open compositions with no card shadows, floating badges, image glows, or decorative frames around illustrations.
@@ -24,7 +24,7 @@ A warm, editorial page about taking the first step into a career. Keep the exist
 
 ## Assets and behavior
 
-New optimized WebP assets and their generation prompts are documented in `public/internly-assets/landing/README.md`. The hero preserves transparency; the employer photograph is decorative. Older 3D illustrations and video loops are retained in the asset library but are no longer used on the landing page.
+New optimized WebP assets and their generation prompts are documented in `public/nextward-assets/landing/README.md`. The hero preserves transparency; the employer photograph is decorative. Older 3D illustrations and video loops are retained in the asset library but are no longer used on the landing page.
 
 Keep content visible immediately, preserve keyboard focus indicators, and honor reduced-motion preferences for interactive transitions. Student and company actions must respect the signed-in account type. Do not invent testimonials, user counts, live activity, company verification, or capabilities.
 

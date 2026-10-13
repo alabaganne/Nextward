@@ -1,4 +1,4 @@
-# Integrating the Internly UI into the Laravel + Inertia + Vue app
+# Integrating the Nextward UI into the Laravel + Inertia + Vue app
 
 This is a workspace integration reference for the current **Laravel 13 +
 Inertia.js 3 + Vue 3 + Tailwind CSS 4 + Vite 8** application. Historical prototype

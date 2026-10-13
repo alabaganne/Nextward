@@ -3,15 +3,15 @@
 		<section class="bg-white border-b border-gray-200">
 			<div class="max-w-7xl mx-auto px-6 py-16 lg:py-20 grid lg:grid-cols-2 gap-12 items-center">
 				<div>
-					<div class="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm font-semibold border border-blue-100">About Internly</div>
+					<div class="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm font-semibold border border-blue-100">About Nextward</div>
 					<h1 class="mt-6 text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight">
-						A cleaner way for students and companies to meet.
+						Your next opportunity, at every stage of your career.
 					</h1>
 					<p class="mt-6 text-lg text-gray-600 leading-8">
-						Internly is an internship discovery platform built to make early-career hiring simpler: students can browse public opportunities and apply online, while companies can publish internships and manage applications from one focused workspace.
+						Nextward helps students and professionals find internships and jobs in Tunisia and worldwide. Browse employer posts and approved public sources, understand the requirements, and apply through Nextward or the original application website.
 					</p>
 					<div class="mt-8 flex flex-wrap gap-3">
-						<Link :href="route('internships.index')" class="px-5 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">Browse internships</Link>
+						<Link :href="route('opportunities.index')" class="px-5 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">Browse opportunities</Link>
 						<Link :href="route('register')" class="px-5 py-3 rounded-xl bg-gray-100 text-gray-900 font-semibold hover:bg-gray-200 transition">Create account</Link>
 					</div>
 				</div>
@@ -31,13 +31,17 @@
 			</div>
 		</section>
 
+        <section class="max-w-7xl mx-auto px-6 py-14 grid md:grid-cols-2 gap-8" aria-label="Sources and privacy">
+            <article class="bg-white border border-gray-200 rounded-3xl p-8"><h2 class="text-2xl font-bold text-gray-900">Where opportunities come from</h2><p class="mt-4 text-gray-600 leading-7">Employers can publish opportunities directly on Nextward. Imported roles identify their original source and application destination. A source must be approved for the intended reuse before its listings can be published.</p><p class="mt-4 text-gray-600 leading-7">The last successful check describes when the source was read. It is not an independent employer endorsement. Missing salary, remote eligibility, relocation, or visa details remain unknown rather than becoming a promise.</p><Link href="/opportunities" class="inline-block mt-5 font-semibold text-blue-700">Explore opportunities and their sources</Link></article>
+            <article class="bg-white border border-gray-200 rounded-3xl p-8"><h2 class="text-2xl font-bold text-gray-900">Your applications stay under your control</h2><p class="mt-4 text-gray-600 leading-7">Opening an external application link does not send your CV or create a submitted application. You choose what to provide on the source website and can separately record that you applied.</p><p class="mt-4 text-gray-600 leading-7">Application attachments uploaded through Nextward use authorized access for the candidate and the recipient of a native application. Candidate notes and external tracking are private to the candidate. Saved-search emails are optional and include an unsubscribe link.</p><Link href="/contact" class="inline-block mt-5 font-semibold text-blue-700">Contact us about an opportunity or your information</Link></article>
+        </section>
 		<section class="max-w-7xl mx-auto px-6 py-16">
 			<div class="grid lg:grid-cols-3 gap-8">
 				<div class="lg:col-span-2 bg-white border border-gray-200 rounded-3xl p-8 shadow-xs">
 					<div class="text-sm font-semibold text-blue-600 uppercase tracking-wide">Built by</div>
 					<h2 class="mt-3 text-3xl font-extrabold text-gray-900">Ala Baganne</h2>
 					<p class="mt-5 text-gray-700 leading-8 text-lg">I’m a software engineer and builder focused on practical SaaS products, clean user experiences, and reliable full-stack execution. I enjoy taking an idea from rough requirements to a working deployed product: frontend, backend, database, authentication, permissions, deployment, and the final details that make a demo feel real.</p>
-					<p class="mt-4 text-gray-700 leading-8 text-lg">Internly is part of that builder journey: a working application with public internship pages, separate student and company accounts, company onboarding, application management, file uploads, and messaging.</p>
+					<p class="mt-4 text-gray-700 leading-8 text-lg">Nextward is part of that builder journey: a working application with public opportunity pages, candidate and employer accounts, company onboarding, application management, file uploads, and messaging.</p>
 					<p class="mt-4 text-gray-700 leading-8 text-lg">I’m open to strong engineering opportunities, especially roles where I can build useful products end to end. If you have a product idea, an MVP to launch, or a business workflow you want turned into software, I’m also open to building for people and helping bring practical ideas to life.</p>
 
 					<div class="mt-8 grid sm:grid-cols-3 gap-4">
@@ -63,7 +67,7 @@
 						<a href="https://www.alabaganne.com" target="_blank" class="block hover:text-white">www.alabaganne.com</a>
 						<a href="https://www.linkedin.com/in/alabaganne/" target="_blank" class="block hover:text-white">LinkedIn / alabaganne</a>
 					</div>
-					<p class="mt-8 text-blue-100 leading-7">If you’re hiring for full-stack, frontend, backend, or product-focused engineering roles — or you want to build a product from an idea — I’d be glad to connect.</p>
+					<p class="mt-8 text-blue-100 leading-7">If you’re hiring for full-stack, frontend, backend, or product-focused engineering roles, or you want to build a product from an idea, I’d be glad to connect.</p>
 				</aside>
 			</div>
 		</section>
@@ -78,9 +82,9 @@ export default {
 	data() {
 		return {
 			highlights: [
-				{ title: 'Public discovery', text: 'Internship listings are accessible without logging in, making opportunities easier to find and share.' },
-				{ title: 'Separate student and company workspaces', text: 'Students apply and track applications; companies publish internships and review applicants.' },
-				{ title: 'Company onboarding', text: 'Companies add a website, city, and description before posting, so students can see who is hiring.' },
+				{ title: 'Public discovery', text: 'Internships and jobs are readable without an account, with clear sources and application destinations.' },
+				{ title: 'Candidate and employer workspaces', text: 'Students and professionals save and track opportunities; employers publish internships and jobs.' },
+				{ title: 'Company onboarding', text: 'Employers introduce themselves before posting. Imported listings identify the source and do not imply an employer account.' },
 			]
 		}
 	}

@@ -8,6 +8,10 @@ use App\Models\User;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Inertia\Inertia;
+use App\Support\PublicSeo;
+use Tighten\Ziggy\Ziggy;
+use Closure;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -35,6 +39,18 @@ class HandleInertiaRequests extends Middleware
      * @param  \Illuminate\Http\Request  $request
      * @return array
      */
+    public function handle(Request $request, Closure $next)
+    {
+        Inertia::disableSsr(fn () => !PublicSeo::isPublic($request));
+        $response = parent::handle($request, $next);
+        if (!PublicSeo::isPublic($request)) {
+            $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
+        }
+        // Public responses contain account actions and CSRF state, never share a user's HTML cache.
+        $response->headers->set('Cache-Control', 'private, no-store');
+        return $response;
+    }
+
     public function share(Request $request): array
     {
         $user = auth()->user();
@@ -48,10 +64,12 @@ class HandleInertiaRequests extends Middleware
                     'phone_number' => $user->phone_number,
                     'image' => $user->image,
 					'is_admin' => $user->isAdmin(),
+                    'is_candidate' => $user->isCandidate(),
+                    'career_stage' => $user->isCandidate() ? $user->userable->career_stage : null,
                     'userable_id' => $user->userable_id,
                     'userable_type' => $user->userable_type,
-                    'likes_count' => $user->isStudent() ? $user->userable->likes->count() : null,
-                    'notifications' => ($user->isStudent() || $user->isCompany()) ? [
+                    'likes_count' => $user->isCandidate() ? $user->userable->likes->count() : null,
+                    'notifications' => ($user->isCandidate() || $user->isCompany()) ? [
                         'data' => NotificationResource::collection($user->notifications()->take(10)->get()),
                         'unread_count' => $user->unreadNotifications->count(),
                     ] : null,
@@ -62,6 +80,12 @@ class HandleInertiaRequests extends Middleware
 			'popstate' => false,
         ] : [];
 
-        return array_merge(parent::share($request), $shared);
+        return array_merge(parent::share($request), [
+            'auth' => ['user' => null],
+            'toast' => fn () => Session::get('toast'),
+            'locale' => $request->is('fr', 'fr/*') ? 'fr' : 'en',
+            'ziggy' => fn () => [...(new Ziggy)->toArray(), 'location' => $request->url()],
+            'seo' => fn () => PublicSeo::forRequest($request),
+        ], $shared);
     }
 }

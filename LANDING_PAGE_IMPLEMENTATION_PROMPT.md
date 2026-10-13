@@ -2,7 +2,7 @@
 
 > Historical implementation brief. The current visual direction is documented in `LANDING_PAGE_DESIGN.md`: open layouts without shadows, a flat hero illustration, a dark employer section, and interface icons from `@heroicons/vue`. Follow that document where this earlier brief differs.
 
-Improve Internly's landing page so it feels polished, human, and engaging. Integrate the supplied logo and selected illustrations, add restrained animation and motion graphics, and remove fabricated data and unsupported claims from the public website. Implement and verify the changes; do not stop at a design proposal.
+Improve Nextward's landing page so it feels polished, human, and engaging. Integrate the supplied logo and selected illustrations, add restrained animation and motion graphics, and remove fabricated data and unsupported claims from the public website. Implement and verify the changes; do not stop at a design proposal.
 
 ## Context and working rules
 
@@ -14,40 +14,40 @@ Improve Internly's landing page so it feels polished, human, and engaging. Integ
 
 ## Visual direction and new logo
 
-Keep Internly's identity: royal blue `#2563EB`, navy `#0A1738`, pale blue-white `#F6F8FC`, rounded cards, generous whitespace, and soft shadows. The live site uses Space Grotesk headings and Inter body text. Reuse the existing font-loading approach, avoiding duplicate downloads. Improve hierarchy, spacing, and section rhythm rather than introducing a different brand.
+Keep Nextward's identity: royal blue `#2563EB`, navy `#0A1738`, pale blue-white `#F6F8FC`, rounded cards, generous whitespace, and soft shadows. The live site uses Space Grotesk headings and Inter body text. Reuse the existing font-loading approach, avoiding duplicate downloads. Improve hierarchy, spacing, and section rhythm rather than introducing a different brand.
 
-Use the new logo from `public/brand/internly/`:
+Use the new logo from `public/brand/nextward/`:
 
-- `/brand/internly/logo.svg`: blue symbol and navy outlined wordmark for light surfaces.
-- `/brand/internly/logo-dark.svg`: light blue symbol and white wordmark for dark surfaces.
-- `/brand/internly/mark.svg` and `/brand/internly/mark-light.svg`: symbol only for compact layouts.
-- `/brand/internly/wordmark.svg` and `/brand/internly/wordmark-white.svg`: wordmark only for stacked logo layouts.
-- `/brand/internly/logo-mono.svg` and `/brand/internly/logo-white.svg`: monochrome alternatives.
-- `/brand/internly/favicon.svg` and `/brand/internly/apple-touch-icon.png`: browser and device icons.
+- `/brand/nextward/logo.svg`: blue symbol and navy outlined wordmark for light surfaces.
+- `/brand/nextward/logo-dark.svg`: light blue symbol and white wordmark for dark surfaces.
+- `/brand/nextward/mark.svg` and `/brand/nextward/mark-light.svg`: symbol only for compact layouts.
+- `/brand/nextward/wordmark.svg` and `/brand/nextward/wordmark-white.svg`: wordmark only for stacked logo layouts.
+- `/brand/nextward/logo-mono.svg` and `/brand/nextward/logo-white.svg`: monochrome alternatives.
+- `/brand/nextward/favicon.svg` and `/brand/nextward/apple-touch-icon.png`: browser and device icons.
 
 Update the shared `BrandLogo` component so existing header, footer, authentication, and sidebar usages receive the logo consistently. Preserve its `showText`, `dark`, `size`, `stacked`, and `tagline` interface. Use the symbol for `showText=false`; implement stacked layouts with the supplied separate symbol and wordmark. Keep optional taglines as real HTML, outside the SVG. Provide a single accessible brand name per linked logo and preserve its aspect ratio. Replace any old favicon references without leaving competing icons. The logo artwork is already outlined and does not require a font to render.
 
 ## Ready-to-use illustration assets
 
-Read `public/internly-assets/README.md` and `public/internly-assets/manifest.json`. All URLs start at `/internly-assets/`; do not include `/public` in browser URLs.
+Read `public/nextward-assets/README.md` and `public/nextward-assets/manifest.json`. All URLs start at `/nextward-assets/`; do not include `/public` in browser URLs.
 
 | Asset URL | Good fit |
 |---|---|
-| `/internly-assets/stills/student-avatar.png` | Student role heading or role selection |
-| `/internly-assets/stills/recruiter-avatar.png` | Company role heading or hiring introduction |
-| `/internly-assets/stills/conversation.png` | Hero or messaging/connection section |
-| `/internly-assets/stills/student-workspace.png` | Student benefits or internship discovery |
-| `/internly-assets/stills/company-workspace.png` | Company benefits or application review |
-| `/internly-assets/stills/shared-success.png` | Closing call to action or completion state |
+| `/nextward-assets/stills/student-avatar.png` | Student role heading or role selection |
+| `/nextward-assets/stills/recruiter-avatar.png` | Company role heading or hiring introduction |
+| `/nextward-assets/stills/conversation.png` | Hero or messaging/connection section |
+| `/nextward-assets/stills/student-workspace.png` | Student benefits or internship discovery |
+| `/nextward-assets/stills/company-workspace.png` | Company benefits or application review |
+| `/nextward-assets/stills/shared-success.png` | Closing call to action or completion state |
 
 The portraits are transparent 1254 × 1254 PNGs; scenes are transparent 1536 × 1024 PNGs. They depict the same student and recruiter throughout. Use the assets selectively, maintain their proportions, and give them room to breathe. Avoid repeating the same large illustration in adjacent sections or making every section a card grid. Never present these illustrative characters as actual users, testimonials, or proof of adoption.
 
 Two silent six-second, 30 fps loops are available at 1200 × 800:
 
-- Conversation: `/internly-assets/loops/conversation.webm`, `conversation.mp4`, and `conversation-poster.png`.
-- Success: `/internly-assets/loops/success.webm`, `success.mp4`, and `success-poster.png`.
+- Conversation: `/nextward-assets/loops/conversation.webm`, `conversation.mp4`, and `conversation-poster.png`.
+- Success: `/nextward-assets/loops/success.webm`, `success.mp4`, and `success-poster.png`.
 
-The WebM files are transparent. The MP4 files use a pale `#F6F8FC` background, so do not put their opaque rectangular backgrounds on navy surfaces. Use the corresponding still illustration or poster when animation is unsuitable. Editable motion sources remain in `output/internly-assets/motion/`; no media generation is required.
+The WebM files are transparent. The MP4 files use a pale `#F6F8FC` background, so do not put their opaque rectangular backgrounds on navy surfaces. Use the corresponding still illustration or poster when animation is unsuitable. Editable motion sources remain in `output/nextward-assets/motion/`; no media generation is required.
 
 ## Layout, copy, and motion
 
@@ -67,7 +67,7 @@ Known issues to investigate:
 
 - `Welcome.vue` hard-codes “1k+” students, “100+” companies, “250+” roles, and “5k+” applications. Remove them; do not replace them with other invented numbers.
 - The previously reviewed hosted page displayed “92% match,” “Application sent · 2m ago,” stars, “Trusted by” copy, and “Students placed at” logos. If equivalents exist in this checkout, remove them unless backed by genuine evidence and actual functionality.
-- `database/seeders/DatabaseSeeder.php` creates demo companies including Atlas Cloud, Novabyte, Realinflo, Greenfield, Lumen, and Stride Labs, along with example-domain accounts, generated students, internships, and applications. A database count or database-driven listing is not automatically genuine. Do not show seeded fixtures as real employers, live opportunities, adoption, or placements. Do not identify fixtures solely by a person's or company's display name; inspect provenance and the actual data model.
+- `tests/Fixtures/DemoSeeder.php` creates demo companies including Atlas Cloud, Novabyte, Realinflo, Greenfield, Lumen, and Stride Labs, along with example-domain accounts, generated students, internships, and applications. A database count or database-driven listing is not automatically genuine. Do not show seeded fixtures as real employers, live opportunities, adoption, or placements. Do not identify fixtures solely by a person's or company's display name; inspect provenance and the actual data model.
 - Inspect claims about personalized recommendations, verification, one-click applications, saved drafts, placement outcomes, speed, and international availability. Keep only features demonstrated by the implementation, and describe their actual limitations accurately.
 
 Use live metrics only when their source and definition are trustworthy and exclude demo/test records. “Open internships” must use the actual public visibility rules and a closing date that has not passed. Reuse that definition consistently between counts and lists. If authenticity cannot be established, omit the metric, employer strip, or featured-listings section instead of guessing. A truthful empty state is better than a fabricated success story. Do not infer missing provenance flags or expose private user/application data to create public social proof.

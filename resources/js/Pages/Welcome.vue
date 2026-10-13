@@ -1,182 +1,56 @@
-<template>
-	<public-layout>
-		<div class="landing">
-			<section aria-labelledby="hero-title" class="hero public-container">
-				<div class="hero-copy">
-					<p class="landing-label"><span class="label-dot" aria-hidden="true"></span> Find your internship</p>
-					<h1 id="hero-title">Small step.<br /><span>Big beginning.</span></h1>
-					<p class="hero-description">Your next chapter starts with the right internship. Explore opportunities, find your fit, and connect with the companies you could grow with.</p>
-					<div class="hero-actions">
-						<Link :href="route('internships.index')" class="cta cta-primary focus-ring">Explore internships <icon name="arrow-up-right" class="action-icon" /></Link>
-						<a href="#how-it-works" class="landing-link focus-ring"><span class="link-label">See how it works</span> <icon name="arrow-down" class="action-icon" /></a>
-					</div>
-					<p class="hero-note"><icon name="check-circle" aria-hidden="true" /> No account needed to explore.</p>
-				</div>
-				<figure class="hero-art">
-					<img src="/internly-assets/landing/career-steps.webp" alt="Editorial illustration of a student carrying a portfolio up a set of blue steps toward a star" width="1254" height="1254" fetchpriority="high" decoding="async" />
-					<figcaption>A little ambition. A world of possibility.</figcaption>
-				</figure>
-			</section>
-
-			<section id="how-it-works" aria-labelledby="how-title" class="how-section public-container">
-				<div class="how-heading">
-					<p class="landing-label">How it works</p>
-					<h2 id="how-title">From looking to <span class="text-brand">getting started.</span></h2>
-				</div>
-				<ol class="steps">
-					<li v-for="(step, index) in steps" :key="step.title">
-						<span class="step-number" aria-hidden="true">0{{ index + 1 }}</span>
-						<div><h3>{{ step.title }}</h3><p>{{ step.text }}</p></div>
-					</li>
-				</ol>
-			</section>
-
-			<section aria-labelledby="students-title" class="student-section">
-				<div class="public-container student-grid">
-					<div>
-						<p class="landing-label">For students</p>
-						<h2 id="students-title" class="section-title">Less searching.<br />More moving forward.</h2>
-						<p class="section-description">A place to find your first opportunity, and a little clarity on what comes next.</p>
-						<ul class="feature-list">
-							<li v-for="feature in studentFeatures" :key="feature.title">
-								<icon name="check-circle" aria-hidden="true" />
-								<div><h3>{{ feature.title }}</h3><p>{{ feature.text }}</p></div>
-							</li>
-						</ul>
-						<Link :href="currentUser ? route('internships.index') : route('register', { account: 'student' })" class="landing-link focus-ring"><span class="link-label">{{ currentUser ? 'Find your next internship' : 'Create your student account' }}</span> <icon name="arrow-up-right" class="action-icon" /></Link>
-					</div>
-					<figure class="application-preview">
-						<figcaption class="preview-caption">A little clarity, at every step <span>Illustrative preview</span></figcaption>
-						<div class="preview-heading"><icon name="document-text" aria-hidden="true" /><h3>Your applications</h3></div>
-						<ul class="application-list">
-							<li v-for="application in exampleApplications" :key="application.title">
-								<div><p class="application-title">{{ application.title }}</p><p class="application-detail">{{ application.detail }}</p></div>
-								<span class="application-status" :class="application.offer ? 'status-offer' : 'status-review'">{{ application.status }}</span>
-							</li>
-						</ul>
-						<p class="preview-note"><icon name="check-circle" aria-hidden="true" /> Every application, one clear view.</p>
-					</figure>
-				</div>
-			</section>
-
-			<section aria-labelledby="companies-title" class="company-section">
-				<img class="company-background" src="/internly-assets/landing/workspace.webp" alt="" width="1672" height="941" loading="lazy" decoding="async" />
-				<div class="company-overlay" aria-hidden="true"></div>
-				<div class="public-container company-content">
-					<div class="company-copy">
-						<p class="landing-label">For companies</p>
-						<h2 id="companies-title" class="section-title">Fresh perspectives.<br />Your next great hire.</h2>
-						<p class="section-description">Make room for emerging talent. Publish your internship and keep applications and conversations in one place.</p>
-						<ul class="feature-list">
-							<li v-for="feature in companyFeatures" :key="feature.title">
-								<icon name="check-circle" aria-hidden="true" />
-								<div><h3>{{ feature.title }}</h3><p>{{ feature.text }}</p></div>
-							</li>
-						</ul>
-						<Link v-if="companyAction" :href="companyAction" class="cta cta-light focus-ring">{{ isCompany ? 'Post an internship' : 'Start hiring on Internly' }} <icon name="arrow-up-right" class="action-icon" /></Link>
-						<Link v-else :href="route('blog.show', 'how-companies-can-hire-interns-faster')" class="cta cta-light focus-ring">Read the hiring guide <icon name="arrow-up-right" class="action-icon" /></Link>
-					</div>
-					<p class="company-aside" aria-hidden="true">Great work starts<br />with a first opportunity.</p>
-				</div>
-			</section>
-
-			<section v-if="posts.length" aria-labelledby="guides-title" class="guides-section public-container">
-				<div class="section-heading">
-					<div><p class="landing-label">The reading room</p><h2 id="guides-title" class="section-title">A little guidance goes a long way.</h2></div>
-					<Link :href="route('blog.index')" class="landing-link focus-ring"><span class="link-label">All guides</span> <icon name="arrow-up-right" class="action-icon" /></Link>
-				</div>
-				<div class="guide-list">
-					<Link v-for="post in posts" :key="post.slug" :href="route('blog.show', post.slug)" class="guide-row focus-ring">
-						<span class="guide-category">{{ post.category }}</span>
-						<div><h3>{{ post.title }}</h3><p>{{ post.excerpt }}</p></div>
-						<span class="guide-time">{{ post.read_time }}</span><icon name="arrow-up-right" class="guide-arrow" />
-					</Link>
-				</div>
-			</section>
-
-			<section aria-labelledby="faq-title" class="faq-section public-container">
-				<div>
-					<p class="landing-label">Good to know</p>
-					<h2 id="faq-title" class="section-title">A few questions.<br />Clear answers.</h2>
-					<p class="section-description">Something else on your mind?</p>
-					<Link :href="route('contact')" class="landing-link focus-ring"><span class="link-label">Let’s talk</span> <icon name="arrow-up-right" class="action-icon" /></Link>
-				</div>
-				<div class="faq-list">
-					<details v-for="item in faqs" :key="item.question" class="faq-item">
-						<summary class="focus-ring">{{ item.question }}<icon name="plus" class="faq-toggle" /></summary>
-						<p>{{ item.answer }}</p>
-					</details>
-				</div>
-			</section>
-
-			<section aria-labelledby="cta-title" class="closing-section">
-				<div class="public-container closing-content">
-					<div><p class="landing-label">Here’s to what comes next</p><h2 id="cta-title" class="section-title">Your beginning is out there.</h2><p>Let’s find it.</p></div>
-					<div class="closing-actions">
-						<Link :href="route('internships.index')" class="cta cta-light focus-ring">Explore internships <icon name="arrow-up-right" class="action-icon" /></Link>
-						<Link v-if="companyAction" :href="companyAction" class="landing-link focus-ring"><span class="link-label">Hiring? Post an internship</span> <icon name="arrow-up-right" class="action-icon" /></Link>
-					</div>
-				</div>
-			</section>
-		</div>
-	</public-layout>
-</template>
-
-<script>
-import EmptyLayout from '@/Layouts/Empty.vue';
+<script setup>
+import { computed } from 'vue';
 import PublicLayout from '@/Layouts/Public.vue';
-
-export default {
-	layout: EmptyLayout,
-	components: { PublicLayout },
-	props: {
-		posts: { type: Array, default: () => [] },
-	},
-	data() {
-		return {
-			steps: [
-				{ title: 'Find your fit', text: 'Explore open internships by field, city, or company. Take a look around before signing up.' },
-				{ title: 'Make your introduction', text: 'Create a student account. Send your cover letter and the documents that tell your story.' },
-				{ title: 'Keep things moving', text: 'Follow your application’s status and message companies directly, all in one place.' },
-			],
-			studentFeatures: [
-				{ title: 'A search that makes sense', text: 'Filter by field, city, and company. Save the internships you want to come back to.' },
-				{ title: 'Know where you stand', text: 'Follow your applications from the first review to an interview or offer.' },
-				{ title: 'Start a real conversation', text: 'Message a company from its profile and keep the conversation here.' },
-			],
-			companyFeatures: [
-				{ title: 'Introduce your company', text: 'Give students a feel for who you are with a company profile.' },
-				{ title: 'Publish, then review', text: 'Post a role and review cover letters and attachments in one place.' },
-				{ title: 'Close the loop', text: 'Update applications as you review them. Students are notified when you reply.' },
-			],
-			// Examples explain the existing status workflow; they are not live listings or applications.
-			exampleApplications: [
-				{ title: 'Design internship', detail: 'Cover letter & portfolio', status: 'In review', offer: false },
-				{ title: 'Engineering internship', detail: 'Cover letter & CV', status: 'Offer', offer: true },
-				{ title: 'Marketing internship', detail: 'Cover letter & CV', status: 'In review', offer: false },
-			],
-			faqs: [
-				{ question: 'Do I need an account to explore?', answer: 'No. Internship listings and their details are public. You need a student account to apply, save internships, and follow your applications.' },
-				{ question: 'What do I need to apply?', answer: 'A cover letter of at least 200 characters. You can add a note for the company and attach up to 10 files, such as your CV or portfolio, each up to 10 MB.' },
-				{ question: 'How do I follow my application?', answer: 'Follow each stage: submitted, viewed, in review, interview, offer, or closed. You get a notification when the company replies, and you can edit your application until it receives an offer or is closed.' },
-				{ question: 'How can my company post an internship?', answer: 'Create a company account with your website, logo, city, and a short description. Once your profile is complete, you can publish internships with a description, field, closing date, and optional attachments.' },
-				{ question: 'Are companies independently verified?', answer: 'Not independently. Each listing shows the company’s contact details and website, so you can check who is hiring before you apply.' },
-				{ question: 'What happens when an internship closes?', answer: 'It leaves the internship list and stops accepting applications. Companies can still review the applications they already received.' },
-			],
-		};
-	},
-	computed: {
-		isCompany() {
-			return this.currentUser?.userable_type === 'company';
-		},
-		companyAction() {
-			if (!this.currentUser) return route('register', { account: 'company' });
-			return this.isCompany ? route('internships.create') : null;
-		},
-	},
-};
+import RoleCard from '@/Components/Internship/RoleCard.vue';
+const props = defineProps({ locale: { type: String, default: 'en' }, opportunities: { type: [Object, Array], default: () => ({ data: [] }) }, posts: { type: Array, default: () => [] } });
+const listings = computed(() => Array.isArray(props.opportunities) ? props.opportunities : props.opportunities?.data || []);
+const fr = computed(() => props.locale === 'fr');
+const prefix = computed(() => fr.value ? '/fr' : '');
+const text = (en, french) => fr.value ? french : en;
+const shortcuts = computed(() => [
+    { path: 'tunisia', label: text('In Tunisia', 'En Tunisie') },
+    { path: 'remote-from-tunisia', label: text('Remote from Tunisia', 'À distance depuis la Tunisie') },
+    { path: 'relocation', label: text('Abroad with relocation', 'À l’étranger avec aide à la mobilité') },
+]);
 </script>
-
+<template>
+    <PublicLayout>
+        <div class="landing">
+            <section aria-labelledby="hero-title" class="hero public-container">
+                <div class="hero-copy">
+                    <p class="landing-label"><span class="label-dot" aria-hidden="true"></span>{{ text('For students and professionals', 'Pour les étudiants et les professionnels') }}</p>
+                    <h1 id="hero-title">{{ text('Find your next', 'Trouvez votre prochaine') }} <span>{{ text('opportunity.', 'opportunité.') }}</span></h1>
+                    <p class="hero-description">{{ text('Nextward brings internships and jobs in Tunisia and worldwide into one place. Find your first role or your next career move.', 'Nextward réunit des stages et des emplois en Tunisie et dans le monde. Trouvez votre première expérience ou votre prochaine étape professionnelle.') }}</p>
+                    <div class="hero-actions"><Link :href="`${prefix}/opportunities`" class="cta cta-primary focus-ring">{{ text('Explore opportunities', 'Explorer les opportunités') }}<Icon name="arrow-up-right" class="action-icon" /></Link><a href="#how-it-works" class="landing-link focus-ring">{{ text('See how it works', 'Comment ça marche') }}</a></div>
+                    <p class="hero-note"><Icon name="check-circle" aria-hidden="true" />{{ text('No account needed to explore or visit external application pages.', 'Aucun compte nécessaire pour consulter les offres ou candidater sur un site externe.') }}</p>
+                </div>
+                <figure class="hero-art"><img src="/nextward-assets/landing/career-steps.webp" alt="" width="1254" height="1254" fetchpriority="high" decoding="async" /><figcaption>{{ text('Your next move starts here.', 'Votre prochaine étape commence ici.') }}</figcaption></figure>
+            </section>
+            <section class="public-container pb-14" :aria-label="text('Search opportunities', 'Rechercher des opportunités')">
+                <form method="get" :action="`${prefix}/opportunities`" class="grid md:grid-cols-[2fr_1fr_1fr_auto] gap-4 rounded-2xl bg-white border border-line p-5">
+                    <label class="text-sm font-semibold">{{ text('Keyword', 'Mot-clé') }}<input name="search" type="search" maxlength="150" :placeholder="text('Role, company, or skill', 'Poste, entreprise ou compétence')" class="mt-2 w-full rounded-lg border-line" /></label>
+                    <label class="text-sm font-semibold">{{ text('Opportunity type', 'Type d’opportunité') }}<select name="kind" class="mt-2 w-full rounded-lg border-line"><option value="">{{ text('Internships and jobs', 'Stages et emplois') }}</option><option value="internship">{{ text('Internships', 'Stages') }}</option><option value="job">{{ text('Jobs', 'Emplois') }}</option></select></label>
+                    <label class="text-sm font-semibold">{{ text('Location', 'Lieu') }}<select name="country" class="mt-2 w-full rounded-lg border-line"><option value="">{{ text('Worldwide', 'Monde entier') }}</option><option value="TN">{{ text('Tunisia', 'Tunisie') }}</option></select></label>
+                    <button class="cta cta-primary self-end" type="submit">{{ text('Search', 'Rechercher') }}</button>
+                </form>
+                <nav class="mt-5 flex flex-wrap gap-3" :aria-label="text('Locations and work options', 'Lieux et modes de travail')"><Link v-for="item in shortcuts" :key="item.path" :href="`${prefix}/opportunities/${item.path}`" class="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-blue-700">{{ item.label }}</Link></nav>
+            </section>
+            <section class="public-container grid md:grid-cols-2 gap-6 pb-16">
+                <article class="rounded-2xl bg-white border border-line p-8"><p class="landing-label">{{ text('For students', 'Pour les étudiants') }}</p><h2 class="section-title">{{ text('Make your first move.', 'Faites le premier pas.') }}</h2><p class="section-description">{{ text('Explore PFE and summer internships, graduate programmes, and first jobs. Find the experience that helps you grow.', 'Explorez les PFE, les stages d’été, les programmes jeunes diplômés et les premiers emplois. Trouvez une expérience pour progresser.') }}</p><Link :href="`${prefix}/for-students`" class="landing-link mt-6 text-blue-700">{{ text('Explore the student section', 'Découvrir l’espace étudiants') }}<Icon name="arrow-up-right" class="action-icon" /></Link></article>
+                <article class="rounded-2xl bg-navy text-white p-8"><p class="landing-label text-blue-200">{{ text('For professionals', 'Pour les professionnels') }}</p><h2 class="section-title">{{ text('Build on your experience.', 'Valorisez votre expérience.') }}</h2><p class="section-description !text-slate-300">{{ text('Find full-time, part-time, contract, and freelance roles. Explore local hiring, remote work, and opportunities abroad.', 'Trouvez des postes à temps plein, à temps partiel, en contrat et en freelance. Explorez le marché local, le télétravail et les offres à l’étranger.') }}</p><Link :href="`${prefix}/for-professionals`" class="landing-link mt-6 text-blue-200">{{ text('Explore the professional section', 'Découvrir l’espace professionnels') }}<Icon name="arrow-up-right" class="action-icon" /></Link></article>
+            </section>
+            <section class="public-container pb-16" aria-labelledby="latest-title">
+                <div class="flex flex-wrap gap-4 justify-between items-end mb-7"><div><p class="landing-label">{{ text('What’s next', 'La suite de votre parcours') }}</p><h2 id="latest-title" class="section-title">{{ text('Recent opportunities', 'Les dernières opportunités') }}</h2></div><Link :href="`${prefix}/opportunities`" class="landing-link text-blue-700">{{ text('Browse all opportunities', 'Voir toutes les opportunités') }}</Link></div>
+                <div v-if="listings.length" class="grid lg:grid-cols-2 gap-4"><RoleCard v-for="opportunity in listings" :key="opportunity.id" :internship="opportunity" /></div>
+                <p v-else class="rounded-2xl border border-line bg-white p-8 text-slate-600">{{ text('There are no active opportunities to show right now. Employer posts and approved source listings appear here when available.', 'Aucune opportunité active à afficher pour le moment. Les offres des employeurs et des sources autorisées apparaissent ici lorsqu’elles sont disponibles.') }}</p>
+            </section>
+            <section id="how-it-works" class="how-section public-container"><p class="landing-label">{{ text('How it works', 'Comment ça marche') }}</p><h2 class="section-title">{{ text('Find your fit. Keep moving.', 'Trouvez votre place. Avancez.') }}</h2><ol class="steps"><li><span class="step-number">01</span><div><h3>{{ text('Discover and save', 'Découvrez et sauvegardez') }}</h3><p>{{ text('Browse roles, check their requirements, and save the opportunities you want to revisit.', 'Consultez les offres et leurs critères, puis sauvegardez les opportunités qui vous intéressent.') }}</p></div></li><li><span class="step-number">02</span><div><h3>{{ text('Apply at the right place', 'Candidatez au bon endroit') }}</h3><p>{{ text('Apply on Nextward for employer-managed roles, or follow the link to the employer or original source.', 'Candidatez sur Nextward pour les offres gérées ici, ou suivez le lien vers l’employeur ou la source originale.') }}</p></div></li><li><span class="step-number">03</span><div><h3>{{ text('Track your progress', 'Suivez vos démarches') }}</h3><p>{{ text('Keep applications together. For external roles, record “I applied” and update your own progress.', 'Regroupez vos candidatures. Pour les offres externes, indiquez votre candidature et mettez vous-même votre suivi à jour.') }}</p></div></li></ol></section>
+            <section class="public-container py-16 grid md:grid-cols-2 gap-10"><div><p class="landing-label">{{ text('Know what you’re applying for', 'Comprenez chaque candidature') }}</p><h2 class="section-title">{{ text('Clear sources. Useful details.', 'Des sources claires. Des détails utiles.') }}</h2></div><div class="space-y-4 text-slate-600 leading-7"><p>{{ text('Explore employer posts and opportunities from approved sources. See the original listing and where to apply before you share your information. Source dates show the last successful check; availability can change.', 'Explorez les offres des employeurs et des sources autorisées. Consultez l’annonce originale et le site de candidature avant de partager vos informations. Les dates indiquent le dernier contrôle réussi de la source ; la disponibilité peut évoluer.') }}</p><p>{{ text('Remote does not always mean worldwide. Unknown eligibility means the source has not confirmed where applicants may work. Relocation support and visa sponsorship are shown separately.', 'Le télétravail n’est pas toujours accessible partout. Une éligibilité inconnue signifie que la source ne confirme pas les pays autorisés. L’aide à la mobilité et le parrainage de visa sont indiqués séparément.') }}</p></div></section>
+            <section class="company-section"><img class="company-background" src="/nextward-assets/landing/workspace.webp" alt="" width="1672" height="941" loading="lazy" decoding="async" /><div class="company-overlay"></div><div class="public-container company-content"><div class="company-copy"><p class="landing-label">{{ text('For employers', 'Pour les employeurs') }}</p><h2 class="section-title">{{ text('Hire students and professionals.', 'Recrutez des étudiants et des professionnels.') }}</h2><p class="section-description">{{ text('Publish an internship or a job. Introduce your company, review applications, and keep candidate conversations in one place.', 'Publiez un stage ou un emploi. Présentez votre entreprise, examinez les candidatures et centralisez les échanges avec les candidats.') }}</p><Link :href="currentUser?.userable_type === 'company' ? '/internships/create' : '/register?account=company'" class="cta cta-light mt-8">{{ text('Post an opportunity', 'Publier une opportunité') }}</Link></div></div></section>
+            <section v-if="posts.length" class="guides-section public-container"><p class="landing-label">{{ text('Career guides', 'Guides carrière en anglais') }}</p><h2 class="section-title">{{ text('A little guidance goes a long way.', 'Des conseils pour avancer.') }}</h2><div class="guide-list"><Link v-for="post in posts" :key="post.slug" :href="`/blog/${post.slug}`" class="guide-row focus-ring" lang="en"><span class="guide-category">{{ post.category }}</span><div><h3>{{ post.title }}</h3><p>{{ post.excerpt }}</p></div><span class="guide-time">{{ post.read_time }}</span><Icon name="arrow-up-right" class="guide-arrow" /></Link></div></section>
+        </div>
+    </PublicLayout>
+</template>
 <style scoped>
 .landing { background: #faf9f6; color: var(--color-navy); }
 .landing p { white-space: normal; }

@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Field;
 
 class InternshipSeeder extends Seeder
 {
@@ -14,6 +13,6 @@ class InternshipSeeder extends Seeder
      */
     public function run()
     {
-        \App\Models\Internship::factory(45)->create();
+        $this->call(OpportunitySeeder::class);
     }
 }

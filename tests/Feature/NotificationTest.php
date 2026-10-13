@@ -18,7 +18,7 @@ class NotificationTest extends TestCase
     {
         parent::setUp();
 
-        $this->seed();
+        $this->seed(\Tests\Fixtures\DemoSeeder::class);
     }
 
     public function test_opening_a_notification_marks_it_read_and_follows_its_action(): void

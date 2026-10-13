@@ -2,7 +2,7 @@
 	<header class="auth-heading">
 		<p class="auth-kicker">A fresh start</p>
 		<h1>A new password.<br />A fresh start.</h1>
-		<p>Choose a new password for your Internly account.</p>
+		<p>Choose a new password for your Nextward account.</p>
 	</header>
 	<auth-feedback :errors="form.errors" />
 	<form @submit.prevent="submit" :aria-busy="form.processing">

@@ -1,0 +1,100 @@
+{
+  "assets": [
+    {
+      "file": "01-portfolio-builder",
+      "width": 1254,
+      "height": 1254,
+      "png_bytes": 866944,
+      "webp_bytes": 101760,
+      "mode": "RGBA",
+      "corners_alpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "transparent_percent": 53.6,
+      "alpha_preserved": true
+    },
+    {
+      "file": "02-interview-ready",
+      "width": 1254,
+      "height": 1254,
+      "png_bytes": 651309,
+      "webp_bytes": 80138,
+      "mode": "RGBA",
+      "corners_alpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "transparent_percent": 67.0,
+      "alpha_preserved": true
+    },
+    {
+      "file": "03-meaningful-connections",
+      "width": 1536,
+      "height": 1024,
+      "png_bytes": 1360837,
+      "webp_bytes": 97486,
+      "mode": "RGBA",
+      "corners_alpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "transparent_percent": 64.6,
+      "alpha_preserved": true
+    },
+    {
+      "file": "04-skill-builder",
+      "width": 1254,
+      "height": 1254,
+      "png_bytes": 768321,
+      "webp_bytes": 91714,
+      "mode": "RGBA",
+      "corners_alpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "transparent_percent": 59.9,
+      "alpha_preserved": true
+    },
+    {
+      "file": "05-find-your-direction",
+      "width": 1254,
+      "height": 1254,
+      "png_bytes": 514968,
+      "webp_bytes": 76174,
+      "mode": "RGBA",
+      "corners_alpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "transparent_percent": 76.0,
+      "alpha_preserved": true
+    },
+    {
+      "file": "06-offer-moment",
+      "width": 1254,
+      "height": 1254,
+      "png_bytes": 451601,
+      "webp_bytes": 69984,
+      "mode": "RGBA",
+      "corners_alpha": [
+        0,
+        0,
+        1,
+        0
+      ],
+      "transparent_percent": 79.3,
+      "alpha_preserved": true
+    }
+  ]
+}

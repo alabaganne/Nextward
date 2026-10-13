@@ -1,4 +1,4 @@
-# Internly — Design Language
+# Nextward — Design Language
 
 This document is a workspace design reference retained from the earlier prototype.
 The implemented Vue components and current user-approved direction take precedence.
@@ -14,7 +14,7 @@ Tailwind 4, and Vite 8 integration.
 
 ## 1. Personality
 
-Internly is a **calm, modern, trustworthy SaaS product** for students and companies.
+Nextward is a **calm, modern, trustworthy SaaS product** for students and companies.
 
 - **Clean, not flashy.** White space does the work. One accent colour, used with intent.
 - **Editorial headings, friendly body.** A geometric display face for headings; a

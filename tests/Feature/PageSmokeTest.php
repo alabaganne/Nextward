@@ -20,7 +20,7 @@ class PageSmokeTest extends TestCase
     {
         parent::setUp();
 
-        $this->seed();
+        $this->seed(\Tests\Fixtures\DemoSeeder::class);
     }
 
     private function student(): User
@@ -30,15 +30,19 @@ class PageSmokeTest extends TestCase
 
     public function test_public_pages_render(): void
     {
-        foreach (['/', '/about', '/contact', '/blog', '/internships', '/login', '/register'] as $uri) {
+        foreach (['/', '/for-students', '/for-professionals', '/about', '/contact', '/blog', '/opportunities', '/opportunities/internships', '/opportunities/jobs', '/login', '/register'] as $uri) {
             $this->get($uri)->assertOk();
         }
 
-        $slug = collect(config('internly_blog'))->first()['slug'];
+        $slug = collect(config('nextward_blog'))->first()['slug'];
         $this->get("/blog/{$slug}")->assertOk();
 
         $internship = Internship::firstOrFail();
+        $this->get('/internships')->assertStatus(301)->assertRedirect('/opportunities/internships');
         $this->get("/internships/{$internship->id}")
+            ->assertStatus(301)
+            ->assertRedirect($internship->public_url);
+        $this->get($internship->public_url)
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Internships/Show')
@@ -132,10 +136,10 @@ class PageSmokeTest extends TestCase
         }
     }
 
-    public function test_internships_index_receives_filters_and_results(): void
+    public function test_opportunities_index_receives_filters_and_results(): void
     {
         $this->actingAs($this->student())
-            ->get('/internships')
+            ->get('/opportunities')
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Internships/Index')
                 ->has('internships.data')
@@ -163,7 +167,7 @@ class PageSmokeTest extends TestCase
         $this->actingAs($admin)->get('/students')->assertOk();
 
         foreach ([$company, $admin] as $user) {
-            foreach (['/dashboard', '/internships', '/applications', '/messages', '/companies', '/profile', '/settings'] as $uri) {
+            foreach (['/dashboard', '/opportunities', '/applications', '/messages', '/companies', '/profile', '/settings'] as $uri) {
                 $this->actingAs($user)->get($uri)->assertOk();
             }
         }

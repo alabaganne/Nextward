@@ -1,6 +1,8 @@
 <script setup>
 import { computed } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
+const page = usePage();
+const fr = computed(() => page.props.locale === 'fr');
 import { ChevronLeft, ChevronRight } from '@lucide/vue';
 
 const props = defineProps({
@@ -11,7 +13,7 @@ const props = defineProps({
 const links = computed(() =>
 	(props.meta?.links || []).map((link, index, all) => ({
 		...link,
-		label: index === 0 ? 'Previous page' : index === all.length - 1 ? 'Next page' : link.label,
+		label: index === 0 ? (fr.value ? 'Page précédente' : 'Previous page') : index === all.length - 1 ? (fr.value ? 'Page suivante' : 'Next page') : link.label,
 		icon: index === 0 ? ChevronLeft : index === all.length - 1 ? ChevronRight : null,
 	}))
 );

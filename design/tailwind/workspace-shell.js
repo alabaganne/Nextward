@@ -1,5 +1,5 @@
 /* ===========================================================
-   Internly — Tailwind workspace shell
+   Nextward — Tailwind workspace shell
    <app-sidebar active="dashboard" role="student"></app-sidebar>
    <app-topbar></app-topbar>
    Renders Tailwind-utility markup directly (no workspace.css).
@@ -52,7 +52,7 @@
     let html = `<aside class="flex flex-col sticky top-0 h-screen bg-navy-900 text-[#aeb9cf] px-4 py-[22px]">
       <a class="flex items-center gap-[11px] px-2 pt-1.5 pb-[26px]" href="index.html">
         <span class="w-[38px] h-[38px] rounded-[11px] grid place-items-center text-white bg-gradient-to-br from-blue-400 to-blue-700 [&_svg]:w-[21px] [&_svg]:h-[21px]">${I.logo}</span>
-        <span><b class="block font-display text-[19px] font-semibold tracking-tight text-white">Internly</b><small class="block text-[10px] tracking-[.16em] text-[#7c89a3] font-semibold -mt-0.5">${cfg.tag}</small></span>
+        <span><b class="block font-display text-[19px] font-semibold tracking-tight text-white">Nextward</b><small class="block text-[10px] tracking-[.16em] text-[#7c89a3] font-semibold -mt-0.5">${cfg.tag}</small></span>
       </a>`;
     cfg.groups.forEach(g => {
       html += `<div class="text-[11px] tracking-[.13em] uppercase text-[#5d6a85] font-bold px-3 pt-[18px] pb-2">${g.label}</div><nav class="flex flex-col gap-[3px]">`;

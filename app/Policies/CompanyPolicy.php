@@ -55,7 +55,7 @@ class CompanyPolicy
      */
     public function update(User $user, Company $company)
     {
-        return $user->id === $company->user->id || $user->isAdmin();
+        return ($user->isCompany() && $user->userable_id === $company->id) || $user->isAdmin();
     }
 
     /**

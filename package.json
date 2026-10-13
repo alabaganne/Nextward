@@ -1,8 +1,11 @@
 {
+	"name": "nextward",
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"build": "vite build",
+		"build": "vite build && vite build --ssr",
+		"build:client": "vite build",
+		"ssr": "node bootstrap/ssr/ssr.js",
 		"dev": "vite"
 	},
 	"devDependencies": {

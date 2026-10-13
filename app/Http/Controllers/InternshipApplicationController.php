@@ -23,6 +23,7 @@ class InternshipApplicationController extends Controller
         return Inertia::render('Internships/Applications', [
             'applications' => ApplicationResource::collection(
                 Application::where('internship_id', $internship->id)
+                    ->where('channel', 'internal')
                     ->latest()
                     ->paginate(8)
             ),

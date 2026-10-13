@@ -32,16 +32,24 @@ class ProfileController extends Controller
                 'website' => $company->website,
                 'city' => $company->city ? ['name' => $company->city->name] : null,
                 'internships_count' => $company->internships()->count(),
+                'country_code' => $company->country_code,
+                'location' => $company->location,
             ];
-        } elseif ($user->isStudent()) {
+        } elseif ($user->isCandidate()) {
             $student = $user->userable;
             $profile += [
                 'about' => $student->about,
                 'field' => $student->field ? ['name' => $student->field->name] : null,
                 'city' => $student->city ? ['name' => $student->city->name] : null,
-                'skills' => $student->skills->pluck('name'),
+                'skills' => $student->skills->pluck('name')->merge($student->preferences['skills'] ?? [])->unique()->values(),
                 'applications_count' => $student->applications()->count(),
                 'likes_count' => $student->likes()->count(),
+                'career_stage' => $student->career_stage,
+                'headline' => $student->headline,
+                'experience_years' => $student->experience_years,
+                'country_code' => $student->country_code,
+                'location' => $student->location,
+                'languages' => $student->languages ?: [],
             ];
         }
 
@@ -58,23 +66,48 @@ class ProfileController extends Controller
     {
         $user = auth()->user();
 
+        if ($request->filled('country_code') && is_string($request->input('country_code'))) {
+            $request->merge(['country_code' => strtoupper(trim($request->input('country_code')))]);
+        }
+
         $data = $request->validate([
-            'name' => 'required',
+            'name' => 'required|string|max:255',
             'email' => "required|email|unique:users,email,{$user->id}",
             'phone_number' => "nullable|unique:users,phone_number,{$user->id}",
             'linkedin_profile_url' => 'nullable|url',
             'city_id' => 'nullable|exists:cities,id',
             'field_id' => 'nullable|exists:fields,id',
-            'about' => 'nullable',
+            'about' => 'nullable|string|max:20000',
             'website' => 'nullable|url',
+            'career_stage' => 'sometimes|required|in:student,graduate,professional',
+            'headline' => 'nullable|string|max:255',
+            'experience_years' => 'nullable|integer|min:0|max:80',
+            'country_code' => 'nullable|string|size:2|regex:/^[A-Z]{2}$/',
+            'location' => 'nullable|string|max:255',
+            'languages' => 'nullable|array|max:20',
+            'languages.*' => 'string|max:50',
+            'preferences' => 'nullable|array:kinds,countries,work_types,fields,skills,seniority,include_unknown_eligibility',
+            'preferences.kinds' => 'nullable|array|max:2',
+            'preferences.kinds.*' => 'in:internship,job',
+            'preferences.countries' => 'nullable|array|max:30',
+            'preferences.countries.*' => 'string|size:2|regex:/^[A-Z]{2}$/',
+            'preferences.work_types' => 'nullable|array|max:3',
+            'preferences.work_types.*' => 'in:onsite,hybrid,remote',
+            'preferences.fields' => 'nullable|array|max:20',
+            'preferences.fields.*' => 'integer|exists:fields,id',
+            'preferences.skills' => 'nullable|array|max:30',
+            'preferences.skills.*' => 'string|max:80',
+            'preferences.seniority' => 'nullable|array|max:10',
+            'preferences.seniority.*' => 'in:entry,graduate,mid,senior,lead,executive',
+            'preferences.include_unknown_eligibility' => 'nullable|boolean',
         ]);
 
         $user->update(collect($data)->only('name', 'email', 'phone_number', 'linkedin_profile_url')->toArray());
 
         if ($user->isCompany()) {
-            $user->userable->update(collect($data)->only('about', 'website', 'city_id')->toArray());
-        } elseif ($user->isStudent()) {
-            $user->userable->update(collect($data)->only('about', 'field_id', 'city_id')->toArray());
+            $user->userable->update(collect($data)->only('name', 'about', 'website', 'city_id', 'country_code', 'location')->toArray());
+        } elseif ($user->isCandidate()) {
+            $user->userable->update(collect($data)->only('about', 'field_id', 'city_id', 'career_stage', 'headline', 'experience_years', 'country_code', 'location', 'languages', 'preferences')->toArray());
         }
 
         return Redirect::route('profile.show')->with('toast', [
@@ -119,6 +152,13 @@ class ProfileController extends Controller
                 'website' => $userable->website ?? null,
                 'city_id' => $userable->city_id ?? null,
                 'field_id' => $userable->field_id ?? null,
+                'career_stage' => $userable->career_stage ?? 'student',
+                'headline' => $userable->headline ?? null,
+                'experience_years' => $userable->experience_years ?? null,
+                'country_code' => $userable->country_code ?? null,
+                'location' => $userable->location ?? null,
+                'languages' => $userable->languages ?? [],
+                'preferences' => $userable->preferences ?? [],
             ],
         ]);
     }

@@ -15,7 +15,32 @@ class ApplicationStatusMigrationTest extends TestCase
     {
         parent::setUp();
 
-        $this->seed();
+        // Test the July upgrade against its historical schema, without later dependent indexes.
+        foreach ([
+            '2026_10_13_000300_create_opportunity_imports_and_alerts.php',
+            '2026_10_13_000200_extend_candidate_profiles_and_application_tracking.php',
+            '2026_10_13_000100_expand_opportunity_catalogue.php',
+        ] as $filename) {
+            (require database_path('migrations/'.$filename))->down();
+        }
+
+        // Insert only historical fields; current demo data requires the opportunity schema.
+        $cityId = DB::table('cities')->insertGetId(['name' => 'Tunis']);
+        $fieldId = DB::table('fields')->insertGetId(['name' => 'Engineering']);
+        $companyId = DB::table('companies')->insertGetId(['city_id' => $cityId]);
+        $internshipId = DB::table('internships')->insertGetId([
+            'title' => 'Historical internship', 'description' => 'Migration fixture.',
+            'company_id' => $companyId, 'field_id' => $fieldId, 'city_id' => $cityId,
+            'closing_at' => now()->addMonth()->toDateString(),
+        ]);
+        foreach (range(1, 3) as $index) {
+            $studentId = DB::table('students')->insertGetId(['field_id' => $fieldId, 'city_id' => $cityId]);
+            DB::table('applications')->insert([
+                'student_id' => $studentId, 'internship_id' => $internshipId, 'company_id' => $companyId,
+                'cover_letter' => 'Historical cover letter '.$index, 'message' => 'Historical message '.$index,
+                'status' => 'submitted',
+            ]);
+        }
     }
 
     public function test_legacy_application_decisions_survive_the_dashboard_schema_upgrade(): void

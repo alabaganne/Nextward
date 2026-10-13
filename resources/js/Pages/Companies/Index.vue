@@ -26,7 +26,7 @@ const filter = ref('all');
 
 const chips = [
 	{ key: 'all', label: 'All companies' },
-	{ key: 'hiring', label: 'With internships' },
+	{ key: 'hiring', label: 'With opportunities' },
 ];
 
 const visible = computed(() =>
@@ -51,7 +51,7 @@ const meta = computed(() => props.companies.meta ?? props.companies);
 			<div>
 			<span class="block font-display text-[12.5px] font-semibold tracking-[.18em] uppercase text-blue-600 mb-2">Directory</span>
 			<h1 class="font-display text-[32px] font-semibold tracking-[-.02em]">Companies</h1>
-			<p class="text-muted text-[15px] mt-1.5">Explore companies on Internly and the internships they have posted.</p>
+			<p class="text-muted text-[15px] mt-1.5">Explore companies on Nextward and the opportunities they have posted.</p>
 			</div>
 			<Link v-if="page.props.auth?.user?.is_admin" class="cbtn bg-blue-600 text-white hover:bg-blue-700" :href="route('companies.create')">Add company</Link>
 		</div>

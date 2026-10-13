@@ -1,0 +1,3 @@
+Edited using the built-in image generation tool.
+
+Edit the supplied Nextwand logo. Remove the entire navy Nextwand wordmark. Keep ONLY the existing cobalt-blue N monogram with its diagonal wand and single four-point sparkle. Preserve the symbol's exact geometry, shapes, negative-space gaps, proportions, corner radii and cobalt color. Do not redesign it. Center that same isolated symbol on a square canvas with modest even clear space. Real transparent alpha background. No text, no extra lettering, no added symbols, no shadows, no mockup.

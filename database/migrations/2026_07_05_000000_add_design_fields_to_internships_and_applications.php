@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Bring the schema up to what the Internly design screens display
+     * Bring the schema up to what the Nextward design screens display
      * (design/INTEGRATION.md §6).
      */
     public function up(): void

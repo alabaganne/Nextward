@@ -25,7 +25,7 @@ class FieldSeeder extends Seeder
         ];
 
         foreach ($fields as $field) {
-            DB::table('fields')->insert(['name' => $field]);
+            DB::table('fields')->updateOrInsert(['name' => $field]);
         }
     }
 }

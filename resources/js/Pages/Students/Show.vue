@@ -39,7 +39,7 @@ const initials = computed(() =>
 <template>
 	<div class="px-10 max-[680px]:px-5 pt-7 pb-16 w-full max-w-[1120px] mx-auto">
 		<div class="flex items-center gap-2 text-[13.5px] text-muted font-medium mb-[22px] [&_svg]:w-3.5 [&_svg]:h-3.5 [&_svg]:text-muted-2">
-			<Link class="hover:text-blue-700" :href="route('students.index')">Students</Link>
+			<Link class="hover:text-blue-700" :href="route('students.index')">Candidates</Link>
 			<component :is="icons.chevron" aria-hidden="true" />
 			<span class="text-ink-700 font-semibold">{{ student.name }}</span>
 		</div>
@@ -51,7 +51,7 @@ const initials = computed(() =>
 				<div class="w-[108px] h-[108px] rounded-[24px] bg-gradient-to-br from-blue-300 to-blue-700 grid place-items-center text-white font-bold font-display text-[40px] -mt-[46px] border-4 border-white shrink-0">{{ initials }}</div>
 				<div class="flex-1 min-w-0 pt-3.5">
 					<h2 class="font-display text-[25px] font-semibold">{{ student.name }}</h2>
-					<div class="text-[15px] text-ink-700 font-medium mt-[3px]">{{ student.field?.name }} student</div>
+					<div class="text-[15px] text-ink-700 font-medium mt-[3px]">{{ [student.field?.name, student.career_stage || 'candidate'].filter(Boolean).join(' · ') }}</div>
 					<div class="flex flex-wrap gap-4 mt-3 [&_span]:flex [&_span]:items-center [&_span]:gap-1.5 [&_span]:text-[13.5px] [&_span]:text-muted [&_span]:font-medium [&_svg]:w-[15px] [&_svg]:h-[15px] [&_svg]:text-muted-2">
 						<span v-if="student.city?.name"><component :is="icons.pin" aria-hidden="true" />{{ student.city.name }}</span>
 						<span v-if="student.field?.name"><component :is="icons.grad" aria-hidden="true" />{{ student.field.name }}</span>
@@ -72,7 +72,7 @@ const initials = computed(() =>
 				<div class="px-[22px] py-[18px] border-b border-line-2"><h3 class="font-display text-[16.5px] font-semibold">About</h3></div>
 				<div class="px-[22px] py-5">
 					<p v-if="student.about" class="text-[14.5px] text-ink-700 leading-[1.7] whitespace-pre-line">{{ student.about }}</p>
-					<p v-else class="text-[14.5px] text-muted leading-[1.7]">This student hasn't written a bio yet.</p>
+					<p v-else class="text-[14.5px] text-muted leading-[1.7]">This candidate hasn't written a bio yet.</p>
 				</div>
 			</section>
 

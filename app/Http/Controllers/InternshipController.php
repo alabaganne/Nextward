@@ -2,200 +2,258 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\InternshipRequest; // validations
-use App\Http\Resources\InternshipResource; // response
-use Illuminate\Http\Request;
-use Inertia\Inertia;
-use App\Models\Field;
+use App\Http\Requests\InternshipRequest;
+use App\Http\Resources\InternshipResource;
 use App\Models\City;
 use App\Models\Company;
+use App\Models\Field;
 use App\Models\Internship;
+use App\Support\PublicSeo;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use Inertia\Inertia;
 
 class InternshipController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, ?string $category = null)
     {
-		$user = $request->user();
+        $categories = [
+            'internships' => 'Internships',
+            'jobs' => 'Jobs',
+            'tunisia' => 'Opportunities in Tunisia',
+            'remote-from-tunisia' => 'Remote opportunities from Tunisia',
+            'relocation' => 'Opportunities abroad with relocation',
+        ];
+        abort_if($category && ! array_key_exists($category, $categories), 404);
+        $filters = $this->browseFilters($request);
+        $request->query->replace($filters);
+        $queryFilters = array_merge($filters, ['category' => $category]);
+        $results = Internship::with(['company.user', 'company.city', 'field', 'city', 'skills', 'sources.importSource'])
+            ->available()->searchFilters($queryFilters)->withCandidateState($request->user())
+            ->withCount('applications')
+            ->orderByRaw('COALESCE(posted_at, first_seen_at, created_at) DESC')->orderByDesc('id')
+            ->paginate(20)->withQueryString();
+        abort_if($results->currentPage() > $results->lastPage(), 404);
+
+        $companyFilters = array_diff_key($queryFilters, ['companies' => true]);
+        $companies = Company::with('user')
+            ->whereHas('internships', fn ($query) => $query->available()->searchFilters($companyFilters))
+            ->withCount(['internships' => fn ($query) => $query->available()->searchFilters($companyFilters)])
+            ->orderBy('name')->limit(50)->get()->map(fn ($company) => [
+                'id' => $company->id,
+                'name' => $company->display_name,
+                'internships_count' => $company->internships_count,
+            ]);
+        $countries = Internship::available()->whereNotNull('country_code')->distinct()->orderBy('country_code')
+            ->pluck('country_code')->map(fn ($code) => [
+                'code' => $code,
+                'name' => class_exists(\Locale::class) ? (\Locale::getDisplayRegion('und_'.$code, $request->is('fr/*') ? 'fr' : 'en') ?: $code) : $code,
+            ])->values();
 
         return Inertia::render('Internships/Index', [
-			'filters' => $request->only('fields', 'cities', 'companies', 'search'),
-			'internships' => InternshipResource::collection(
-				Internship::with('company', 'field', 'city', 'skills')
-					->listedFor($user)
-					->withCount('applications')
-					->withFilters(
-						$request->input('fields', []),
-						$request->input('companies', []),
-						$request->input('cities', []),
-						$request->input('search', '')
-					)
-					->latest()
-					->paginate(7)
-			),
-			'fields' => Field::withCount(['internships' => function ($query) use ($request, $user) {
-					$query->listedFor($user)->withFilters(
-						// [$request->input('fields', [])],
-						[],
-						$request->input('companies', []),
-						$request->input('cities', []),
-						$request->input('search', '')
-					);
-				}])
-				->get(),
-			'cities' => City::withCount(['internships' => function ($query) use ($request, $user) {
-					$query->listedFor($user)->withFilters(
-						$request->input('fields', []),
-						$request->input('companies', []),
-						// $request->input('cities', []),
-						[],
-						$request->input('search', '')
-					);
-				}])
-				->get(),
-			'companies' => $user && $user->isCompany() ? [] : Company::withCount(['internships' => function ($query) use ($request, $user) {
-					$query->listedFor($user)->withFilters(
-						$request->input('fields', []),
-						[],
-						$request->input('cities', []),
-						$request->input('search', '')
-					);
-				}])
-				->get()
-				->transform(function ($company) {
-					return [
-						'id' => $company->id,
-						'name' => $company->user->name,
-						'internships_count' => $company->internships_count,
-					];
-				})
-		]);
+            'filters' => $filters,
+            'internships' => InternshipResource::collection($results),
+            'category' => $category,
+            'categoryLabel' => $categories[$category] ?? 'Explore opportunities',
+            'countries' => $countries,
+            'companies' => $companies,
+            'fields' => Field::withCount(['internships' => fn ($query) => $query->available()->searchFilters(array_diff_key($queryFilters, ['fields' => true, 'field' => true]))])->orderBy('name')->get(),
+            'cities' => City::withCount(['internships' => fn ($query) => $query->available()->searchFilters(array_diff_key($queryFilters, ['cities' => true]))])
+                ->orderByDesc('internships_count')->orderBy('name')->limit(60)->get(),
+            'seo' => PublicSeo::browse($request, $category, $results->total()),
+        ]);
     }
 
-    public function getFields() {
-        return Field::select('id', 'name')->get();
+    private function browseFilters(Request $request): array
+    {
+        $input = $request->query();
+        foreach (['country', 'currency'] as $field) {
+            if (isset($input[$field]) && is_string($input[$field])) {
+                $input[$field] = strtoupper(trim($input[$field]));
+            }
+        }
+        if (isset($input['search']) && is_string($input['search'])) {
+            $input['search'] = trim($input['search']);
+        }
+        foreach (['fields', 'companies', 'cities'] as $field) {
+            if (isset($input[$field]) && is_array($input[$field])) {
+                $input[$field] = array_values(array_filter($input[$field], fn ($value) => $value !== '' && $value !== null));
+            }
+        }
+        $validator = Validator::make($input, [
+            'search' => 'nullable|string|max:150',
+            'kind' => 'nullable|in:internship,job',
+            'country' => 'nullable|string|regex:/^[A-Z]{2}$/',
+            'work_type' => 'nullable|in:onsite,hybrid,remote',
+            'seniority' => 'nullable|in:entry,graduate,mid,senior,lead,executive',
+            'employment_type' => 'nullable|in:FULL_TIME,PART_TIME,CONTRACTOR,TEMPORARY,INTERN,VOLUNTEER,OTHER',
+            'language' => 'nullable|string|regex:/^[a-z]{2}(-[A-Z]{2})?$/',
+            'program_type' => 'nullable|in:pfe,summer,apprenticeship,graduate,other',
+            'compensation_status' => 'nullable|in:paid,unpaid,unspecified',
+            'fields' => 'nullable|array|max:20',
+            'fields.*' => 'integer|min:1',
+            'field' => 'nullable|integer|min:1',
+            'companies' => 'nullable|array|max:20',
+            'companies.*' => 'integer|min:1',
+            'cities' => 'nullable|array|max:20',
+            'cities.*' => 'integer|min:1',
+            'posted_within' => 'nullable|integer|in:1,3,7,14,30,90',
+            'min_pay' => 'nullable|numeric|min:0|max:9999999999.99',
+            'currency' => 'nullable|required_with:min_pay|string|regex:/^[A-Z]{3}$/',
+            'pay_unit' => 'nullable|required_with:min_pay|in:hour,day,week,month,year',
+            'duration_max' => 'nullable|integer|min:1|max:104',
+            'start_after' => 'nullable|date_format:Y-m-d',
+            'audience' => 'nullable|in:students,professionals,both',
+            'remote_from_tunisia' => 'nullable|boolean',
+            'include_unknown_remote' => 'nullable|boolean',
+            'relocation' => 'nullable|boolean',
+            'page' => 'nullable|integer|min:1|max:10000',
+        ]);
+        abort_if($validator->fails(), 404);
+
+        return array_filter($validator->validated(), fn ($value) => $value !== null && $value !== '' && $value !== []);
+    }
+
+    public function getFields()
+    {
+        return Field::select('id', 'name')->orderBy('name')->get();
     }
 
     public function create()
     {
         $this->authorize('create', Internship::class);
-
         return Inertia::render('Internships/Edit', [
-            'fields' => $this->getFields()
+            'fields' => $this->getFields(),
+            'cities' => City::select('id', 'name')->orderBy('name')->get(),
         ]);
     }
 
     public function store(InternshipRequest $request)
     {
         $this->authorize('create', Internship::class);
-
-        $data = $request->validated();
-		$company = auth()->user()->userable;
+        $company = $request->user()->userable;
+        $data = $this->nativeData($request);
         $data['company_id'] = $company->id;
-		$data['city_id'] = $company->city_id;
-
+        $data['origin'] = 'native';
+        $data['application_mode'] = 'internal';
         $data['attachments'] = $this->storeAttachments($request, 'internships');
+        $internship = Internship::create($data);
 
-        Internship::create($data);
+        return redirect($internship->publication_status === 'published'
+            ? route('opportunities.show', ['opportunity' => $internship->id.'-'.$internship->slug])
+            : route('internships.edit', $internship))
+            ->with('toast', ['type' => 'store', 'message' => 'Your opportunity has been saved.']);
+    }
 
-        return Redirect::route('internships.index')->with('toast', [
-            'type' => 'store',
-            'message' => 'A new internship has been added.'
+    public function show(Internship $internship)
+    {
+        $internship = $this->canonicalOpportunity($internship);
+        abort_unless($internship->publication_status === 'published', 404);
+        return redirect($internship->public_url, 301);
+    }
+
+    public function publicShow(Request $request, string $opportunity)
+    {
+        abort_unless(preg_match('/^([1-9][0-9]*)(?:-.+)?$/u', $opportunity, $matches), 404);
+        $internship = $this->canonicalOpportunity(Internship::findOrFail($matches[1]));
+        abort_unless($internship->publication_status === 'published', 404);
+        $canonicalSegment = basename(parse_url($internship->public_url, PHP_URL_PATH));
+        if ($opportunity !== $canonicalSegment) {
+            return redirect($internship->public_url, 301);
+        }
+        $internship->load(['company.user', 'company.city', 'field', 'city', 'skills', 'sources.importSource']);
+        if ($request->user()?->isCandidate()) {
+            $internship->load(['candidateApplications' => fn ($query) => $query->where('student_id', $request->user()->userable_id)]);
+            $internship->loadExists(['likes as is_saved' => fn ($query) => $query->where('students.id', $request->user()->userable_id)]);
+        }
+        $related = Internship::with(['company.user', 'company.city', 'field', 'city', 'skills', 'sources.importSource'])
+            ->available()->where('id', '!=', $internship->id)->where('kind', $internship->kind)
+            ->when($internship->field_id, fn ($query) => $query->where('field_id', $internship->field_id))
+            ->withCandidateState($request->user())
+            ->orderByRaw('COALESCE(posted_at, first_seen_at, created_at) DESC')->orderByDesc('id')->limit(4)->get();
+
+        return Inertia::render('Internships/Show', [
+            'internship' => (new InternshipResource($internship))->resolve($request),
+            'related' => InternshipResource::collection($related),
+            'seo' => PublicSeo::opportunity($internship),
         ]);
     }
 
-    public function show(Internship $internship) {
-		$user = auth()->user();
-		$application = null;
-		if($user && $user->isStudent()) {
-			$application = \App\Models\Application::where('internship_id', $internship->id)
-							->where('student_id', $user->userable->id)
-							->first();
-		}
-
-        return Inertia::render('Internships/Show', [
-            'internship' => [
-				'id' => $internship->id,
-				'title' => $internship->title,
-				'description' => $internship->description,
-				'closing_at' => $internship->closing_at->format('F d, Y'),
-				'is_open' => $internship->isOpen(),
-				'created_at' => $internship->created_at->diffForHumans(),
-				'work_type' => $internship->work_type,
-				'duration_weeks' => $internship->duration_weeks,
-				'term' => $internship->term,
-				'pay' => $internship->pay_amount ? ['amount' => $internship->pay_amount, 'unit' => $internship->pay_unit] : null,
-				'field' => [
-					'name' => $internship->field->name,
-				],
-				'city' => [
-					'name' => $internship->city->name
-				],
-				'company' => [
-					'id' => $internship->company->id,
-					'user_id' => $internship->company->user->id,
-					'image' => $internship->company->user->image,
-					'name' => $internship->company->user->name,
-					'email' => $internship->company->user->email,
-					'phone_number' => $internship->company->user->phone_number,
-					'website' => $internship->company->website,
-					'linkedin_profile_url' => $internship->company->user->linkedin_profile_url,
-					'city' => [
-						'name' => $internship->company->city->name,
-					]
-				],
-				'attachments' => $internship->attachments ?: [],
-				'skills' => $internship->skills->pluck('name'),
-				'liked' => $user && $user->isStudent() ? $user->userable->likes->contains($internship->id) : null,
-				'application' => $application ? [
-					'id' => $application->id,
-					'student_id' => $application->student_id,
-					'created_at' => $application->created_at->format('F d, Y')
-				] : null
-			]
-        ]);
+    private function canonicalOpportunity(Internship $internship): Internship
+    {
+        $seen = [];
+        while ($internship->merged_into_id) {
+            abort_if(isset($seen[$internship->id]) || count($seen) >= 10, 404);
+            $seen[$internship->id] = true;
+            $internship = Internship::findOrFail($internship->merged_into_id);
+        }
+        return $internship;
     }
 
     public function edit(Internship $internship)
     {
         $this->authorize('update', $internship);
-
         return Inertia::render('Internships/Edit', [
             'internship' => $internship,
-            'fields' => $this->getFields()
+            'fields' => $this->getFields(),
+            'cities' => City::select('id', 'name')->orderBy('name')->get(),
         ]);
     }
 
     public function update(InternshipRequest $request, Internship $internship)
     {
         $this->authorize('update', $internship);
-
-        $data = $request->validated();
+        $data = $this->nativeData($request);
         if ($request->hasFile('attachment_files')) {
             $data['attachments'] = $this->storeAttachments($request, 'internships');
         }
-
+        if ($internship->origin === 'imported') {
+            $data['moderation_overrides'] = array_replace($internship->moderation_overrides ?: [], $data);
+        }
         $internship->update($data);
 
-        return Redirect::route('internships.show', $internship->id)->with('toast', [
-            'type' => 'update',
-            'message' => 'Internship updated successfully.'
-        ]);
+        return redirect($internship->publication_status === 'published'
+            ? route('opportunities.show', ['opportunity' => $internship->id.'-'.$internship->slug])
+            : route('internships.edit', $internship))
+            ->with('toast', ['type' => 'update', 'message' => 'Opportunity updated successfully.']);
     }
-
 
     public function destroy(Internship $internship)
     {
         $this->authorize('delete', $internship);
-
-        $internship->delete();
-
-        return Redirect::route('internships.index')->with('toast', [
+        $internship->update(['status' => 'closed', 'publication_status' => 'suppressed']);
+        return Redirect::route('dashboard')->with('toast', [
             'type' => 'destroy',
-            'message' => 'Internship deleted successully.'
+            'message' => 'Opportunity removed from public discovery. Application history is retained.',
         ]);
     }
+
+    private function nativeData(InternshipRequest $request): array
+    {
+        $data = $request->safe()->except(['attachment_files']);
+        if (array_key_exists('pay_amount', $data) && ! array_key_exists('pay_min', $data)) {
+            $data['pay_min'] = $data['pay_amount'];
+            $data['pay_max'] = $data['pay_amount'];
+        } elseif (array_key_exists('pay_min', $data) || array_key_exists('pay_max', $data)) {
+            $data['pay_amount'] = null;
+        }
+        if (($data['compensation_status'] ?? null) === 'unpaid') {
+            $data['pay_min'] = 0;
+            $data['pay_max'] = 0;
+            $data['pay_amount'] = null;
+        } elseif (($data['pay_min'] ?? 0) > 0 || ($data['pay_max'] ?? 0) > 0) {
+            $data['compensation_status'] = 'paid';
+        }
+        foreach (['work_type', 'remote_eligibility', 'relocation', 'visa_sponsorship', 'compensation_status'] as $field) {
+            if (array_key_exists($field, $data) && $data[$field] === null) {
+                unset($data[$field]);
+            }
+        }
+        return $data;
+    }
+
     private function storeAttachments(Request $request, string $directory): array
     {
         return collect($request->file('attachment_files', []))->map(function ($file) use ($directory) {
@@ -204,7 +262,7 @@ class InternshipController extends Controller
                 'name' => $file->getClientOriginalName(),
                 'url' => Storage::disk('public')->url($path),
                 'size' => $file->getSize(),
-                'mime' => $file->getClientMimeType(),
+                'mime' => $file->getMimeType(),
             ];
         })->values()->all();
     }

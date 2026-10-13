@@ -13,11 +13,11 @@ class MessageFactory extends Factory
     public function definition()
     {
         $messages = [
-            "Hello! I saw your internship posting and I am very interested. Could you tell me more about the day-to-day responsibilities?",
+            "Hello! I saw your opportunity posting and I am very interested. Could you tell me more about the day-to-day responsibilities?",
             "Thank you for your application. We would like to schedule an interview. Are you available this week?",
             "I have reviewed your CV and I am impressed by your projects. When can you start?",
             "Could you please send me your portfolio or any code samples you have worked on?",
-            "The internship is for 3 months, full-time. The team is based in Tunis. Does that work for you?",
+            "The role is full-time. The team is based in Tunis. Does that work for you?",
             "We have received your cover letter. We will get back to you within the next few days.",
             "Hello, I just wanted to follow up on my application submitted last week. Any updates?",
             "Our team reviewed your profile and we think you would be a great fit. Can we hop on a quick call?",
@@ -27,7 +27,7 @@ class MessageFactory extends Factory
             "I have a few questions about the tech stack you use. Is this a good time to discuss?",
             "We work with React on the front-end and Node.js on the back-end. Does that match your experience?",
             "Looking forward to meeting you. The interview will be at our Tunis office.",
-            "Congratulations! We would like to offer you the internship position. Please confirm your availability.",
+            "Congratulations! We would like to offer you the position. Please confirm your availability.",
         ];
 
         $userIds = User::pluck('id')->toArray();

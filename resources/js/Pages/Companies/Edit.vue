@@ -27,6 +27,8 @@ const form = useForm({
 	city_id: props.company?.city_id ?? props.company?.city?.id ?? null,
 	website: props.company?.website || '',
 	about: props.company?.about || '',
+	country_code: props.company?.country_code || '',
+	location: props.company?.location || '',
 });
 
 const submit = () => {
@@ -38,7 +40,7 @@ const submit = () => {
 };
 
 const destroy = () => {
-	if (confirm('Delete this company and all of its internships? This cannot be undone.')) {
+	if (confirm('Delete this company and all of its opportunities? This cannot be undone.')) {
 		router.delete(route('companies.destroy', props.company.id));
 	}
 };
@@ -55,12 +57,17 @@ const destroy = () => {
 		<div class="mb-6">
 			<span class="block font-display text-[12.5px] font-semibold tracking-[.18em] uppercase text-blue-600 mb-2">Company</span>
 			<h1 class="font-display text-[32px] font-semibold tracking-[-.02em]">{{ editing ? 'Edit company' : 'Add a company' }}</h1>
-			<p class="text-muted text-[15px] mt-1.5">This is what students see when they evaluate your roles.</p>
+			<p class="text-muted text-[15px] mt-1.5">This is what candidates see when they evaluate your roles.</p>
 			<p v-if="!editing" class="text-sm text-muted mt-2">They can use Forgot password to set their password.</p>
 		</div>
 
 		<form class="bg-white border border-line rounded-[18px]" @submit.prevent="submit">
 			<div class="px-8 max-[560px]:px-5 py-[26px]">
+				<p v-for="(error, key) in form.errors" :key="key" class="text-sm text-red-600 mb-2" role="alert">{{ error }}</p>
+				<div class="grid grid-cols-2 gap-4 mb-5 max-[560px]:grid-cols-1">
+					<label class="text-sm font-semibold">Country code<input v-model="form.country_code" class="fld mt-2" maxlength="2" placeholder="TN, FR, US..."></label>
+					<label class="text-sm font-semibold">City or location<input v-model="form.location" class="fld mt-2"></label>
+				</div>
 				<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
 					<div class="mb-4">
 						<label class="block text-[13px] font-semibold mb-[7px] text-ink-700">Company name</label>
@@ -82,7 +89,7 @@ const destroy = () => {
 					<div class="mb-4">
 						<label class="block text-[13px] font-semibold mb-[7px] text-ink-700">City</label>
 						<select v-model="form.city_id" class="fld">
-							<option :value="null" disabled>Select city</option>
+							<option :value="null">Not specified</option>
 							<option v-for="city in cities" :key="city.id" :value="city.id">{{ city.name }}</option>
 						</select>
 						<div v-if="form.errors.city_id" class="text-xs text-[#dc2626] mt-[7px]">{{ form.errors.city_id }}</div>

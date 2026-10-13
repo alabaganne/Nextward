@@ -1,0 +1,100 @@
+{
+  "assets": [
+    {
+      "file": "01-opportunity-explorer",
+      "width": 1254,
+      "height": 1254,
+      "png_bytes": 653048,
+      "webp_bytes": 93558,
+      "mode": "RGBA",
+      "corners_alpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "transparent_percent": 68.3,
+      "alpha_preserved": true
+    },
+    {
+      "file": "02-professional-on-the-move",
+      "width": 1254,
+      "height": 1254,
+      "png_bytes": 542810,
+      "webp_bytes": 78842,
+      "mode": "RGBA",
+      "corners_alpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "transparent_percent": 74.6,
+      "alpha_preserved": true
+    },
+    {
+      "file": "03-remote-creator",
+      "width": 1254,
+      "height": 1254,
+      "png_bytes": 671465,
+      "webp_bytes": 62096,
+      "mode": "RGBA",
+      "corners_alpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "transparent_percent": 63.0,
+      "alpha_preserved": true
+    },
+    {
+      "file": "04-focused-designer",
+      "width": 1254,
+      "height": 1254,
+      "png_bytes": 845372,
+      "webp_bytes": 140532,
+      "mode": "RGBA",
+      "corners_alpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "transparent_percent": 59.7,
+      "alpha_preserved": true
+    },
+    {
+      "file": "05-next-chapter",
+      "width": 1536,
+      "height": 1024,
+      "png_bytes": 1138862,
+      "webp_bytes": 67514,
+      "mode": "RGBA",
+      "corners_alpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "transparent_percent": 76.7,
+      "alpha_preserved": true
+    },
+    {
+      "file": "06-better-together",
+      "width": 1536,
+      "height": 1024,
+      "png_bytes": 1437929,
+      "webp_bytes": 121048,
+      "mode": "RGBA",
+      "corners_alpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "transparent_percent": 54.6,
+      "alpha_preserved": true
+    }
+  ]
+}

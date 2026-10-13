@@ -31,6 +31,7 @@ const icons = {
 const page = usePage();
 const user = computed(() => page.props.auth?.user);
 const isStudent = computed(() => user.value?.userable_type === 'student');
+const isExternal = computed(() => props.application.channel === 'external');
 // Legacy boolean statuses map onto the enum introduced with the redesign.
 const normalizedStatus = computed(() => {
 	const status = props.application.status;
@@ -42,7 +43,7 @@ const normalizedStatus = computed(() => {
 const open = computed(() => !['offer', 'closed'].includes(normalizedStatus.value));
 
 const canReply = computed(
-	() => (user.value?.userable_type === 'company' || user.value?.is_admin) && open.value
+	() => !isExternal.value && (user.value?.userable_type === 'company' || user.value?.is_admin) && open.value
 );
 
 const STAGES = {
@@ -56,6 +57,7 @@ const STAGES = {
 
 const stage = computed(() => {
 	const base = STAGES[normalizedStatus.value] || STAGES.submitted;
+	if (isExternal.value) return { ...base, title: `Your update: ${normalizedStatus.value === 'submitted' ? 'Applied' : normalizedStatus.value === 'closed' ? 'Closed' : base.label}`, note: 'Candidate-reported status. Nextward has not submitted or verified this application.' };
 	const notes = {
 		submitted: 'Waiting for the company to review this application.',
 		viewed: `${props.application.company.name} has viewed this application.`,
@@ -81,10 +83,16 @@ const reply = (status) => {
 	reviewForm.post(route('applications.reply', props.application.id), { preserveScroll: true });
 };
 const withdraw = () => {
-	if (confirm('Withdraw this application? This cannot be undone.')) {
+	if (confirm(isExternal.value ? 'Remove this private tracking record? This does not withdraw your application from the employer.' : 'Withdraw this application? This cannot be undone.')) {
 		router.delete(route('applications.destroy', props.application.id));
 	}
 };
+const trackingForm = useForm({
+	status: props.application.status || 'submitted',
+	applied_at: props.application.applied_at || '',
+	candidate_notes: props.application.candidate_notes || '',
+});
+const saveTracking = () => trackingForm.patch(route('applications.tracking.update', props.application.id), { preserveScroll: true });
 </script>
 
 <template>
@@ -104,7 +112,7 @@ const withdraw = () => {
 			</div>
 			<div class="ml-auto text-right text-[13px] text-muted-2 max-[680px]:hidden">
 				<b class="text-[13.5px] text-ink-700 font-body">Updated {{ application.updated_at }}</b><br>
-				Applied {{ application.created_at }}
+				Applied {{ application.applied_at || application.created_at }}
 			</div>
 		</div>
 
@@ -121,13 +129,13 @@ const withdraw = () => {
 					</div>
 					<div class="flex flex-wrap gap-2.5 mt-[22px] [&_.m]:flex [&_.m]:items-center [&_.m]:gap-[7px] [&_.m]:text-[13.5px] [&_.m]:text-ink-700 [&_.m]:font-medium [&_.m]:bg-paper-2 [&_.m]:border [&_.m]:border-line-2 [&_.m]:px-[13px] [&_.m]:py-2 [&_.m]:rounded-[9px] [&_svg]:w-[15px] [&_svg]:h-[15px] [&_svg]:text-blue-600">
 						<span class="m"><component :is="icons.pin" aria-hidden="true" />{{ application.internship.city.name }}</span>
-						<span class="m"><component :is="icons.clock" aria-hidden="true" />Closes {{ application.internship.closing_at }}</span>
-						<Link class="m no-underline" :href="route('internships.show', application.internship.id)"><component :is="icons.external" aria-hidden="true" />View role posting</Link>
+						<span class="m"><component :is="icons.clock" aria-hidden="true" />{{ application.internship.closing_at ? `Closes ${application.internship.closing_at}` : 'No deadline listed' }}</span>
+						<Link class="m no-underline" :href="application.internship.public_url || route('internships.show', application.internship.id)"><component :is="icons.external" aria-hidden="true" />View opportunity</Link>
 					</div>
 				</section>
 
 				<!-- TIMELINE -->
-				<section class="bg-white border border-line rounded-[18px] px-8 max-[560px]:px-5 py-[30px]">
+				<section v-if="!isExternal" class="bg-white border border-line rounded-[18px] px-8 max-[560px]:px-5 py-[30px]">
 					<h2 class="font-display text-[18px] font-semibold mb-1.5">Application progress</h2>
 					<p class="text-[13.5px] text-muted mb-[18px]">Submission date and current application stage.</p>
 					<div class="relative pl-[34px] before:content-[''] before:absolute before:left-[11px] before:top-1.5 before:bottom-2.5 before:w-0.5 before:bg-line">
@@ -150,7 +158,7 @@ const withdraw = () => {
 				</section>
 
 				<!-- SUBMITTED APPLICATION -->
-				<section class="bg-white border border-line rounded-[18px] px-8 max-[560px]:px-5 py-[30px]">
+				<section v-if="!isExternal" class="bg-white border border-line rounded-[18px] px-8 max-[560px]:px-5 py-[30px]">
 					<h2 class="font-display text-[18px] font-semibold mb-1.5">{{ isStudent ? 'Your submitted application' : 'Submitted application' }}</h2>
 					<p class="text-[13.5px] text-muted mb-[18px]">The current application details shared with {{ application.company.name }}.</p>
 
@@ -182,6 +190,18 @@ const withdraw = () => {
 						</div>
 					</div>
 				</section>
+				<form v-if="isExternal && isStudent" class="bg-white border border-line rounded-[18px] p-8" @submit.prevent="saveTracking">
+					<h2 class="font-display text-lg font-semibold mb-2">Your private application tracker</h2>
+					<p class="text-sm text-muted mb-5">Record what happened on the employer's website. Notes and updates here are never sent to the employer.</p>
+					<p v-for="(error, key) in trackingForm.errors" :key="key" class="text-sm text-red-600 mb-2" role="alert">{{ error }}</p>
+					<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
+						<label class="text-sm font-semibold">Your status<select v-model="trackingForm.status" class="fld mt-2"><option value="submitted">Applied</option><option value="review">In review</option><option value="interview">Interview</option><option value="offer">Offer</option><option value="closed">Closed</option></select></label>
+						<label class="text-sm font-semibold">Date applied<input v-model="trackingForm.applied_at" class="fld mt-2" type="date" required></label>
+					</div>
+					<label class="block text-sm font-semibold mt-5">Private notes<textarea v-model="trackingForm.candidate_notes" class="fld mt-2" maxlength="10000"></textarea></label>
+					<button type="submit" class="cbtn bg-blue-600 text-white mt-4" :disabled="trackingForm.processing">Save your update</button>
+					<button type="button" class="cbtn text-red-700 ml-2 mt-4" @click="withdraw">Remove tracking record</button>
+				</form>
 			</div>
 
 			<!-- RIGHT -->
@@ -224,12 +244,12 @@ const withdraw = () => {
 					<div v-if="counterpart.email" class="flex items-center gap-3 py-[9px] text-sm text-ink-700 [&_svg]:w-[17px] [&_svg]:h-[17px] [&_svg]:text-muted-2 [&_svg]:shrink-0"><component :is="icons.mail" aria-hidden="true" />{{ counterpart.email }}</div>
 					<div v-if="counterpart.phone_number" class="flex items-center gap-3 py-[9px] text-sm text-ink-700 [&_svg]:w-[17px] [&_svg]:h-[17px] [&_svg]:text-muted-2 [&_svg]:shrink-0"><component :is="icons.phone" aria-hidden="true" />{{ counterpart.phone_number }}</div>
 					<div v-if="counterpart.city?.name" class="flex items-center gap-3 py-[9px] text-sm text-ink-700 [&_svg]:w-[17px] [&_svg]:h-[17px] [&_svg]:text-muted-2 [&_svg]:shrink-0"><component :is="icons.pin" aria-hidden="true" />{{ counterpart.city.name }}</div>
-					<Link class="w-full justify-center mt-[14px] inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors [&_svg]:w-[17px] [&_svg]:h-[17px]" :href="route('messages.show', counterpart.user_id)">
+					<Link v-if="!isExternal && counterpart.user_id" class="w-full justify-center mt-[14px] inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors [&_svg]:w-[17px] [&_svg]:h-[17px]" :href="route('messages.show', counterpart.user_id)">
 						{{ isStudent ? 'Message recruiter' : 'Message applicant' }} <component :is="icons.arrow" aria-hidden="true" />
 					</Link>
 				</section>
 
-				<template v-if="isStudent && open">
+				<template v-if="isStudent && open && !isExternal">
 					<Link class="w-full justify-center inline-flex items-center font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all" :href="route('applications.edit', application.id)">Edit application</Link>
 					<button class="w-full justify-center inline-flex items-center font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-[#dc2626] border border-[#fecaca] hover:bg-[#fef2f2] transition-colors" type="button" @click="withdraw">Withdraw application</button>
 				</template>

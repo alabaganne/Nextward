@@ -35,7 +35,7 @@ const initials = computed(() =>
 
 const headline = computed(() =>
 	isStudent.value
-		? [props.profile.field?.name, 'Student'].filter(Boolean).join(' · ')
+		? props.profile.headline || [props.profile.field?.name, props.profile.career_stage === 'professional' ? 'Professional' : props.profile.career_stage === 'graduate' ? 'Graduate' : 'Student'].filter(Boolean).join(' · ')
 		: isCompany.value ? 'Company' : 'Administrator'
 );
 
@@ -47,7 +47,7 @@ const checklist = computed(() => {
 	];
 	if (isStudent.value || isCompany.value) {
 		items.splice(1, 0,
-			{ label: 'Add your location', done: !!props.profile.city?.name },
+			{ label: 'Add your location', done: !!(props.profile.city?.name || props.profile.location || props.profile.country_code) },
 			{ label: 'Write a short bio', done: !!props.profile.about }
 		);
 	}
@@ -70,7 +70,7 @@ const strength = computed(() =>
 			<div>
 				<span class="block font-display text-[12.5px] font-semibold tracking-[.18em] uppercase text-blue-600 mb-2">Account</span>
 				<h1 class="font-display text-[32px] font-semibold tracking-[-.02em]">Your profile</h1>
-				<p class="text-muted text-[15px] mt-1.5">{{ isStudent ? 'This is how recruiters see you. Share your background, skills, and interests.' : isCompany ? 'This is how students see your company on Internly.' : 'Manage your administrator profile and account details.' }}</p>
+				<p class="text-muted text-[15px] mt-1.5">{{ isStudent ? 'Keep your background, skills, and interests up to date.' : isCompany ? 'This is how candidates see your company on Nextward.' : 'Manage your administrator profile and account details.' }}</p>
 			</div>
 			<Link class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors [&_svg]:w-[17px] [&_svg]:h-[17px]" :href="route('settings')">
 				<component :is="icons.pencil" aria-hidden="true" />
@@ -90,7 +90,7 @@ const strength = computed(() =>
 					</h2>
 					<div class="text-[15px] text-ink-700 font-medium mt-[3px]">{{ headline }}</div>
 					<div class="flex flex-wrap gap-4 mt-3 [&_span]:flex [&_span]:items-center [&_span]:gap-1.5 [&_span]:text-[13.5px] [&_span]:text-muted [&_span]:font-medium [&_svg]:w-[15px] [&_svg]:h-[15px] [&_svg]:text-muted-2">
-						<span v-if="profile.city?.name"><component :is="icons.pin" aria-hidden="true" />{{ profile.city.name }}</span>
+						<span v-if="profile.location || profile.city?.name || profile.country_code"><component :is="icons.pin" aria-hidden="true" />{{ [profile.location || profile.city?.name, profile.country_code].filter(Boolean).join(', ') }}</span>
 						<span v-if="isStudent && profile.field?.name"><component :is="icons.grad" aria-hidden="true" />{{ profile.field.name }}</span>
 						<span><component :is="icons.mail" aria-hidden="true" />{{ profile.email }}</span>
 					</div>
@@ -112,7 +112,7 @@ const strength = computed(() =>
 						<p v-else class="text-[14.5px] text-muted leading-[1.7]">
 							Nothing here yet.
 							<Link class="font-semibold text-blue-700" :href="route('settings')">Write a short bio</Link>
-							so {{ isStudent ? 'recruiters know who you are' : 'students know what you do' }}.
+							so {{ isStudent ? 'recruiters know who you are' : 'candidates know what you do' }}.
 						</p>
 					</div>
 				</section>
@@ -139,7 +139,7 @@ const strength = computed(() =>
 					<div class="px-[22px] py-5 [&_.prow]:flex [&_.prow]:items-center [&_.prow]:justify-between [&_.prow]:gap-3.5 [&_.prow]:py-[13px] [&_.prow]:border-b [&_.prow]:border-line-2 [&_.prow]:text-sm [&_.prow:first-child]:pt-0 [&_.prow:last-child]:border-b-0 [&_.prow:last-child]:pb-0 [&_.k]:text-muted [&_.k]:font-medium [&_.v]:font-semibold [&_.v]:text-ink [&_.v]:text-right">
 						<div v-if="profile.website" class="prow"><span class="k">Website</span><a class="v text-blue-700" :href="profile.website" target="_blank" rel="noopener">{{ profile.website }}</a></div>
 						<div v-if="profile.city?.name" class="prow"><span class="k">Location</span><span class="v">{{ profile.city.name }}</span></div>
-						<div class="prow"><span class="k">Internships</span><span class="v">{{ profile.internships_count ?? 0 }}</span></div>
+						<div class="prow"><span class="k">Opportunities</span><span class="v">{{ profile.internships_count ?? 0 }}</span></div>
 					</div>
 				</section>
 			</div>

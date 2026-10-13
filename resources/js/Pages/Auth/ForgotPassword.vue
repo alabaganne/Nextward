@@ -2,7 +2,7 @@
 	<header class="auth-heading">
 		<p class="auth-kicker">A fresh start</p>
 		<h1>Let’s get you<br />back in.</h1>
-		<p>Enter the email address you use for Internly. We’ll send you a link to reset your password.</p>
+		<p>Enter the email address you use for Nextward. We’ll send you a link to reset your password.</p>
 	</header>
 	<auth-feedback :status="status" :errors="form.errors" />
 	<form @submit.prevent="submit" :aria-busy="form.processing">

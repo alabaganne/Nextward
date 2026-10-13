@@ -1,176 +1,67 @@
 <script>
-import { h } from 'vue';
-import AppShell from '@/Layouts/AppShell.vue';
 import PublicLayout from '@/Layouts/Public.vue';
-
-// Guests see the public browse chrome; signed-in users the workspace shell.
-export default {
-	layout: (_h, page) =>
-		page.props?.auth?.user
-			? h(AppShell, { active: 'internships' }, () => page)
-			: h(PublicLayout, {}, () => page),
-};
+export default { layout: PublicLayout };
 </script>
-
 <script setup>
-import { Search } from '@lucide/vue';
-import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue';
+import { computed, reactive, watch } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
-import throttle from 'lodash-es/throttle.js';
 import RoleCard from '@/Components/Internship/RoleCard.vue';
 import Pagination from '@/Components/Ui/Pagination.vue';
-
-const props = defineProps({
-	internships: Object, // paginated resource: { data, meta, links }
-	fields: { type: Array, default: () => [] },
-	cities: { type: Array, default: () => [] },
-	companies: { type: Array, default: () => [] },
-	filters: { type: Object, default: () => ({}) },
-});
-
-const icons = {
-	search: Search,
-};
-
+const props = defineProps({ internships: Object, fields: Array, cities: Array, companies: Array, countries: Array, filters: { type: Object, default: () => ({}) }, category: String, categoryLabel: String });
 const page = usePage();
-const authed = computed(() => !!page.props.auth?.user);
-const managing = computed(() => page.props.auth?.user?.userable_type === 'company' || page.props.auth?.user?.is_admin);
-
-const selected = reactive({
-	fields: (props.filters.fields || []).map(Number),
-	cities: (props.filters.cities || []).map(Number),
-	companies: (props.filters.companies || []).map(Number),
-});
-const search = ref(props.filters.search || '');
-
-const applyFilters = () => {
-	router.get(
-		route('internships.index'),
-		{ ...selected, search: search.value || undefined },
-		{ preserveState: true, preserveScroll: true, replace: true }
-	);
-};
-
-watch(selected, applyFilters);
-const applySearchFilters = throttle(applyFilters, 650);
-watch(search, applySearchFilters);
-onBeforeUnmount(() => applySearchFilters.cancel());
-
-const clearAll = () => {
-	selected.fields = [];
-	selected.cities = [];
-	selected.companies = [];
-	search.value = '';
-};
-
-// Quick tabs: "All roles" + each field.
-const activeTab = computed(() => (selected.fields.length === 1 ? selected.fields[0] : null));
-const pickTab = (fieldId) => {
-	selected.fields = fieldId === null ? [] : [fieldId];
-};
-
-const filterSections = computed(() =>
-	[
-		{ key: 'fields', title: 'Field', options: props.fields },
-		{ key: 'cities', title: 'Location', options: props.cities },
-		{ key: 'companies', title: 'Company', options: props.companies },
-	].filter((section) => section.options.length)
-);
-
-const toggle = (key, id) => {
-	const list = selected[key];
-	const index = list.indexOf(id);
-	index === -1 ? list.push(id) : list.splice(index, 1);
-};
+const fr = computed(() => page.props.locale === 'fr');
+const prefix = computed(() => fr.value ? '/fr' : '');
+const text = (en, french) => fr.value ? french : en;
+const emptyFilters = { search: '', kind: '', country: '', work_type: '', seniority: '', employment_type: '', language: '', compensation_status: '', posted_within: '', min_pay: '', currency: '', pay_unit: '', program_type: '', duration_max: '', start_after: '', include_unknown_remote: false };
+const form = reactive({ ...emptyFilters, ...props.filters });
+watch(() => props.filters, (filters) => Object.assign(form, emptyFilters, filters));
+const categories = computed(() => [{ key: '', label: text('All opportunities', 'Toutes les opportunités') }, { key: 'internships', label: text('Internships', 'Stages') }, { key: 'jobs', label: text('Jobs', 'Emplois') }, { key: 'tunisia', label: text('In Tunisia', 'En Tunisie') }, { key: 'remote-from-tunisia', label: text('Remote from Tunisia', 'À distance depuis la Tunisie') }, { key: 'relocation', label: text('Relocation', 'Mobilité internationale') }]);
+const heading = computed(() => props.category ? categories.value.find((item) => item.key === props.category)?.label : text('Browse opportunities', 'Explorer les opportunités'));
+const action = computed(() => `${prefix.value}/opportunities${props.category ? `/${props.category}` : ''}`);
+const savedSearchUrl = computed(() => '/saved-searches?' + new URLSearchParams(Object.entries(props.filters).flatMap(([key, value]) => Array.isArray(value) ? value.map((item) => [`${key}[]`, item]) : [[key, value]])).toString() + (props.category ? `&category=${props.category}` : ''));
+const filterGroups = computed(() => [
+    { key: 'fields', label: text('Field', 'Domaine'), options: props.fields || [] },
+    { key: 'cities', label: text('City in Tunisia', 'Ville en Tunisie'), options: props.cities || [] },
+    { key: 'companies', label: text('Employer', 'Employeur'), options: props.companies || [] },
+]);
+function submit(event) {
+    const query = new URLSearchParams();
+    for (const [key, value] of new FormData(event.target)) {
+        if (String(value).trim() !== '') query.append(key, String(value).trim());
+    }
+    router.get(`${action.value}${query.size ? `?${query}` : ''}`);
+}
 </script>
-
 <template>
-	<!-- Public top section (browse.html) -->
-	<section v-if="!authed" class="bg-white border-b border-line pt-10">
-		<div class="max-w-wrap mx-auto px-7">
-			<h1 class="font-display font-semibold tracking-[-.02em] text-[clamp(28px,3.4vw,40px)] mb-2.5">Browse internships</h1>
-			<p class="text-muted text-[16.5px] max-w-[560px]">{{ internships.meta.total }} open roles from real companies. Filter by field, location, and company to find the ones built for you.</p>
-			<div class="flex gap-2.5 mt-7 flex-wrap">
-				<div class="flex-1 min-w-[200px] flex items-center gap-2.5 bg-white border border-line rounded-[12px] px-3.5 h-[52px] focus-within:border-blue-400 [&_svg]:w-[18px] [&_svg]:h-[18px] [&_svg]:text-muted-2 [&_svg]:shrink-0">
-					<component :is="icons.search" aria-hidden="true" />
-					<input v-model="search" class="border-0 outline-none bg-transparent text-[15px] text-ink w-full" type="text" placeholder="Role, company, or keyword" @keyup.enter="applyFilters">
-				</div>
-				<button class="inline-flex items-center justify-center font-semibold text-[15px] h-[52px] px-[26px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors" @click="applyFilters">Search</button>
-			</div>
-			<div class="flex gap-1.5 mt-6 overflow-x-auto">
-				<button class="qtab font-body font-semibold text-[14.5px] py-3 mr-[18px] cursor-pointer border-b-2 whitespace-nowrap bg-transparent" :class="{ 'is-active': activeTab === null }" type="button" :aria-pressed="activeTab === null" @click="pickTab(null)">All roles</button>
-				<button v-for="field in fields" :key="field.id" class="qtab font-body font-semibold text-[14.5px] py-3 mr-[18px] cursor-pointer border-b-2 whitespace-nowrap bg-transparent" :class="{ 'is-active': activeTab === field.id }" type="button" :aria-pressed="activeTab === field.id" @click="pickTab(field.id)">{{ field.name }}</button>
-			</div>
-		</div>
-	</section>
-
-	<div :class="authed ? 'px-10 max-[680px]:px-5 pt-[30px] pb-[50px] w-full max-w-wrap mx-auto' : 'max-w-wrap mx-auto px-7 w-full'">
-		<!-- Workspace header (internships.html) -->
-		<template v-if="authed">
-			<div class="mb-[22px]">
-				<span class="block font-display text-[12.5px] font-semibold tracking-[.18em] uppercase text-blue-600 mb-2">Explore</span>
-				<h1 class="font-display text-[32px] font-semibold tracking-[-.02em]">Internships</h1>
-				<p class="text-muted text-[15px] mt-1.5">{{ internships.meta.total }} {{ managing ? 'internships. Review and manage your listings.' : 'open roles. Filter to find the ones built for you.' }}</p>
-			</div>
-
-			<div class="flex gap-2.5 flex-wrap">
-				<div class="flex-1 min-w-[200px] flex items-center gap-2.5 bg-white border border-line rounded-[12px] px-3.5 h-[50px] focus-within:border-blue-400 [&_svg]:w-[18px] [&_svg]:h-[18px] [&_svg]:text-muted-2 [&_svg]:shrink-0">
-					<component :is="icons.search" aria-hidden="true" />
-					<input v-model="search" class="border-0 outline-none bg-transparent text-[15px] text-ink w-full" type="text" placeholder="Role, company, or keyword" @keyup.enter="applyFilters">
-				</div>
-				<button class="inline-flex items-center justify-center font-semibold text-[15px] h-[50px] px-[26px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors" @click="applyFilters">Search</button>
-			</div>
-
-			<div class="flex mt-[18px] border-b border-line overflow-x-auto">
-				<button class="qtab font-body font-semibold text-[14.5px] py-3 mr-[22px] cursor-pointer border-b-2 whitespace-nowrap bg-transparent" :class="{ 'is-active': activeTab === null }" type="button" :aria-pressed="activeTab === null" @click="pickTab(null)">All roles</button>
-				<button v-for="field in fields" :key="field.id" class="qtab font-body font-semibold text-[14.5px] py-3 mr-[22px] cursor-pointer border-b-2 whitespace-nowrap bg-transparent" :class="{ 'is-active': activeTab === field.id }" type="button" :aria-pressed="activeTab === field.id" @click="pickTab(field.id)">{{ field.name }}</button>
-			</div>
-		</template>
-
-		<div class="grid grid-cols-[260px_1fr] gap-6 pt-6 items-start max-[1040px]:grid-cols-1" :class="{ 'pb-[90px]': !authed }">
-			<!-- FILTERS -->
-			<aside class="sticky top-[94px] bg-white border border-line rounded-[18px] p-[22px] max-[1040px]:static">
-				<div class="flex items-center justify-between mb-1.5">
-					<b class="font-display text-base">Filters</b>
-					<button class="text-[13px] text-blue-700 font-semibold" type="button" @click="clearAll">Clear all</button>
-				</div>
-				<div
-					v-for="(section, index) in filterSections"
-					:key="section.key"
-					:class="index === filterSections.length - 1 ? 'pt-[18px]' : 'py-[18px] border-b border-line-2'"
-				>
-					<h4 class="text-xs tracking-[.1em] uppercase text-muted-2 font-bold mb-3.5">{{ section.title }}</h4>
-					<label
-						v-for="option in section.options"
-						:key="option.id"
-						class="check flex items-center gap-2.5 py-1.5 cursor-pointer text-[14.5px] text-ink-700"
-					>
-						<input type="checkbox" :checked="selected[section.key].includes(option.id)" @change="toggle(section.key, option.id)">
-						{{ option.name }}
-						<span class="ml-auto text-[12.5px] text-muted-2 font-semibold">{{ option.internships_count }}</span>
-					</label>
-				</div>
-			</aside>
-
-			<!-- RESULTS -->
-			<main>
-				<div class="flex items-center justify-between mb-4 flex-wrap gap-3">
-					<div class="text-[14.5px] text-muted"><b class="text-ink font-display">{{ internships.meta.total }}</b> internships found</div>
-					<div class="flex items-center gap-2 text-sm text-muted">Sort by
-						<select class="border border-line rounded-[9px] px-3 py-2.5 font-body font-semibold text-sm text-ink bg-white cursor-pointer"><option>Most recent</option></select>
-					</div>
-				</div>
-
-				<div class="flex flex-col gap-3.5">
-					<RoleCard v-for="internship in internships.data" :key="internship.id" :internship="internship" />
-					<div v-if="!internships.data.length" class="bg-white border border-line rounded-[18px] p-[22px] text-[14.5px] text-muted">
-						No internships match these filters.
-						<button class="font-semibold text-blue-700" type="button" @click="clearAll">Clear all filters</button>
-					</div>
-				</div>
-
-				<Pagination :meta="internships.meta" />
-			</main>
-		</div>
-	</div>
+    <section class="bg-white border-b border-line"><div class="public-container pt-10 pb-7"><p class="text-sm text-blue-700 font-semibold uppercase tracking-widest">{{ text('Students and professionals', 'Étudiants et professionnels') }}</p><h1 class="font-display text-4xl font-semibold tracking-tight mt-3">{{ heading }}</h1><p class="text-slate-600 leading-7 mt-4 max-w-3xl">{{ page.props.seo?.description }}</p><nav class="flex flex-wrap gap-2 mt-6" :aria-label="text('Opportunity categories', 'Catégories d’opportunités')"><Link v-for="item in categories" :key="item.key" :href="`${prefix}/opportunities${item.key ? `/${item.key}` : ''}`" class="rounded-full px-4 py-2 text-sm font-semibold border" :class="(category || '') === item.key ? 'bg-blue-600 text-white border-blue-600' : 'border-line hover:border-blue-300'">{{ item.label }}</Link></nav></div></section>
+    <div class="public-container py-8"><div class="flex flex-wrap justify-between lg:justify-end gap-4 mb-5"><a href="#results" class="lg:hidden text-sm font-semibold text-blue-700">{{ text('Jump to results', 'Voir les résultats') }}</a><Link :href="page.props.auth?.user?.is_candidate ? savedSearchUrl : '/login'" class="text-sm font-semibold text-blue-700">{{ text('Save this search and set alerts', 'Sauvegarder cette recherche et choisir des alertes') }}</Link></div>
+        <form :action="action" method="get" @submit.prevent="submit">
+            <div class="flex flex-wrap gap-3 mb-6"><label class="flex-1 min-w-52"><span class="sr-only">{{ text('Search title, employer, or description', 'Rechercher par titre, entreprise ou description') }}</span><input v-model="form.search" name="search" type="search" maxlength="150" :placeholder="text('Role, company, or keyword', 'Poste, entreprise ou mot-clé')" class="w-full h-12 rounded-xl border-line bg-white" /></label><button type="submit" class="cta cta-primary">{{ text('Search opportunities', 'Rechercher') }}</button><Link :href="action" class="cta cta-secondary">{{ text('Reset filters', 'Réinitialiser') }}</Link></div>
+            <div class="grid lg:grid-cols-[260px_1fr] gap-6 items-start">
+                <aside class="rounded-2xl border border-line bg-white p-5"><h2 class="font-display text-lg font-semibold mb-5">{{ text('Filters', 'Filtres') }}</h2><div class="space-y-4">
+                    <label v-if="!['internships', 'jobs'].includes(category)" class="block text-sm font-semibold">{{ text('Opportunity type', 'Type d’opportunité') }}<select v-model="form.kind" name="kind" class="w-full rounded-lg border-line mt-2"><option value="">{{ text('All types', 'Tous les types') }}</option><option value="internship">{{ text('Internship', 'Stage') }}</option><option value="job">{{ text('Job', 'Emploi') }}</option></select></label>
+                    <label class="block text-sm font-semibold">{{ text('Country', 'Pays') }}<select v-model="form.country" name="country" class="w-full rounded-lg border-line mt-2"><option value="">{{ text('Worldwide', 'Monde entier') }}</option><option v-for="country in countries" :key="country.code" :value="country.code">{{ country.name }}</option></select></label>
+                    <label class="block text-sm font-semibold">{{ text('Work arrangement', 'Mode de travail') }}<select v-model="form.work_type" name="work_type" class="w-full rounded-lg border-line mt-2"><option value="">{{ text('Any arrangement', 'Tous les modes') }}</option><option value="onsite">{{ text('Onsite', 'Sur site') }}</option><option value="hybrid">{{ text('Hybrid', 'Hybride') }}</option><option value="remote">{{ text('Remote', 'À distance') }}</option></select></label>
+                    <label class="block text-sm font-semibold">{{ text('Experience', 'Expérience') }}<select v-model="form.seniority" name="seniority" class="w-full rounded-lg border-line mt-2"><option value="">{{ text('Any experience', 'Tous les niveaux') }}</option><option value="entry">{{ text('Entry level', 'Débutant') }}</option><option value="graduate">{{ text('Graduate', 'Jeune diplômé') }}</option><option value="mid">{{ text('Mid level', 'Confirmé') }}</option><option value="senior">Senior</option><option value="lead">{{ text('Lead', 'Responsable') }}</option><option value="executive">{{ text('Executive', 'Direction') }}</option></select></label>
+                    <label class="block text-sm font-semibold">{{ text('Employment type', 'Type de contrat') }}<select v-model="form.employment_type" name="employment_type" class="w-full rounded-lg border-line mt-2"><option value="">{{ text('Any contract', 'Tous les contrats') }}</option><option value="FULL_TIME">{{ text('Full time', 'Temps plein') }}</option><option value="PART_TIME">{{ text('Part time', 'Temps partiel') }}</option><option value="CONTRACTOR">{{ text('Contract / freelance', 'Contrat / freelance') }}</option><option value="TEMPORARY">{{ text('Temporary', 'Temporaire') }}</option></select></label>
+                    <label v-if="category === 'remote-from-tunisia'" class="flex items-start gap-2 text-sm"><input v-model="form.include_unknown_remote" name="include_unknown_remote" type="checkbox" value="1" class="mt-1 rounded" /><span>{{ text('Also include roles with unconfirmed Tunisia eligibility', 'Inclure aussi les offres dont l’éligibilité depuis la Tunisie reste inconnue') }}</span></label>
+                    <details><summary class="cursor-pointer font-semibold text-sm py-2">{{ text('More filters', 'Plus de filtres') }}</summary><div class="space-y-4 pt-3">
+                        <label v-for="group in filterGroups" :key="group.key" class="block text-sm font-semibold">{{ group.label }}<select :name="`${group.key}[]`" :value="filters[group.key]?.[0] || ''" class="w-full rounded-lg border-line mt-2"><option value="">{{ text('Any', 'Tous') }}</option><option v-for="option in group.options" :key="option.id" :value="option.id">{{ option.name }}</option></select></label>
+                        <label class="block text-sm font-semibold">{{ text('Posted within', 'Publié depuis') }}<select v-model="form.posted_within" name="posted_within" class="w-full rounded-lg border-line mt-2"><option value="">{{ text('Any date', 'Toutes les dates') }}</option><option value="1">{{ text('24 hours', '24 heures') }}</option><option value="7">{{ text('7 days', '7 jours') }}</option><option value="30">{{ text('30 days', '30 jours') }}</option></select></label>
+                        <label class="block text-sm font-semibold">{{ text('Listing language', 'Langue de l’offre') }}<select v-model="form.language" name="language" class="w-full rounded-lg border-line mt-2"><option value="">{{ text('Any language', 'Toutes les langues') }}</option><option value="en">English</option><option value="fr">Français</option><option value="ar">العربية</option></select></label>
+                        <label class="block text-sm font-semibold">{{ text('Compensation', 'Rémunération') }}<select v-model="form.compensation_status" name="compensation_status" class="w-full rounded-lg border-line mt-2"><option value="">{{ text('Any', 'Toutes') }}</option><option value="paid">{{ text('Paid', 'Rémunéré') }}</option><option value="unpaid">{{ text('Unpaid', 'Non rémunéré') }}</option><option value="unspecified">{{ text('Not specified', 'Non précisé') }}</option></select></label>
+                        <label class="block text-sm font-semibold">{{ text('Minimum advertised pay', 'Rémunération minimale annoncée') }}<input v-model="form.min_pay" name="min_pay" type="number" min="0" step="1" class="w-full rounded-lg border-line mt-2" /></label>
+                        <label class="block text-sm font-semibold">{{ text('Currency', 'Devise') }}<input v-model="form.currency" name="currency" type="text" maxlength="3" pattern="[A-Za-z]{3}" :required="form.min_pay !== '' && form.min_pay !== null" placeholder="TND, EUR, USD" class="w-full rounded-lg border-line mt-2 uppercase" /></label>
+                        <label class="block text-sm font-semibold">{{ text('Pay period', 'Période de rémunération') }}<select v-model="form.pay_unit" name="pay_unit" :required="form.min_pay !== '' && form.min_pay !== null" class="w-full rounded-lg border-line mt-2"><option value="">{{ text('Select when filtering salary', 'À préciser pour filtrer un salaire') }}</option><option value="hour">{{ text('Hour', 'Heure') }}</option><option value="day">{{ text('Day', 'Jour') }}</option><option value="week">{{ text('Week', 'Semaine') }}</option><option value="month">{{ text('Month', 'Mois') }}</option><option value="year">{{ text('Year', 'Année') }}</option></select></label>
+                        <p class="text-xs font-normal text-slate-500">{{ text('Salary filtering compares the selected currency and pay period only.', 'Le filtre compare uniquement la devise et la période sélectionnées.') }}</p>
+                        <label class="block text-sm font-semibold">{{ text('Internship programme', 'Programme de stage') }}<select v-model="form.program_type" name="program_type" class="w-full rounded-lg border-line mt-2"><option value="">{{ text('Any programme', 'Tous les programmes') }}</option><option value="pfe">PFE</option><option value="summer">{{ text('Summer', 'Été') }}</option><option value="apprenticeship">{{ text('Apprenticeship', 'Alternance') }}</option></select></label>
+                        <label class="block text-sm font-semibold">{{ text('Maximum internship duration (weeks)', 'Durée maximale du stage (semaines)') }}<input v-model="form.duration_max" name="duration_max" type="number" min="1" max="104" class="w-full rounded-lg border-line mt-2" /></label>
+                        <label class="block text-sm font-semibold">{{ text('Starting on or after', 'Début à partir du') }}<input v-model="form.start_after" name="start_after" type="date" class="w-full rounded-lg border-line mt-2" /></label>
+                    </div></details>
+                    <button type="submit" class="cta cta-primary w-full">{{ text('Apply filters', 'Appliquer les filtres') }}</button>
+                </div></aside>
+                <section id="results" class="scroll-mt-24" :aria-label="text('Search results', 'Résultats de recherche')"><div class="flex flex-wrap justify-between gap-3 mb-4 text-sm text-slate-600"><p><strong class="text-navy">{{ internships.meta?.total || 0 }}</strong> {{ text('opportunities found', 'opportunités trouvées') }}</p><span>{{ text('Most recently posted or discovered', 'Les plus récentes publications ou découvertes') }}</span></div><div class="flex flex-col gap-4"><RoleCard v-for="opportunity in internships.data" :key="opportunity.id" :internship="opportunity" /><div v-if="!internships.data?.length" class="bg-white rounded-2xl border border-line p-8"><h2 class="font-display text-xl font-semibold">{{ text('No opportunities match these filters.', 'Aucune opportunité ne correspond à ces filtres.') }}</h2><p class="text-slate-600 mt-3">{{ text('Try a broader location, experience level, or keyword. Unknown eligibility is never presented as confirmed.', 'Essayez un lieu, un niveau d’expérience ou un mot-clé plus large. Une éligibilité inconnue n’est jamais présentée comme confirmée.') }}</p><Link :href="`${prefix}/opportunities`" class="inline-block mt-5 text-blue-700 font-semibold">{{ text('Browse all opportunities', 'Voir toutes les opportunités') }}</Link></div></div><Pagination :meta="internships.meta" /></section>
+            </div>
+        </form>
+    </div>
 </template>

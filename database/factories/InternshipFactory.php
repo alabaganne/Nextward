@@ -5,6 +5,8 @@ namespace Database\Factories;
 use App\Models\Internship;
 use App\Models\Company;
 use App\Models\Field;
+use App\Models\User;
+use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class InternshipFactory extends Factory
@@ -28,22 +30,50 @@ class InternshipFactory extends Factory
             ['title' => 'Digital Marketing Intern', 'field' => 'Digital Marketing', 'description' => "Join our marketing team and help grow our online presence across digital channels.\n\nResponsibilities:\n- Create and schedule content for LinkedIn, Instagram, and Twitter\n- Manage Google Ads and Meta Ads campaigns\n- Analyze campaign performance using Google Analytics\n- Assist in SEO optimization and blog content creation\n\nRequirements:\n- Studying Marketing, Communications, or Business\n- Familiarity with social media platforms and tools\n- Good writing skills in French and/or English\n- Creative mindset\n\nBenefits:\n- Hands-on digital marketing experience\n- Access to premium marketing tools\n- Real budget to manage"],
         ];
 
-        $companies = Company::with('user')->get();
-        $fields = Field::pluck('id', 'name')->toArray();
-
         $internship = $this->faker->randomElement($internships);
-        $company = $companies->isNotEmpty() ? $companies->random() : null;
-        $fieldId = $fields[$internship['field']] ?? array_values($fields)[0] ?? 1;
-        $cityId = $company ? $company->city_id : 1;
-        $companyId = $company ? $company->id : 1;
+        $company = Company::whereHas('user')->inRandomOrder()->first();
+        if (! $company) {
+            $company = Company::factory()->create();
+            $company->user()->save(User::factory()->make());
+        }
+        $field = Field::firstOrCreate(['name' => $internship['field']]);
 
         return [
-            'title'       => $internship['title'],
-            'description' => $internship['description'],
-            'field_id'    => $fieldId,
-            'company_id'  => $companyId,
-            'city_id'     => $cityId,
-            'closing_at'  => $this->faker->dateTimeBetween('+1 month', '+6 months'),
+            'title' => $internship['title'],
+            'slug' => Str::slug($internship['title']),
+            'description' => "Fictional demo opportunity. This is not an active vacancy.\n\n".$internship['description'],
+            'field_id' => $field->id,
+            'company_id' => $company->id,
+            'city_id' => $company->city_id,
+            'country_code' => $company->country_code,
+            'location' => $company->location,
+            'kind' => 'internship',
+            'origin' => 'native',
+            'application_mode' => 'internal',
+            'publication_status' => 'published',
+            'status' => 'open',
+            'work_type' => 'onsite',
+            'seniority' => 'entry',
+            'employment_types' => ['INTERN', 'FULL_TIME'],
+            'program_type' => 'pfe',
+            'duration_weeks' => 24,
+            'language' => 'en',
+            'compensation_status' => 'unspecified',
+            'attachments' => [],
+            'closing_at' => $this->faker->dateTimeBetween('+1 month', '+6 months'),
+            'posted_at' => now()->subDays(2),
+            'first_seen_at' => now()->subDays(2),
+            'content_updated_at' => now()->subDays(2),
         ];
+    }
+
+    public function job()
+    {
+        return $this->state(function (array $attributes) {
+            $title = str_replace(' Intern', '', $attributes['title']);
+            return ['kind' => 'job', 'title' => $title, 'slug' => Str::slug($title),
+                'description' => "Fictional demo opportunity. This is not an active vacancy.\n\nJoin the team as an experienced specialist. Deliver practical projects, review technical decisions and collaborate with product and engineering colleagues. Prior professional experience is relevant to this job.",
+                'seniority' => 'mid', 'employment_types' => ['FULL_TIME'], 'program_type' => null, 'duration_weeks' => null];
+        });
     }
 }

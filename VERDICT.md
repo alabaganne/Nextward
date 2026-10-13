@@ -5,7 +5,7 @@
 ## State of the code
 35% done, ~14 weeks. Laravel 8 + Inertia + Vue 3. Originally a university project
 (`alabaganne/internships-for-students`, DB `issatso_internships`), rebranded three times: Stagi in
-the README, Qodwa in the design doc, Internly in the UI. Neither stagi.tn nor internly.tn resolves.
+the README, Qodwa in the design doc, Nextward in the UI. Neither stagi.tn nor internly.tn resolves.
 **Zero payment code** — no plan table among the 15 migrations, no PSP, no pricing page, no quota
 enforcement. What exists is 43KB of strategy prose written in May 2025.
 

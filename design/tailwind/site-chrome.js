@@ -1,5 +1,5 @@
 /* ===========================================================
-   Internly — Tailwind marketing chrome
+   Nextward — Tailwind marketing chrome
    <site-header active="about"></site-header>
    <site-footer></site-footer>
    Renders Tailwind-utility markup (no styles.css).
@@ -24,7 +24,7 @@
       <div class="max-w-wrap mx-auto px-7 flex items-center justify-between h-[74px]">
         <a class="flex items-center gap-[11px]" href="index.html">
           <span class="w-[38px] h-[38px] rounded-[11px] bg-gradient-to-br from-blue-400 to-blue-700 grid place-items-center text-white shadow-[0_8px_18px_-8px_rgba(37,99,235,.8)] [&_svg]:w-[21px] [&_svg]:h-[21px]">${logo}</span>
-          <span><b class="block font-display text-[19px] font-semibold tracking-tight">Internly</b><small class="block text-[10px] tracking-[.16em] text-muted-2 font-semibold -mt-0.5">INTERNSHIP PLATFORM</small></span>
+          <span><b class="block font-display text-[19px] font-semibold tracking-tight">Nextward</b><small class="block text-[10px] tracking-[.16em] text-muted-2 font-semibold -mt-0.5">OPPORTUNITY FINDER</small></span>
         </a>
         <nav class="flex items-center gap-[34px] max-[920px]:hidden">${links}</nav>
         <div class="flex items-center gap-3.5">
@@ -44,7 +44,7 @@
           <div>
             <a class="flex items-center gap-[11px] mb-[18px]" href="index.html">
               <span class="w-[38px] h-[38px] rounded-[11px] bg-gradient-to-br from-blue-400 to-blue-700 grid place-items-center text-white [&_svg]:w-[21px] [&_svg]:h-[21px]">${logo}</span>
-              <span><b class="block font-display text-[19px] font-semibold tracking-tight text-white">Internly</b><small class="block text-[10px] tracking-[.16em] text-[#7c89a3] font-semibold -mt-0.5">INTERNSHIP PLATFORM</small></span>
+              <span><b class="block font-display text-[19px] font-semibold tracking-tight text-white">Nextward</b><small class="block text-[10px] tracking-[.16em] text-[#7c89a3] font-semibold -mt-0.5">OPPORTUNITY FINDER</small></span>
             </a>
             <p class="max-w-[300px] text-sm leading-[1.6] text-[#9aa6bd]">Where ambitious students and great companies find each other. Discover, apply, and get hired — all in one place.</p>
             <div class="flex gap-2.5 mt-[22px] [&_a]:w-9 [&_a]:h-9 [&_a]:rounded-[9px] [&_a]:bg-white/[.06] [&_a]:grid [&_a]:place-items-center [&_a:hover]:bg-blue-600 [&_svg]:w-[17px] [&_svg]:h-[17px]">
@@ -76,7 +76,7 @@
           </div>
         </div>
         <div class="flex justify-between items-center mt-[54px] pt-[26px] border-t border-white/[.09] text-[13px] text-[#7c89a3] max-[820px]:flex-col max-[820px]:gap-3.5">
-          <span>© 2026 Internly. All rights reserved.</span>
+          <span>© 2026 Nextward. All rights reserved.</span>
           <span>Made for students, by people who remember being one.</span>
         </div>
       </div>

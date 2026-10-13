@@ -11,8 +11,8 @@ const isCompany = computed(() => page.props.auth?.user?.userable_type === 'compa
 
 const action = computed(() =>
 	isCompany.value
-		? { label: 'Post internship', route: 'internships.create' }
-		: { label: 'Find internships', route: 'internships.index' }
+		? { label: 'Post opportunity', route: 'internships.create' }
+		: { label: 'Find opportunities', route: 'opportunities.index' }
 );
 
 const hasUnreadNotifications = computed(
@@ -22,7 +22,7 @@ const hasUnreadNotifications = computed(
 const search = ref('');
 
 const submitSearch = () => {
-	router.get(route('internships.index'), search.value ? { search: search.value } : {});
+	router.get(route('opportunities.index'), search.value ? { search: search.value } : {});
 };
 </script>
 
@@ -33,11 +33,11 @@ const submitSearch = () => {
 			<label class="flex items-center gap-2.5 bg-paper-2 border border-line rounded-[11px] px-3.5 h-[42px] flex-1 min-w-0 focus-within:border-blue-400 [&_svg]:text-muted-2 [&_svg]:shrink-0">
 				<Search :size="17" />
 				<input
-					aria-label="Search internships"
+					aria-label="Search opportunities"
 					v-model="search"
 					class="border-0 bg-transparent outline-none text-sm w-full"
 					type="text"
-					placeholder="Search internships, companies…"
+					placeholder="Search opportunities, companies…"
 					@keyup.enter="submitSearch"
 				>
 			</label>

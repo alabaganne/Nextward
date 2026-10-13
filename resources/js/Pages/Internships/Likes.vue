@@ -27,7 +27,7 @@ const icons = {
 				<h1 class="font-display text-[32px] font-semibold tracking-[-.02em]">Saved roles</h1>
 				<p class="text-muted text-[15px] mt-1.5">{{ likes.length }} {{ likes.length === 1 ? 'internship' : 'internships' }} saved for later. Apply before they close.</p>
 			</div>
-			<Link class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all [&_svg]:w-[17px] [&_svg]:h-[17px]" :href="route('internships.index')">
+			<Link class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all [&_svg]:w-[17px] [&_svg]:h-[17px]" :href="route('opportunities.index')">
 			Find more roles <component :is="icons.arrow" aria-hidden="true" />
 			</Link>
 		</div>
@@ -41,7 +41,7 @@ const icons = {
 			<div class="w-[72px] h-[72px] rounded-[20px] bg-blue-50 text-blue-600 grid place-items-center mb-5 [&_svg]:w-[34px] [&_svg]:h-[34px]"><component :is="icons.bookmark" aria-hidden="true" /></div>
 			<h3 class="font-display text-xl font-semibold mb-2">No saved roles yet</h3>
 			<p class="text-muted text-[15px] max-w-[340px] mb-[22px]">Tap the bookmark on any internship to save it here and apply when you're ready.</p>
-			<Link class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors" :href="route('internships.index')">Browse internships</Link>
+			<Link class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors" :href="route('opportunities.index')">Browse opportunities</Link>
 		</div>
 	</div>
 </template>

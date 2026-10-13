@@ -107,13 +107,13 @@ const partyName = (application) => (isStudent.value ? application.company?.name 
 						</div>
 					</div>
 					<div class="text-[13px] text-muted-2 max-[760px]:hidden">{{ application.created_at }}</div>
-					<div><StatusPill :status="application.status" /></div>
+					<div><StatusPill :status="application.status" /><span v-if="application.channel === 'external'" class="block text-xs text-muted mt-1">Your reported status</span></div>
 					<div class="w-[34px] h-[34px] rounded-[9px] border border-line grid place-items-center text-muted-2 justify-self-end max-[760px]:hidden [&_svg]:w-4 [&_svg]:h-4"><component :is="icons.chevron" aria-hidden="true" /></div>
 				</Link>
 
 				<div v-if="!rows.length" class="px-[22px] py-8 text-[14px] text-muted">
 					No applications here yet.
-					<Link v-if="isStudent" class="font-semibold text-blue-700" :href="route('internships.index')">Browse internships</Link>
+					<Link v-if="isStudent" class="font-semibold text-blue-700" :href="route('opportunities.index')">Browse opportunities</Link>
 				</div>
 			</div>
 		</div>

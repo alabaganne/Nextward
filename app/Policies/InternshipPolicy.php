@@ -29,9 +29,10 @@ class InternshipPolicy
      * @param  \App\Models\Internship  $internship
      * @return mixed
      */
-    public function view(User $user, Internship $internship)
+    public function view(?User $user, Internship $internship)
     {
-        return true;
+        return $internship->publication_status === 'published'
+            || ($user && $this->isOwner($user, $internship));
     }
 
     /**
@@ -51,7 +52,7 @@ class InternshipPolicy
         return $company
             && filled($company->about)
             && filled($company->website)
-            && filled($company->city_id);
+            && (filled($company->city_id) || filled($company->country_code) || filled($company->location));
     }
 
     /**
@@ -63,7 +64,7 @@ class InternshipPolicy
      */
     public function isOwner(User $user, Internship $internship)
     {
-        return $user->isAdmin() || ($user->isCompany() && $user->userable->id === $internship->company_id);
+        return $user->isAdmin() || ($user->isCompany() && $user->userable?->id === $internship->company_id);
     }
 
     /**
@@ -75,7 +76,7 @@ class InternshipPolicy
      */
     public function update(User $user, Internship $internship)
     {
-        return $this->isOwner($user, $internship);
+        return $this->isOwner($user, $internship) && ($user->isAdmin() || $internship->origin === 'native');
     }
 
     /**
@@ -87,6 +88,6 @@ class InternshipPolicy
      */
     public function delete(User $user, Internship $internship)
     {
-        return $this->isOwner($user, $internship);
+        return $this->isOwner($user, $internship) && ($user->isAdmin() || $internship->origin === 'native');
     }
 }

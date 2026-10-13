@@ -78,7 +78,7 @@ class ApplicationSubmitted extends Notification
 	{
 		return new BroadcastMessage([
 			'toast' => [
-				'message' => 'You received a new internship application.',
+				'message' => 'You received a new application.',
 				'type' => 'notification'
 			],
 			'data' => new NotificationResource(NotificationModel::find($this->id))

@@ -60,11 +60,11 @@ class ApplicationReviewed extends Notification
      */
     public function toArray($notifiable)
     {
-        $companyName = e($this->application->company->user->name);
+        $companyName = e($this->application->company->display_name);
         $internshipTitle = e($this->application->internship->title);
 
         return [
-            'title' => "{$this->application->company->user->name}'s Reply",
+            'title' => "{$this->application->company->display_name}'s Reply",
             'body' => "<span>{$companyName}</span> has reviewed your application for <span>{$internshipTitle}</span>.",
             'action' => "/applications/{$this->application->id}",
         ];
@@ -74,7 +74,7 @@ class ApplicationReviewed extends Notification
 	{
 		return new BroadcastMessage([
 			'toast' => [
-				'message' => "{$this->application->company->user->name} has reviewed your application.",
+				'message' => "{$this->application->company->display_name} has reviewed your application.",
 				'type' => 'notification',
 			],
 			'data' => new NotificationResource(NotificationModel::find($this->id))

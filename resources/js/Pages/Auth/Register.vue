@@ -3,7 +3,7 @@
 		<header class="auth-heading">
 			<p class="auth-kicker">Here’s to what comes next</p>
 			<h1>Your beginning<br />starts here.</h1>
-			<p>Create an account to find your next opportunity or introduce your company to emerging talent.</p>
+			<p>Join students and professionals finding internships and jobs in Tunisia and worldwide, or hire your next team member.</p>
 		</header>
 		<auth-feedback :errors="form.errors" />
 		<form @submit.prevent="submit" enctype="multipart/form-data" :aria-busy="form.processing">
@@ -11,14 +11,14 @@
 				<legend class="auth-label">I’m joining as</legend>
 				<div class="auth-role-options">
 					<button type="button" class="auth-role focus-ring" :aria-pressed="form.account_type === 'student'" @click="selectAccount('student')">
-						<span class="auth-role-name"><icon name="academic-cap" />Student</span>
+						<span class="auth-role-name"><icon name="academic-cap" />Find opportunities</span>
 						<icon v-if="form.account_type === 'student'" name="check-circle" class="auth-role-check" />
-						<p>Find your fit. Take the first step.</p>
+						<p>For students, graduates, and professionals.</p>
 					</button>
 					<button type="button" class="auth-role focus-ring" :aria-pressed="form.account_type === 'company'" @click="selectAccount('company')">
-						<span class="auth-role-name"><icon name="office-building" />Company</span>
+						<span class="auth-role-name"><icon name="office-building" />Hire candidates</span>
 						<icon v-if="form.account_type === 'company'" name="check-circle" class="auth-role-check" />
-						<p>Make room for emerging talent.</p>
+						<p>Post internships and jobs for your team.</p>
 					</button>
 				</div>
 			</fieldset>
@@ -37,13 +37,25 @@
 
 			<fieldset class="auth-form-section">
 				<legend>{{ isCompany ? 'Your company' : 'A little about you' }}</legend>
-				<p v-if="isCompany" class="auth-section-note">Set up your public profile so students can get to know your company before they apply.</p>
+				<p v-if="isCompany" class="auth-section-note">Set up your profile so candidates can get to know your company before they apply.</p>
+				<p v-else class="auth-section-note">You can skip optional details and update your preferences later.</p>
 				<div class="auth-fields">
+					<template v-if="!isCompany">
+						<div class="auth-field">
+							<label for="career_stage">Career stage</label>
+							<select id="career_stage" v-model="form.career_stage" class="auth-input"><option value="student">Student</option><option value="graduate">Graduate</option><option value="professional">Professional</option></select>
+						</div>
+						<fieldset><legend class="auth-label">I'm interested in</legend><div class="flex gap-5 mt-2"><label class="flex gap-2 items-center"><input v-model="form.preferences.kinds" type="checkbox" value="internship"> Internships</label><label class="flex gap-2 items-center"><input v-model="form.preferences.kinds" type="checkbox" value="job"> Jobs</label></div></fieldset>
+					</template>
+					<div class="auth-two-columns">
+						<auth-field id="country_code" label="Country code" v-model="form.country_code" :error="form.errors.country_code" placeholder="TN, FR, US..." hint="Two-letter country code." optional maxlength="2" />
+						<auth-field id="location" label="City or location" v-model="form.location" :error="form.errors.location" placeholder="Your location anywhere in the world" optional maxlength="255" />
+					</div>
 					<div class="auth-two-columns">
 						<div class="auth-field">
-							<label for="city_id">City</label>
-							<select id="city_id" name="city_id" v-model="form.city_id" class="auth-input" :aria-invalid="form.errors.city_id ? 'true' : undefined" :aria-describedby="form.errors.city_id ? 'city_id-error' : undefined" required>
-								<option :value="null" disabled>Select your city</option>
+							<label for="city_id">Tunisian city <span class="auth-optional">(optional)</span></label>
+							<select id="city_id" name="city_id" v-model="form.city_id" class="auth-input" :aria-invalid="form.errors.city_id ? 'true' : undefined" :aria-describedby="form.errors.city_id ? 'city_id-error' : undefined">
+								<option :value="null">Not selected</option>
 								<option v-for="city in cities" :key="city.id" :value="city.id">{{ city.name }}</option>
 							</select>
 							<p v-if="form.errors.city_id" id="city_id-error" class="auth-field-error">{{ form.errors.city_id }}</p>
@@ -52,9 +64,9 @@
 					</div>
 
 					<div v-if="!isCompany" class="auth-field">
-						<label for="field_id">Field of study</label>
-						<select id="field_id" name="field_id" v-model="form.field_id" class="auth-input" :aria-invalid="form.errors.field_id ? 'true' : undefined" :aria-describedby="form.errors.field_id ? 'field_id-error' : undefined" required>
-							<option :value="null" disabled>Select your field</option>
+						<label for="field_id">Field of work or study <span class="auth-optional">(optional)</span></label>
+						<select id="field_id" name="field_id" v-model="form.field_id" class="auth-input" :aria-invalid="form.errors.field_id ? 'true' : undefined" :aria-describedby="form.errors.field_id ? 'field_id-error' : undefined">
+							<option :value="null">Not selected</option>
 							<option v-for="field in fields" :key="field.id" :value="field.id">{{ field.name }}</option>
 						</select>
 						<p v-if="form.errors.field_id" id="field_id-error" class="auth-field-error">{{ form.errors.field_id }}</p>
@@ -76,14 +88,14 @@
 
 					<div class="auth-field">
 						<label for="about">{{ isCompany ? 'About your company' : 'Short bio' }} <span v-if="!isCompany" class="auth-optional">(optional)</span></label>
-						<textarea id="about" name="about" v-model="form.about" :required="isCompany" minlength="30" rows="4" class="auth-input" :aria-invalid="form.errors.about ? 'true' : undefined" :aria-describedby="form.errors.about ? 'about-error' : 'about-hint'" :placeholder="isCompany ? 'What do you do, and what could an intern learn with you?' : 'What are you studying, and what would you like to learn next?'"></textarea>
+						<textarea id="about" name="about" v-model="form.about" :required="isCompany" minlength="30" rows="4" class="auth-input" :aria-invalid="form.errors.about ? 'true' : undefined" :aria-describedby="form.errors.about ? 'about-error' : 'about-hint'" :placeholder="isCompany ? 'What does your team do, and who are you hiring?' : 'Share your background, experience, and interests.'"></textarea>
 						<p v-if="form.errors.about" id="about-error" class="auth-field-error">{{ form.errors.about }}</p>
-						<p v-else id="about-hint" class="auth-hint">{{ isCompany ? 'Help students get a feel for your team. At least 30 characters.' : 'If you add a bio, use at least 30 characters.' }}</p>
+						<p v-else id="about-hint" class="auth-hint">{{ isCompany ? 'Help candidates get a feel for your team. At least 30 characters.' : 'If you add a bio, use at least 30 characters.' }}</p>
 					</div>
 				</div>
 			</fieldset>
 
-			<breeze-button class="auth-submit-spaced" :disabled="form.processing">{{ form.processing ? 'Creating your account…' : isCompany ? 'Create company account' : 'Create student account' }}<icon name="arrow-right" /></breeze-button>
+			<breeze-button class="auth-submit-spaced" :disabled="form.processing">{{ form.processing ? 'Creating your account…' : isCompany ? 'Create company account' : 'Create candidate account' }}<icon name="arrow-right" /></breeze-button>
 		</form>
 		<p class="auth-switch">Already have an account? <Link :href="route('login')" class="auth-link focus-ring">Log in</Link></p>
 	</div>
@@ -103,6 +115,7 @@ export default {
 		cities: Array,
 		fields: Array,
 		accountType: { type: String, default: 'student' },
+		careerStage: { type: String, default: 'student' },
 	},
 	data() {
 		return {
@@ -119,6 +132,10 @@ export default {
 				website: '',
 				about: '',
 				company_logo: null,
+				career_stage: this.careerStage,
+				country_code: '',
+				location: '',
+				preferences: { kinds: this.careerStage === 'professional' ? ['job'] : ['internship', 'job'] },
 			}),
 		};
 	},

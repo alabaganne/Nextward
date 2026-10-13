@@ -12,7 +12,12 @@ class Company extends Model
     protected $fillable = [
         'website',
         'about',
-        'city_id'
+        'city_id',
+        'name',
+        'domain',
+        'logo_url',
+        'country_code',
+        'location',
     ];
 
     public function user() {
@@ -28,6 +33,16 @@ class Company extends Model
     }
 
 	public function applications() {
-		return $this->hasMany(Application::class);
+		return $this->hasMany(Application::class)->where('channel', 'internal');
 	}
+
+    public function getDisplayNameAttribute(): string
+    {
+        return $this->user?->name ?: $this->name ?: 'Employer not specified';
+    }
+
+    public function getLogoAttribute(): ?string
+    {
+        return $this->user?->image ?: $this->logo_url;
+    }
 }

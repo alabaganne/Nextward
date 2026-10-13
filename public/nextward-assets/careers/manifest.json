@@ -1,0 +1,106 @@
+{
+  "assets": [
+    {
+      "file": "01-career-journeys",
+      "width": 1536,
+      "height": 1024,
+      "png_bytes": 1797955,
+      "webp_bytes": 169116,
+      "mode": "RGBA",
+      "corners_alpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "transparent_percent": 57.7,
+      "near_opaque_percent": 35.7,
+      "alpha_preserved": true
+    },
+    {
+      "file": "02-professional-workspace",
+      "width": 1536,
+      "height": 1024,
+      "png_bytes": 1771290,
+      "webp_bytes": 161718,
+      "mode": "RGBA",
+      "corners_alpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "transparent_percent": 66.1,
+      "near_opaque_percent": 27.0,
+      "alpha_preserved": true
+    },
+    {
+      "file": "03-career-conversation",
+      "width": 1536,
+      "height": 1024,
+      "png_bytes": 1991705,
+      "webp_bytes": 173690,
+      "mode": "RGBA",
+      "corners_alpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "transparent_percent": 60.8,
+      "near_opaque_percent": 35.1,
+      "alpha_preserved": true
+    },
+    {
+      "file": "04-team-collaboration",
+      "width": 1536,
+      "height": 1024,
+      "png_bytes": 2016692,
+      "webp_bytes": 198598,
+      "mode": "RGBA",
+      "corners_alpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "transparent_percent": 50.9,
+      "near_opaque_percent": 42.0,
+      "alpha_preserved": true
+    },
+    {
+      "file": "05-professional-woman",
+      "width": 1254,
+      "height": 1254,
+      "png_bytes": 622722,
+      "webp_bytes": 87502,
+      "mode": "RGBA",
+      "corners_alpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "transparent_percent": 79.9,
+      "near_opaque_percent": 18.3,
+      "alpha_preserved": true
+    },
+    {
+      "file": "06-professional-man",
+      "width": 1254,
+      "height": 1254,
+      "png_bytes": 599070,
+      "webp_bytes": 76764,
+      "mode": "RGBA",
+      "corners_alpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "transparent_percent": 81.7,
+      "near_opaque_percent": 17.0,
+      "alpha_preserved": true
+    }
+  ]
+}

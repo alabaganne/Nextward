@@ -28,13 +28,42 @@ class StudentFactory extends Factory
             "IT student at ISET Sfax with interests in DevOps and cloud computing. Self-taught in Docker, GitHub Actions, and basic AWS services. Completed a personal project deploying a Node.js app on AWS EC2. Seeking a DevOps internship.",
         ];
 
-        $cityIds = City::pluck('id')->toArray();
-        $fieldIds = Field::pluck('id')->toArray();
+        $city = City::where('name', '!=', 'Remote')->inRandomOrder()->first();
+        $field = Field::inRandomOrder()->first();
 
         return [
-            'about'    => $this->faker->randomElement($abouts),
-            'field_id' => $this->faker->randomElement($fieldIds ?: [1]),
-            'city_id'  => $this->faker->randomElement($cityIds ?: [1]),
+            'about' => 'Fictional demo profile. '.$this->faker->randomElement($abouts),
+            'field_id' => $field?->id,
+            'city_id' => $city?->id,
+            'career_stage' => 'student',
+            'headline' => 'Student seeking an internship',
+            'experience_years' => 0,
+            'country_code' => 'TN',
+            'location' => $city?->name,
+            'languages' => ['fr', 'en'],
+            'preferences' => ['kinds' => ['internship'], 'countries' => ['TN'], 'include_unknown_eligibility' => false],
         ];
+    }
+
+    public function professional()
+    {
+        return $this->state(fn () => [
+            'career_stage' => 'professional',
+            'headline' => 'Experienced specialist seeking a new role',
+            'about' => 'Fictional demo professional with experience delivering projects, collaborating with teams and mentoring colleagues.',
+            'experience_years' => $this->faker->numberBetween(3, 12),
+            'preferences' => ['kinds' => ['job'], 'countries' => ['TN', 'FR', 'DE'], 'work_types' => ['remote', 'hybrid'], 'include_unknown_eligibility' => false],
+        ]);
+    }
+
+    public function graduate()
+    {
+        return $this->state(fn () => [
+            'career_stage' => 'graduate',
+            'headline' => 'Recent graduate seeking a first role',
+            'about' => 'Fictional demo graduate with practical academic projects and an interest in entry-level opportunities.',
+            'experience_years' => 0,
+            'preferences' => ['kinds' => ['internship', 'job'], 'countries' => ['TN'], 'seniority' => ['entry', 'graduate'], 'include_unknown_eligibility' => false],
+        ]);
     }
 }

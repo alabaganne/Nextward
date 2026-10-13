@@ -36,6 +36,8 @@ const navIcons = {
 	students: GraduationCap,
 	fields: BookOpen,
 	skills: Sparkles,
+	'saved-searches': Bookmark,
+	imports: Briefcase,
 };
 
 const page = usePage();
@@ -44,13 +46,14 @@ const isCompany = computed(() => user.value?.userable_type === 'company');
 const isStudent = computed(() => user.value?.userable_type === 'student');
 const isAdmin = computed(() => !!user.value?.is_admin);
 
-// Saved roles is a student-only feature; admins get the catalog screens.
+// Students and professionals share candidate accounts and saved opportunities.
 const groups = computed(() => {
 	const workspace = [
 		{ id: 'dashboard', label: 'Dashboard', route: 'dashboard' },
 		...(isAdmin.value ? [] : [{ id: 'applications', label: 'Applications', route: 'applications.index' }]),
-		{ id: 'internships', label: 'Internships', route: 'internships.index' },
+		{ id: 'internships', label: 'Opportunities', route: 'opportunities.index' },
 		...(isStudent.value ? [{ id: 'saved', label: 'Saved roles', route: 'likes.index' }] : []),
+		...(isStudent.value ? [{ id: 'saved-searches', label: 'Saved searches', route: 'saved-searches.index' }] : []),
 		{ id: 'messages', label: 'Messages', route: 'messages.index' },
 		{ id: 'companies', label: 'Companies', route: 'companies.index' },
 	];
@@ -65,7 +68,8 @@ const groups = computed(() => {
 		sections.push({
 			label: 'Catalog',
 			items: [
-				{ id: 'students', label: 'Students', route: 'students.index' },
+				{ id: 'imports', label: 'Sources and imports', route: 'imports.index' },
+				{ id: 'students', label: 'Candidates', route: 'students.index' },
 				{ id: 'fields', label: 'Fields', route: 'fields.index' },
 				{ id: 'skills', label: 'Skills', route: 'skills.index' },
 			],
@@ -75,9 +79,9 @@ const groups = computed(() => {
 	return sections;
 });
 const tag = computed(() =>
-	isAdmin.value ? 'ADMIN WORKSPACE' : isCompany.value ? 'COMPANY WORKSPACE' : 'STUDENT WORKSPACE'
+	isAdmin.value ? 'ADMIN WORKSPACE' : isCompany.value ? 'COMPANY WORKSPACE' : 'CANDIDATE WORKSPACE'
 );
-const roleLabel = computed(() => (isAdmin.value ? 'Admin' : isCompany.value ? 'Company' : 'Student'));
+const roleLabel = computed(() => (isAdmin.value ? 'Admin' : isCompany.value ? 'Company' : (user.value?.career_stage === 'professional' ? 'Professional' : user.value?.career_stage === 'graduate' ? 'Graduate' : 'Student')));
 
 const initials = computed(() =>
 	(user.value?.name || '')

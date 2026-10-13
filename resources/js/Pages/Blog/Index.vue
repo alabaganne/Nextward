@@ -3,9 +3,9 @@
 		<section class="bg-white border-b border-gray-200">
 			<div class="max-w-7xl mx-auto px-6 py-16 lg:py-20">
 				<div class="max-w-3xl">
-					<div class="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm font-semibold border border-blue-100">Internly Blog</div>
-					<h1 class="mt-6 text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight">Internship guides for students and companies</h1>
-					<p class="mt-6 text-lg text-gray-600 leading-8">Practical guides on finding internships, writing stronger applications, hiring students, and keeping applications organized.</p>
+					<div class="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm font-semibold border border-blue-100">Nextward Career Guides</div>
+					<h1 class="mt-6 text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight">Career guides for students and professionals</h1>
+					<p class="mt-6 text-lg text-gray-600 leading-8">Practical guides on finding internships and jobs, writing stronger applications, hiring candidates, and keeping your next career move organized.</p>
 				</div>
 			</div>
 		</section>
@@ -32,10 +32,10 @@
 		<section class="max-w-7xl mx-auto px-6 pb-16">
 			<div class="rounded-3xl bg-gray-900 text-white p-8 md:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
 				<div>
-					<h2 class="text-2xl md:text-3xl font-extrabold">Ready to explore internships?</h2>
-					<p class="mt-3 text-gray-300 leading-7">Browse public internship listings and apply through Internly.</p>
+					<h2 class="text-2xl md:text-3xl font-extrabold">Ready to explore your next opportunity?</h2>
+					<p class="mt-3 text-gray-300 leading-7">Browse internships and jobs in Tunisia and worldwide, and check where each application takes place.</p>
 				</div>
-				<Link :href="route('internships.index')" class="px-6 py-3 rounded-xl bg-white text-gray-900 font-semibold text-center hover:bg-gray-100 transition">Browse internships</Link>
+				<Link :href="route('opportunities.index')" class="px-6 py-3 rounded-xl bg-white text-gray-900 font-semibold text-center hover:bg-gray-100 transition">Browse opportunities</Link>
 			</div>
 		</section>
 	</public-layout>

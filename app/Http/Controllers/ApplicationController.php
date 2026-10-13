@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class ApplicationController extends Controller
@@ -27,8 +28,11 @@ class ApplicationController extends Controller
         $query = Application::with('internship', 'internship.company', 'internship.city', 'internship.field');
 
         if (! Auth::user()->isAdmin()) {
-            $field_name = Auth::user()->isStudent() ? 'student_id' : 'company_id';
+            $field_name = Auth::user()->isCandidate() ? 'student_id' : 'company_id';
             $query->where($field_name, Auth::user()->userable->id);
+            if (Auth::user()->isCompany()) {
+                $query->where('channel', 'internal');
+            }
         }
 
         return Inertia::render('Applications/Index', [
@@ -48,7 +52,10 @@ class ApplicationController extends Controller
 
     public function store(Internship $internship, ApplicationRequest $request)
     {
-        $application = Application::create([
+        $application = DB::transaction(function () use ($request, $internship) {
+            $request->user()->userable()->lockForUpdate()->first();
+            abort_if(Application::where('student_id', $request->user()->userable_id)->where('internship_id', $internship->id)->exists(), 409, 'You already have an application for this opportunity.');
+            return Application::create([
             'student_id' => $request->user()->userable->id,
             'internship_id' => $internship->id,
             'cover_letter' => $request->cover_letter,
@@ -56,10 +63,13 @@ class ApplicationController extends Controller
             'attachments' => $request->hasFile('attachment_files')
                 ? $this->storeAttachments($request, 'applications')
                 : [],
-            'company_id' => $internship->company_id
-        ]);
+            'company_id' => $internship->company_id,
+            'channel' => 'internal',
+            'applied_at' => today(),
+            ]);
+        });
 
-   		$application->company->user->notify(new ApplicationSubmitted($application));
+        $application->company->user?->notify(new ApplicationSubmitted($application));
 
         return Redirect::route('applications.index')->with('toast', [
             'type' => 'store',
@@ -70,39 +80,7 @@ class ApplicationController extends Controller
     public function show(Application $application)
     {
         return Inertia::render('Applications/Show', [
-            'application' => [
-				'id' => $application->id,
-				'name' => $application->name,
-				'cover_letter' => $application->cover_letter,
-				'message' => $application->message,
-				'attachments' => $application->attachments ?: [],
-				'status' => $application->status,
-				'created_at' => $application->created_at->format('F d, Y'),
-				'student' => [
-					'id' => $application->student->id,
-					'user_id' => $application->student->user->id,
-					'name' => $application->student->user->name,
-					'email' => $application->student->user->email,
-					'phone_number' => $application->student->user->phone_number,
-					'image' => $application->student->user->image,
-				],
-				'internship' => [
-					'id' => $application->internship->id,
-					'title' => $application->internship->title,
-					'field' => ['name' => $application->internship->field->name],
-					'city' => ['name' => $application->internship->city->name],
-					'closing_at' => $application->internship->closing_at->format('F d, Y'),
-				],
-				'company' => [
-					'id' => $application->company->id,
-					'user_id' => $application->company->user->id,
-					'name' => $application->company->user->name,
-					'email' => $application->company->user->email,
-					'phone_number' => $application->company->user->phone_number,
-					'city' => ['name' => optional($application->company->city)->name],
-				],
-				'updated_at' => $application->updated_at->diffForHumans(),
-			]
+            'application' => (new ApplicationResource($application))->resolve(),
         ]);
     }
 
@@ -112,7 +90,7 @@ class ApplicationController extends Controller
             'internship' => new InternshipResource(
                 Internship::findOrFail($application->internship_id)
             ),
-            'application' => $application,
+            'application' => (new ApplicationResource($application))->resolve(),
         ]);
     }
 
@@ -166,13 +144,70 @@ class ApplicationController extends Controller
     private function storeAttachments(Request $request, string $directory): array
     {
         return collect($request->file('attachment_files', []))->map(function ($file) use ($directory) {
-            $path = $file->store($directory, 'public');
+            $path = $file->store($directory, 'local');
+            if (!$path) {
+                throw new \RuntimeException('The application attachment could not be saved. Please retry.');
+            }
             return [
                 'name' => $file->getClientOriginalName(),
-                'url' => Storage::disk('public')->url($path),
+                'path' => $path,
+                'disk' => 'local',
                 'size' => $file->getSize(),
-                'mime' => $file->getClientMimeType(),
+                'mime' => $file->getMimeType(),
             ];
         })->values()->all();
+    }
+
+    public function track(Internship $internship, Request $request)
+    {
+        abort_unless($request->user()->isCandidate() && $internship->application_mode === 'external' && $internship->isOpen(), 403);
+        $data = $request->validate([
+            'applied_at' => 'nullable|date|before_or_equal:today',
+            'candidate_notes' => 'nullable|string|max:10000',
+        ]);
+
+        $application = DB::transaction(function () use ($request, $internship, $data) {
+            $request->user()->userable()->lockForUpdate()->first();
+            return Application::firstOrCreate([
+                'student_id' => $request->user()->userable_id,
+                'internship_id' => $internship->id,
+            ], [
+                'company_id' => $internship->company_id,
+                'channel' => 'external',
+                'status' => 'submitted',
+                'applied_at' => $data['applied_at'] ?? today(),
+                'candidate_notes' => $data['candidate_notes'] ?? null,
+            ]);
+        });
+
+        return redirect()->route('applications.show', $application)->with('toast', [
+            'type' => 'store', 'message' => 'Saved to your tracker. This does not submit an application to the employer.',
+        ]);
+    }
+
+    public function updateTracking(Application $application, Request $request)
+    {
+        abort_unless($request->user()->isCandidate() && $request->user()->userable_id === $application->student_id && $application->channel === 'external', 403);
+        $application->update($request->validate([
+            'status' => 'required|in:submitted,review,interview,offer,closed',
+            'applied_at' => 'required|date|before_or_equal:today',
+            'candidate_notes' => 'nullable|string|max:10000',
+        ]));
+
+        return back()->with('toast', ['type' => 'update', 'message' => 'Your private tracker was updated.']);
+    }
+
+    public function downloadAttachment(Application $application, int $attachment, Request $request)
+    {
+        $user = $request->user();
+        abort_unless(($user->isCandidate() && $user->userable_id === $application->student_id)
+            || ($application->channel === 'internal' && $user->isCompany() && $user->userable_id === $application->company_id), 403);
+        $file = ($application->attachments ?: [])[$attachment] ?? null;
+        $storage = $file ? Application::attachmentStorage($file) : null;
+        abort_unless($storage && Storage::disk($storage['disk'])->exists($storage['path']), 404);
+
+        return Storage::disk($storage['disk'])->download($storage['path'], basename($file['name'] ?? 'attachment'), [
+            'Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 }
