@@ -123,12 +123,13 @@
         <link rel="apple-touch-icon" href="/brand/internly/apple-touch-icon.png">
         <meta name="theme-color" content="#2563EB">
 
-        <!-- Fonts: Inter for text, Space Grotesk for display headings, in one request. -->
+        <!-- Fonts: Inter for public pages, Plus Jakarta Sans for the workspace, and Space Grotesk for headings. -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap">
 
         <!-- Scripts -->
+        @inertiaHead
         @routes
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>

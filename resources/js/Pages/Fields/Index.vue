@@ -1,49 +1,49 @@
-<template>
-	<main-layout title="Fields" subtitle="View">
-		<template v-slot:header-right>
-			<Link :href="route('fields.create')" class="btn btn-lg btn-primary">Add Field of Studies -></Link>
-		</template>
-		<div v-if="fields.data.length > 0">
-			<app-table :fields="['Name', 'Number of Internships', 'Number of Students', 'Actions']">
-				<tr v-for="field in fields.data" :key="field.id">
-					<td>
-						<div class="flex items-center">
-							<icon name="light-bulb" class="text-gray-400" />
-							<div class="ml-4">
-								<div class="font-medium">
-									{{ field.name }}
-								</div>
-							</div>
-						</div>
-					</td>
-					<td>{{ field.internships_count }}</td>
-					<td>{{ field.students_count }}</td>
-					<td class="text-right">
-						<Link :href="route('fields.edit', field.id)" class="btn btn-sm btn-dark">
-							Edit
-						</Link>
-					</td>
-				</tr>
-			</app-table>
-			<pagination class="mt-4" :links="fields.links" :meta="fields" />
-		</div>
-		<card class="p-6" v-else>
-			No fields found.
-		</card>
-	</main-layout>
-</template>
+<script setup>
+import { computed, h } from 'vue';
+import { Link } from '@inertiajs/vue3';
+import AppShell from '@/Layouts/AppShell.vue';
+import Pagination from '@/Components/Ui/Pagination.vue';
 
-<script>
-import MainLayout from "@/Layouts/Main.vue";
-import Pagination from "@/Components/Pagination.vue";
+defineOptions({
+	layout: (_h, page) => h(AppShell, { active: 'fields' }, () => page),
+});
 
-export default {
-	components: {
-		MainLayout,
-		Pagination,
-	},
-	props: {
-		fields: Object
-	},
-}
+const props = defineProps({
+	fields: { type: Object, required: true },
+});
+
+const meta = computed(() => props.fields.meta ?? props.fields);
 </script>
+
+<template>
+	<div class="px-10 max-[680px]:px-5 pt-[34px] pb-14 w-full max-w-[1080px] mx-auto">
+		<div class="flex items-end justify-between flex-wrap gap-4 mb-6">
+			<div>
+				<span class="block font-display text-[12.5px] font-semibold tracking-[.18em] uppercase text-blue-600 mb-2">Catalog</span>
+				<h1 class="font-display text-[32px] font-semibold tracking-[-.02em]">Fields of study</h1>
+				<p class="text-muted text-[15px] mt-1.5">The disciplines internships and students are organised by.</p>
+			</div>
+			<Link class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors" :href="route('fields.create')">Add field</Link>
+		</div>
+
+		<div class="bg-white border border-line rounded-[18px] overflow-hidden">
+			<div class="grid grid-cols-[1fr_160px_160px_90px] gap-4 px-[22px] py-3 border-b border-line-2 bg-paper-2 max-[760px]:hidden [&_span]:text-[11.5px] [&_span]:tracking-[.08em] [&_span]:uppercase [&_span]:text-muted-2 [&_span]:font-bold [&_span:last-child]:text-right">
+				<span>Field</span><span>Internships</span><span>Students</span><span></span>
+			</div>
+			<div
+				v-for="(field, index) in fields.data"
+				:key="field.id"
+				class="grid grid-cols-[1fr_160px_160px_90px] gap-4 items-center px-[22px] py-4 max-[760px]:grid-cols-[minmax(0,1fr)_auto]"
+				:class="{ 'border-b border-line-2': index !== fields.data.length - 1 }"
+			>
+				<b class="text-[15px] font-semibold">{{ field.name }}</b>
+				<span class="text-[13.5px] text-muted max-[760px]:hidden">{{ field.internships_count }}</span>
+				<span class="text-[13.5px] text-muted max-[760px]:hidden">{{ field.students_count }}</span>
+				<Link class="justify-self-end text-[13px] font-semibold text-blue-700 bg-blue-50 border border-blue-100 px-3 py-[7px] rounded-[9px] hover:bg-blue-100 transition-colors" :href="route('fields.edit', field.id)">Edit</Link>
+			</div>
+			<div v-if="!fields.data.length" class="px-[22px] py-8 text-[14px] text-muted">No fields yet.</div>
+		</div>
+
+		<Pagination :meta="meta" />
+	</div>
+</template>

@@ -24,6 +24,7 @@ class InternshipController extends Controller
 			'internships' => InternshipResource::collection(
 				Internship::with('company', 'field', 'city', 'skills')
 					->listedFor($user)
+					->withCount('applications')
 					->withFilters(
 						$request->input('fields', []),
 						$request->input('companies', []),
@@ -121,7 +122,10 @@ class InternshipController extends Controller
 				'closing_at' => $internship->closing_at->format('F d, Y'),
 				'is_open' => $internship->isOpen(),
 				'created_at' => $internship->created_at->diffForHumans(),
-				'skills' => $internship->skills->pluck('name'),
+				'work_type' => $internship->work_type,
+				'duration_weeks' => $internship->duration_weeks,
+				'term' => $internship->term,
+				'pay' => $internship->pay_amount ? ['amount' => $internship->pay_amount, 'unit' => $internship->pay_unit] : null,
 				'field' => [
 					'name' => $internship->field->name,
 				],
@@ -130,6 +134,8 @@ class InternshipController extends Controller
 				],
 				'company' => [
 					'id' => $internship->company->id,
+					'user_id' => $internship->company->user->id,
+					'image' => $internship->company->user->image,
 					'name' => $internship->company->user->name,
 					'email' => $internship->company->user->email,
 					'phone_number' => $internship->company->user->phone_number,
@@ -140,6 +146,8 @@ class InternshipController extends Controller
 					]
 				],
 				'attachments' => $internship->attachments ?: [],
+				'skills' => $internship->skills->pluck('name'),
+				'liked' => $user && $user->isStudent() ? $user->userable->likes->contains($internship->id) : null,
 				'application' => $application ? [
 					'id' => $application->id,
 					'student_id' => $application->student_id,

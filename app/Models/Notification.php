@@ -10,6 +10,11 @@ class Notification extends Model
 {
     use HasFactory;
 
+    // The notifications table uses uuid primary keys (Laravel database notifications).
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
     protected $fillable = [
         'data',
         'read_at',

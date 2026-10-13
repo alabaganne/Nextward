@@ -101,6 +101,29 @@ class PublicInternshipListingTest extends TestCase
             ->assertDontSee('/internships/'.$closed->id.'<', false);
     }
 
+    public function test_explicitly_closed_roles_are_hidden_and_reject_applications_before_the_deadline()
+    {
+        $company = $this->company('Atlas Cloud');
+        $internship = $this->internship($company, 'Closed early', now()->addWeek());
+        $internship->update(['status' => 'closed']);
+
+        $this->get('/internships')->assertInertia(fn (Assert $page) => $page
+            ->has('internships.data', 0)
+            ->where('fields.0.internships_count', 0));
+        $this->get('/sitemap.xml')->assertDontSee('/internships/'.$internship->id.'<', false);
+
+        $this->actingAs($this->student())
+            ->get(route('applications.create', $internship))->assertForbidden();
+        $this->post(route('applications.store', $internship), [
+            'cover_letter' => str_repeat('I would love to join your team. ', 10),
+        ])->assertForbidden();
+
+        $this->actingAs($company->user)->get('/internships')
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('internships.data', 1)
+                ->where('internships.data.0.is_open', false));
+    }
+
     public function test_home_page_does_not_turn_records_into_social_proof()
     {
         $this->internship($this->company('Atlas Cloud'), 'Software Engineering Intern', now()->addWeek());

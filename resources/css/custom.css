@@ -40,11 +40,3 @@ svg {
 .link-gray {
 	@apply text-gray-500 hover:text-gray-800 cursor-pointer;
 }
-
-table td {
-	@apply px-6! py-4! whitespace-nowrap!;
-}
-
-p {
-	white-space: pre-wrap;
-}

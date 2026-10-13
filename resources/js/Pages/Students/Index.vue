@@ -1,62 +1,60 @@
-<template>
-	<main-layout title="Students" subtitle="Profiles">
-		<template v-slot:header-right>
-				<Link v-if="currentUser.is_admin" :href="route('students.create')" class="btn btn-lg btn-primary">Add Student -></Link>
-		</template>
-		<div v-if="students.data.length > 0">
-			<div class="grid c-grid-col-sm gap-4">
-				<card v-for="student in students.data" :key="student.id">
-					<div class="px-6 py-10 flex-center flex-col">
-						<img
-							class="h-28 w-28 rounded-full object-cover"
-							src="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=4&w=200&h=200&q=60"
-							:alt="student.name"
-						>
-						<div class="mt-6 text-lg font-medium">{{ student.name }}</div>
-						<div class="text-sm text-gray-500">{{ student.field.name }} Student</div>
-					</div>
-					<div class="border-t flex divide-x">
-						<Link class="flex-1 px-2 py-4 text-sm font-medium hover:bg-gray-50 flex-center" :href="route('students.show', student.id)">
-							<icon name="user-circle" solid class="h-5 w-5 text-gray-400 mr-1.5" />
-							Profile
-						</Link>
-						<button @click="selectedUser = student" class="flex-1 px-2 py-4 text-sm font-medium hover:bg-gray-50 flex-center">
-							<icon name="mail" solid class="h-5 w-5 text-gray-400 mr-1.5" />
-							Send Message
-						</button>
-					</div>
-				</card>
-			</div>
-			<pagination :links="students.links" :meta="students" class="mt-4" />
-		</div>
-		<card v-else class="p-6">
-			No students found
-		</card>
-		<contact-modal :user="selectedUser" @close="selectedUser = null" />
-	</main-layout>
-</template>
+<script setup>
+import { computed, h } from 'vue';
+import { Link } from '@inertiajs/vue3';
+import AppShell from '@/Layouts/AppShell.vue';
+import Pagination from '@/Components/Ui/Pagination.vue';
 
-<script>
-import MainLayout from "@/Layouts/Main.vue";
-import Pagination from "@/Components/Pagination.vue";
-import ContactModal from "@/Components/Modal/Contact.vue";
+defineOptions({
+	layout: (_h, page) => h(AppShell, { active: 'students' }, () => page),
+});
 
-export default {
-	components: {
-		MainLayout,
-		Pagination,
-		ContactModal,
-	},
-	props: {
-		students: {
-			type: Object,
-			required: true
-		}
-	},
-	data() {
-		return {
-			selectedUser: null,
-		}
-	}
-};
+const props = defineProps({
+	students: { type: Object, required: true },
+});
+
+const initialsFor = (name) =>
+	(name || '')
+		.split(/\s+/)
+		.map((word) => word[0])
+		.filter(Boolean)
+		.slice(0, 2)
+		.join('')
+		.toUpperCase();
+
+const meta = computed(() => props.students.meta ?? props.students);
 </script>
+
+<template>
+	<div class="px-10 max-[680px]:px-5 pt-[34px] pb-14 w-full max-w-wrap mx-auto">
+		<div class="mb-6 flex items-end justify-between gap-4 flex-wrap">
+			<div>
+			<span class="block font-display text-[12.5px] font-semibold tracking-[.18em] uppercase text-blue-600 mb-2">Directory</span>
+			<h1 class="font-display text-[32px] font-semibold tracking-[-.02em]">Students</h1>
+			<p class="text-muted text-[15px] mt-1.5">Every student profile on Internly.</p>
+			</div>
+			<Link class="cbtn bg-blue-600 text-white hover:bg-blue-700" :href="route('students.create')">Add student</Link>
+		</div>
+
+		<div class="grid grid-cols-3 gap-[18px] max-[1180px]:grid-cols-2 max-[760px]:grid-cols-1">
+			<article
+				v-for="student in students.data"
+				:key="student.id"
+				class="bg-white border border-line rounded-[18px] flex flex-col transition-all hover:border-blue-300 hover:-translate-y-[3px]"
+			>
+				<div class="px-6 py-8 flex flex-col items-center text-center">
+					<div class="w-[72px] h-[72px] rounded-[20px] bg-gradient-to-br from-blue-300 to-blue-700 grid place-items-center text-white font-bold font-display text-[26px]">{{ initialsFor(student.name) }}</div>
+					<h3 class="font-display text-[18px] font-semibold mt-4 leading-[1.2]">{{ student.name }}</h3>
+					<span class="text-[13px] text-muted mt-1">{{ student.field?.name }} student</span>
+				</div>
+				<div class="flex gap-2.5 px-6 pb-6 mt-auto">
+					<Link class="flex-1 justify-center h-[42px] inline-flex items-center font-semibold text-[15px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors" :href="route('students.show', student.id)">Profile</Link>
+					<Link class="flex-1 justify-center h-[42px] inline-flex items-center font-semibold text-[15px] rounded-[12px] bg-paper-2 border border-line text-ink-700 hover:border-blue-300 hover:text-blue-700 transition-colors" :href="route('messages.show', student.user_id)">Message</Link>
+				</div>
+			</article>
+		</div>
+
+		<div v-if="!students.data.length" class="text-center py-[60px] text-muted">No students found.</div>
+
+		<Pagination :meta="meta" />
+	</div>
+</template>

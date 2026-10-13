@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import './custom.css' layer(components);
+@import './workspace.css' layer(components);
 
 @plugin '@tailwindcss/forms';
 
@@ -10,6 +11,7 @@
   --font-sans:
     Inter, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-body: 'Plus Jakarta Sans', Inter, ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Space Grotesk', Inter, ui-sans-serif, system-ui, sans-serif;
 
   /* Internly brand */
@@ -30,6 +32,34 @@
   --color-gray-800: #1e293b;
   --color-gray-900: #0f172a;
   --color-gray-950: #020617;
+
+
+  /* Workspace design tokens shared by the dashboard and management screens. */
+  --color-blue-50: #eef4ff;
+  --color-blue-100: #dbe7ff;
+  --color-blue-200: #b9d0ff;
+  --color-blue-300: #8ab2ff;
+  --color-blue-400: #5a8dff;
+  --color-navy-700: #0f2150;
+  --color-navy-800: #0a1738;
+  --color-navy-900: #070f26;
+  --color-ink: #0c1322;
+  --color-ink-700: #283449;
+  --color-muted: #5b6677;
+  --color-muted-2: #8a93a3;
+  --color-line: #e7ebf1;
+  --color-line-2: #eef1f6;
+  --color-paper: #ffffff;
+  --color-paper-2: #f6f8fc;
+  --color-paper-3: #eef2f9;
+  --radius-sm2: 12px;
+  --radius-xl2: 18px;
+  --radius-2xl2: 26px;
+  --container-wrap: 1200px;
+  --shadow-card: 0 18px 40px -22px rgba(15, 33, 80, .28);
+  --shadow-big: 0 40px 90px -45px rgba(15, 33, 80, .45);
+  --shadow-cta: 0 14px 26px -14px rgba(37, 99, 235, .85);
+  --tracking-eyebrow: .18em;
 
   --width-100: 400px;
 

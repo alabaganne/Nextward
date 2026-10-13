@@ -39,7 +39,7 @@ class CompanyRequest extends FormRequest
             'name' => 'required',
             'email' => 'required|email|unique:users,email,' . $user_id,
             'phone_number' => 'nullable|unique:users,phone_number,' .$user_id,
-            'city_id' => 'required',
+            'city_id' => 'required|exists:cities,id',
             'website' => 'nullable|url',
             'about' => 'nullable'
         ];

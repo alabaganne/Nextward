@@ -3,24 +3,31 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notification;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 
 class NotificationController extends Controller
 {
-    public function store(Notification $notification)
+    /**
+     * Mark a notification as read, then follow its action link.
+     */
+    public function store(Request $request, Notification $notification)
     {
-        if(!$notification->read_at) {
+        abort_unless((int) $notification->notifiable_id === $request->user()->id, 403);
+
+        if (! $notification->read_at) {
             $notification->update([
-                'read_at' => now()
+                'read_at' => now(),
             ]);
         }
 
-        return response()->json($notification, 200);
+        return Redirect::to($notification->data['action'] ?? url()->previous());
     }
 
-	public function clear() {
-		auth()->user()->notifications()->delete();
+    public function clear()
+    {
+        auth()->user()->notifications()->delete();
 
-		return Redirect::back();
-	}
+        return Redirect::back();
+    }
 }

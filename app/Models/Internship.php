@@ -18,7 +18,13 @@ class Internship extends Model
         'field_id',
 		'city_id',
         'attachments',
-        'closing_at'
+        'closing_at',
+        'work_type',
+        'duration_weeks',
+        'term',
+        'pay_amount',
+        'pay_unit',
+        'status',
     ];
 
     protected $casts = [
@@ -42,15 +48,19 @@ class Internship extends Model
         return $this->morphToMany(Skill::class, 'skillable');
     }
 
+    public function likes() { // students who saved this internship
+        return $this->belongsToMany(Student::class, 'likes');
+    }
+
     public function applications() { // students who applied for this internship
         return $this->belongsToMany(Student::class, 'applications')
             ->withPivot(['cover_letter', 'message', 'attachments', 'created_at'])
             ->withTimestamps();
     }
 
-	// Open = the closing date is today or later. This is the public definition used by the board and sitemap.
+	// Public roles must be open and have a closing date of today or later.
 	public function scopeOpen($query) {
-		return $query->whereDate('closing_at', '>=', today());
+		return $query->where('status', 'open')->whereDate('closing_at', '>=', today());
 	}
 
 	// The board shows open internships. Companies also see their own closed ones and admins see all, so they can still manage them.
@@ -69,7 +79,7 @@ class Internship extends Model
 	}
 
 	public function isOpen() {
-		return $this->closing_at && ! $this->closing_at->copy()->startOfDay()->lt(today());
+		return $this->status !== 'closed' && $this->closing_at && ! $this->closing_at->copy()->startOfDay()->lt(today());
 	}
 
 	public function scopeWithFilters($query, $fields, $companies, $cities, $search) {

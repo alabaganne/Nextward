@@ -21,6 +21,8 @@
 		"vue": "^3.5.43"
 	},
 	"dependencies": {
-		"vuex": "^4.1.0"
+		"@heroicons/vue": "^2.2.0",
+		"vuex": "^4.1.0",
+		"@lucide/vue": "^1.56.0"
 	}
 }

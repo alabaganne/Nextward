@@ -23,7 +23,7 @@
 					<p class="mt-4 text-gray-600 leading-7">{{ post.excerpt }}</p>
 					<div class="mt-6 flex items-center justify-between">
 						<span class="text-sm text-gray-500">Published {{ formatDate(post.published_at) }}</span>
-						<Link :href="route('blog.show', post.slug)" class="font-semibold text-blue-700 hover:text-blue-800">Read guide →</Link>
+						<Link :href="route('blog.show', post.slug)" class="inline-flex items-center gap-2 font-semibold text-blue-700 hover:text-blue-800">Read guide <icon name="arrow-right" class="h-4 w-4" /></Link>
 					</div>
 				</article>
 			</div>

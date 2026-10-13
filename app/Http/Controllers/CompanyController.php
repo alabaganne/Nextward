@@ -6,8 +6,10 @@ use App\Http\Requests\CompanyRequest;
 use App\Http\Resources\InternshipResource;
 use App\Models\City;
 use App\Models\Company;
-use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 class CompanyController extends Controller
 {
@@ -62,9 +64,12 @@ class CompanyController extends Controller
      */
     public function store(CompanyRequest $request)
     {
-        Company::create($request->only('about', 'website', 'city_id'))->user()->save(
-			User::create($request->only('name', 'email', 'phone_number'))
-		);
+        DB::transaction(function () use ($request) {
+            Company::create($request->only('about', 'website', 'city_id'))->user()->create([
+                ...$request->only('name', 'email', 'phone_number'),
+                'password' => Hash::make(Str::random(64)),
+            ]);
+        });
 
         return Redirect::route('companies.index')->with('toast', [
             'type' => 'store',
@@ -108,7 +113,7 @@ class CompanyController extends Controller
     {
         return Inertia::render('Companies/Edit', [
             'company' => [
-				'id' => $company->user->id,
+				'id' => $company->id,
 				'name' => $company->user->name,
 				'email' => $company->user->email,
 				'phone_number' => $company->user->phone_number,

@@ -1,78 +1,139 @@
-<template>
-	<main-layout title="Application" subtitle="Submit" maxWidthClass="max-w-4xl">
-		<internship-card :internship="internship" :full="false" />
-		<app-form
-			class="mt-6"
-			title="Introduce yourself"
-			subtitle="What makes you a strong candidate for this internship?"
-			:form="form"
-			:original-data="application"
-			route-name="applications"
-			:route-params="{
-				'internship': internship,
-				'application': application
-			}"
-		>
-			<div class="space-y-6 p-6">
-				<div>
-					<label for="cover_letter">
-						<div class="required">Cover letter</div>
-						<p class="mt-1 text-gray-500 font-light">Tell the company a little bit about yourself and any work you’ve done that’s relevant to this internship.</p>
-					</label>
-					<textarea v-model="form.cover_letter" id="cover_letter" class="mt-1.5 form-control" rows="10"></textarea>
-					<div class="p-1.5 pb-0 flex justify-end text-xs text-gray-500">
-						{{ form.cover_letter.length }} / 200
-					</div>
-				</div>
-				<div>
-					<label for="message">
-						<div>Message</div>
-						<p class="mt-1 text-gray-500 font-light">You can include any questions you may have about this internship or the company, even request a video call.</p>
-					</label>
-					<textarea v-model="form.message" id="message" class="mt-1.5 form-control" rows="6"></textarea>
-					<div class="p-1.5 pb-0 flex justify-end text-xs text-gray-500">
-						{{ form.message.length }} / 100
-					</div>
-				</div>
-				<div>
-					<label class="block text-sm font-medium text-gray-700">
-						Attachments
-					</label>
-					<files-upload class="mt-1" v-model="form.attachment_files" input-id="applications-attachments" />
-					<p class="mt-1 text-gray-500 text-sm font-light">You may attach up to 10 files under the size of <span class="font-semibold">10MB</span> each. Include your résumé, work samples or other documents to support your application.</p>
-				</div>
-			</div>
-		</app-form>
-	</main-layout>
-</template>
+<script setup>
+import { ArrowRight, Check, ChevronRight, Clock3, MapPin } from '@lucide/vue';
+import { computed, h } from 'vue';
+import { Link, useForm } from '@inertiajs/vue3';
+import AppShell from '@/Layouts/AppShell.vue';
+import CompanyLogo from '@/Components/Ui/CompanyLogo.vue';
 
-<script>
-import { useForm } from '@inertiajs/vue3';
-import MainLayout from "@/Layouts/Main.vue";
-import InternshipCard from "@/Components/Internship/Card.vue";
-import FilesUpload from "@/Components/FilesUpload.vue";
-import AppForm from "@/Components/Form.vue";
+defineOptions({
+	layout: (_h, page) => h(AppShell, { active: 'applications' }, () => page),
+});
 
-export default {
-	components: {
-		MainLayout,
-		InternshipCard,
-		FilesUpload,
-		AppForm,
-	},
-	props: {
-		internship: Object,
-		application: Object,
-	},
-	data() {
-		return {
-			form: useForm({
-				cover_letter: "",
-				message: "",
-				attachments: [],
-				attachment_files: [],
-			})
-		}
+const props = defineProps({
+	internship: { type: Object, required: true },
+	application: { type: Object, default: null },
+});
+
+const icons = {
+	chevron: ChevronRight,
+	pin: MapPin,
+	clock: Clock3,
+	arrow: ArrowRight,
+	check: Check,
+};
+
+const editing = computed(() => !!props.application);
+
+const form = useForm({
+	cover_letter: props.application?.cover_letter || '',
+	message: props.application?.message || '',
+	attachment_files: [],
+});
+
+const submit = () => {
+	if (editing.value) {
+		form.transform((data) => ({ ...data, _method: 'put' })).post(route('applications.update', props.application.id));
+	} else {
+		form.post(route('applications.store', props.internship.id));
 	}
-}
+};
+
+const pickFiles = (event) => {
+	form.attachment_files = Array.from(event.target.files || []);
+};
+
+const tips = [
+	'Lead with your strongest, most relevant qualification.',
+	'Show evidence — projects, links, numbers — not adjectives.',
+	'Keep it short: cut anything that isn’t earning its place.',
+];
 </script>
+
+<template>
+	<div class="px-10 max-[680px]:px-5 pt-7 pb-14 w-full max-w-wrap mx-auto">
+		<div class="flex items-center gap-2 text-[13.5px] text-muted font-medium mb-[22px] [&_svg]:w-3.5 [&_svg]:h-3.5 [&_svg]:text-muted-2">
+			<Link class="hover:text-blue-700" :href="route('internships.index')">Internships</Link>
+			<component :is="icons.chevron" aria-hidden="true" />
+			<Link class="hover:text-blue-700" :href="route('internships.show', internship.id)">{{ internship.title }}</Link>
+			<component :is="icons.chevron" aria-hidden="true" />
+			<span class="text-ink-700 font-semibold">{{ editing ? 'Edit application' : 'Apply' }}</span>
+		</div>
+
+		<div class="mb-6">
+			<span class="block font-display text-[12.5px] font-semibold tracking-[.18em] uppercase text-blue-600 mb-2">{{ editing ? 'Your application' : 'One step left' }}</span>
+			<h1 class="font-display text-[32px] font-semibold tracking-[-.02em]">{{ editing ? 'Edit your application' : 'Introduce yourself' }}</h1>
+			<p class="text-muted text-[15px] mt-1.5">What makes you a strong candidate for this internship?</p>
+		</div>
+
+		<div class="grid grid-cols-[1fr_350px] gap-6 items-start max-[1080px]:grid-cols-1">
+			<!-- FORM -->
+			<form class="bg-white border border-line rounded-[18px]" @submit.prevent="submit">
+				<div class="px-8 max-[560px]:px-5 py-[26px]">
+					<div class="mb-6">
+						<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="cover_letter">Cover letter</label>
+						<p class="text-[13px] text-muted mb-2.5">Tell the company a little bit about yourself and any work you’ve done that’s relevant to this internship.</p>
+						<textarea id="cover_letter" v-model="form.cover_letter" class="fld !min-h-[220px]" rows="10"></textarea>
+						<div class="flex justify-between mt-[7px] text-xs">
+							<span class="text-[#dc2626]">{{ form.errors.cover_letter }}</span>
+							<span class="text-muted-2">{{ form.cover_letter.length }} / 200 min</span>
+						</div>
+					</div>
+
+					<div class="mb-6">
+						<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="message">Message <span class="text-muted-2 font-medium">(optional)</span></label>
+						<p class="text-[13px] text-muted mb-2.5">Any questions about this internship or the company — you can even request a video call.</p>
+						<textarea id="message" v-model="form.message" class="fld !min-h-[130px]" rows="6"></textarea>
+						<div class="flex justify-between mt-[7px] text-xs">
+							<span class="text-[#dc2626]">{{ form.errors.message }}</span>
+							<span class="text-muted-2">{{ form.message?.length || 0 }} / 100 min if provided</span>
+						</div>
+					</div>
+
+					<div>
+						<label class="block text-[13px] font-semibold mb-[7px] text-ink-700">Attachments</label>
+						<p class="text-[13px] text-muted mb-2.5">Up to 10 files, 10&nbsp;MB each — résumé, work samples, or anything that supports your application.</p>
+						<input class="fld !py-[9px]" type="file" multiple @input="pickFiles">
+						<div v-if="form.errors.attachment_files" class="text-xs text-[#dc2626] mt-[7px]">{{ form.errors.attachment_files }}</div>
+						<div v-if="application?.attachments?.length" class="flex flex-wrap gap-2 mt-3">
+							<span v-for="attachment in application.attachments" :key="attachment.url || attachment.name" class="inline-flex items-center px-[11px] py-[5px] rounded-lg text-xs font-semibold bg-paper-3 text-ink-700">{{ attachment.name }}</span>
+						</div>
+					</div>
+				</div>
+				<div class="px-8 max-[560px]:px-5 py-4 border-t border-line-2 flex justify-end gap-2.5 bg-white rounded-b-[18px]">
+					<Link class="cbtn bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700" :href="editing ? route('applications.show', application.id) : route('internships.show', internship.id)">Cancel</Link>
+					<button class="cbtn bg-blue-600 text-white hover:bg-blue-700 [&_svg]:w-[17px] [&_svg]:h-[17px]" type="submit" :disabled="form.processing">
+						{{ editing ? 'Save changes' : 'Submit application' }} <component :is="icons.arrow" aria-hidden="true" />
+					</button>
+				</div>
+			</form>
+
+			<!-- RIGHT -->
+			<div class="flex flex-col gap-4 sticky top-[94px]">
+				<section class="bg-white border border-line rounded-[18px] p-6">
+					<h3 class="text-sm tracking-[.04em] text-muted font-bold font-display mb-4">YOU'RE APPLYING TO</h3>
+					<div class="flex items-center gap-[13px] mb-4">
+						<CompanyLogo class="w-[46px] h-[46px] rounded-[12px] text-base" :name="internship.company.name" />
+						<div>
+							<b class="font-display text-base block">{{ internship.title }}</b>
+							<span class="text-[13px] text-muted">{{ internship.company.name }} · {{ internship.city.name }}</span>
+						</div>
+					</div>
+					<div class="flex flex-col gap-0.5 [&_.ci]:flex [&_.ci]:items-center [&_.ci]:gap-3 [&_.ci]:py-2.5 [&_.ci]:text-sm [&_.ci]:text-ink-700 [&_svg]:w-[17px] [&_svg]:h-[17px] [&_svg]:text-muted-2 [&_svg]:shrink-0">
+						<div class="ci"><component :is="icons.clock" aria-hidden="true" />Closes {{ internship.closing_at }}</div>
+						<div v-if="internship.duration_weeks" class="ci"><component :is="icons.pin" aria-hidden="true" />{{ internship.duration_weeks }} weeks<template v-if="internship.term"> · {{ internship.term }}</template></div>
+					</div>
+				</section>
+
+				<section class="bg-white border border-line rounded-[18px] p-6">
+					<h3 class="text-sm tracking-[.04em] text-muted font-bold font-display mb-4">TIPS</h3>
+					<ul class="list-none flex flex-col gap-[11px] [&_li]:flex [&_li]:items-start [&_li]:gap-2.5 [&_li]:text-[13.5px] [&_li]:text-ink-700 [&_li]:leading-[1.5]">
+						<li v-for="tip in tips" :key="tip">
+							<span class="w-[18px] h-[18px] rounded-md grid place-items-center shrink-0 bg-blue-50 text-blue-600 mt-px [&_svg]:w-[11px] [&_svg]:h-[11px]"><component :is="icons.check" aria-hidden="true" /></span>
+							{{ tip }}
+						</li>
+					</ul>
+				</section>
+			</div>
+		</div>
+	</div>
+</template>

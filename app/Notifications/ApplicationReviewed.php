@@ -60,9 +60,12 @@ class ApplicationReviewed extends Notification
      */
     public function toArray($notifiable)
     {
+        $companyName = e($this->application->company->user->name);
+        $internshipTitle = e($this->application->internship->title);
+
         return [
             'title' => "{$this->application->company->user->name}'s Reply",
-            'body' => "<span class='text-gray-900 font-medium'>{$this->application->company->user->name}</span> has reviewed your application for <span class='text-gray-900 font-medium'>{$this->application->internship->title}",
+            'body' => "<span>{$companyName}</span> has reviewed your application for <span>{$internshipTitle}</span>.",
             'action' => "/applications/{$this->application->id}",
         ];
     }

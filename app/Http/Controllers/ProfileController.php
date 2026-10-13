@@ -39,6 +39,9 @@ class ProfileController extends Controller
                 'about' => $student->about,
                 'field' => $student->field ? ['name' => $student->field->name] : null,
                 'city' => $student->city ? ['name' => $student->city->name] : null,
+                'skills' => $student->skills->pluck('name'),
+                'applications_count' => $student->applications()->count(),
+                'likes_count' => $student->likes()->count(),
             ];
         }
 
@@ -47,11 +50,8 @@ class ProfileController extends Controller
 
     public function edit()
     {
-        return Inertia::render('Profile/Edit', [
-            'fields' => Field::all(),
-            'cities' => City::all(),
-            'profile_info' => auth()->user(),
-        ]);
+        // The settings screen supersedes the old profile edit form.
+        return redirect()->route('settings');
     }
 
     public function update(Request $request)
@@ -85,6 +85,41 @@ class ProfileController extends Controller
 
     public function destroy(Request $request)
     {
-        // delete account
+        $request->validate([
+            'password' => ['required', 'current_password'],
+        ]);
+
+        $user = $request->user();
+
+        \Illuminate\Support\Facades\Auth::logout();
+
+        $user->delete();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/');
+    }
+
+    public function settings()
+    {
+        $user = auth()->user();
+        $userable = $user->userable;
+
+        return Inertia::render('Settings', [
+            'fields' => Field::all(),
+            'cities' => City::all(),
+            'settings' => [
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone_number' => $user->phone_number,
+                'linkedin_profile_url' => $user->linkedin_profile_url,
+                'userable_type' => $user->userable_type,
+                'about' => $userable->about ?? null,
+                'website' => $userable->website ?? null,
+                'city_id' => $userable->city_id ?? null,
+                'field_id' => $userable->field_id ?? null,
+            ],
+        ]);
     }
 }

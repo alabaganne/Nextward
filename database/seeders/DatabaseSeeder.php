@@ -15,12 +15,17 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Faker\Factory as FakerFactory;
 
 class DatabaseSeeder extends Seeder
 {
     public function run()
     {
+        if (! app()->environment(['local', 'testing'])) {
+            throw new \RuntimeException('Demo data can only be seeded in local or testing environments.');
+        }
+
         Schema::disableForeignKeyConstraints();
         foreach (['messages','notifications','likes','applications','skillables','internships','users','students','companies','skills','fields','cities'] as $table) {
             DB::table($table)->truncate();
@@ -66,21 +71,72 @@ class DatabaseSeeder extends Seeder
             ['Frontend Developer Intern','Novabyte','Web Development','Tunis','Build polished Vue interfaces from design specs and connect them to Laravel APIs.',['Vue','Laravel','Figma']],
         ];
 
+        $details = [
+            ['remote', 16, 'Summer 2026', 28, 'hour'],
+            ['remote', 12, 'Summer 2026', 24, 'hour'],
+            ['onsite', 16, 'Fall 2026', 25, 'hour'],
+            ['hybrid', 16, 'Fall 2026', 22, 'hour'],
+            ['remote', 12, 'Summer 2026', 3200, 'month'],
+            ['onsite', 12, 'Summer 2026', null, null],
+            ['remote', 24, 'Fall 2026', 23, 'hour'],
+            ['hybrid', 12, 'Summer 2026', 2000, 'month'],
+        ];
+
         $internships = collect();
-        foreach ($roles as [$title,$company,$field,$city,$description,$skillNames]) {
-            $internship = Internship::create(['title' => $title, 'description' => $description, 'company_id' => $companies[$company]->id, 'field_id' => $fields[$field]->id, 'city_id' => $cities[$city]->id, 'closing_at' => now()->addDays(rand(24, 90))]);
+        foreach ($roles as $index => [$title,$company,$field,$city,$description,$skillNames]) {
+            [$workType, $durationWeeks, $term, $payAmount, $payUnit] = $details[$index % count($details)];
+            $internship = Internship::create([
+                'title' => $title,
+                'description' => $description,
+                'company_id' => $companies[$company]->id,
+                'field_id' => $fields[$field]->id,
+                'city_id' => $cities[$city]->id,
+                'closing_at' => now()->addDays(rand(24, 90)),
+                'work_type' => $workType,
+                'duration_weeks' => $durationWeeks,
+                'term' => $term,
+                'pay_amount' => $payAmount,
+                'pay_unit' => $payUnit,
+            ]);
             $internship->skills()->sync(collect($skillNames)->map(fn ($name) => $skills[$name]->id));
             $internships->push($internship);
         }
 
+        $applications = collect();
         foreach ($internships->take(4) as $i => $internship) {
-            Application::create(['student_id' => $student->id, 'internship_id' => $internship->id, 'company_id' => $internship->company_id, 'cover_letter' => 'I am excited about this role and believe my Laravel/Vue background makes me a strong fit.', 'message' => 'Available to start immediately and happy to interview this week.', 'status' => [true, null, null, false][$i]]);
+            $applications->push(Application::create(['student_id' => $student->id, 'internship_id' => $internship->id, 'company_id' => $internship->company_id, 'cover_letter' => 'I am excited about this role and believe my Laravel/Vue background makes me a strong fit.', 'message' => 'Available to start immediately and happy to interview this week.', 'status' => ['interview', 'review', 'submitted', 'offer'][$i]]));
         }
         $student->likes()->sync($internships->slice(1, 5)->pluck('id'));
 
         foreach ($companies->take(4) as $company) {
             Message::create(['from_id' => $company->user->id, 'to_id' => $studentUser->id, 'text' => 'Hi Ala, thanks for applying. Your profile looks strong — are you available for a short call this week?']);
             Message::create(['from_id' => $studentUser->id, 'to_id' => $company->user->id, 'text' => 'Hi, yes absolutely. I am available tomorrow afternoon or Thursday morning.']);
+        }
+
+        // Same payload shape as App\Notifications\{ApplicationSubmitted,ApplicationReviewed}.
+        foreach ($applications as $i => $application) {
+            DB::table('notifications')->insert([
+                'id' => (string) Str::uuid(),
+                'type' => \App\Notifications\ApplicationSubmitted::class,
+                'notifiable_type' => User::class,
+                'notifiable_id' => $application->company->user->id,
+                'data' => json_encode(['title' => "{$studentUser->name}'s Application", 'body' => "<span>{$studentUser->name}</span> has applied to <span>{$application->internship->title}</span>.", 'action' => "/applications/{$application->id}"]),
+                'read_at' => $i > 1 ? now()->subDays($i) : null,
+                'created_at' => now()->subDays($i)->subHours(2),
+                'updated_at' => now()->subDays($i)->subHours(2),
+            ]);
+        }
+        foreach ($applications->filter(fn ($application) => $application->status !== 'submitted')->values() as $i => $application) {
+            DB::table('notifications')->insert([
+                'id' => (string) Str::uuid(),
+                'type' => \App\Notifications\ApplicationReviewed::class,
+                'notifiable_type' => User::class,
+                'notifiable_id' => $studentUser->id,
+                'data' => json_encode(['title' => "{$application->company->user->name}'s Reply", 'body' => "<span>{$application->company->user->name}</span> has reviewed your application for <span>{$application->internship->title}</span>.", 'action' => "/applications/{$application->id}"]),
+                'read_at' => $i > 0 ? now()->subDays($i) : null,
+                'created_at' => now()->subDays($i)->subMinutes(40),
+                'updated_at' => now()->subDays($i)->subMinutes(40),
+            ]);
         }
 
         Student::factory(18)->create()->each(function ($profile) use ($password, $faker) {

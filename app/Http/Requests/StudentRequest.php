@@ -32,8 +32,8 @@ class StudentRequest extends FormRequest
             'name' => 'required',
             'email' => 'required|email|unique:users,email,' . $user_id,
             'phone_number' => 'nullable|unique:users,phone_number,' . $user_id,
-            'field_id' => 'required',
-            'city_id' => 'nullable',
+            'field_id' => 'required|exists:fields,id',
+            'city_id' => 'required|exists:cities,id',
             'about' => 'nullable'
         ];
     }

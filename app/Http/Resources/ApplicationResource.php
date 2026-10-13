@@ -14,10 +14,6 @@ class ApplicationResource extends JsonResource
      */
     public function toArray($request)
     {
-		$user = auth()->user();
-		$isCompany = $user->isCompany();
-		$isStudent = $user->isStudent();
-
         $data = [
             'id' => $this->id,
             'status' => $this->status,
@@ -35,14 +31,19 @@ class ApplicationResource extends JsonResource
 				],
                 'closing_at' => $this->internship->closing_at->format('F d, Y'),
             ],
-            'student' => $isCompany ? [
+            'student' => [
+                'id' => $this->student->id,
+                'user_id' => $this->student->user->id,
                 'name' => $this->student->user->name,
                 'email' => $this->student->user->email,
                 'image' => $this->student->user->image,
-            ] : null,
-            'company' => $isStudent ? [
+            ],
+            'company' => [
+                'id' => $this->company->id,
+                'user_id' => $this->company->user->id,
                 'name' => $this->company->user->name,
-            ] : null,
+                'image' => $this->company->user->image,
+            ],
             'created_at' => $this->created_at->format('F d, Y'),
         ];
 

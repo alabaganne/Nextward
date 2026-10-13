@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StudentRequest;
-use App\Models\User;
 use App\Models\Student;
 use App\Models\Field;
 use App\Models\City;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class StudentController extends Controller
@@ -69,9 +71,12 @@ class StudentController extends Controller
      */
     public function store(StudentRequest $request)
     {
-        Student::create($request->only('about', 'field_id', 'city_id'))->user()->save(
-            User::create($request->only('name', 'email', 'phone_number'))
-        );
+        DB::transaction(function () use ($request) {
+            Student::create($request->only('about', 'field_id', 'city_id'))->user()->create([
+                ...$request->only('name', 'email', 'phone_number'),
+                'password' => Hash::make(Str::random(64)),
+            ]);
+        });
 
         return Redirect::route('students.index')->with('toast', [
             'type' => 'store',

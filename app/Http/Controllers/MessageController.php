@@ -118,6 +118,6 @@ class MessageController extends Controller
      */
     public function show(User $user)
     {
-        //
+        return Redirect::route('messages.index', ['user_id' => $user->id]);
     }
 }

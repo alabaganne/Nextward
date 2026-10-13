@@ -80,6 +80,7 @@ class ApplicationController extends Controller
 				'created_at' => $application->created_at->format('F d, Y'),
 				'student' => [
 					'id' => $application->student->id,
+					'user_id' => $application->student->user->id,
 					'name' => $application->student->user->name,
 					'email' => $application->student->user->email,
 					'phone_number' => $application->student->user->phone_number,
@@ -88,7 +89,19 @@ class ApplicationController extends Controller
 				'internship' => [
 					'id' => $application->internship->id,
 					'title' => $application->internship->title,
-				]
+					'field' => ['name' => $application->internship->field->name],
+					'city' => ['name' => $application->internship->city->name],
+					'closing_at' => $application->internship->closing_at->format('F d, Y'),
+				],
+				'company' => [
+					'id' => $application->company->id,
+					'user_id' => $application->company->user->id,
+					'name' => $application->company->user->name,
+					'email' => $application->company->user->email,
+					'phone_number' => $application->company->user->phone_number,
+					'city' => ['name' => optional($application->company->city)->name],
+				],
+				'updated_at' => $application->updated_at->diffForHumans(),
 			]
         ]);
     }
@@ -139,7 +152,7 @@ class ApplicationController extends Controller
 
         $application->update(
             $request->validate([
-                'status' => 'required|boolean'
+                'status' => 'required|in:viewed,review,interview,offer,closed'
             ])
         );
 

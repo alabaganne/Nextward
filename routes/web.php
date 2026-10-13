@@ -85,6 +85,7 @@ Route::get('/blog/{slug}', function (string $slug) {
 
     return Inertia::render('Blog/Show', [
         'post' => $post,
+        'related' => collect(config('internly_blog'))->where('slug', '!=', $slug)->take(3)->values(),
     ]);
 })->name('blog.show');
 
@@ -101,6 +102,9 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/settings', [ProfileController::class, 'settings'])->name('settings');
+    Route::put('/password', [\App\Http\Controllers\Auth\PasswordController::class, 'update'])->name('password.change');
     // Resources
     Route::resource('internships', InternshipController::class)->except(['index', 'show']);
     Route::resource('companies', CompanyController::class);
@@ -119,6 +123,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('/internships/{internship}/applications', InternshipApplicationController::class)->name('internships.applications.index');
 	// Likes
     Route::get('/likes', [LikeController::class, 'index'])->name('likes.index');
+    Route::redirect('/saved', '/likes');
     Route::post('/like/{internship}', [LikeController::class, 'store'])->name('likes.store');
 	// Messages
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
@@ -126,7 +131,6 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('/messages', [MessageController::class, 'store'])->name('messages.store');
     Route::delete('/messages/{message}', [MessageController::class, 'destroy'])->name('messages.destroy');
 	// Notifications
-	Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
 	Route::get('/notifications/clear', [NotificationController::class, 'clear'])->name('notifications.clear');
     Route::post('/notifications/{notification}', [NotificationController::class, 'store'])->name('notifications.store');
 });

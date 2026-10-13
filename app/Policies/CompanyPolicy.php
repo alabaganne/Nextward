@@ -18,7 +18,8 @@ class CompanyPolicy
      */
     public function viewAny(User $user)
     {
-        return $user->isAdmin() || $user->isStudent();
+        // The companies directory is visible to every signed-in account.
+        return true;
     }
 
     /**
@@ -30,7 +31,8 @@ class CompanyPolicy
      */
     public function view(User $user, Company $company)
     {
-        return $user->isAdmin() || $user->isStudent() || ($user->isCompany() && $user->userable_id === $company->id);
+        // Company profiles are visible to every signed-in account.
+        return true;
     }
 
     /**

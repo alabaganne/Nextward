@@ -14,9 +14,16 @@ class NotificationResource extends JsonResource
      */
     public function toArray($request)
     {
+        $data = $this->data ?? [];
+        $data['body_text'] = html_entity_decode(
+            strip_tags((string) ($data['body'] ?? '')),
+            ENT_QUOTES | ENT_HTML5,
+            'UTF-8'
+        );
+
         return [
             'id' => $this->id,
-            'data' => $this->data,
+            'data' => $data,
             'read_at' => $this->read_at,
             'created_at' => $this->created_at->diffForHumans()
         ];

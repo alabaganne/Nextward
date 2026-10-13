@@ -18,9 +18,9 @@ class DashboardController extends Controller
         $user = auth()->user();
 
         $props = [
-            'internships_count' => \App\Models\Internship::all()->count(),
-            'students_count' => \App\Models\Student::all()->count(),
-            'companies_count' => \App\Models\Company::all()->count(),
+            'internships_count' => \App\Models\Internship::open()->count(),
+            'students_count' => \App\Models\Student::count(),
+            'companies_count' => \App\Models\Company::count(),
         ]; 
 
         if($user->isStudent() || $user->isCompany()) {
@@ -34,8 +34,10 @@ class DashboardController extends Controller
             );
             
             $props['applications_count'] = Application::where($query_field, $user->userable->id)
-                ->where('status', null)
-                ->get()
+                ->whereNotIn('status', ['offer', 'closed'])
+                ->count();
+            $props['interviews_count'] = Application::where($query_field, $user->userable->id)
+                ->where('status', 'interview')
                 ->count();
         }
 
