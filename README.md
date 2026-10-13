@@ -63,7 +63,7 @@ Verify the production domain in Search Console, submit `/sitemap.xml`, inspect r
 
 ## Production deployment and SSR
 
-See [VPS_DEPLOYMENT.md](VPS_DEPLOYMENT.md) for the Nginx, PHP-FPM, Supervisor and cron configuration, release steps, monitoring and rollback procedure. The guide describes a future deployment; it does not confirm an existing VPS configuration.
+Start with [DEPLOY.md](DEPLOY.md) for installation, updates, launch checks and rollback. See [VPS_DEPLOYMENT.md](VPS_DEPLOYMENT.md) for the complete Nginx, PHP-FPM, Supervisor and cron configuration. These guides describe a future deployment; they do not confirm an existing VPS configuration.
 
 1. Back up the database and both public and private storage. Rehearse the upgrade on a restored copy, including nullable profile fields and existing application attachments.
 2. Configure the real HTTPS `APP_URL`, production database, `APP_ENV=production`, `APP_DEBUG=false`, mail settings and writable storage. Keep the existing `APP_KEY` when upgrading. Do not run demo seeders or `migrate:fresh`.
