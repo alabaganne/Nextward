@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=1200,height=800"><title>Internly conversation loop</title>
+<script src="assets/gsap.min.js"></script>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:1200px;height:800px;overflow:hidden;background:transparent}#root{position:relative;width:100%;height:100%;overflow:hidden}.clip{position:absolute;inset:0}.scene{position:absolute;width:1020px;height:680px;left:90px;bottom:12px;object-fit:contain}.bubble{position:absolute;width:174px;height:82px;border-radius:30px;background:#f6f8fc;border:2px solid #dce6fb;box-shadow:0 8px 20px #0a173812;display:flex;align-items:center;justify-content:center;gap:13px;transform-origin:50% 100%}.bubble:after{content:"";position:absolute;width:22px;height:22px;bottom:-11px;left:38px;background:inherit;clip-path:polygon(0 0,100% 0,0 100%)}#student-bubble{left:244px;top:30px}#recruiter-bubble{left:783px;top:46px;background:#2563eb;border-color:#2563eb}#recruiter-bubble:after{left:auto;right:38px;clip-path:polygon(0 0,100% 0,100% 100%)}.dot{width:15px;height:15px;background:#2563eb;border-radius:50%}#recruiter-bubble .dot{background:#fff}
+</style></head><body>
+<div data-hf-id="hf-4ox4" id="root" data-composition-id="conversation" data-start="0" data-duration="6" data-fps="30" data-width="1200" data-height="800">
+<div data-hf-id="hf-j2yd" id="art" class="clip" data-start="0" data-duration="6" data-track-index="0"><img data-hf-id="hf-se5n" class="scene" src="assets/scene.png" alt="Student and recruiter discussing an opportunity"></div>
+<div data-hf-id="hf-pow5" id="chat" class="clip" data-start="0" data-duration="6" data-track-index="1"><div data-hf-id="hf-6n7o" id="student-bubble" class="bubble"><i data-hf-id="hf-6bgx" class="dot"></i><i data-hf-id="hf-0j5x" class="dot"></i><i data-hf-id="hf-1q30" class="dot"></i></div><div data-hf-id="hf-zeum" id="recruiter-bubble" class="bubble"><i data-hf-id="hf-1brz" class="dot"></i><i data-hf-id="hf-2ip2" class="dot"></i><i data-hf-id="hf-24e1" class="dot"></i></div></div>
+</div>
+<script>
+window.__timelines=window.__timelines||{};
+const tl=gsap.timeline({paused:true});
+tl.fromTo('#student-bubble',{opacity:0,scale:.9,y:10},{opacity:1,scale:1,y:0,duration:.55,ease:'back.out(1.2)'},.25);
+tl.fromTo('#recruiter-bubble',{opacity:0,scale:.9,y:10},{opacity:1,scale:1,y:0,duration:.6,ease:'power3.out'},1.65);
+document.querySelectorAll('#student-bubble .dot').forEach((dot,i)=>tl.fromTo(dot,{y:0,opacity:.55},{y:-5,opacity:1,duration:.28,repeat:5,yoyo:true,ease:'sine.inOut'},.85+i*.12));
+document.querySelectorAll('#recruiter-bubble .dot').forEach((dot,i)=>tl.fromTo(dot,{y:0,opacity:.55},{y:-5,opacity:1,duration:.32,repeat:5,yoyo:true,ease:'sine.inOut'},2.35+i*.12));
+tl.to('#student-bubble',{opacity:0,scale:.9,y:10,duration:.45,ease:'power2.in'},4.85);
+tl.to('#recruiter-bubble',{opacity:0,scale:.9,y:10,duration:.5,ease:'power3.in'},5.05);
+window.__timelines.conversation=tl;
+</script></body></html>

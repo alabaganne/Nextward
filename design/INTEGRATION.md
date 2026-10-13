@@ -1,80 +1,66 @@
 # Integrating the Internly UI into the Laravel + Inertia + Vue app
 
-This guide explains how to port the static `tailwind/*.html` prototype in this repo
-into the existing **Laravel + Inertia.js + Vue 2 + Tailwind CSS** application.
+This is a workspace integration reference for the current **Laravel 13 +
+Inertia.js 3 + Vue 3 + Tailwind CSS 4 + Vite 8** application. Historical prototype
+helpers under `design/tailwind/` provide layout ideas; they are not the runtime
+configuration or a requirement to reproduce every effect.
 
-Read `DESIGN.md` first — it's the visual source of truth. This file is about the
-*mechanics* of moving the markup into Vue/Inertia without losing the design.
-
-> The prototype is plain HTML with three custom-element helpers
-> (`<app-shell>`, `<site-header>`, `<site-footer>`) and a shared Tailwind token
-> config. Every one of those maps cleanly onto an Inertia concept: **layouts with
-> `<slot>`, page components, and `tailwind.config.js`.**
-
+Read [DESIGN.md](DESIGN.md) for workspace guidance. The approved public/auth
+appearance is documented in [LANDING_PAGE_DESIGN.md](../LANDING_PAGE_DESIGN.md)
+and implemented in `Public.vue`, `Guest.vue`, and their page styles. Preserve that
+flat direction: do not reintroduce card/button shadows, glows, or hover lifts.
+User-approved designs and implemented components take precedence over prototypes.
 ---
 
 ## 1. One-time setup
 
-### 1a. Port the design tokens into `tailwind.config.js`
-The prototype loads tokens at runtime via `tailwind/setup.js`. In the real app they
-belong in `theme.extend` so they're available everywhere and tree-shaken in prod.
-Copy the object from `tailwind/setup.js` verbatim:
+### 1a. Current build and token entrypoints
 
-```js
-// tailwind.config.js
-export default {
-  content: ['./resources/views/**/*.blade.php', './resources/js/**/*.{vue,js}'],
-  theme: {
-    extend: {
-      colors: {
-        blue: { 50:'#eef4ff',100:'#dbe7ff',200:'#b9d0ff',300:'#8ab2ff',400:'#5a8dff',500:'#3b82f6',600:'#2563eb',700:'#1d4ed8' },
-        navy: { 700:'#0f2150',800:'#0a1738',900:'#070f26' },
-        ink:  { DEFAULT:'#0c1322', 700:'#283449' },
-        muted:{ DEFAULT:'#5b6677', 2:'#8a93a3' },
-        line: { DEFAULT:'#e7ebf1', 2:'#eef1f6' },
-        paper:{ DEFAULT:'#ffffff', 2:'#f6f8fc', 3:'#eef2f9' },
-      },
-      fontFamily: {
-        display: ['"Space Grotesk"','system-ui','sans-serif'],
-        body:    ['"Plus Jakarta Sans"','system-ui','sans-serif'],
-      },
-      borderRadius: { sm2:'12px', DEFAULT:'18px', xl2:'18px', '2xl2':'26px' },
-      maxWidth: { wrap:'1200px' },
-      boxShadow: {
-        xs:'0 1px 2px rgba(12,19,34,.05)',
-        card:'0 18px 40px -22px rgba(15,33,80,.28)',
-        big:'0 40px 90px -45px rgba(15,33,80,.45)',
-        cta:'0 14px 26px -14px rgba(37,99,235,.85)',
-      },
-      letterSpacing: { eyebrow:'.18em' },
-    },
-  },
-};
-```
+`vite.config.js` is the sole Vite configuration. It uses `laravel-vite-plugin`,
+`@vitejs/plugin-vue`, and `@tailwindcss/vite`, with entrypoints
+`resources/css/app.css` and `resources/js/app.js`. Use `npm run dev` for HMR and
+`npm run build` for production assets.
 
-After this, **delete the `tailwind/setup.js` reference** — utilities like
-`bg-blue-600`, `font-display`, `rounded-[18px]`, `shadow-cta` now compile at build time.
-
-> The prototype uses arbitrary values heavily (`text-[15.5px]`, `gap-[18px]`,
-> `px-[22px]`). Those work as-is with the Tailwind compiler — no config needed.
-> Over time you may promote the most common ones to named tokens, but it's not required.
-
-### 1b. Fonts
-Either keep the Google Fonts `<link>` in `app.blade.php`, or install
-`@fontsource/space-grotesk` and `@fontsource/plus-jakarta-sans` and import them in
-your app entry. Set the body default once:
+Tailwind 4 tokens live in the `@theme` block of `resources/css/app.css`. Add shared
+workspace tokens there rather than introducing `tailwind.config.js`, a Tailwind 3
+PostCSS pipeline, runtime Play CDN scripts, or a second Vite config.
 
 ```css
 /* resources/css/app.css */
-@tailwind base; @tailwind components; @tailwind utilities;
-body { @apply font-body text-ink bg-paper antialiased; }
+@import 'tailwindcss';
+@import './custom.css' layer(components);
+@import './workspace.css' layer(components);
+@plugin '@tailwindcss/forms';
+
+@theme {
+  --color-ink: #0c1322;
+  --color-paper-2: #f6f8fc;
+  --font-body: 'Plus Jakarta Sans', Inter, ui-sans-serif, system-ui, sans-serif;
+  --container-wrap: 1200px;
+}
 ```
 
-### 1c. Shared component CSS
-A few prototype files use `<style type="text/tailwindcss">@layer …</style>` blocks
-for repeated patterns (`.reveal`, `.fld`, form checkboxes, the messages bubbles).
-Move those into `resources/css/app.css` under `@layer components` so every page
-shares them. Keep the names.
+This excerpt illustrates the existing entrypoint; retain the full implemented
+brand/token definitions. Arbitrary-value utilities such as `text-[15.5px]` and
+`gap-[18px]` work with the existing compiler.
+
+### 1b. Fonts
+
+`resources/views/app.blade.php` loads Inter, Space Grotesk, and Plus Jakarta Sans.
+`AppShell` uses `font-body` for workspace text. Public/auth pages use Inter through
+`font-sans`; all share `font-display` for headings.
+
+### 1c. Shared component CSS and icons
+
+Workspace patterns (`.fld`, messages bubbles, chips) live in
+`resources/css/workspace.css`. `custom.css` retains compatibility helpers and
+imports `public.css`; `Guest.vue` loads `auth.css`. Keep workspace additions from
+changing the approved public/auth forms and spacing.
+
+Use `Shared/Icon.vue` / `@heroicons/vue` for public/auth icons and named
+`@lucide/vue` components for workspace icons. Do not handwrite SVG paths or embed
+SVG strings. Keep decoration hidden from assistive technology and label icon-only
+controls. Link underlines apply to the text, never the icon.
 
 ---
 
@@ -83,12 +69,13 @@ shares them. Keep the names.
 | Prototype (HTML) | App (Inertia/Vue) |
 |---|---|
 | `<app-shell active="dashboard">…</app-shell>` | `AppShell.vue` persistent layout, `active` prop, `<slot/>` for `…` |
-| `<site-header>` / `<site-footer>` | `MarketingLayout.vue` |
+| `<site-header>` / `<site-footer>` | `Public.vue` for public pages |
+| Authentication prototype | `Guest.vue` and the existing auth form components |
 | `<app-sidebar>` / `<app-topbar>` | `AppSidebar.vue` / `AppTopbar.vue` (children of `AppShell`) |
 | A `tailwind/*.html` body | An Inertia **page** in `resources/js/Pages/` |
 | `href="tailwind/x.html"` | `<Link :href="route('x')">` |
 | Hardcoded lists/cards | `v-for` over props passed from the Laravel controller |
-| Reveal-on-scroll script | a `v-reveal` directive (below) |
+| Reveal-on-scroll script | optional existing `v-reveal`; public/auth content stays visible |
 
 **The `{children}` pattern you asked about is just Vue `<slot/>`** — and Inertia's
 *persistent layouts* mean the sidebar/topbar mount once and don't re-render on
@@ -99,29 +86,11 @@ navigation.
 ## 3. Build the layouts
 
 ### `AppShell.vue` (workspace chrome — the `<slot>` wrapper)
-```vue
-<template>
-  <div class="grid grid-cols-[248px_1fr]" :class="fill ? 'h-screen' : 'min-h-screen'">
-    <AppSidebar :active="active" />
-    <div class="flex flex-col min-w-0" :class="{ 'overflow-hidden': fill }">
-      <AppTopbar />
-      <slot />            <!-- ← the page content goes here -->
-    </div>
-  </div>
-</template>
 
-<script>
-import AppSidebar from './AppSidebar.vue';
-import AppTopbar  from './AppTopbar.vue';
-export default {
-  components: { AppSidebar, AppTopbar },
-  props: {
-    active: { type: String, default: '' }, // 'dashboard' | 'applications' | …
-    fill:   { type: Boolean, default: false }, // true for Messages (full-height)
-  },
-};
-</script>
-```
+Reuse the existing `resources/js/Layouts/AppShell.vue`. It owns the responsive
+sidebar drawer, topbar, notification panel, and page slot. Its `active` prop marks
+the current navigation item; `fill` supports the internally scrolling Messages
+page. Keep mobile navigation and content sizing in this shared layout.
 
 ### Using it from a page (Inertia persistent layout)
 ```vue
@@ -137,17 +106,17 @@ export default {
 import AppShell from '@/Layouts/AppShell.vue';
 export default {
   // Inertia persistent layout — chrome persists across navigations:
-  layout: (h, page) => h(AppShell, { props: { active: 'dashboard' } }, [page]),
+  layout: (h, page) => h(AppShell, { active: 'dashboard' }, () => page),
   props: { stats: Object, applications: Array }, // from the controller
 };
 </script>
 ```
-*(Messages page: `props: { active: 'messages', fill: true }`.)*
+*(Messages page: `{ active: 'messages', fill: true }`.)*
 
-> **Inertia v2 / Vue 3 note:** if the app is actually on Vue 3 + Inertia v2, use
-> `defineOptions({ layout: AppShell })` or `<script setup>` with the
-> `<AppShell active="…">` wrapper directly. The structure is identical; only the
-> layout-assignment syntax differs. Match whatever the existing pages already do.
+The application is on Vue 3 and Inertia 3. Existing workspace pages use
+`defineOptions({ layout: (h, page) => h(AppShell, { active: '…' }, () => page) })`.
+The app resolver also defaults pages to `AppShell`. Public/auth pages assign their
+own layouts. Match the existing page's pattern and avoid nested layout chrome.
 
 ### `AppSidebar.vue` / `AppTopbar.vue`
 Port the markup from `tailwind/workspace-shell.js` (`navMarkup` / `topbarMarkup`).
@@ -156,11 +125,11 @@ replace `<a href>` with `<Link :href>`; mark the active item with
 `:class="{ 'bg-blue-600 text-white': item.id === active }"`. Badges, the user
 footer block, and the topbar search/actions all translate 1:1.
 
-### `MarketingLayout.vue`
-Port `<site-header>`/`<site-footer>` from `tailwind/site-chrome.js`. Public pages
-(`Welcome`, `About`, `Blog`, `Contact`, `Browse`) use this layout. The `active`
-prop highlights the current nav link.
+### `Public.vue` and `Guest.vue`
 
+Public pages use `Public.vue`; auth pages use `Guest.vue`. Their approved structure,
+assets, responsive layouts, and form controls already exist. Reuse these components
+rather than porting the obsolete marketing or split-auth prototype helpers.
 ---
 
 ## 4. Porting a page — checklist
@@ -175,52 +144,37 @@ For each `tailwind/*.html`:
    Add the matching routes in `routes/web.php` + controllers returning
    `Inertia::render('…', [...])`.
 5. **Replace hardcoded data with props.** Turn repeated cards/rows into `v-for`
-   over arrays the controller provides. Keep the exact card markup per `DESIGN.md`.
+   over arrays the controller provides. Reuse the current shared components and flat patterns in `DESIGN.md`.
 6. **Wire interactions to Vue state** instead of the inline `<script>`:
    - filter chips / tabs → `ref`/`data` + computed filtered list
    - save/bookmark toggles → `v-model` or an Inertia `router.post`
    - settings toggles, modal open/close, password show/hide → component state
    - forms → Inertia `useForm()` (`form.post(route(...))`), show server errors
      under fields.
-7. **Keep class names identical.** Do not "tidy" the Tailwind — the classes *are*
-   the design. Only structural wrappers change.
+7. **Follow the implemented design.** Preserve spacing and responsive behaviour
+   while using the current tokens and library icons. Prototype shadows, glows,
+   lifts, and obsolete public/auth layouts are not instructions to reintroduce them.
 
 ---
 
-## 5. Reveal-on-scroll as a Vue directive
+## 5. Motion and visibility
 
-Replace the prototype's per-page IntersectionObserver script with one global directive:
-
-```js
-// resources/js/directives/reveal.js
-export default {
-  // Vue 2: bind/inserted; Vue 3: mounted
-  inserted(el) {
-    el.classList.add('opacity-0','translate-y-[22px]','transition-all','duration-700');
-    el.style.transitionTimingFunction = 'cubic-bezier(.2,.7,.2,1)';
-    const show = () => { el.style.opacity = '1'; el.style.transform = 'none'; };
-    if (!('IntersectionObserver' in window)) return show();
-    const io = new IntersectionObserver(es => es.forEach(e => {
-      if (e.isIntersecting) { show(); io.unobserve(el); }
-    }), { threshold: .08, rootMargin: '0px 0px -5% 0px' });
-    io.observe(el);
-  },
-};
-```
-Register globally and use `v-reveal` where the prototype had `class="reveal"`.
-**Always degrade to visible** (reduced-motion, SSR, no-JS) — never ship content
-stuck at `opacity:0`.
+The existing Vue 3 directive is in `resources/js/directives/reveal.js`; it is
+optional compatibility code, not a requirement for new pages. Public/auth content
+stays visible without entrance effects. Prefer subtle colour/border/underline
+feedback, keep controls stationary, and honour reduced motion for any new effects.
 
 ---
 
-## 6. Data shapes (suggested)
+## 6. Data shapes (historical suggestions)
 
-Mirror what the screens already display so controllers stay thin:
+Use actual controller/resource props as the contract. These prototype suggestions
+are guidance only; do not invent profile fields, metrics, or timeline data:
 
 - **Internship**: `id, title, company{name,slug,logoGradient,initials}, location,
   workType (remote|hybrid|onsite), durationWeeks, term, pay{amount,unit}, tags[],
   postedAt, applicantCount, isNew, isSaved, status?`
-- **Application**: `id, internship, status (submitted|review|interview|offer|closed),
+- **Application**: `id, internship, status (submitted|viewed|review|interview|offer|closed),
   appliedAt, updatedAt, timeline[]`
 - **Company**: `id, slug, name, city, logoGradient, initials, about, openRoles,
   teamSize, foundedYear, remote, contact{email,website,hiringLead}`
@@ -234,16 +188,14 @@ pills render consistently.
 
 ---
 
-## 7. Order of work
+## 7. Extending the current app
 
-1. Tokens into `tailwind.config.js`; fonts; shared `@layer` CSS. *(§1)*
-2. `AppShell` + `AppSidebar` + `AppTopbar`; `MarketingLayout`. *(§3)*
-3. `v-reveal` directive. *(§5)*
-4. Port pages back-to-front of importance: **Dashboard → Internships/Browse →
-   Internship detail → Applications → Application detail → Saved → Messages →
-   Companies → Company detail → Profile → Settings**, then the marketing pages
-   and auth. *(§4)*
-5. Wire controllers/routes and replace mock data with real props.
+1. Reuse tokens in `resources/css/app.css` and workspace patterns in `workspace.css`.
+2. Reuse `AppShell`, `AppSidebar`, and `AppTopbar` for signed-in pages; `Public` and
+   `Guest` cover public/auth pages.
+3. Connect real controller props, routes, and Inertia `useForm()` interactions.
+4. Verify responsive layouts, form errors, icon labels, and reduced-motion behaviour.
+5. Run `npm run build` and the relevant `php artisan test` checks.
 
-Keep each PR to one or two screens so the design can be reviewed against the
-matching `tailwind/*.html` reference.
+Keep changes focused enough to review against the current implemented screen and
+approved direction, rather than treating historical prototype markup as immutable.

@@ -98,8 +98,8 @@ const toggle = (key, id) => {
 				<button class="inline-flex items-center justify-center font-semibold text-[15px] h-[52px] px-[26px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors" @click="applyFilters">Search</button>
 			</div>
 			<div class="flex gap-1.5 mt-6 overflow-x-auto">
-				<button class="qtab font-body font-semibold text-[14.5px] py-3 mr-[18px] cursor-pointer border-b-2 whitespace-nowrap bg-transparent" :class="{ 'is-active': activeTab === null }" @click="pickTab(null)">All roles</button>
-				<button v-for="field in fields" :key="field.id" class="qtab font-body font-semibold text-[14.5px] py-3 mr-[18px] cursor-pointer border-b-2 whitespace-nowrap bg-transparent" :class="{ 'is-active': activeTab === field.id }" @click="pickTab(field.id)">{{ field.name }}</button>
+				<button class="qtab font-body font-semibold text-[14.5px] py-3 mr-[18px] cursor-pointer border-b-2 whitespace-nowrap bg-transparent" :class="{ 'is-active': activeTab === null }" type="button" :aria-pressed="activeTab === null" @click="pickTab(null)">All roles</button>
+				<button v-for="field in fields" :key="field.id" class="qtab font-body font-semibold text-[14.5px] py-3 mr-[18px] cursor-pointer border-b-2 whitespace-nowrap bg-transparent" :class="{ 'is-active': activeTab === field.id }" type="button" :aria-pressed="activeTab === field.id" @click="pickTab(field.id)">{{ field.name }}</button>
 			</div>
 		</div>
 	</section>
@@ -122,8 +122,8 @@ const toggle = (key, id) => {
 			</div>
 
 			<div class="flex mt-[18px] border-b border-line overflow-x-auto">
-				<button class="qtab font-body font-semibold text-[14.5px] py-3 mr-[22px] cursor-pointer border-b-2 whitespace-nowrap bg-transparent" :class="{ 'is-active': activeTab === null }" @click="pickTab(null)">All roles</button>
-				<button v-for="field in fields" :key="field.id" class="qtab font-body font-semibold text-[14.5px] py-3 mr-[22px] cursor-pointer border-b-2 whitespace-nowrap bg-transparent" :class="{ 'is-active': activeTab === field.id }" @click="pickTab(field.id)">{{ field.name }}</button>
+				<button class="qtab font-body font-semibold text-[14.5px] py-3 mr-[22px] cursor-pointer border-b-2 whitespace-nowrap bg-transparent" :class="{ 'is-active': activeTab === null }" type="button" :aria-pressed="activeTab === null" @click="pickTab(null)">All roles</button>
+				<button v-for="field in fields" :key="field.id" class="qtab font-body font-semibold text-[14.5px] py-3 mr-[22px] cursor-pointer border-b-2 whitespace-nowrap bg-transparent" :class="{ 'is-active': activeTab === field.id }" type="button" :aria-pressed="activeTab === field.id" @click="pickTab(field.id)">{{ field.name }}</button>
 			</div>
 		</template>
 

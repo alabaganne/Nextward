@@ -11,7 +11,7 @@ The public site and authentication pages use the flat Internly visual style. The
 - Vite 8 using `vite.config.js`
 - Heroicons and Lucide Vue components for interface icons
 - MySQL or PostgreSQL for application data; SQLite for automated tests
-- Pusher and Laravel Echo for optional realtime updates
+- Pusher and Laravel Echo dependencies retained; live browser updates are currently disabled
 
 Use Node.js 24 (the version in `.nvmrc`), Composer, and PHP with PDO, cURL, DOM/XML, Mbstring, OpenSSL, Tokenizer, and SQLite support for tests. Install the appropriate PDO driver for your application database.
 
@@ -55,11 +55,17 @@ Demo account passwords are `password`:
 | Company (Atlas Cloud) | `atlascloud@example.com` |
 | Admin | `admin@example.com` |
 
-## Realtime updates
+## Messages and notifications
 
-Set `BROADCAST_CONNECTION=pusher` and the `PUSHER_*` / `VITE_PUSHER_*` values in `.env` to enable live messages and notifications, then rebuild frontend assets. The defaults use a log broadcaster. Messages are saved even if a realtime broadcast fails.
+Messages and notifications are saved and available when the page refreshes.
+Live browser updates are currently disabled: Echo initialization in
+`resources/js/bootstrap.js` and the message subscription listeners are inactive.
+Configuring Pusher environment variables alone does not enable realtime delivery.
 
-The default queue connection is synchronous. If you configure another queue driver, also run `php artisan queue:work`.
+To add live updates later, restore Echo initialization and the relevant page
+listeners, configure `BROADCAST_CONNECTION=pusher` plus the `PUSHER_*` /
+`VITE_PUSHER_*` values, and rebuild frontend assets. The default queue connection
+is synchronous; another queue driver also requires `php artisan queue:work`.
 
 ## Verification
 

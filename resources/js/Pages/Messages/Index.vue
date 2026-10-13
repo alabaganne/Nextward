@@ -32,6 +32,7 @@ const initialsFor = (name) =>
 		.toUpperCase();
 
 const search = ref('');
+const mobileThreadVisible = ref(true);
 const visibleContacts = computed(() =>
 	props.contacts.filter(
 		(contact) => !search.value || contact.name.toLowerCase().includes(search.value.trim().toLowerCase())
@@ -82,7 +83,7 @@ onMounted(() => {
 <template>
 	<div class="flex-1 grid grid-cols-[340px_1fr] min-h-0 max-[860px]:grid-cols-1">
 		<!-- CONVERSATION LIST -->
-		<aside class="border-r border-line bg-white flex flex-col min-h-0" :class="{ 'max-[860px]:hidden': selectedContact }">
+		<aside class="border-r border-line bg-white flex flex-col min-h-0" :class="{ 'max-[860px]:hidden': selectedContact && mobileThreadVisible }">
 			<div class="px-5 pt-5 pb-3.5 border-b border-line-2 shrink-0">
 				<div class="flex items-baseline justify-between mb-3.5">
 					<h1 class="font-display text-[21px] font-semibold">Messages</h1>
@@ -90,7 +91,7 @@ onMounted(() => {
 				</div>
 				<div class="flex items-center gap-[9px] bg-paper-2 border border-line rounded-[10px] px-3 h-10 focus-within:border-blue-400 [&_svg]:w-4 [&_svg]:h-4 [&_svg]:text-muted-2">
 					<component :is="icons.search" aria-hidden="true" />
-					<input v-model="search" class="border-0 bg-transparent outline-none text-sm w-full" type="text" placeholder="Search conversations">
+					<input v-model="search" class="border-0 bg-transparent outline-none text-sm w-full" type="text" placeholder="Search conversations" aria-label="Search conversations">
 				</div>
 			</div>
 			<div class="overflow-y-auto flex-1 min-h-0">
@@ -102,24 +103,24 @@ onMounted(() => {
 					type="button"
 					@click="pick(contact)"
 				>
-					<div class="w-[46px] h-[46px] rounded-[12px] shrink-0 grid place-items-center text-white font-bold font-display text-[15px]" :style="{ background: gradientFor(contact.name) }">{{ initialsFor(contact.name) }}</div>
-					<div class="flex-1 min-w-0">
-						<div class="flex items-baseline justify-between gap-2">
+					<span class="w-[46px] h-[46px] rounded-[12px] shrink-0 grid place-items-center text-white font-bold font-display text-[15px]" :style="{ background: gradientFor(contact.name) }">{{ initialsFor(contact.name) }}</span>
+					<span class="flex-1 min-w-0">
+						<span class="flex items-baseline justify-between gap-2">
 							<b class="text-[14.5px] font-semibold whitespace-nowrap overflow-hidden text-ellipsis">{{ contact.name }}</b>
 							<span class="text-[11.5px] text-muted-2 shrink-0 font-medium">{{ contact.latest_message?.created_at }}</span>
-						</div>
-						<div class="text-xs text-blue-700 font-semibold my-px mb-1 capitalize">{{ contact.userable_type }}</div>
-						<div class="prev" :class="{ unread: isUnread(contact) }">{{ contact.latest_message?.text }}</div>
-					</div>
+						</span>
+						<span class="block text-xs text-blue-700 font-semibold my-px mb-1 capitalize">{{ contact.userable_type }}</span>
+						<span class="block prev" :class="{ unread: isUnread(contact) }">{{ contact.latest_message?.text }}</span>
+					</span>
 				</button>
 				<div v-if="!visibleContacts.length" class="px-5 py-8 text-[14px] text-muted">No conversations yet.</div>
 			</div>
 		</aside>
 
 		<!-- THREAD -->
-		<section v-if="selectedContact" class="flex flex-col min-h-0 bg-paper-2">
+		<section v-if="selectedContact" class="flex flex-col min-h-0 bg-paper-2" :class="{ 'max-[860px]:hidden': !mobileThreadVisible }">
 			<div class="shrink-0 bg-white border-b border-line px-6 py-3.5 flex items-center gap-[13px]">
-				<button class="hidden max-[860px]:grid place-items-center w-9 h-9 rounded-lg border border-line shrink-0" type="button" aria-label="Back to conversations" @click="router.get(route('messages.index'))"><ArrowLeft :size="18" /></button>
+				<button class="hidden max-[860px]:grid place-items-center w-9 h-9 rounded-lg border border-line shrink-0" type="button" aria-label="Back to conversations" @click="mobileThreadVisible = false"><ArrowLeft :size="18" /></button>
 				<div class="w-11 h-11 rounded-[12px] grid place-items-center text-white font-bold font-display text-[15px]" :style="{ background: gradientFor(selectedContact.name) }">{{ initialsFor(selectedContact.name) }}</div>
 				<div class="flex-1 min-w-0">
 					<b class="text-base font-semibold block">{{ selectedContact.name }}</b>
@@ -138,7 +139,7 @@ onMounted(() => {
 
 			<div class="shrink-0 bg-white border-t border-line px-6 py-3.5 flex items-end gap-3">
 				<div class="flex-1 flex items-center bg-paper-2 border border-line rounded-[13px] px-4 min-h-[46px] focus-within:border-blue-400">
-					<input v-model="form.text" class="border-0 bg-transparent outline-none text-[14.5px] w-full py-3 text-ink" type="text" placeholder="Write a message…" @keydown.enter="send">
+					<input v-model="form.text" class="border-0 bg-transparent outline-none text-[14.5px] w-full py-3 text-ink" type="text" placeholder="Write a message…" aria-label="Write a message" @keydown.enter="send">
 				</div>
 				<button class="w-[46px] h-[46px] rounded-[13px] bg-blue-600 text-white border-0 grid place-items-center cursor-pointer shrink-0 hover:bg-blue-700 transition-colors [&_svg]:w-[19px] [&_svg]:h-[19px]" type="button" aria-label="Send message" :disabled="form.processing || !form.text.trim()" @click="send"><component :is="icons.send" aria-hidden="true" /></button>
 			</div>

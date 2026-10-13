@@ -67,18 +67,20 @@ const partyName = (application) => (isStudent.value ? application.company?.name 
 		<!-- PIPELINE -->
 		<p class="text-xs text-muted mb-3">Filter applications on this page</p>
 		<div class="grid grid-cols-5 gap-3.5 mb-[26px] max-[1000px]:grid-cols-3">
-			<div
+			<button
 				v-for="bucket in buckets"
 				:key="bucket.key"
-				class="pcard bg-white border border-line rounded-[18px] px-5 py-[18px] cursor-pointer transition-colors hover:border-blue-300"
+				class="pcard text-left bg-white border border-line rounded-[18px] px-5 py-[18px] cursor-pointer transition-colors hover:border-blue-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
 				:class="{ 'is-active': filter === bucket.key }"
+				type="button"
+				:aria-pressed="filter === bucket.key"
 				@click="filter = bucket.key"
 			>
-				<div class="font-display text-[30px] font-semibold leading-none">{{ countFor(bucket.key) }}</div>
-				<div class="text-[13px] text-muted font-semibold mt-[7px] flex items-center gap-[7px]">
+				<span class="block font-display text-[30px] font-semibold leading-none">{{ countFor(bucket.key) }}</span>
+				<span class="text-[13px] text-muted font-semibold mt-[7px] flex items-center gap-[7px]">
 					<span class="w-2 h-2 rounded-full" :class="bucket.dot"></span>{{ bucket.label }}
-				</div>
-			</div>
+				</span>
+			</button>
 		</div>
 
 		<!-- TABLE -->

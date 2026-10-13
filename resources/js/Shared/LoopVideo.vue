@@ -27,8 +27,7 @@
 				:title="shared.paused ? 'Play animation' : 'Pause animation'"
 				@click="shared.paused = !shared.paused"
 			>
-				<svg v-if="shared.paused" class="h-4 w-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M5 3.5v9a.5.5 0 0 0 .77.42l7-4.5a.5.5 0 0 0 0-.84l-7-4.5A.5.5 0 0 0 5 3.5Z" /></svg>
-				<svg v-else class="h-4 w-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="4" y="3" width="3" height="10" rx="1" /><rect x="9" y="3" width="3" height="10" rx="1" /></svg>
+				<icon :name="shared.paused ? 'play' : 'pause'" solid class="h-4 w-4" />
 			</button>
 		</template>
 	</div>

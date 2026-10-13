@@ -1,13 +1,15 @@
 # Internly — Design Language
 
-This is the single source of truth for Internly's visual style. Read this before
-building any new screen (in HTML, or in Vue — see `INTEGRATION.md`). The goal is
-that a screen built six months from now is indistinguishable from the ones built
-today.
+This document is a workspace design reference retained from the earlier prototype.
+The implemented Vue components and current user-approved direction take precedence.
+For the public landing page and authentication pages, follow
+[LANDING_PAGE_DESIGN.md](../LANDING_PAGE_DESIGN.md) and the existing `Public.vue` /
+`Guest.vue` layouts. Keep their flat surfaces and restrained interactions.
 
-The reference implementation is the set of `tailwind/*.html` files in this repo.
-When in doubt, open the closest existing screen and copy its structure.
-
+Prototype helpers under `design/tailwind/` are historical references, not build
+configuration or instructions to replace the approved public/auth designs. See
+[INTEGRATION.md](INTEGRATION.md) for the current Laravel 13, Vue 3, Inertia 3,
+Tailwind 4, and Vite 8 integration.
 ---
 
 ## 1. Personality
@@ -17,11 +19,11 @@ Internly is a **calm, modern, trustworthy SaaS product** for students and compan
 - **Clean, not flashy.** White space does the work. One accent colour, used with intent.
 - **Editorial headings, friendly body.** A geometric display face for headings; a
   warm humanist sans for body copy.
-- **Soft, deep shadows instead of hard borders** for elevation. Thin neutral hairlines
-  for separation.
+- **Flat surfaces.** Use spacing, thin neutral borders, and dividers for separation.
+  Avoid adding card or button shadows and decorative glows.
 - **Generous radii** (12–26px). Nothing is sharp-cornered.
-- **Restrained motion.** Gentle reveal-on-scroll, small hover lifts. Never bouncy,
-  never looping.
+- **Restrained motion.** Subtle colour and underline changes, without hover lifts
+  or layout movement. Keep content visible and respect reduced motion.
 
 Avoid: heavy gradients everywhere, neon, emoji as UI, dense data tables, hard
 drop-shadows, more than one accent hue, decorative SVG illustration.
@@ -30,8 +32,9 @@ drop-shadows, more than one accent hue, decorative SVG illustration.
 
 ## 2. Colour tokens
 
-These are defined as Tailwind theme colours (see `tailwind/setup.js` / your
-`tailwind.config.js`). **Always use the token, never a raw hex in markup.**
+Current tokens are defined with Tailwind 4 `@theme` in
+`resources/css/app.css`; shared workspace patterns live in
+`resources/css/workspace.css`. Prefer these tokens for new workspace UI.
 
 | Token | Hex | Use |
 |---|---|---|
@@ -76,7 +79,8 @@ consistent across screens:
 
 ## 3. Typography
 
-Two families, loaded from Google Fonts:
+Workspace typography uses two families loaded in `resources/views/app.blade.php`:
+public/auth body text uses Inter (`font-sans`) with the same display family.
 
 - **Display — `Space Grotesk`** (`font-display`): all headings, numbers/stats,
   logo wordmark, eyebrows, button-like figures. Weights 500–700.
@@ -89,7 +93,6 @@ Two families, loaded from Google Fonts:
 Scale & conventions:
 
 - Page H1 (workspace): `font-display text-[32px] font-semibold tracking-[-.02em]`
-- Marketing hero H1: `font-display font-semibold tracking-[-.02em] text-[clamp(40px,5.4vw,68px)] leading-[1.04]`
 - Section H2: `font-display font-semibold tracking-[-.02em] text-[clamp(30px,4vw,46px)]`
 - Card title: `font-display text-[18px] font-semibold`
 - Body: `text-[15px]` / `text-[15.5px]`, `leading-[1.6]`–`1.7`, colour `muted` or `ink-700`
@@ -104,37 +107,36 @@ Small uppercase blue label above most section/page titles:
 
 ---
 
-## 4. Shape, elevation, spacing
+## 4. Shape, surfaces, spacing
 
 - **Radii:** cards `rounded-[18px]`, large feature panels `rounded-[26px]`,
   controls/buttons `rounded-[12px]`, chips/pills `rounded-full` or `rounded-lg`,
   small inner items `rounded-[10px]`–`[11px]`.
-- **Shadows (tokens):** `shadow-xs` (resting card), `shadow-card` (hover lift),
-  `shadow-big` (hero/floating), `shadow-cta` (primary button glow). Prefer borders
-  + `shadow-xs` at rest; reserve big shadows for genuinely floating elements.
+- **Surfaces:** flat fills and borders. Existing shadow tokens are retained for
+  compatibility with older workspace screens, not as a default for new work.
 - **Borders:** `border border-line` for cards; `border-line-2` for inner dividers.
-- **Page max width:** `max-w-wrap` (1200px), centered, `px-7` gutters on marketing;
-  `px-10` on workspace content.
-- **Rhythm:** marketing sections `py-[104px]`; cards padded `p-6`/`p-[22px]`;
-  gaps `gap-4`/`gap-6`. Be generous — when unsure, add space.
+- **Page max width:** `max-w-wrap` (1200px), centered; responsive workspace
+  gutters. Public/auth spacing follows their existing layouts.
+- **Rhythm:** cards padded `p-6`/`p-[22px]`; gaps `gap-4`/`gap-6`. Use
+  spacing to establish groups before adding another card.
 
 ---
 
-## 5. Core components (copy these patterns verbatim)
+## 5. Core workspace component patterns
 
 **Primary button**
 ```html
-<a class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white shadow-cta hover:bg-blue-700 hover:-translate-y-px transition-all">Label</a>
+<a class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors">Label</a>
 ```
 
 **Secondary button**
 ```html
-<a class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all">Label</a>
+<a class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-colors">Label</a>
 ```
 
 **Card**
 ```html
-<article class="bg-white border border-line rounded-[18px] p-6 shadow-xs transition-all hover:-translate-y-1 hover:shadow-card hover:border-blue-200"> … </article>
+<article class="bg-white border border-line rounded-[18px] p-6 transition-colors hover:border-blue-200"> … </article>
 ```
 
 **Tag / chip** — `inline-flex items-center px-[11px] py-[5px] rounded-lg text-xs font-semibold bg-paper-3 text-ink-700`
@@ -150,10 +152,11 @@ Small uppercase blue label above most section/page titles:
 
 **Avatar / logo** — `w-12 h-12 rounded-[13px] grid place-items-center text-white font-bold font-display` + inline gradient `style`.
 
-**Icons:** inline `<svg viewBox="0 0 24 24" fill="none">` with `stroke="currentColor"
-stroke-width="2"`, `stroke-linecap/linejoin="round"`. Sized 15–22px via parent
-`[&_svg]:w-… [&_svg]:h-…`. Line icons only — never filled blobs.
-
+**Icons:** use library components: the shared `Icon.vue` wrapper uses
+`@heroicons/vue` for public/auth UI; workspace components import named icons from
+`@lucide/vue`. Size icons explicitly, mark decorative icons `aria-hidden="true"`,
+and give icon-only buttons an accessible label. Underline link text only. Do not
+handwrite SVG paths, embed SVG icon strings, or substitute Unicode/emoji icons.
 ---
 
 ## 6. Layout chrome
@@ -162,24 +165,21 @@ stroke-width="2"`, `stroke-linecap/linejoin="round"`. Sized 15–22px via parent
   In HTML this is the `<app-shell active="…">…</app-shell>` wrapper. In Vue it's the
   `AppShell` persistent layout with `<slot/>`. The page only writes the content;
   the chrome is never duplicated per page.
-- **Marketing (public)**: translucent sticky white header + dark navy footer
-  (`<site-header>` / `<site-footer>`). In Vue, the `MarketingLayout`.
-- **Dark sections** (hero panels, CTAs, sidebars, footer): navy-800→900 gradient,
-  often with a faint dotted/grid overlay masked with a radial gradient, and a blue
-  radial glow top-corner. Text turns to `#aebfdd` / `#9fb0ce`; headings white.
-
+- **Public pages**: use `Public.vue` for the approved warm header/footer and
+  `Guest.vue` for authentication. Do not recreate the obsolete `MarketingLayout`
+  or `AuthSplit` prototypes.
+- **Dark sections**: the approved landing page uses a photographic background,
+  dark overlay, and light text. Follow its existing implementation and the public
+  design notes; avoid adding decorative glows or a new hero treatment by default.
 ---
 
 ## 7. Motion
 
-- **Reveal on scroll:** start `opacity-0 translate-y-[22px]`, transition
-  `duration-700 ease-[cubic-bezier(.2,.7,.2,1)]`, reveal via IntersectionObserver.
-  Stagger siblings ~70ms. Must degrade to visible (print / reduced-motion / no-JS).
-- **Hover:** cards lift `-translate-y-1` + `shadow-card`; buttons `-translate-y-px`;
-  links nudge their arrow (`gap` grows). Keep `transition-all`/`transition-colors`
-  ~150–200ms.
-- No infinite loops on content. One or two subtle floating accents on the hero is
-  the ceiling.
+- Content is visible by default. Preserve the public/auth pages' static entrances.
+- Hover feedback uses colour, border, or underline changes around 150–200ms.
+  Keep controls and cards in place without adding shadows or glows.
+- Honour reduced motion for any optional transitions. Avoid looping decoration
+  and effects that delay reading or interaction.
 
 ---
 

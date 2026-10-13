@@ -69,6 +69,7 @@ const meta = computed(() => props.companies.meta ?? props.companies);
 					class="chip inline-flex items-center gap-[7px] h-[46px] px-4 rounded-[12px] border text-[13.5px] font-semibold cursor-pointer transition-colors"
 					:class="{ 'is-active': filter === chip.key }"
 					type="button"
+					:aria-pressed="filter === chip.key"
 					@click="filter = chip.key"
 				>{{ chip.label }}</button>
 			</div>

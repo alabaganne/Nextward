@@ -99,6 +99,7 @@ const workTypes = [
 							class="border-[1.5px] rounded-[12px] px-4 py-3 text-sm font-semibold transition-colors"
 							:class="form.work_type === option.value ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-line bg-white text-ink-700 hover:border-blue-300'"
 							type="button"
+							:aria-pressed="form.work_type === option.value"
 							@click="form.work_type = option.value"
 						>{{ option.label }}</button>
 					</div>

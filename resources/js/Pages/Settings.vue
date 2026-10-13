@@ -94,6 +94,7 @@ const deleteAccount = () => {
 					:key="item.key"
 					:class="{ on: tab === item.key }"
 					type="button"
+					:aria-pressed="tab === item.key"
 					@click="tab = item.key"
 				>
 					<component :is="item.icon" aria-hidden="true" /> {{ item.label }}

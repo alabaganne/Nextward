@@ -1,7 +1,7 @@
 <script setup>
 import { ArrowRight, ArrowUpRight, CalendarCheck, Check, ChevronRight, Circle, Clock3, Download, Mail, MapPin, Phone, UserRound } from '@lucide/vue';
 import { computed, h } from 'vue';
-import { Link, router, usePage } from '@inertiajs/vue3';
+import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
 import CompanyLogo from '@/Components/Ui/CompanyLogo.vue';
 
@@ -57,6 +57,9 @@ const STAGES = {
 const stage = computed(() => {
 	const base = STAGES[normalizedStatus.value] || STAGES.submitted;
 	const notes = {
+		submitted: 'Waiting for the company to review this application.',
+		viewed: `${props.application.company.name} has viewed this application.`,
+		interview: 'This application is at the interview stage.',
 		offer: `${props.application.company.name} wants to move forward with this application.`,
 		closed: 'This application was closed.',
 	};
@@ -69,7 +72,14 @@ const counterpart = computed(() =>
 		: { ...props.application.student, role: 'Applicant' }
 );
 
-const reply = (status) => router.post(route('applications.reply', props.application.id), { status });
+const reviewForm = useForm({
+	status: ['viewed', 'review', 'interview'].includes(normalizedStatus.value) ? normalizedStatus.value : '',
+});
+const reply = (status) => {
+	if (reviewForm.processing || !status) return;
+	reviewForm.status = status;
+	reviewForm.post(route('applications.reply', props.application.id), { preserveScroll: true });
+};
 const withdraw = () => {
 	if (confirm('Withdraw this application? This cannot be undone.')) {
 		router.delete(route('applications.destroy', props.application.id));
@@ -118,22 +128,22 @@ const withdraw = () => {
 
 				<!-- TIMELINE -->
 				<section class="bg-white border border-line rounded-[18px] px-8 max-[560px]:px-5 py-[30px]">
-					<h2 class="font-display text-[18px] font-semibold mb-1.5">Application timeline</h2>
-					<p class="text-[13.5px] text-muted mb-[18px]">Every update on this application, newest at the bottom.</p>
+					<h2 class="font-display text-[18px] font-semibold mb-1.5">Application progress</h2>
+					<p class="text-[13.5px] text-muted mb-[18px]">Submission date and current application stage.</p>
 					<div class="relative pl-[34px] before:content-[''] before:absolute before:left-[11px] before:top-1.5 before:bottom-2.5 before:w-0.5 before:bg-line">
 						<div class="relative pb-[26px]">
 							<span class="absolute -left-[34px] top-0 w-6 h-6 rounded-full bg-blue-600 border-2 border-blue-600 text-white grid place-items-center [&_svg]:w-[13px] [&_svg]:h-[13px]"><component :is="icons.check" aria-hidden="true" /></span>
 							<b class="text-[15px] font-display font-semibold block">Application submitted</b>
 							<div class="text-[13px] text-muted mt-[3px]">{{ application.created_at }}</div>
 						</div>
-						<div v-if="!open" class="relative">
-							<span class="absolute -left-[34px] top-0 w-6 h-6 rounded-full border-2 text-white grid place-items-center shadow-[0_0_0_4px_rgba(5,150,105,.18)] [&_svg]:w-[13px] [&_svg]:h-[13px]" :style="{ background: stage.border, borderColor: stage.border }"><component :is="icons.dot" aria-hidden="true" /></span>
+						<div v-if="normalizedStatus !== 'submitted'" class="relative">
+							<span class="absolute -left-[34px] top-0 w-6 h-6 rounded-full border-2 text-white grid place-items-center [&_svg]:w-[13px] [&_svg]:h-[13px]" :style="{ background: stage.border, borderColor: stage.border }"><component :is="icons.dot" aria-hidden="true" /></span>
 							<b class="text-[15px] font-display font-semibold block">{{ stage.title }}</b>
 							<div class="text-[13px] text-muted mt-[3px]">Updated {{ application.updated_at }}</div>
 						</div>
 						<div v-else class="relative">
 							<span class="absolute -left-[34px] top-0 w-6 h-6 rounded-full bg-white border-2 border-line text-muted-2 grid place-items-center"></span>
-							<b class="text-[15px] font-display font-semibold block text-muted-2">Decision</b>
+							<b class="text-[15px] font-display font-semibold block text-muted-2">Awaiting review</b>
 							<div class="text-[13px] text-muted mt-[3px]">Pending review by {{ application.company.name }}</div>
 						</div>
 					</div>
@@ -142,7 +152,7 @@ const withdraw = () => {
 				<!-- SUBMITTED APPLICATION -->
 				<section class="bg-white border border-line rounded-[18px] px-8 max-[560px]:px-5 py-[30px]">
 					<h2 class="font-display text-[18px] font-semibold mb-1.5">{{ isStudent ? 'Your submitted application' : 'Submitted application' }}</h2>
-					<p class="text-[13.5px] text-muted mb-[18px]">This is exactly what {{ application.company.name }} received on {{ application.created_at }}.</p>
+					<p class="text-[13.5px] text-muted mb-[18px]">The current application details shared with {{ application.company.name }}.</p>
 
 					<div v-if="application.cover_letter" class="py-4">
 						<div class="text-xs tracking-[.06em] uppercase text-muted-2 font-bold mb-2">Cover note</div>
@@ -178,10 +188,21 @@ const withdraw = () => {
 			<div class="flex flex-col gap-4 sticky top-[94px]">
 				<section v-if="canReply" class="bg-white border border-line rounded-[18px] px-6 py-[22px]">
 					<h3 class="text-sm tracking-[.04em] text-muted font-bold font-display mb-4">REVIEW</h3>
-					<button class="w-full justify-center inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors [&_svg]:w-[17px] [&_svg]:h-[17px]" type="button" @click="reply('offer')">
+					<form class="mb-5 pb-5 border-b border-line-2" @submit.prevent="reply(reviewForm.status)">
+						<label class="block text-[13px] font-semibold text-ink-700 mb-2" for="review-stage">Application stage</label>
+						<select id="review-stage" v-model="reviewForm.status" class="fld" :disabled="reviewForm.processing" :aria-invalid="!!reviewForm.errors.status" :aria-describedby="reviewForm.errors.status ? 'review-stage-error' : undefined">
+							<option value="" disabled>Select a stage</option>
+							<option value="viewed">Viewed</option>
+							<option value="review">In review</option>
+							<option value="interview">Interview</option>
+						</select>
+						<button class="cbtn w-full mt-2.5 bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 disabled:opacity-50" type="submit" :disabled="reviewForm.processing || !reviewForm.status || reviewForm.status === normalizedStatus">{{ reviewForm.processing ? 'Updating…' : 'Update stage' }}</button>
+					</form>
+					<p v-if="reviewForm.errors.status" id="review-stage-error" class="text-sm text-red-600 mb-4" role="alert">{{ reviewForm.errors.status }}</p>
+					<button class="w-full justify-center inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 [&_svg]:w-[17px] [&_svg]:h-[17px]" type="button" :disabled="reviewForm.processing" @click="reply('offer')">
 						Advance to offer <component :is="icons.arrow" aria-hidden="true" />
 					</button>
-					<button class="w-full justify-center mt-2.5 inline-flex items-center font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all" type="button" @click="reply('closed')">
+					<button class="w-full justify-center mt-2.5 inline-flex items-center font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all disabled:opacity-50" type="button" :disabled="reviewForm.processing" @click="reply('closed')">
 						Disqualify
 					</button>
 				</section>

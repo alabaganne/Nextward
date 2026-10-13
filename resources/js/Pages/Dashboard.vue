@@ -35,6 +35,7 @@ const user = computed(() => page.props.auth?.user);
 const firstName = computed(() => (user.value?.name || '').split(' ')[0]);
 const isAdmin = computed(() => !!user.value?.is_admin);
 const isCompany = computed(() => user.value?.userable_type === 'company');
+const managedRolesHref = computed(() => route('internships.index', { companies: [user.value?.userable_id] }));
 const isMember = computed(() => ['student', 'company'].includes(user.value?.userable_type));
 const partyName = (application) => (user.value?.userable_type === 'student' ? application.company?.name : application.student?.name) || '';
 const welcomeNote = computed(() => {
@@ -97,7 +98,7 @@ const cards = computed(() =>
 				<h1 class="font-display text-[32px] font-semibold tracking-[-.02em]">Welcome back, {{ firstName }}</h1>
 				<p class="text-muted text-[15px] mt-1.5">{{ welcomeNote }}</p>
 			</div>
-			<Link class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all [&_svg]:w-[17px] [&_svg]:h-[17px]" :href="route('internships.index')">
+			<Link class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all [&_svg]:w-[17px] [&_svg]:h-[17px]" :href="isCompany ? managedRolesHref : route('internships.index')">
 				{{ isCompany ? 'Manage your roles' : 'Browse all roles' }}
 				<component :is="icons.arrow" aria-hidden="true" />
 			</Link>
@@ -156,7 +157,7 @@ const cards = computed(() =>
 					</template>
 					<template v-else-if="isCompany">
 						No applications received yet.
-						<Link class="font-semibold text-blue-700" :href="route('internships.index')">Manage your internships</Link>
+						<Link class="font-semibold text-blue-700" :href="managedRolesHref">Manage your internships</Link>
 						and keep your role details up to date.
 					</template>
 					<template v-else>
