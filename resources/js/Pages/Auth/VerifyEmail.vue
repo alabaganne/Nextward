@@ -1,55 +1,50 @@
 <template>
-    <div class="mb-4 text-sm text-gray-600">
-        Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you? If you didn't receive the email, we will gladly send you another.
-    </div>
-
-    <div class="mb-4 font-medium text-sm text-green-600" v-if="verificationLinkSent" >
-        A new verification link has been sent to the email address you provided during registration.
-    </div>
-
-    <form @submit.prevent="submit">
-        <div class="mt-4 flex items-center justify-between">
-            <breeze-button :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                Resend Verification Email
-            </breeze-button>
-
-            <Link :href="route('logout')" method="post" as="button" class="underline text-sm text-gray-600 hover:text-gray-900">Log Out</Link>
-        </div>
-    </form>
+	<div class="auth-message-icon"><icon name="mail" /></div>
+	<header class="auth-heading">
+		<p class="auth-kicker">Almost there</p>
+		<h1>Check your inbox.</h1>
+		<p>Follow the link in your verification email to confirm your address and get started.</p>
+	</header>
+	<auth-feedback :status="verificationLinkSent ? 'A new verification link is on its way. Check your inbox and spam folder.' : ''" :errors="form.errors" />
+	<form @submit.prevent="submit" :aria-busy="form.processing">
+		<p class="auth-hint">Can’t find the email? Check your spam folder, or send a new link below.</p>
+		<breeze-button class="auth-submit-spaced" :disabled="form.processing">{{ form.processing ? 'Sending email…' : 'Resend verification email' }}<icon name="arrow-right" /></breeze-button>
+	</form>
+	<div class="auth-switch"><Link :href="route('logout')" method="post" as="button" class="auth-link focus-ring">Log out</Link></div>
 </template>
 
 <script>
-    import { useForm } from '@inertiajs/vue3';
-    import BreezeButton from '@/Components/Breeze/Button.vue'
-    import BreezeGuestLayout from "@/Layouts/Guest.vue"
+import { useForm } from '@inertiajs/vue3';
+import AuthFeedback from '@/Components/Auth/Feedback.vue';
+import BreezeButton from '@/Components/Breeze/Button.vue';
+import BreezeGuestLayout from '@/Layouts/Guest.vue';
+export default {
+	layout: BreezeGuestLayout,
 
-    export default {
-        layout: BreezeGuestLayout,
+	components: {
+		BreezeButton, AuthFeedback,
+	},
 
-        components: {
-            BreezeButton,
-        },
+	props: {
+		status: String
+	},
 
-        props: {
-            status: String
-        },
+	data() {
+		return {
+			form: useForm()
+		}
+	},
 
-        data() {
-            return {
-                form: useForm()
-            }
-        },
+	methods: {
+		submit() {
+			this.form.post(this.route('verification.send'))
+		},
+	},
 
-        methods: {
-            submit() {
-                this.form.post(this.route('verification.send'))
-            },
-        },
-
-        computed: {
-            verificationLinkSent() {
-                return this.status === 'verification-link-sent';
-            }
-        }
-    }
+	computed: {
+		verificationLinkSent() {
+			return this.status === 'verification-link-sent';
+		}
+	}
+}
 </script>

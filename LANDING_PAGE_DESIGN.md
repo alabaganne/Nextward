@@ -31,3 +31,9 @@ Keep content visible immediately, preserve keyboard focus indicators, and honor 
 Use the installed `@heroicons/vue` library for all interface icons through the shared `Icon` component. Do not draw SVG paths or use text characters as icons. Underline link labels only; keep icons separate. Hover feedback should use restrained color changes without lifting buttons or adding shadows.
 
 The founder introduction and walkthrough video is a future content task tracked in `FUTURE_PLANS.md`.
+
+## Authentication pages
+
+Login, registration, password recovery, password reset, password confirmation, and email verification share an open ivory-and-white layout. Reuse the flat hero illustration on desktop; prioritize the form on narrow screens. Keep inputs and buttons shadow-free, use Heroicons for controls, and retain visible keyboard focus.
+
+Group registration into account and profile details, with an explicit student/company choice. Show field errors, submission states, and password visibility controls consistently. Preserve existing authentication endpoints and validation rules; leave login fields empty and never display demo credentials.

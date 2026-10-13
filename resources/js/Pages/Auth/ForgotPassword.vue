@@ -1,62 +1,44 @@
 <template>
-    <div class="mb-4 text-sm text-gray-600">
-        Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.
-    </div>
-
-    <div v-if="status" class="mb-4 font-medium text-sm text-green-600">
-        {{ status }}
-    </div>
-
-    <breeze-validation-errors class="mb-4" />
-
-    <form @submit.prevent="submit">
-        <div>
-            <breeze-label for="email" value="Email" />
-            <breeze-input id="email" type="email" class="mt-1 block w-full" v-model="form.email" required autofocus autocomplete="username" />
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <breeze-button :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                Email Password Reset Link
-            </breeze-button>
-        </div>
-    </form>
+	<header class="auth-heading">
+		<p class="auth-kicker">A fresh start</p>
+		<h1>Let’s get you<br />back in.</h1>
+		<p>Enter the email address you use for Internly. We’ll send you a link to reset your password.</p>
+	</header>
+	<auth-feedback :status="status" :errors="form.errors" />
+	<form @submit.prevent="submit" :aria-busy="form.processing">
+		<auth-field id="email" label="Email address" type="email" v-model="form.email" :error="form.errors.email" placeholder="you@example.com" required autofocus autocomplete="username" />
+		<breeze-button class="auth-submit-spaced" :disabled="form.processing">{{ form.processing ? 'Sending link…' : 'Send reset link' }}<icon name="arrow-right" /></breeze-button>
+	</form>
+	<p class="auth-switch">Remember your password? <Link :href="route('login')" class="auth-link focus-ring">Back to log in</Link></p>
 </template>
 
 <script>
-    import { useForm } from '@inertiajs/vue3';
-    import BreezeButton from '@/Components/Breeze/Button.vue'
-    import BreezeGuestLayout from "@/Layouts/Guest.vue"
-    import BreezeInput from '@/Components/Breeze/Input.vue'
-    import BreezeLabel from '@/Components/Breeze/Label.vue'
-    import BreezeValidationErrors from '@/Components/ValidationErrors.vue'
+import { useForm } from '@inertiajs/vue3';
+import AuthField from '@/Components/Auth/Field.vue';
+import AuthFeedback from '@/Components/Auth/Feedback.vue';
+import BreezeButton from '@/Components/Breeze/Button.vue';
+import BreezeGuestLayout from '@/Layouts/Guest.vue';
+export default {
+	layout: BreezeGuestLayout,
 
-    export default {
-        layout: BreezeGuestLayout,
+	components: { AuthField, AuthFeedback, BreezeButton },
 
-        components: {
-            BreezeButton,
-            BreezeInput,
-            BreezeLabel,
-            BreezeValidationErrors,
-        },
+	props: {
+		status: String
+	},
 
-        props: {
-            status: String
-        },
+	data() {
+		return {
+			form: useForm({
+				email: ''
+			})
+		}
+	},
 
-        data() {
-            return {
-                form: useForm({
-                    email: ''
-                })
-            }
-        },
-
-        methods: {
-            submit() {
-                this.form.post(this.route('password.email'))
-            }
-        }
-    }
+	methods: {
+		submit() {
+			this.form.post(this.route('password.email'))
+		}
+	}
+}
 </script>

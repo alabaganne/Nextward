@@ -1,56 +1,42 @@
 <template>
-    <div class="mb-4 text-sm text-gray-600">
-        This is a secure area of the application. Please confirm your password before continuing.
-    </div>
-
-    <breeze-validation-errors class="mb-4" />
-
-    <form @submit.prevent="submit">
-        <div>
-            <breeze-label for="password" value="Password" />
-            <breeze-input id="password" type="password" class="mt-1 block w-full" v-model="form.password" required autocomplete="current-password" autofocus />
-        </div>
-
-        <div class="flex justify-end mt-4">
-            <breeze-button class="ml-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                Confirm
-            </breeze-button>
-        </div>
-    </form>
+	<header class="auth-heading">
+		<p class="auth-kicker">One quick check</p>
+		<h1>Make sure<br />it’s you.</h1>
+		<p>Confirm your password to continue to this secure area of your account.</p>
+	</header>
+	<auth-feedback :errors="form.errors" />
+	<form @submit.prevent="submit" :aria-busy="form.processing">
+		<auth-field id="password" label="Password" type="password" v-model="form.password" :error="form.errors.password" required autocomplete="current-password" autofocus />
+		<breeze-button class="auth-submit-spaced" :disabled="form.processing">{{ form.processing ? 'Confirming…' : 'Confirm password' }}<icon name="arrow-right" /></breeze-button>
+	</form>
+	<p class="auth-switch"><Link :href="route('dashboard')" class="auth-link focus-ring">Back to your dashboard</Link></p>
 </template>
 
 <script>
-    import { useForm } from '@inertiajs/vue3';
-    import BreezeButton from '@/Components/Breeze/Button.vue'
-    import BreezeGuestLayout from "@/Layouts/Guest.vue"
-    import BreezeInput from '@/Components/Breeze/Input.vue'
-    import BreezeLabel from '@/Components/Breeze/Label.vue'
-    import BreezeValidationErrors from '@/Components/ValidationErrors.vue'
+import { useForm } from '@inertiajs/vue3';
+import AuthField from '@/Components/Auth/Field.vue';
+import AuthFeedback from '@/Components/Auth/Feedback.vue';
+import BreezeButton from '@/Components/Breeze/Button.vue';
+import BreezeGuestLayout from '@/Layouts/Guest.vue';
+export default {
+	layout: BreezeGuestLayout,
 
-    export default {
-        layout: BreezeGuestLayout,
+	components: { AuthField, AuthFeedback, BreezeButton },
 
-        components: {
-            BreezeButton,
-            BreezeInput,
-            BreezeLabel,
-            BreezeValidationErrors,
-        },
+	data() {
+		return {
+			form: useForm({
+				password: '',
+			})
+		}
+	},
 
-        data() {
-            return {
-                form: useForm({
-                    password: '',
-                })
-            }
-        },
-
-        methods: {
-            submit() {
-                this.form.post(this.route('password.confirm'), {
-                    onFinish: () => this.form.reset(),
-                })
-            }
-        }
-    }
+	methods: {
+		submit() {
+			this.form.post(this.route('password.confirm'), {
+				onFinish: () => this.form.reset(),
+			})
+		}
+	}
+}
 </script>
