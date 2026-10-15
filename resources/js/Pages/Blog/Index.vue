@@ -1,51 +1,51 @@
 <template>
 	<public-layout>
-		<section class="bg-white border-b border-gray-200">
-			<div class="max-w-7xl mx-auto px-6 py-16 lg:py-20">
-				<div class="max-w-3xl">
-					<div class="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm font-semibold border border-blue-100">Nextward Career Guides</div>
-					<h1 class="mt-6 text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight">Career guides for students and professionals</h1>
-					<p class="mt-6 text-lg text-gray-600 leading-8">Practical guides on finding internships and jobs, writing stronger applications, hiring candidates, and keeping your next career move organized.</p>
-				</div>
-			</div>
-		</section>
-
-		<section class="max-w-7xl mx-auto px-6 py-14">
-			<div class="grid md:grid-cols-2 gap-6">
-				<article v-for="post in posts" :key="post.slug" class="bg-white border border-gray-200 rounded-3xl p-7 shadow-xs hover:shadow-md transition">
-					<div class="flex items-center justify-between gap-4 text-sm">
-						<span class="px-3 py-1 rounded-full bg-blue-50 text-blue-700 font-semibold">{{ post.category }}</span>
-						<span class="text-gray-500">{{ post.read_time }}</span>
+		<div class="landing">
+			<section aria-labelledby="guides-title" class="hero-dark">
+				<div class="hero-grid public-container">
+					<div>
+						<p class="landing-label"><span class="label-dot" aria-hidden="true"></span>Nextward career guides</p>
+						<h1 id="guides-title" class="hero-title">Career guides for students and professionals</h1>
+						<p class="hero-lead">Practical guides on finding internships and jobs, writing stronger applications, hiring candidates, and keeping your next career move organized.</p>
 					</div>
-					<h2 class="mt-5 text-2xl font-extrabold text-gray-900 leading-tight">
-						<Link :href="route('blog.show', post.slug)" class="hover:text-blue-700">{{ post.title }}</Link>
-					</h2>
-					<p class="mt-4 text-gray-600 leading-7">{{ post.excerpt }}</p>
-					<div class="mt-6 flex items-center justify-between">
-						<span class="text-sm text-gray-500">Published {{ formatDate(post.published_at) }}</span>
-						<Link :href="route('blog.show', post.slug)" class="inline-flex items-center gap-2 font-semibold text-blue-700 hover:text-blue-800">Read guide <icon name="arrow-right" class="h-4 w-4" /></Link>
-					</div>
-				</article>
-			</div>
-		</section>
-
-		<section class="max-w-7xl mx-auto px-6 pb-16">
-			<div class="rounded-3xl bg-gray-900 text-white p-8 md:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-				<div>
-					<h2 class="text-2xl md:text-3xl font-extrabold">Ready to explore your next opportunity?</h2>
-					<p class="mt-3 text-gray-300 leading-7">Browse internships and jobs in Tunisia and worldwide, and check where each application takes place.</p>
+					<figure class="hero-stage guides-stage">
+						<img src="/nextward-assets/mascots/11-learning-books-and-cap.svg" alt="" width="768" height="768" fetchpriority="high" />
+						<Sparkle style="top: 16%; left: 14%; --i: 0" />
+						<Sparkle class="is-sky" style="top: 10%; right: 12%; width: 16px; height: 16px; --i: 1" />
+					</figure>
 				</div>
-				<Link :href="route('opportunities.index')" class="px-6 py-3 rounded-xl bg-white text-gray-900 font-semibold text-center hover:bg-gray-100 transition">Browse opportunities</Link>
-			</div>
-		</section>
+			</section>
+
+			<section class="public-container py-16" aria-label="All guides">
+				<div class="guide-list !mt-0">
+					<Link v-for="post in posts" :key="post.slug" :href="route('blog.show', post.slug)" class="guide-row focus-ring">
+						<span class="guide-category">{{ post.category }}</span>
+						<div><h2 class="guide-title">{{ post.title }}</h2><p>{{ post.excerpt }}</p></div>
+						<span class="guide-time">{{ formatDate(post.published_at) }}<br />{{ post.read_time }}</span>
+						<icon name="arrow-up-right" class="guide-arrow" />
+					</Link>
+				</div>
+			</section>
+
+			<section class="closing-band">
+				<div class="public-container flex flex-col md:flex-row md:items-center md:justify-between gap-6 py-14">
+					<div>
+						<h2 class="section-title">Ready to explore your next opportunity?</h2>
+						<p class="mt-3 leading-7">Browse internships and jobs in Tunisia and worldwide, and check where each application takes place.</p>
+					</div>
+					<Link :href="route('opportunities.index')" class="cta cta-light focus-ring">Browse opportunities</Link>
+				</div>
+			</section>
+		</div>
 	</public-layout>
 </template>
 
 <script>
 import PublicLayout from '@/Layouts/Public.vue'
+import Sparkle from '@/Shared/Sparkle.vue'
 
 export default {
-	components: { PublicLayout },
+	components: { PublicLayout, Sparkle },
 	props: {
 		posts: { type: Array, required: true },
 	},
@@ -56,3 +56,12 @@ export default {
 	}
 }
 </script>
+
+<style scoped>
+.guides-stage { width: min(100%, 320px); justify-self: center; }
+.guide-title { font-size: 21px; font-weight: 500; line-height: 1.4; letter-spacing: -.025em; }
+.guide-row:hover .guide-title { color: var(--color-brand); }
+@media (max-width: 767px) {
+	.guide-title { font-size: 19px; }
+}
+</style>

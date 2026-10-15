@@ -28,3 +28,7 @@ Both loops are silent, 1200 × 800, six seconds, and 30 fps. Use WebM on arbitra
 `manifest.json` lists all twelve files, their public URLs, dimensions, file sizes, and SHA-256 checksums. The public copies match the original generated assets exactly.
 
 The new logo lives in `/brand/nextward/`. The complete implementation prompt is `LANDING_PAGE_IMPLEMENTATION_PROMPT.md` at the project root. Original prompts, previews, validation results, and editable HyperFrames sources remain under `output/nextward-assets/`.
+
+## Mascots
+
+`mascots/` holds the cartoon pack from `brand/cartoon-assets-2026-10-14/`, used on the public landing pages. Files 01–16 are the editable SVGs (small, sharp at any size). Files 17–20 are WebP copies of the large PNGs: 17 and 18 are 900 × 900 with transparency, 19 is the 1672 × 941 workspace background with an empty left side for text, and 20 is the 941 × 1672 portrait background.

@@ -50,6 +50,20 @@ class PageSmokeTest extends TestCase
                 ->has('internship.company.name'));
     }
 
+    public function test_audience_pages_link_to_working_searches(): void
+    {
+        foreach (['/for-students' => ['Audience/Students', 6], '/fr/for-professionals' => ['Audience/Professionals', 8]] as $uri => [$component, $count]) {
+            $shortcuts = $this->get($uri)
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page->component($component)->has('shortcuts', $count))
+                ->viewData('page')['props']['shortcuts'];
+
+            foreach ($shortcuts as $shortcut) {
+                $this->get($shortcut['path'].($shortcut['query'] ? '?'.$shortcut['query'] : ''))->assertOk();
+            }
+        }
+    }
+
     public function test_workspace_pages_render_for_students(): void
     {
         $student = $this->student();

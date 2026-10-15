@@ -10,7 +10,7 @@ import PageHead from './Shared/PageHead.vue';
 import reveal from './directives/reveal';
 
 const pages = import.meta.glob('./Pages/**/*.vue');
-const publicPages = ['Welcome', 'Audience', 'About', 'Contact', 'Blog/Index', 'Blog/Show'];
+const publicPages = ['Welcome', 'Audience/Students', 'Audience/Professionals', 'About', 'Contact', 'Blog/Index', 'Blog/Show'];
 createInertiaApp({
     resolve: async (name) => {
         const module = await pages[`./Pages/${name}.vue`]();

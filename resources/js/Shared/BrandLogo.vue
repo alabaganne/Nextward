@@ -1,7 +1,7 @@
 <template>
 	<span class="inline-flex shrink-0 flex-col" :class="stacked ? 'items-center gap-2 text-center' : 'items-start gap-1'">
 		<img
-			src="/brand/nextward/Nextward-colorful-symbol.png"
+			src="/brand/nextward/symbol-192.png"
 			alt="Nextward"
 			:width="height"
 			:height="height"

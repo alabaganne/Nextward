@@ -1,4 +1,4 @@
-# Cartoon asset studio — MenuMate / Nextwand
+# Cartoon asset studio — MenuMate / Nextward
 
 Each brand pack contains **20 unique assets**. SVG and PNG versions of the same illustration count as one asset.
 
@@ -33,12 +33,12 @@ PNG characters are flattened: independently moving limbs requires manual separat
 
 The decorative QR pattern is **not a functional QR code**. Replace it with a tested code pointing to the intended real restaurant menu before publishing a scannable asset. Device screens are conceptual artwork, not exact product screenshots. The set does not imply online payments or completed customer purchases.
 
-### Nextwand
+### Nextward
 - Student introduction: student presenter + CV + portfolio + discover internship scene.
 - Application tutorial: listing board + prepare application + envelope + your real application screen.
 - Company tutorial: recruiter + application review + conversation + first-day celebration.
 
-Nextwand is the current name supplied for the product previously called Internly. New assets use Nextwand naming. No change was made to the live website, repository or existing brand logo. The wand/star is an illustrative metaphor, not a replacement official logo.
+Nextward is the current name supplied for the product previously called Internly. New assets use Nextward naming. No change was made to the live website, repository or existing brand logo. The wand/star is an illustrative metaphor, not a replacement official logo.
 
 ## Layout tips
 - Landscape scenes: use for 16:9 explainers; preserve their intended empty caption area.

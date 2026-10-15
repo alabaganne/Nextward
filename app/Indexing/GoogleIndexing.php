@@ -81,7 +81,7 @@ class GoogleIndexing
 
         $pending = DB::table('indexing_notifications')->find($id);
         if (!$pending) return;
-        Cache::lock('internly:indexing:url:'.hash('sha256', $pending->url), 90)->get(function () use ($id) {
+        Cache::lock('nextward:indexing:url:'.hash('sha256', $pending->url), 90)->get(function () use ($id) {
             $row = DB::table('indexing_notifications')->find($id);
             if (!$row || !in_array($row->status, ['pending', 'queued'], true)) return;
             if ($row->available_at && \Illuminate\Support\Carbon::parse($row->available_at)->isFuture()) return;
@@ -103,9 +103,9 @@ class GoogleIndexing
             }
             try {
                 $this->validateUrl($row->url);
-                $quotaKey = 'internly:indexing:daily';
+                $quotaKey = 'nextward:indexing:daily';
                 $token = $this->accessToken();
-                $reserved = Cache::lock('internly:indexing:quota', 10)->get(function () use ($quotaKey) {
+                $reserved = Cache::lock('nextward:indexing:quota', 10)->get(function () use ($quotaKey) {
                     if (RateLimiter::tooManyAttempts($quotaKey, max(1, (int) config('importer.indexing_daily_limit', 200)))) return false;
                     RateLimiter::hit($quotaKey, 86400);
                     return true;

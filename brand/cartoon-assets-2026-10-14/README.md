@@ -1,12 +1,12 @@
-# Nextwand cartoon illustration library
+# Nextward cartoon illustration library
 
 16 original illustrations for a student–company internship platform: four character poses, eight oversized reusable props and four story scenes. Each is supplied as editable SVG and transparent PNG. The contact sheet is a numbered index, not a replacement for the individual files.
 
 ## Art direction
 
-Soft, white chibi characters, sweeping brown hair, bright oval eyes, small cheek accents, thick rounded dark outlines and restrained cel shading. The proportions and warmth are inspired by the supplied ABSoft mascot reference; the paths, character construction, poses, accessories and scene layouts are newly drawn. These are proposed Nextwand illustration assets, not an official logo system. The wand is a narrative metaphor, not a new logo.
+Soft, white chibi characters, sweeping brown hair, bright oval eyes, small cheek accents, thick rounded dark outlines and restrained cel shading. The proportions and warmth are inspired by the supplied ABSoft mascot reference; the paths, character construction, poses, accessories and scene layouts are newly drawn. These are proposed Nextward illustration assets, not an official logo system. The wand is a narrative metaphor, not a new logo.
 
-The current product palette informed the blue accents: primary #2563EB, deep blue #1D4ED8, light blues #DBE7FF and #B9D0FF. Coral #F78C78 is an illustration interpretation of the site's coral star accent. Brown, cream and blush support the mascot style. No font files or type dependencies are required. Product reference: https://internly.alabaganne.com/ (the product is named Nextwand in this pack).
+The current product palette informed the blue accents: primary #2563EB, deep blue #1D4ED8, light blues #DBE7FF and #B9D0FF. Coral #F78C78 is an illustration interpretation of the site's coral star accent. Brown, cream and blush support the mascot style. No font files or type dependencies are required. Product reference: https://internly.alabaganne.com/ (the product is named Nextward in this pack).
 
 ## Files
 
