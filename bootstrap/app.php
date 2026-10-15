@@ -32,7 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->respond(function (Response $response, Throwable $exception, Request $request) {
             $status = $response->getStatusCode();
 
-            if ($status === 419) {
+            if ($status === 419 && ! $request->expectsJson()) {
                 return back()->with('toast', ['type' => 'error', 'message' => 'Your session expired. Please try again.']);
             }
 

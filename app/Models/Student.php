@@ -53,4 +53,8 @@ class Student extends Model
     public function likes() {
         return $this->belongsToMany(Internship::class, 'likes');
     }
+
+    public function openedOpportunities() { // external links the candidate clicked
+        return $this->belongsToMany(Internship::class, 'opportunity_views')->withPivot('viewed_at');
+    }
 }

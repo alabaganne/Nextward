@@ -8,6 +8,7 @@ import Icon from './Shared/Icon.vue';
 import BrandLogo from './Shared/BrandLogo.vue';
 import PageHead from './Shared/PageHead.vue';
 import reveal from './directives/reveal';
+import { startActivitySync } from './composables/useOpportunityActivity';
 
 const pages = import.meta.glob('./Pages/**/*.vue');
 const publicPages = ['Welcome', 'Audience/Students', 'Audience/Professionals', 'About', 'Contact', 'Blog/Index', 'Blog/Show'];
@@ -28,6 +29,7 @@ createInertiaApp({
         app.component('Icon', Icon);
         app.component('BrandLogo', BrandLogo);
         app.mount(el);
+        startActivitySync(page);
     },
     progress: { color: '#2563eb' },
 });
