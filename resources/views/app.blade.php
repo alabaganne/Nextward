@@ -4,9 +4,8 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <link rel="icon" href="/favicon.ico?v=20261013-symbol" sizes="any">
-        <link rel="icon" href="/brand/nextward/favicon.svg?v=20261013-symbol" type="image/svg+xml">
-        <link rel="apple-touch-icon" href="/brand/nextward/apple-touch-icon.png?v=20261013-symbol">
+        <link rel="icon" href="/brand/nextward/Nextward-colorful-symbol.png" type="image/png" sizes="1254x1254">
+        <link rel="apple-touch-icon" href="/brand/nextward/Nextward-colorful-symbol.png">
         <meta name="theme-color" content="#2563EB">
 
         <!-- Fonts: Inter for public pages, Plus Jakarta Sans for the workspace, and Space Grotesk for headings. -->

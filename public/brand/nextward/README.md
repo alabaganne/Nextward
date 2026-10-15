@@ -1,9 +1,9 @@
-# Nextward brand assets
+# Nextward website logo
 
-The symbol is the supplied blue N and sparkle from `assets/nextwand-logo/nextwand-symbol.png`. The original source is preserved. The Nextward wordmark remains outlined Space Grotesk SemiBold.
+The current approved logo is `Nextward-colorful-symbol.png`: a flowing blue, violet and coral-orange emblem with no text. This is the original 1254 × 1254 RGBA PNG, with its transparency and artwork unchanged.
 
-Use logo.svg on light surfaces and logo-dark.svg on dark surfaces through BrandLogo. Both are 258 by 64. Wordmarks are 188 by 64, symbols are 64 by 64. Preserve aspect ratios and clear space. The SVG files embed a compact PNG export of the supplied symbol, with no external font or image dependency.
+`resources/js/Shared/BrandLogo.vue` uses this symbol on both light and dark surfaces. Its small, medium and large sizes are 40, 48 and 56 CSS pixels respectively. Keep the image square, preserve transparency, and use `alt="Nextward"` when it labels a home link. The public header, footer, authentication header and workspace sidebar share this component.
 
-The symbol keeps its original blue in every variant. Light-surface wordmarks use navy, dark-surface wordmarks use white. The existing mono and white filenames remain compatible, with the same supplied blue symbol.
+The document head also references this PNG for the browser and Apple touch icons.
 
-Included: horizontal SVG logos, symbol and wordmark variants, transparent PNG exports, SVG/ICO favicons and an Apple touch icon. Symbol exports remove excess transparent margins while retaining the complete visible artwork. The source font license is OFL-Space-Grotesk.txt. Font source: https://github.com/google/fonts/tree/main/ofl/spacegrotesk.
+The older blue N, wordmark, SVG/ICO variants and `preview.html` remain as legacy brand references. They are no longer used by the shared website logo or document icon links. The existing font license applies to those older wordmark assets.
