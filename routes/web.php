@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ApplicationController;
+use App\Http\Controllers\BlogController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FieldController;
@@ -14,7 +15,9 @@ use App\Http\Controllers\SkillController;
 use App\Http\Controllers\StudentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\PublicCompanyController;
 use App\Http\Controllers\PublicPageController;
+use App\Http\Controllers\SeoFilesController;
 use App\Http\Controllers\SitemapController;
 
 /*
@@ -31,15 +34,13 @@ use App\Http\Controllers\SitemapController;
 require __DIR__.'/auth.php';
 
 
-Route::get('/robots.txt', function () {
-    return response("User-agent: *
-Allow: /
-Sitemap: " . rtrim(config('app.url'), '/').'/sitemap.xml' . "
-", 200)->header('Content-Type', 'text/plain');
-});
+Route::get('/robots.txt', [SeoFilesController::class, 'robots']);
+Route::get('/llms.txt', [SeoFilesController::class, 'llms']);
+Route::get('/indexnow-key.txt', [SeoFilesController::class, 'indexNowKey']);
 
 Route::get('/sitemap.xml', [SitemapController::class, 'index']);
 Route::get('/sitemaps/pages.xml', [SitemapController::class, 'pages']);
+Route::get('/sitemaps/companies.xml', [SitemapController::class, 'companies']);
 Route::get('/sitemaps/opportunities-{page}.xml', [SitemapController::class, 'opportunities'])->whereNumber('page');
 
 Route::get('/', [PublicPageController::class, 'home'])->name('home');
@@ -51,32 +52,28 @@ Route::prefix('fr')->name('fr.')->group(function () {
     Route::get('/for-professionals', [PublicPageController::class, 'audience'])->defaults('audience', 'professionals')->name('professionals');
     Route::get('/opportunities', [InternshipController::class, 'index'])->name('opportunities');
     Route::get('/opportunities/{category}', [InternshipController::class, 'index'])->whereIn('category', ['internships', 'jobs', 'tunisia', 'remote-from-tunisia', 'relocation'])->name('category');
+    Route::inertia('/about', 'About')->name('about');
+    Route::inertia('/contact', 'Contact')->name('contact');
 });
 Route::inertia('/about', 'About')->name('about');
 Route::inertia('/contact', 'Contact')->name('contact');
 
-Route::get('/blog', function () {
-    return Inertia::render('Blog/Index', [
-        'posts' => config('nextward_blog'),
-    ]);
-})->name('blog.index');
-
-Route::get('/blog/{slug}', function (string $slug) {
-    $post = collect(config('nextward_blog'))->firstWhere('slug', $slug);
-
-    abort_unless($post, 404);
-
-    return Inertia::render('Blog/Show', [
-        'post' => $post,
-        'related' => collect(config('nextward_blog'))->where('slug', '!=', $slug)->take(3)->values(),
-    ]);
-})->name('blog.show');
+foreach (['' => '', 'fr' => 'fr.'] as $prefix => $name) {
+    Route::prefix($prefix)->name($name)->group(function () {
+        Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
+        Route::get('/blog/feed.xml', [BlogController::class, 'feed'])->name('blog.feed');
+        Route::get('/blog/{slug}.md', [BlogController::class, 'markdown'])->where('slug', '[a-z0-9-]+')->name('blog.markdown');
+        Route::get('/blog/{slug}', [BlogController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('blog.show');
+    });
+}
 
 Route::get('/opportunities', [InternshipController::class, 'index'])->name('opportunities.index');
 Route::get('/opportunities/{category}', [InternshipController::class, 'index'])
     ->whereIn('category', ['internships', 'jobs', 'tunisia', 'remote-from-tunisia', 'relocation'])->name('opportunities.category');
 Route::get('/opportunities/{opportunity}', [InternshipController::class, 'publicShow'])
     ->where('opportunity', '[0-9]+(?:-[a-z0-9-]+)?')->name('opportunities.show');
+Route::get('/companies/{companySlug}', [PublicCompanyController::class, 'show'])
+    ->where('companySlug', '[0-9]+-[a-z0-9-]+')->name('companies.public');
 Route::get('/internships', function (\Illuminate\Http\Request $request) {
     $query = $request->only('search', 'fields', 'cities', 'companies', 'page', 'work_type', 'country');
     return redirect('/opportunities/internships'.($query ? '?'.http_build_query($query) : ''), 301);

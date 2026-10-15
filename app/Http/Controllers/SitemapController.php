@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\Internship;
+use App\Support\Blog;
 
 class SitemapController extends Controller
 {
@@ -13,6 +15,9 @@ class SitemapController extends Controller
         $pages = (int) ceil(Internship::available()->count() / self::CHUNK_SIZE);
         $xml = '<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
         $xml .= '<sitemap><loc>'.e(rtrim(config('app.url'), '/').'/sitemaps/pages.xml').'</loc></sitemap>';
+        if (Company::publicIndexable()->exists()) {
+            $xml .= '<sitemap><loc>'.e(rtrim(config('app.url'), '/').'/sitemaps/companies.xml').'</loc></sitemap>';
+        }
         for ($page = 1; $page <= $pages; $page++) {
             $xml .= '<sitemap><loc>'.e(rtrim(config('app.url'), '/').'/sitemaps/opportunities-'.$page.'.xml').'</loc></sitemap>';
         }
@@ -21,7 +26,9 @@ class SitemapController extends Controller
 
     public function pages()
     {
-        $paths = ['/', '/for-students', '/for-professionals', '/opportunities', '/about', '/contact', '/blog', '/fr', '/fr/for-students', '/fr/for-professionals', '/fr/opportunities'];
+        $base = rtrim(config('app.url'), '/');
+        $paths = ['/', '/for-students', '/for-professionals', '/opportunities', '/about', '/contact', '/blog'];
+        $paths = [...$paths, ...array_map(fn ($path) => $path === '/' ? '/fr' : '/fr'.$path, $paths)];
         foreach (['internships', 'jobs', 'tunisia', 'remote-from-tunisia', 'relocation'] as $category) {
             $query = Internship::available()->searchFilters(['category' => $category]);
             if ($query->exists()) {
@@ -29,8 +36,20 @@ class SitemapController extends Controller
                 $paths[] = '/fr/opportunities/'.$category;
             }
         }
-        foreach (config('nextward_blog') as $post) $paths[] = '/blog/'.$post['slug'];
-        return $this->urlset(collect($paths)->map(fn ($path) => ['url' => rtrim(config('app.url'), '/').$path]));
+        $rows = collect($paths)->map(fn ($path) => ['url' => $base.$path]);
+        foreach (Blog::LOCALES as $locale) {
+            foreach (Blog::all($locale) as $post) {
+                if (!$post['draft']) $rows->push(['url' => Blog::url($post), 'modified' => $post['updated_at']]);
+            }
+        }
+        return $this->urlset($rows);
+    }
+
+    public function companies()
+    {
+        $rows = Company::publicIndexable()->get();
+        abort_if($rows->isEmpty(), 404);
+        return $this->urlset($rows->map(fn ($company) => ['url' => $company->public_url, 'modified' => $company->updated_at?->toIso8601String()]));
     }
 
     public function opportunities(int $page)

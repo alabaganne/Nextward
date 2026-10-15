@@ -1,0 +1,12 @@
+{
+    "name": "Nextward",
+    "short_name": "Nextward",
+    "description": "Internships and jobs in Tunisia and worldwide.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0A1738",
+    "theme_color": "#2563EB",
+    "icons": [
+        { "src": "/brand/nextward/Nextward-colorful-symbol.png", "sizes": "1254x1254", "type": "image/png", "purpose": "any" }
+    ]
+}

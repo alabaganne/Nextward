@@ -1,6 +1,20 @@
 <?php
 
 return [
+    'brand' => [
+        'description' => 'Nextward is a job and internship platform for students and professionals in Tunisia. It lists internships (PFE, summer), first jobs and experienced roles in Tunisia and remote roles open to Tunisia, from employers and approved public sources.',
+        'email' => 'alabaganne9@gmail.com',
+        'logo' => '/brand/nextward/Nextward-colorful-symbol.png',
+        'og_image' => '/brand/nextward/og-default.png',
+        // Brand profiles (LinkedIn, Facebook, Instagram...), comma separated
+        'same_as' => array_values(array_filter(array_map('trim', explode(',', (string) env('NEXTWARD_SOCIAL_LINKS', ''))))),
+        'founder' => [
+            'name' => 'Ala Baganne',
+            'url' => 'https://www.alabaganne.com/',
+            'same_as' => ['https://www.linkedin.com/in/alabaganne/'],
+        ],
+    ],
+
     'en' => [
         'home' => ['title' => 'Internships and jobs in Tunisia and worldwide | Nextward', 'description' => 'Find internships and jobs for students and professionals in Tunisia and worldwide. Explore locations, eligibility, sources, and application details.'],
         'students' => ['title' => 'Nextward for students: internships and first jobs', 'description' => 'Find a PFE, summer internship, graduate programme, or first job. Explore opportunities in Tunisia and abroad with clear requirements.'],
@@ -25,5 +39,8 @@ return [
         'tunisia' => ['title' => 'Stages et emplois en Tunisie | Nextward', 'description' => 'Consultez les stages et les emplois en Tunisie. Recherchez par domaine, ville, mode de travail et niveau d’expérience.'],
         'remote-from-tunisia' => ['title' => 'Télétravail accessible depuis la Tunisie | Nextward', 'description' => 'Découvrez les offres à distance dont les conditions autorisent explicitement le travail depuis la Tunisie. Vérifiez les restrictions de chaque offre.'],
         'relocation' => ['title' => 'Emplois à l’étranger avec aide à la mobilité | Nextward', 'description' => 'Découvrez les offres avec une aide à la mobilité annoncée. Le parrainage de visa est indiqué séparément lorsqu’il est confirmé.'],
+        'about' => ['title' => 'À propos de Nextward | Stages et emplois en Tunisie', 'description' => 'Nextward aide les étudiants et les professionnels à trouver des stages et des emplois en Tunisie et à l’international, avec des sources claires.'],
+        'contact' => ['title' => 'Contacter Nextward', 'description' => 'Contactez Nextward au sujet d’une offre, d’un partenariat de source, d’un recrutement ou d’un problème avec une annonce.'],
+        'blog' => ['title' => 'Guides carrière pour étudiants et professionnels | Nextward', 'description' => 'Conseils pratiques pour trouver un stage ou un emploi en Tunisie : PFE, SIVP, CV, lettre de motivation, entretien et télétravail.'],
     ],
 ];

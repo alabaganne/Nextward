@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\InternshipResource;
 use App\Models\Internship;
+use App\Support\Blog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Inertia\Inertia;
@@ -15,7 +16,7 @@ class PublicPageController extends Controller
         return Inertia::render('Welcome', [
             'locale' => $request->is('fr', 'fr/*') ? 'fr' : 'en',
             'opportunities' => InternshipResource::collection($this->recent()->limit(6)->get()),
-            'posts' => collect(config('nextward_blog'))->take(3)->values(),
+            'posts' => $this->posts($request, ['students', 'professionals', 'all']),
         ]);
     }
 
@@ -31,7 +32,7 @@ class PublicPageController extends Controller
         return Inertia::render($audience === 'students' ? 'Audience/Students' : 'Audience/Professionals', [
             'locale' => $request->is('fr', 'fr/*') ? 'fr' : 'en',
             'opportunities' => InternshipResource::collection($query->limit(6)->get()),
-            'posts' => collect(config('nextward_blog'))->filter(fn ($post) => $audience === 'students' ? in_array($post['category'], ['Students', 'Career planning']) : in_array($post['category'], ['Professionals', 'Career planning']))->take(3)->values(),
+            'posts' => $this->posts($request, [$audience, 'all']),
             'shortcuts' => $this->shortcuts($audience),
         ]);
     }
@@ -62,6 +63,12 @@ class PublicPageController extends Controller
             'query' => Arr::query(Arr::except($filters, 'category')),
             'count' => Internship::available()->searchFilters($filters)->count(),
         ])->values()->all();
+    }
+
+    private function posts(Request $request, array $audiences): array
+    {
+        return collect(Blog::all($request->is('fr', 'fr/*') ? 'fr' : 'en'))->whereIn('audience', $audiences)
+            ->reject(fn ($post) => $post['draft'])->take(3)->map(fn ($post) => Blog::summary($post))->values()->all();
     }
 
     private function recent()

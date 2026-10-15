@@ -30,12 +30,11 @@ class PageSmokeTest extends TestCase
 
     public function test_public_pages_render(): void
     {
-        foreach (['/', '/for-students', '/for-professionals', '/about', '/contact', '/blog', '/opportunities', '/opportunities/internships', '/opportunities/jobs', '/login', '/register'] as $uri) {
+        foreach (['/', '/for-students', '/for-professionals', '/about', '/contact', '/blog', '/fr/about', '/fr/contact', '/fr/blog', '/opportunities', '/opportunities/internships', '/opportunities/jobs', '/login', '/register'] as $uri) {
             $this->get($uri)->assertOk();
         }
 
-        $slug = collect(config('nextward_blog'))->first()['slug'];
-        $this->get("/blog/{$slug}")->assertOk();
+        $this->get(\App\Support\Blog::all('en')[0]['path'])->assertOk();
 
         $internship = Internship::firstOrFail();
         $this->get('/internships')->assertStatus(301)->assertRedirect('/opportunities/internships');

@@ -93,9 +93,9 @@ const faqs = computed(() => [
             </section>
 
             <section v-if="posts.length" class="public-container py-20" aria-labelledby="student-guides-title">
-                <p class="landing-label">{{ text('Career guides', 'Guides carrière en anglais') }}</p>
+                <p class="landing-label">{{ text('Career guides', 'Guides carrière') }}</p>
                 <h2 id="student-guides-title" class="section-title">{{ text('Prepare your next application', 'Préparez votre prochaine candidature') }}</h2>
-                <div class="guide-list"><Link v-for="post in posts" :key="post.slug" :href="`/blog/${post.slug}`" class="guide-row focus-ring" lang="en"><span class="guide-category">{{ post.category }}</span><div><h3>{{ post.title }}</h3><p>{{ post.excerpt }}</p></div><span class="guide-time">{{ post.read_time }}</span><Icon name="arrow-up-right" class="guide-arrow" /></Link></div>
+                <div class="guide-list"><Link v-for="post in posts" :key="post.slug" :href="post.path" class="guide-row focus-ring" :lang="post.locale"><span class="guide-category">{{ post.category }}</span><div><h3>{{ post.title }}</h3><p>{{ post.excerpt }}</p></div><span class="guide-time">{{ post.read_time }} {{ text('min read', 'min de lecture') }}</span><Icon name="arrow-up-right" class="guide-arrow" /></Link></div>
             </section>
 
             <section class="closing-band">

@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\Company;
 use App\Models\Internship;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -10,7 +11,7 @@ class PublicSeo
 {
     public static function isPublic(Request $request): bool
     {
-        return $request->routeIs('home', 'about', 'contact', 'blog.*', 'audience.*', 'opportunities.index', 'opportunities.category', 'opportunities.show', 'fr.*');
+        return $request->routeIs('home', 'about', 'contact', 'blog.*', 'audience.*', 'opportunities.index', 'opportunities.category', 'opportunities.show', 'companies.public', 'fr.*');
     }
 
     public static function forRequest(Request $request): array
@@ -24,31 +25,125 @@ class PublicSeo
         };
         $copy = $texts[$key] ?? ['title' => 'Nextward', 'description' => ''];
         $seo = self::base($request, $copy['title'], $copy['description'], self::isPublic($request));
-        if (in_array($key, ['home', 'students', 'professionals'], true)) {
+        if ($key) {
             $seo['alternates'] = self::alternates($path);
         }
         if ($key === 'home') {
-            $seo['structured_data'] = [[
-                '@context' => 'https://schema.org', '@type' => 'WebSite', 'name' => 'Nextward', 'url' => self::url('/'),
+            $seo['structured_data'] = [self::organization(), [
+                '@context' => 'https://schema.org', '@type' => 'WebSite', '@id' => self::url('/').'#website', 'name' => 'Nextward', 'url' => self::url('/'),
+                'inLanguage' => $fr ? 'fr' : 'en', 'publisher' => ['@id' => self::url('/').'#organization'],
                 'potentialAction' => ['@type' => 'SearchAction', 'target' => self::url('/opportunities').'?search={search_term_string}', 'query-input' => 'required name=search_term_string'],
             ]];
         }
-        if ($request->routeIs('blog.show')) {
-            $post = collect(config('nextward_blog'))->firstWhere('slug', $request->route('slug'));
-            if ($post) {
-                $seo['title'] = $post['title'].' | Nextward';
-                $seo['description'] = $post['description'];
-                $seo['type'] = 'article';
-                $seo['structured_data'] = [[
-                    '@context' => 'https://schema.org', '@type' => 'Article', 'headline' => $post['title'],
-                    'description' => $post['description'], 'datePublished' => $post['published_at'],
-                    'dateModified' => $post['published_at'], 'mainEntityOfPage' => $seo['canonical'],
-                    'author' => ['@type' => 'Person', 'name' => 'Ala Baganne', 'url' => 'https://alabaganne.com/'],
-                    'publisher' => ['@type' => 'Organization', 'name' => 'Nextward'],
-                ]];
-            }
+        if ($key === 'about') {
+            $seo['structured_data'] = [self::organization(), [
+                '@context' => 'https://schema.org', '@type' => 'AboutPage', 'name' => $copy['title'], 'url' => $seo['canonical'],
+                'inLanguage' => $fr ? 'fr' : 'en', 'about' => ['@id' => self::url('/').'#organization'],
+            ]];
+        }
+        if ($key === 'blog') {
+            $seo['structured_data'] = [[
+                '@context' => 'https://schema.org', '@type' => 'Blog', 'name' => $copy['title'], 'description' => $copy['description'],
+                'url' => $seo['canonical'], 'inLanguage' => $fr ? 'fr' : 'en', 'publisher' => ['@id' => self::url('/').'#organization'],
+                'blogPost' => collect(Blog::all($fr ? 'fr' : 'en'))->reject(fn ($post) => $post['draft'])->take(20)->map(fn ($post) => [
+                    '@type' => 'BlogPosting', 'headline' => $post['title'], 'url' => Blog::url($post), 'datePublished' => $post['published_at'],
+                ])->values()->all(),
+            ]];
         }
         return $seo;
+    }
+
+    public static function post(array $post, ?array $translation = null): array
+    {
+        $fr = $post['locale'] === 'fr';
+        $seo = self::base(request(), $post['title'].' | Nextward', $post['description'], !$post['draft']);
+        $seo['canonical'] = Blog::url($post);
+        $seo['type'] = 'article';
+        $seo['published_time'] = $post['published_at'];
+        $seo['modified_time'] = $post['updated_at'];
+        if ($post['cover']) {
+            $seo['image'] = self::url($post['cover']);
+            $seo['image_alt'] = $post['cover_alt'] ?: $post['title'];
+        }
+        if ($translation) {
+            $en = $fr ? $translation : $post;
+            $seo['alternates'] = [
+                ['lang' => 'en', 'url' => Blog::url($en)],
+                ['lang' => 'fr', 'url' => Blog::url($fr ? $post : $translation)],
+                ['lang' => 'x-default', 'url' => Blog::url($en)],
+            ];
+        }
+        $blog = self::url($fr ? '/fr/blog' : '/blog');
+        $seo['structured_data'] = [[
+            '@context' => 'https://schema.org', '@type' => 'BlogPosting', 'headline' => $post['title'],
+            'description' => $post['description'], 'image' => [$seo['image']], 'inLanguage' => $post['locale'],
+            'datePublished' => $post['published_at'], 'dateModified' => $post['updated_at'],
+            'mainEntityOfPage' => $seo['canonical'], 'url' => $seo['canonical'], 'articleSection' => $post['category'],
+            'author' => self::founder(), 'publisher' => self::organization(false), 'isPartOf' => ['@type' => 'Blog', 'url' => $blog],
+        ], [
+            '@context' => 'https://schema.org', '@type' => 'BreadcrumbList', 'itemListElement' => [
+                ['@type' => 'ListItem', 'position' => 1, 'name' => 'Nextward', 'item' => self::url($fr ? '/fr' : '/')],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => $fr ? 'Guides carrière' : 'Career guides', 'item' => $blog],
+                ['@type' => 'ListItem', 'position' => 3, 'name' => $post['title'], 'item' => $seo['canonical']],
+            ],
+        ]];
+        if ($post['faq']) {
+            $seo['structured_data'][] = [
+                '@context' => 'https://schema.org', '@type' => 'FAQPage', 'inLanguage' => $post['locale'],
+                'mainEntity' => array_map(fn ($item) => ['@type' => 'Question', 'name' => $item['q'], 'acceptedAnswer' => ['@type' => 'Answer', 'text' => $item['a']]], $post['faq']),
+            ];
+        }
+        return $seo;
+    }
+
+    public static function company(Company $company, int $openRoles): array
+    {
+        $name = $company->display_name;
+        $location = $company->city?->name ?: $company->location;
+        $about = trim(preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags((string) $company->about))));
+        $description = $openRoles
+            ? Str::limit("{$openRoles} open ".($openRoles === 1 ? 'opportunity' : 'internships and jobs')." at {$name}".($location ? " ({$location})" : '').'. '.($about ?: 'See the requirements, location and how to apply on Nextward.'), 155)
+            : Str::limit($about ?: "{$name} on Nextward: company profile and past internships and jobs.", 155);
+        $seo = self::base(request(), $name.' internships and jobs | Nextward', $description, $company->isIndexable($openRoles));
+        $seo['canonical'] = $company->public_url;
+        if ($company->logo && filter_var($company->logo, FILTER_VALIDATE_URL)) {
+            $seo['image'] = $company->logo;
+            $seo['image_alt'] = $name;
+        }
+        $seo['structured_data'] = [array_filter([
+            '@context' => 'https://schema.org', '@type' => 'Organization', 'name' => $name, 'url' => $company->public_url,
+            'description' => $about ? Str::limit($about, 500) : null,
+            'sameAs' => $company->website && filter_var($company->website, FILTER_VALIDATE_URL) ? [$company->website] : null,
+            'logo' => isset($seo['image_alt']) ? $seo['image'] : null,
+            'address' => $location || $company->country_code ? array_filter(['@type' => 'PostalAddress', 'addressLocality' => $location, 'addressCountry' => $company->country_code]) : null,
+        ]), [
+            '@context' => 'https://schema.org', '@type' => 'BreadcrumbList', 'itemListElement' => [
+                ['@type' => 'ListItem', 'position' => 1, 'name' => 'Opportunities', 'item' => self::url('/opportunities')],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => $name, 'item' => $company->public_url],
+            ],
+        ]];
+        return $seo;
+    }
+
+    public static function organization(bool $full = true): array
+    {
+        $brand = config('nextward_public.brand');
+        $organization = [
+            '@type' => 'Organization', '@id' => self::url('/').'#organization', 'name' => 'Nextward', 'url' => self::url('/'),
+            'logo' => ['@type' => 'ImageObject', 'url' => self::url($brand['logo']), 'width' => 1254, 'height' => 1254],
+        ];
+        if (!$full) return $organization;
+        return ['@context' => 'https://schema.org'] + $organization + array_filter([
+            'description' => $brand['description'], 'email' => $brand['email'],
+            'areaServed' => ['@type' => 'Country', 'name' => 'Tunisia'], 'knowsLanguage' => ['fr', 'en', 'ar'],
+            'founder' => self::founder(), 'sameAs' => $brand['same_as'] ?: null,
+        ]);
+    }
+
+    private static function founder(): array
+    {
+        $founder = config('nextward_public.brand.founder');
+        return array_filter(['@type' => 'Person', 'name' => $founder['name'], 'url' => $founder['url'], 'sameAs' => $founder['same_as'] ?: null]);
     }
 
     public static function browse(Request $request, ?string $category = null, int $total = 0): array
@@ -145,6 +240,8 @@ class PublicSeo
             'title' => $title, 'description' => $description,
             'canonical' => rtrim(config('app.url'), '/').'/'.ltrim($request->path(), '/').($query ? '?'.http_build_query($query) : ''),
             'robots' => $index ? 'index, follow, max-image-preview:large' : 'noindex, follow',
+            'image' => self::url(config('nextward_public.brand.og_image')), 'image_alt' => $request->is('fr', 'fr/*') ? 'Nextward : stages et emplois en Tunisie et à l’international' : 'Nextward: internships and jobs in Tunisia and worldwide',
+            'locale' => $request->is('fr', 'fr/*') ? 'fr_FR' : 'en_US',
             'structured_data' => [], 'alternates' => [],
         ];
     }

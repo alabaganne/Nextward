@@ -7,6 +7,9 @@
         <link rel="icon" href="/brand/nextward/Nextward-colorful-symbol.png" type="image/png" sizes="1254x1254">
         <link rel="apple-touch-icon" href="/brand/nextward/Nextward-colorful-symbol.png">
         <meta name="theme-color" content="#2563EB">
+        <link rel="manifest" href="/site.webmanifest">
+        @php($blogLocale = ($page['props']['locale'] ?? 'en') === 'fr' ? 'fr' : 'en')
+        <link rel="alternate" type="application/rss+xml" title="{{ $blogLocale === 'fr' ? 'Guides carrière Nextward' : 'Nextward career guides' }}" href="{{ $blogLocale === 'fr' ? '/fr/blog/feed.xml' : '/blog/feed.xml' }}">
 
         <!-- Fonts: Inter for public pages, Plus Jakarta Sans for the workspace, and Space Grotesk for headings. -->
         <link rel="preconnect" href="https://fonts.googleapis.com">

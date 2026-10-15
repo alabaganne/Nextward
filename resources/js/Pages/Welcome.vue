@@ -92,7 +92,7 @@ const steps = computed(() => [
                     </div>
                 </div>
             </section>
-            <section v-if="posts.length" class="guides-section public-container"><p class="landing-label">{{ text('Career guides', 'Guides carrière en anglais') }}</p><h2 class="section-title">{{ text('A little guidance goes a long way.', 'Des conseils pour avancer.') }}</h2><div class="guide-list"><Link v-for="post in posts" :key="post.slug" :href="`/blog/${post.slug}`" class="guide-row focus-ring" lang="en"><span class="guide-category">{{ post.category }}</span><div><h3>{{ post.title }}</h3><p>{{ post.excerpt }}</p></div><span class="guide-time">{{ post.read_time }}</span><Icon name="arrow-up-right" class="guide-arrow" /></Link></div></section>
+            <section v-if="posts.length" class="guides-section public-container"><p class="landing-label">{{ text('Career guides', 'Guides carrière') }}</p><h2 class="section-title">{{ text('A little guidance goes a long way.', 'Des conseils pour avancer.') }}</h2><div class="guide-list"><Link v-for="post in posts" :key="post.slug" :href="post.path" class="guide-row focus-ring" :lang="post.locale"><span class="guide-category">{{ post.category }}</span><div><h3>{{ post.title }}</h3><p>{{ post.excerpt }}</p></div><span class="guide-time">{{ post.read_time }} {{ text('min read', 'min de lecture') }}</span><Icon name="arrow-up-right" class="guide-arrow" /></Link></div></section>
         </div>
     </PublicLayout>
 </template>

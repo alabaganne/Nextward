@@ -1,12 +1,24 @@
+<script setup>
+import { computed } from 'vue';
+import { usePage } from '@inertiajs/vue3';
+import PublicLayout from '@/Layouts/Public.vue';
+import Sparkle from '@/Shared/Sparkle.vue';
+
+const page = usePage();
+const fr = computed(() => page.props.locale === 'fr');
+const prefix = computed(() => fr.value ? '/fr' : '');
+const text = (en, french) => fr.value ? french : en;
+</script>
+
 <template>
-	<public-layout>
+	<PublicLayout>
 		<div class="landing">
 			<section aria-labelledby="contact-title" class="hero-dark">
 				<div class="hero-grid public-container">
 					<div>
 						<p class="landing-label"><span class="label-dot" aria-hidden="true"></span>Contact</p>
-						<h1 id="contact-title" class="hero-title">Let’s talk about your next opportunity.</h1>
-						<p class="hero-lead">Whether you’re a student, professional, employer, source partner, or recruiter, you can reach the developer directly using the links below.</p>
+						<h1 id="contact-title" class="hero-title">{{ text('Let’s talk about your next opportunity.', 'Parlons de votre prochaine opportunité.') }}</h1>
+						<p class="hero-lead">{{ text('Whether you’re a student, professional, employer, source partner, or recruiter, you can reach the developer directly using the links below.', 'Étudiant, professionnel, employeur, partenaire ou recruteur : vous pouvez joindre directement le développeur avec les liens ci-dessous.') }}</p>
 					</div>
 					<figure class="hero-stage contact-stage">
 						<img src="/nextward-assets/mascots/04-mentor-pointing.svg" alt="" width="768" height="768" fetchpriority="high" />
@@ -18,38 +30,29 @@
 
 			<section class="public-container py-20 grid lg:grid-cols-[1.4fr_1fr] gap-14">
 				<div>
-					<h2 class="section-title !mt-0">Get in touch</h2>
-					<p class="mt-5 text-slate-600 leading-7">To request a listing correction or removal, include its URL and explain which information should change. Source owners can also contact us about permission, attribution, or approved feeds. Please do not send passwords or CV attachments with a general support message.</p>
-					<p class="mt-3 text-slate-600 leading-7">For employer posts, source partnerships, product feedback, or problems with a listing, use the contact links below. Please include the opportunity URL when reporting an issue.</p>
+					<h2 class="section-title !mt-0">{{ text('Get in touch', 'Nous écrire') }}</h2>
+					<p class="mt-5 text-slate-600 leading-7">{{ text('To request a listing correction or removal, include its URL and explain which information should change. Source owners can also contact us about permission, attribution, or approved feeds. Please do not send passwords or CV attachments with a general support message.', 'Pour corriger ou retirer une offre, indiquez son lien et ce qui doit changer. Les propriétaires de sources peuvent aussi nous écrire au sujet des autorisations, de l’attribution ou des flux. N’envoyez jamais de mot de passe ni de CV dans un message général.') }}</p>
+					<p class="mt-3 text-slate-600 leading-7">{{ text('For employer posts, source partnerships, product feedback, or problems with a listing, use the contact links below. Please include the opportunity URL when reporting an issue.', 'Pour publier une offre, proposer un partenariat, donner votre avis ou signaler un problème, utilisez les liens ci-dessous. Indiquez le lien de l’offre concernée.') }}</p>
 					<ul class="contact-links">
-						<li><a href="mailto:alabaganne9@gmail.com" class="focus-ring"><icon name="mail" /><span><small>Email</small>alabaganne9@gmail.com</span></a></li>
-						<li><a href="https://www.alabaganne.com" target="_blank" class="focus-ring"><icon name="link" /><span><small>Portfolio</small>www.alabaganne.com</span></a></li>
-						<li><a href="https://www.linkedin.com/in/alabaganne/" target="_blank" class="focus-ring"><icon name="user-circle" /><span><small>LinkedIn</small>linkedin.com/in/alabaganne</span></a></li>
-						<li><Link :href="route('opportunities.index')" class="focus-ring"><icon name="search" /><span><small>Explore the product</small>Browse opportunities</span></Link></li>
+						<li><a href="mailto:alabaganne9@gmail.com" class="focus-ring"><Icon name="mail" /><span><small>Email</small>alabaganne9@gmail.com</span></a></li>
+						<li><a href="https://www.alabaganne.com" target="_blank" class="focus-ring"><Icon name="link" /><span><small>Portfolio</small>www.alabaganne.com</span></a></li>
+						<li><a href="https://www.linkedin.com/in/alabaganne/" target="_blank" class="focus-ring"><Icon name="user-circle" /><span><small>LinkedIn</small>linkedin.com/in/alabaganne</span></a></li>
+						<li><Link :href="`${prefix}/opportunities`" class="focus-ring"><Icon name="search" /><span><small>{{ text('Explore the product', 'Découvrir le produit') }}</small>{{ text('Browse opportunities', 'Voir les offres') }}</span></Link></li>
 					</ul>
 				</div>
 				<aside class="self-start rounded-2xl bg-white border border-line p-8">
-					<h3 class="text-2xl font-semibold">About the developer</h3>
-					<p class="mt-4 text-slate-600 leading-7">Ala Baganne is a software engineer and SaaS-focused builder who likes shipping practical full-stack products with clean interfaces, solid auth, useful role permissions, and real deployment polish. He is open to good engineering opportunities and to helping people turn product ideas into working software.</p>
+					<h3 class="text-2xl font-semibold">{{ text('About the developer', 'À propos du développeur') }}</h3>
+					<p class="mt-4 text-slate-600 leading-7">{{ text('Ala Baganne is a software engineer and SaaS-focused builder who likes shipping practical full-stack products with clean interfaces, solid auth, useful role permissions, and real deployment polish. He is open to good engineering opportunities and to helping people turn product ideas into working software.', 'Ala Baganne est ingénieur logiciel. Il crée des produits SaaS complets, simples à utiliser et prêts pour la production. Il est ouvert aux opportunités en ingénierie et aide à transformer des idées en logiciels.') }}</p>
 					<dl class="mt-8 divide-y divide-navy/10 text-sm">
-						<div class="flex items-center justify-between py-3"><dt class="text-slate-500">Focus</dt><dd class="font-semibold">Full-stack web</dd></div>
-						<div class="flex items-center justify-between py-3"><dt class="text-slate-500">Product type</dt><dd class="font-semibold">SaaS apps</dd></div>
-						<div class="flex items-center justify-between py-3"><dt class="text-slate-500">Available for</dt><dd class="font-semibold">Roles & product builds</dd></div>
+						<div class="flex items-center justify-between py-3"><dt class="text-slate-500">{{ text('Focus', 'Spécialité') }}</dt><dd class="font-semibold">{{ text('Full-stack web', 'Web full-stack') }}</dd></div>
+						<div class="flex items-center justify-between py-3"><dt class="text-slate-500">{{ text('Product type', 'Type de produit') }}</dt><dd class="font-semibold">{{ text('SaaS apps', 'Applications SaaS') }}</dd></div>
+						<div class="flex items-center justify-between py-3"><dt class="text-slate-500">{{ text('Available for', 'Disponible pour') }}</dt><dd class="font-semibold">{{ text('Roles & product builds', 'Postes et projets') }}</dd></div>
 					</dl>
 				</aside>
 			</section>
 		</div>
-	</public-layout>
+	</PublicLayout>
 </template>
-
-<script>
-import PublicLayout from '@/Layouts/Public.vue'
-import Sparkle from '@/Shared/Sparkle.vue'
-
-export default {
-	components: { PublicLayout, Sparkle }
-}
-</script>
 
 <style scoped>
 .contact-stage { width: min(100%, 340px); justify-self: center; }

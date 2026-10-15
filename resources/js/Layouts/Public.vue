@@ -9,7 +9,7 @@ const links = computed(() => [
     { label: fr.value ? 'Opportunités' : 'Opportunities', href: `${prefix.value}/opportunities` },
     { label: fr.value ? 'Étudiants' : 'For students', href: `${prefix.value}/for-students` },
     { label: fr.value ? 'Professionnels' : 'For professionals', href: `${prefix.value}/for-professionals` },
-    { label: fr.value ? 'Guides carrière (anglais)' : 'Career guides', href: '/blog' },
+    { label: fr.value ? 'Guides carrière' : 'Career guides', href: `${prefix.value}/blog` },
 ]);
 const languageMenu = ref(null);
 const mobileMenu = ref(null);
@@ -17,8 +17,13 @@ const scrolled = ref(false);
 const currentPath = computed(() => page.url.split(/[?#]/)[0]);
 const isActive = (href) => currentPath.value === href || currentPath.value.startsWith(`${href}/`);
 const languageOptions = computed(() => {
+    const translation = page.props.translation;
+    if (translation) {
+        const [en, french] = fr.value ? [translation, currentPath.value] : [currentPath.value, translation];
+        return [{ code: 'en', label: 'English', href: en }, { code: 'fr', label: 'Français', href: french }];
+    }
     const path = currentPath.value.replace(/^\/fr(?=\/|$)/, '') || '/';
-    const translatedPaths = ['/', '/for-students', '/for-professionals', '/opportunities', ...['internships', 'jobs', 'tunisia', 'remote-from-tunisia', 'relocation'].map((category) => `/opportunities/${category}`)];
+    const translatedPaths = ['/', '/for-students', '/for-professionals', '/about', '/contact', '/blog', '/opportunities', ...['internships', 'jobs', 'tunisia', 'remote-from-tunisia', 'relocation'].map((category) => `/opportunities/${category}`)];
     if (!translatedPaths.includes(path)) return [];
     const suffix = page.url.slice(currentPath.value.length);
     return [
@@ -91,7 +96,7 @@ onBeforeUnmount(() => {
         <footer class="border-t border-navy/10">
             <div class="public-container py-12 grid gap-8 md:grid-cols-2">
                 <div class="max-w-md"><Link :href="prefix || '/'" class="focus-ring inline-flex items-center gap-2.5 rounded-lg font-display text-lg font-semibold tracking-tight text-navy"><BrandLogo size="sm" class="[&>img]:!h-8 [&>img]:!w-8" />Nextward</Link><p class="mt-4 text-sm leading-6 text-slate-600">{{ fr ? 'Stages et emplois pour étudiants et professionnels, en Tunisie et à l’international. Des sources claires pour préparer votre prochaine candidature.' : 'Internships and jobs for students and professionals, in Tunisia and around the world. Clear sources and practical details for your next application.' }}</p></div>
-                <nav :aria-label="fr ? 'Pied de page' : 'Footer'" class="grid grid-cols-2 gap-4 text-sm font-medium text-slate-600"><Link v-for="link in links" :key="link.href" :href="link.href">{{ link.label }}</Link><Link href="/about">{{ fr ? 'À propos (anglais)' : 'About' }}</Link><Link href="/contact">Contact</Link><Link href="/register?account=company">{{ fr ? 'Publier une offre' : 'Post an opportunity' }}</Link></nav>
+                <nav :aria-label="fr ? 'Pied de page' : 'Footer'" class="grid grid-cols-2 gap-4 text-sm font-medium text-slate-600"><Link v-for="link in links" :key="link.href" :href="link.href">{{ link.label }}</Link><Link :href="`${prefix}/about`">{{ fr ? 'À propos' : 'About' }}</Link><Link :href="`${prefix}/contact`">Contact</Link><Link href="/register?account=company">{{ fr ? 'Publier une offre' : 'Post an opportunity' }}</Link></nav>
             </div>
             <div class="public-container border-t border-navy/5 py-5 text-xs text-slate-500">{{ fr ? 'Créé par' : 'Built by' }} <a href="https://alabaganne.com/" class="font-medium text-slate-700">Ala Baganne</a></div>
         </footer>

@@ -86,6 +86,7 @@ class InternshipResource extends JsonResource
                 'user_id' => $companyUser?->id,
                 'image' => $company?->logo,
                 'name' => $company?->display_name ?? 'Employer not specified',
+                'public_url' => $company?->hasPublicName() ? $company->public_url : null,
                 'website' => $company?->website,
                 'country_code' => $company?->country_code,
                 'location' => $company?->location,
