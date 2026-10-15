@@ -58,7 +58,7 @@ class SourceReader
 
     private function sitemap(ImportSource $source, string $initial): array
     {
-        $pending = [[$source->url, $initial]]; $visited = []; $items = [];
+        $pending = [[$source->url, $initial]]; $visited = []; $items = []; $complete = true;
         while ($pending) {
             [$url, $body] = array_shift($pending);
             if (isset($visited[$url])) { continue; }
@@ -66,7 +66,13 @@ class SourceReader
             if (count($visited) > config('importer.max_sitemaps')) {
                 throw new RuntimeException('Sitemap limit reached; snapshot was not completed.');
             }
-            $body ??= $this->http->get($url);
+            try {
+                $body ??= $this->http->get($url);
+            } catch (SourceBudgetException) {
+                // Keep what was found; the rest is read in a later cycle.
+                $complete = false;
+                break;
+            }
             $withoutHtmlDoctype = preg_replace('/<!doctype\s+html\s*>/i', '', $body);
             if (preg_match('/<!DOCTYPE|<!ENTITY/i', $withoutHtmlDoctype)) {
                 throw new RuntimeException('External XML declarations are not accepted.');
@@ -106,7 +112,7 @@ class SourceReader
                 throw new RuntimeException('Discovery limit reached; source requires a narrower configuration.');
             }
         }
-        return ['items' => array_values($items), 'complete' => true, 'authoritative' => false];
+        return ['items' => array_values($items), 'complete' => $complete, 'authoritative' => false];
     }
 
     public function read(ImportSource $source, OpportunitySource $item): array
@@ -116,10 +122,15 @@ class SourceReader
             $data = $this->jobPosting($this->http->get($item->source_url));
             if (! $data) { throw new RuntimeException('No valid JobPosting object found; review the source.'); }
             $identifier = $data['identifier'] ?? null;
+            $website = $data['hiringOrganization']['sameAs'] ?? $data['hiringOrganization']['url'] ?? null;
+            // Boards often link the employer to their own company page, which is not the employer site.
+            if (is_string($website) && in_array(strtolower((string) parse_url($website, PHP_URL_HOST)), $source->allowed_domains ?? [], true)) {
+                $website = null;
+            }
             return [
                 'title' => $data['title'] ?? '', 'description' => $data['description'] ?? '',
                 'employer' => $data['hiringOrganization']['name'] ?? null,
-                'website' => $data['hiringOrganization']['sameAs'] ?? $data['hiringOrganization']['url'] ?? null,
+                'website' => $website,
                 'posted_at' => $data['datePosted'] ?? null, 'expires_at' => $data['validThrough'] ?? null,
                 'locations' => $this->list($data['jobLocation'] ?? []),
                 'employment_types' => (array) ($data['employmentType'] ?? []),
@@ -131,8 +142,10 @@ class SourceReader
             ];
         }
         if ($source->provider === 'greenhouse') {
-            $endpoint = strtok($source->url, '?');
-            $data = json_decode($this->http->get(rtrim($endpoint, '/').'/'.rawurlencode($item->external_id)), true, 64, JSON_THROW_ON_ERROR);
+            if (! isset($data['content'])) {
+                $endpoint = strtok($source->url, '?');
+                $data = json_decode($this->http->get(rtrim($endpoint, '/').'/'.rawurlencode($item->external_id)), true, 64, JSON_THROW_ON_ERROR);
+            }
             return [
                 'title' => $data['title'] ?? '', 'description' => $data['content'] ?? '',
                 'employer' => $data['company_name'] ?? $source->settings['employer_name'] ?? $source->company?->display_name,
@@ -166,7 +179,8 @@ class SourceReader
                 'posted_at' => $data['publishedAt'] ?? null,
                 'location' => $data['location'] ?? null,
                 'locations' => ! empty($data['address']) ? [['address' => $data['address']['postalAddress'] ?? $data['address']]] : [],
-                'work_type' => ($data['isRemote'] ?? false) ? 'remote' : strtolower($data['workplaceType'] ?? ''),
+                // isRemote is also true for hybrid roles, so the workplace type wins when present.
+                'work_type' => strtolower($data['workplaceType'] ?? '') ?: (($data['isRemote'] ?? false) ? 'remote' : null),
                 'employment_types' => [$data['employmentType'] ?? ''],
                 'application_url' => $data['applyUrl'] ?? $item->source_url,
             ];

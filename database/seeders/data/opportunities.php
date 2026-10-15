@@ -2,7 +2,7 @@
 
 // Original summaries of employer listings. See SOURCES.md before refreshing this snapshot.
 return [
-    'verified_at' => '2026-10-13T18:37:00Z',
+    'verified_at' => '2026-10-15T14:20:00Z',
     'opportunities' => [
         [
             'key' => 'amaris-it-45472',
@@ -25,28 +25,6 @@ return [
             'description' => "PFE à Tunis avec un démarrage annoncé en janvier 2027. Les projets concernent les réseaux fibre et radio, les données géographiques, l'automatisation et le suivi de la qualité opérationnelle.\n\nCe stage s'adresse aux étudiants en dernière année d'ingénierie ou de master dans les télécommunications, les réseaux, l'informatique ou une discipline voisine. Les outils cités comprennent Python, SQL, Excel, Power BI, AutoCAD et QGIS. Français et anglais courants demandés.\n\nLe sujet précis dépend du projet retenu. La rémunération et la clôture des candidatures ne sont pas indiquées. La liste complète des sujets et le formulaire sont disponibles sur le site de recrutement d'Amaris Consulting.",
             'details' => ['program_type' => 'pfe', 'term' => 'PFE 2027', 'seniority' => 'entry', 'employment_types' => ['INTERN']],
             'skills' => ['Python', 'SQL', 'Power BI', 'QGIS'],
-        ],
-        [
-            'key' => 'devoteam-smsi-744000087643106',
-            'company' => ['name' => 'Devoteam Tunisia', 'domain' => 'devoteam.com', 'website' => 'https://www.devoteam.com'],
-            'url' => 'https://jobs.smartrecruiters.com/Devoteam/744000087643106-consultant-smsi-pca',
-            'title' => 'Consultant SMSI_PCA', 'kind' => 'job',
-            'field' => 'Cybersecurity', 'country_code' => 'TN', 'location' => 'Tunis, Tunisia',
-            'language' => 'fr', 'work_type' => 'onsite', 'posted_at' => '2025-10-13T10:48:44Z',
-            'description' => "Poste en CDI à temps plein à Tunis, au sein du conseil en cybersécurité et continuité d'activité. Les missions portent sur les systèmes de management de la sécurité, les audits, l'analyse des risques et les plans de continuité.\n\nDevoteam demande un diplôme de niveau bac+5 et au moins deux ans d'expérience pertinente. Les référentiels ISO 27001, ISO 27005, ISO 22301 et EBIOS RM font partie des connaissances attendues, ainsi que le français et l'anglais. Des déplacements peuvent être nécessaires.\n\nL'annonce est ancienne mais le formulaire de candidature reste proposé lors de la vérification. Aucun montant de salaire ni délai de candidature n'est publié.",
-            'details' => ['employment_types' => ['FULL_TIME'], 'seniority' => 'mid'],
-            'skills' => ['ISO 27001', 'ISO 22301', 'EBIOS RM'],
-        ],
-        [
-            'key' => 'value-business-analyst-743999999436085',
-            'company' => ['name' => 'Value', 'domain' => 'value.com.tn', 'website' => 'https://value.com.tn/fr/accueil/'],
-            'url' => 'https://jobs.smartrecruiters.com/Value1/743999999436085-business-analyst',
-            'title' => 'Business Analyst', 'kind' => 'job',
-            'field' => 'Business Intelligence', 'country_code' => 'TN', 'location' => 'Les Berges du Lac 1, Tunis, Tunisia',
-            'language' => 'fr', 'work_type' => 'hybrid', 'posted_at' => '2025-03-19T13:26:53Z',
-            'description' => "Value recherche un profil expérimenté pour son activité de solutions numériques à Tunis. Le travail comprend l'analyse des besoins métier, la rédaction des user stories, le suivi du backlog et l'accompagnement des développeurs et des phases de recette.\n\nLe poste est annoncé en CDI. Une formation supérieure, une bonne organisation et de solides capacités de communication sont recherchées. L'entreprise mentionne une organisation hybride parmi ses avantages, avec un rattachement aux Berges du Lac 1.\n\nLa page de candidature était accessible lors de la vérification, malgré une date de publication ancienne. Le salaire chiffré et la date de clôture ne sont pas indiqués.",
-            'details' => ['employment_types' => ['FULL_TIME']],
-            'skills' => ['Business Analysis', 'Confluence'],
         ],
         [
             'key' => 'sopra-business-analyst-744000154692800',
@@ -91,28 +69,6 @@ return [
             'description' => "A full-time graduate engineering role across Canonical's Linux and open source teams. The application track is for candidates completing their first degree in 2025 or 2026. Teams work remotely and are generally organised around compatible time zones.\n\nThe role calls for programming ability, Linux experience, strong academic results, personal technical projects and professional English. International travel is required for team gatherings.\n\nThe employer describes the role as globally remote, and Tunisia appears in its structured applicant-location list. Hiring remains subject to the employer's assessment and local arrangements. Salary and application deadline are not stated. Use the original listing to review the full criteria and apply.",
             'details' => ['employment_types' => ['FULL_TIME'], 'seniority' => 'entry', 'remote_scope' => 'Worldwide', 'remote_eligibility' => 'eligible', 'eligibility_evidence' => ['remote' => 'Employer describes a globally remote role; Tunisia is included in applicantLocationRequirements.']],
             'skills' => ['Linux', 'Python', 'Go', 'JavaScript'],
-        ],
-        [
-            'key' => 'canonical-cloud-3062022',
-            'company' => ['name' => 'Canonical', 'domain' => 'canonical.com', 'website' => 'https://canonical.com'],
-            'url' => 'https://canonical.com/careers/3062022/software-engineer-cloud-sustaining-engineering-remote',
-            'title' => 'Software Engineer, Cloud - Sustaining Engineering', 'kind' => 'job',
-            'field' => 'DevOps & Cloud', 'country_code' => null, 'location' => 'Worldwide',
-            'language' => 'en', 'work_type' => 'remote', 'posted_at' => '2021-07-09T09:56:43Z',
-            'description' => "An experienced engineering role resolving problems in Ubuntu and cloud infrastructure. Work includes diagnosing customer issues, preparing patches, contributing upstream and collaborating with support and product teams.\n\nCanonical seeks professional software engineering experience, a strong Linux or cloud background and development skills in languages such as Python, Go or C/C++. Periodic international travel is part of the role.\n\nThe listing describes worldwide remote work and includes Tunisia in its applicant-location metadata. Its original publication date is old, but the vacancy and application form were still available when checked. No salary range or closing deadline is published. Apply through Canonical's career page.",
-            'details' => ['employment_types' => ['FULL_TIME'], 'remote_scope' => 'Worldwide', 'remote_eligibility' => 'eligible', 'eligibility_evidence' => ['remote' => 'Employer describes a globally remote role; Tunisia is included in applicantLocationRequirements.']],
-            'skills' => ['Linux', 'Python', 'Go', 'Kubernetes', 'OpenStack'],
-        ],
-        [
-            'key' => 'automattic-experienced-engineer',
-            'company' => ['name' => 'Automattic', 'domain' => 'automattic.com', 'website' => 'https://automattic.com'],
-            'url' => 'https://automattic.com/work-with-us/job/experienced-software-engineer/',
-            'title' => 'Experienced Software Engineer', 'kind' => 'job',
-            'field' => 'Software Engineering', 'country_code' => null, 'location' => 'Worldwide',
-            'language' => 'en', 'work_type' => 'remote', 'posted_at' => null,
-            'description' => "Automattic accepts applications from experienced engineers worldwide for its distributed product teams. The work involves large-scale web products, with PHP and JavaScript prominent in its technology stack.\n\nThe company seeks production engineering experience, strong debugging skills and experience with systems or products operating at scale. Applicants should be able to travel for team meetings for three to four weeks each year.\n\nThe posting quotes a global USD 70000 to 170000 salary range, paid in local currency. No pay period is stated on the page, so no hourly or monthly amount is inferred here. The original publication date and closing deadline are not provided. Review the employer's hiring process and complete its application form.",
-            'details' => ['compensation_status' => 'paid', 'remote_scope' => 'Worldwide', 'remote_eligibility' => 'unknown', 'eligibility_evidence' => ['remote' => 'Employer seeks experienced engineers worldwide and describes a fully remote company. Country-specific hiring arrangements must be confirmed.']],
-            'skills' => ['PHP', 'JavaScript', 'WordPress'],
         ],
     ],
 ];

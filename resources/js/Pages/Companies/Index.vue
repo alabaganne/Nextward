@@ -97,7 +97,7 @@ const meta = computed(() => props.companies.meta ?? props.companies);
 				</div>
 				<div class="flex gap-2.5 mt-[18px]">
 					<Link class="flex-1 justify-center h-[42px] inline-flex items-center font-semibold text-[15px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors" :href="route('companies.show', company.id)">View</Link>
-					<Link v-if="company.user_id !== page.props.auth?.user?.id" class="flex-1 justify-center h-[42px] inline-flex items-center font-semibold text-[15px] rounded-[12px] bg-paper-2 border border-line text-ink-700 hover:border-blue-300 hover:text-blue-700 transition-colors" :href="route('messages.show', company.user_id)">Message</Link>
+					<Link v-if="company.user_id && company.user_id !== page.props.auth?.user?.id" class="flex-1 justify-center h-[42px] inline-flex items-center font-semibold text-[15px] rounded-[12px] bg-paper-2 border border-line text-ink-700 hover:border-blue-300 hover:text-blue-700 transition-colors" :href="route('messages.show', company.user_id)">Message</Link>
 				</div>
 			</article>
 		</div>

@@ -143,7 +143,7 @@ On a clean installation, load the reference data and real opportunity snapshot:
 php artisan db:seed --force
 ```
 
-The default seed adds ten real opportunities and their references. It creates no login accounts and does not delete existing records. Read [the source and freshness notes](database/seeders/data/SOURCES.md) before launch. The snapshot was verified on 13 October 2026. If it is more than 48 hours old, new opportunities are inserted as drafts. Recheck the original vacancies and record genuine verification before publishing; rerunning the seed does not refresh them. The seeded sources have automated imports disabled.
+The default seed adds six real opportunities, their references and the daily import sources (Tanitjobs, Keejob and employer job boards). It creates no login accounts and does not delete existing records. Read [the source and freshness notes](database/seeders/data/SOURCES.md) before launch. The snapshot was verified on 15 October 2026. If it is more than 14 days old, its opportunities are inserted as drafts. Recheck the original vacancies and record genuine verification before publishing; rerunning the seed does not refresh them. The daily import starts on its own once the scheduler runs.
 
 For reference data without the opportunity snapshot, use these commands instead:
 

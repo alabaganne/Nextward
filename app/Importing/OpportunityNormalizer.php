@@ -16,13 +16,15 @@ class OpportunityNormalizer
         if (! $title || mb_strlen($description) < 100 || ! $employer) {
             throw new RuntimeException('A title, identified employer and substantive description are required.');
         }
-        $apply = $input['application_url'] ?? '';
+        $apply = $this->encodeUrl($input['application_url'] ?? '');
         if (! $this->publicUrl($apply)) {
             throw new RuntimeException('A valid public application URL is required.');
         }
         $types = array_values(array_unique(array_filter(array_map($this->employmentType(...), $input['employment_types'] ?? []))));
-        $internship = in_array('INTERN', $types, true)
-            || preg_match('/\b(intern(?:ship)?s?|stagiaire|stage (?:pfe|de fin|d.été|en |dans )|pfe|apprentice(?:ship)?|alternance|co-op|working student|werkstudent|praktikum)\b/iu', $title);
+        // Some boards tick every contract type, so INTERN only counts when no regular contract type is listed with it.
+        $internship = (in_array('INTERN', $types, true) && ! array_diff($types, ['INTERN', 'OTHER', 'VOLUNTEER']))
+            || preg_match('/\b(intern(?:ship)?s?|stagiaire|stage (?:pfe|de fin|d.été|en |dans )|pfe|apprentice(?:ship)?|alternance|co-op|working student|werkstudent|praktikum)\b/iu', $title)
+            || preg_match('/(?:^|\s[-–—|:\/]|[(,])\s*stages?\b(?!\s+manager)/iu', $title);
         $program = preg_match('/\bpfe\b|fin d[’\x27]études/iu', $title) ? 'pfe'
             : (preg_match('/summer|été/iu', $title) ? 'summer' : null);
         $seniority = $internship ? 'entry' : null;
@@ -54,7 +56,7 @@ class OpportunityNormalizer
         }
         $workType = strtolower($input['work_type'] ?? '');
         $workType = match ($workType) { 'remote' => 'remote', 'hybrid' => 'hybrid', 'onsite', 'on-site', 'on_site' => 'onsite', default => null };
-        if (! $workType && preg_match('/\b(remote|télétravail)\b/iu', (string) $location)) { $workType = 'remote'; }
+        if (! $workType && preg_match('/\b(remote|télétravail|home.based|anywhere)\b/iu', (string) $location)) { $workType = 'remote'; }
         // Preserve uncertainty: description boilerplate alone never determines work arrangement.
         $eligible = [];
         foreach ($input['applicant_locations'] ?? [] as $allowed) {
@@ -80,6 +82,10 @@ class OpportunityNormalizer
                 }
             }
             if ($restriction) { $eligibility = 'restricted'; $evidence['remote'] = $restriction; }
+            // The role's own location beats company-wide "we hire globally" text.
+            if ($eligibility !== 'restricted' && ($this->limitedToOtherRegions((string) $location) || ($country && $country !== 'TN'))) {
+                $eligibility = 'restricted'; $evidence['remote'] = 'Source location: '.Str::limit((string) ($location ?: $country), 200);
+            }
         }
         // A negative Tunisia statement overrides a broader positive hiring statement.
         foreach ($sentences as $sentence) {
@@ -110,7 +116,7 @@ class OpportunityNormalizer
         $dateOnly = $deadlineDate && is_string($deadline) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $deadline);
         return [
             'title' => $title, 'description' => $description, 'employer' => $employer,
-            'website' => $this->publicUrl($input['website'] ?? null) ? $input['website'] : null,
+            'website' => $this->publicUrl($website = $this->encodeUrl($input['website'] ?? '')) ? $website : null,
             'kind' => $internship ? 'internship' : 'job', 'program_type' => $program, 'seniority' => $seniority,
             'employment_types' => $types, 'work_type' => $workType ?? 'unknown',
             'country_code' => $country, 'location' => $location, 'locations' => $locations,
@@ -129,11 +135,23 @@ class OpportunityNormalizer
 
     public function text(string $html): string
     {
-        $text = html_entity_decode(html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8'), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        // Some APIs send escaped HTML; decode it once so the tags can be handled, then decode text after stripping.
+        $text = preg_match('~&lt;/?[a-z]~i', $html) ? html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8') : $html;
         $text = preg_replace('~<(script|style)\b[^>]*>.*?</\1>~is', '', $text);
         $text = preg_replace('~<(?:br\s*/?|/p|/div|/li|/h[1-6])\s*>~i', "\n", $text);
         $text = preg_replace('~<li\b[^>]*>~i', '• ', $text);
-        return trim(preg_replace('/\n[\t ]*\n(?:[\t ]*\n)+/', "\n\n", strip_tags($text)));
+        $text = html_entity_decode(strip_tags($text), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        return trim(preg_replace('/\n[\t ]*\n(?:[\t ]*\n)+/', "\n\n", $text));
+    }
+
+    // A remote role tied to other countries or regions, such as "Remote US" or "Canada (Remote)", is not open to Tunisia.
+    public function limitedToOtherRegions(string $location): bool
+    {
+        if ($location === '' || preg_match('/\b(worldwide|anywhere|global|emea|africa|mena|tunisia|tunisie)\b/iu', $location)) {
+            return false;
+        }
+        return (bool) (preg_match('/\b(US|USA|UK|EU|AMER|APAC|LATAM)\b|\bU\.S\.?(?![A-Za-z])/u', $location)
+            || preg_match('/\b(united states|canada|americas?|north america|latin america|south america|central america|asia|india|japan|australia|united kingdom|ireland|europe|germany|france|spain|portugal|netherlands|belgium|poland|sweden|finland|denmark|norway|italy|switzerland|austria|brazil|mexico|argentina|singapore|philippines)\b/iu', $location));
     }
 
     private function support(array $sentences, string $terms): array
@@ -183,6 +201,12 @@ class OpportunityNormalizer
     private function amount($value): ?float
     {
         return is_numeric($value) && $value >= 0 && $value <= 999999999 ? round((float) $value, 2) : null;
+    }
+
+    // Boards sometimes put raw accented letters in links, e.g. /job/1/chargé-e/, which URL checks reject.
+    private function encodeUrl($value): string
+    {
+        return is_string($value) ? preg_replace_callback('/[^\x21-\x7E]/u', fn ($match) => rawurlencode($match[0]), trim($value)) : '';
     }
 
     private function publicUrl($value): bool

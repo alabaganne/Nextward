@@ -36,36 +36,47 @@ class OpportunityImporter
             $refreshBefore->setTimezone(config('app.timezone', 'UTC'));
             $refreshOperator = '<';
         }
-        $http = new SourceHttp($source); $reader = new SourceReader($http);
+        $deadline = $clock + config('importer.max_run_seconds');
+        $http = new SourceHttp($source, $deadline); $reader = new SourceReader($http);
         $normalizer = new OpportunityNormalizer();
         $stats = ['status' => 'completed', 'complete' => false, 'discovered' => 0, 'processed' => 0, 'published' => 0, 'closed' => 0, 'rejected' => 0, 'requests' => 0];
         $run = null;
         try {
             if (! $dryRun) {
+                // A worker killed mid-run leaves its record open, so close it before starting a new one.
+                $source->runs()->where('status', 'running')->where('started_at', '<', $started->copy()->subMinutes(15))
+                    ->update(['status' => 'failed', 'finished_at' => $started, 'error' => 'Run stopped before it finished.']);
                 $run = ImportRun::create(['import_source_id' => $source->id, 'started_at' => $started]);
                 $source->update(['last_run_at' => $started]);
             }
-            $snapshot = $reader->discover($source);
-            $stats['discovered'] = count($snapshot['items']);
-            $previous = $source->runs()->where('complete', true)->latest('id')->value('discovered');
-            $suspicious = $previous > 0 && ($stats['discovered'] === 0 || ($previous >= 10 && $stats['discovered'] < $previous * .5));
-            $stats['complete'] = $snapshot['complete'] && ! $suspicious;
-            if ($suspicious) { $stats['status'] = 'needs_review'; }
+            // The full list is read once per cycle; follow-up batches only work through the saved backlog.
+            $discover = $dryRun || $recheck || ! $source->last_discovered_at || $source->last_discovered_at->lt($refreshBefore);
+            $suspicious = false;
+            if ($discover) {
+                $snapshot = $reader->discover($source);
+                $stats['discovered'] = count($snapshot['items']);
+                $previous = $source->runs()->where('complete', true)->latest('id')->value('discovered');
+                $suspicious = $previous > 0 && ($stats['discovered'] === 0 || ($previous >= 10 && $stats['discovered'] < $previous * .5));
+                $stats['complete'] = $snapshot['complete'] && ! $suspicious;
+                if ($suspicious) { $stats['status'] = 'needs_review'; }
+            }
 
             if ($dryRun) {
                 foreach (array_slice($snapshot['items'], 0, max(1, min($limit, 100))) as $discovery) {
-                    $item = new OpportunitySource($discovery);
+                    $item = new OpportunitySource([...$discovery, 'first_seen_at' => $started]);
                     try {
-                        $normalizer->normalize($reader->read($source, $item));
-                        $stats['processed']++;
+                        $data = $normalizer->normalize($reader->read($source, $item));
+                        $this->skipReason($source, $item, $data) ? $stats['rejected']++ : $stats['processed']++;
+                    } catch (SourceBudgetException) {
+                        break;
                     } catch (Throwable) { $stats['rejected']++; }
-                    if (microtime(true) - $clock > config('importer.max_run_seconds')) { break; }
+                    if (microtime(true) > $deadline) { break; }
                 }
                 return [...$stats, 'requests' => $http->requests, 'dry_run' => true];
             }
 
             // Persist the complete discovery backlog before limiting expensive detail fetches.
-            foreach (array_chunk($snapshot['items'], 200) as $chunk) {
+            foreach ($discover ? array_chunk($snapshot['items'], 200) : [] as $chunk) {
                 $rows = array_map(fn ($item) => [
                     'import_source_id' => $source->id, 'external_id' => Str::limit($item['external_id'], 191, ''),
                     'source_url' => $item['source_url'], 'payload' => $item['payload'] ? json_encode($item['payload'], JSON_THROW_ON_ERROR) : null,
@@ -74,18 +85,21 @@ class OpportunityImporter
                 ], $chunk);
                 OpportunitySource::upsert($rows, ['import_source_id', 'external_id'], ['source_url', 'payload', 'last_discovered_at', 'missing_runs', 'missing_since', 'updated_at']);
             }
+            if ($discover) { $source->update(['last_discovered_at' => $started]); }
+            $cycle = $source->last_discovered_at;
+            // These providers are read from the saved list payload, so only items still on the board are current.
             $items = $source->items()->where('state', '!=', 'rejected')
-            ->when(in_array($source->provider, ['lever', 'ashby'], true), fn ($q) => $q->where('last_discovered_at', '>=', $started))
+            ->when(in_array($source->provider, ['greenhouse', 'lever', 'ashby'], true), fn ($q) => $q->where('last_discovered_at', '>=', $cycle))
             ->where(function ($query) use ($refreshBefore, $refreshOperator, $recheck) {
                 $query->whereNull('last_verified_at')->orWhere('state', 'pending');
                 $query->orWhere('last_verified_at', $refreshOperator, $recheck ? now()->addSecond() : $refreshBefore);
-            })->where(function ($query) use ($started) {
-                $query->where('state', '!=', 'closed')->orWhere('last_discovered_at', '>=', $started);
+            })->where(function ($query) use ($cycle) {
+                $query->where('state', '!=', 'closed')->orWhere('last_discovered_at', '>=', $cycle);
             })->orderByRaw('CASE WHEN last_verified_at IS NULL THEN 0 ELSE 1 END')->orderBy('last_verified_at')->orderBy('id')
                 ->limit(max(1, min($limit, 100)))->get();
 
             foreach ($items as $item) {
-                if (microtime(true) - $clock > config('importer.max_run_seconds') || $http->requests >= $source->max_requests - 2) { break; }
+                if (microtime(true) > $deadline || $http->requests >= $source->max_requests - 2) { break; }
                 try {
                     $data = $normalizer->normalize($reader->read($source, $item));
                     $item->update(['normalized_data' => $data, 'last_verified_at' => now(), 'error' => null, 'application_url' => $data['application_url']]);
@@ -93,12 +107,21 @@ class OpportunityImporter
                     if ($this->expired($data)) {
                         $this->closeSource($item);
                         $stats['closed']++;
+                    } elseif (! $item->internship_id && ($reason = $this->skipReason($source, $item, $data))) {
+                        $item->update(['state' => 'rejected', 'error' => $reason]);
+                        $stats['rejected']++;
+                    } elseif ($this->olderThan($data, $item, config('importer.retention_days'))) {
+                        $this->closeSource($item);
+                        $item->update(['state' => 'rejected', 'error' => 'Posted more than '.config('importer.retention_days').' days ago.']);
+                        $stats['closed']++;
                     } elseif ($source->publication_mode === 'automatic' || $item->internship_id) {
                         $this->publish($item);
                         $stats['published']++;
                     } else {
                         $item->update(['state' => 'review']);
                     }
+                } catch (SourceBudgetException) {
+                    break;
                 } catch (SourceRequestException $e) {
                     if (in_array($e->status, [404, 410], true)) {
                         $this->closeSource($item); $stats['closed']++;
@@ -114,7 +137,7 @@ class OpportunityImporter
                     $stats['rejected']++;
                 }
             }
-            if ($stats['complete'] && $snapshot['authoritative']) {
+            if ($discover && $stats['complete'] && $snapshot['authoritative']) {
                 $missing = $source->items()->where('last_discovered_at', '<', $started)->whereNotIn('state', ['closed', 'rejected'])->get();
                 foreach ($missing as $item) {
                     $item->update(['missing_since' => $item->missing_since ?? $started, 'missing_runs' => $item->missing_runs + 1]);
@@ -124,7 +147,7 @@ class OpportunityImporter
                     }
                 }
             }
-            $pending = $source->items()->where('last_discovered_at', '>=', $started)
+            $pending = $source->items()->where('last_discovered_at', '>=', $cycle)
                 ->where('state', '!=', 'rejected')
                 ->where(function ($q) use ($refreshBefore, $refreshOperator) { $q->whereNull('last_verified_at')->orWhere('last_verified_at', $refreshOperator, $refreshBefore); })
                 ->whereNull('error')->exists();
@@ -164,19 +187,7 @@ class OpportunityImporter
         $data = $item->normalized_data;
         if ($this->expired($data)) { throw new RuntimeException('This opportunity has expired.'); }
         return DB::transaction(function () use ($item, $source, $data) {
-            $company = $source->company;
-            if (! $company) {
-                // An unverified employer name is never a global company-merge key.
-                $employerIdentity = $source->provider === 'jsonld' ? ($data['website'] ?? $item->external_id) : 'employer-board';
-                $identity = $source->id.':'.hash('sha256', $employerIdentity.'|'.$data['employer']);
-                $company = Company::where('import_identity', $identity)->first();
-                if (! $company) {
-                    $company = new Company();
-                    $company->forceFill(['import_identity' => $identity, 'name' => $data['employer'], 'website' => $data['website'],
-                        'domain' => $data['website'] ? parse_url($data['website'], PHP_URL_HOST) : null,
-                        'city_id' => null, 'country_code' => $data['country_code']])->save();
-                }
-            }
+            $company = $source->company ?? $this->employer($source, $data);
             if ($company->claimed_by_company_id) { $company = Company::findOrFail($company->claimed_by_company_id); }
             $opportunity = $item->internship;
             if (! $opportunity) {
@@ -192,11 +203,13 @@ class OpportunityImporter
                     }
                 }
             }
-            $opportunity ??= new Internship();
+            $opportunity ??= $this->sameRoleOnOtherBoard($company, $item, $data) ?? new Internship();
             $hash = hash('sha256', json_encode($data, JSON_THROW_ON_ERROR));
             $hasEmployerSource = $opportunity->exists && $opportunity->sources()->where('id', '!=', $item->id)
                 ->whereHas('importSource', fn ($q) => $q->where('settings->authoritative_employer', true))->exists();
-            if (! $opportunity->exists || ($opportunity->origin === 'imported' && (! $hasEmployerSource || ($source->settings['authoritative_employer'] ?? false)))) {
+            // When a role is listed on several boards, the first live listing owns its content.
+            $isPrimary = ! $opportunity->exists || ! $opportunity->sources()->where('id', '<', $item->id)->where('state', 'published')->exists();
+            if (! $opportunity->exists || ($opportunity->origin === 'imported' && ((! $hasEmployerSource && $isPrimary) || ($source->settings['authoritative_employer'] ?? false)))) {
                 $fields = collect($data)->except(['employer', 'website', 'requisition_id'])->all();
                 [$fieldId, $skillIds] = $this->classify($data);
                 $overrides = $opportunity->moderation_overrides ?? [];
@@ -234,6 +247,12 @@ class OpportunityImporter
     public function reconcile(): int
     {
         $count = 0;
+        $cutoff = now()->subDays(config('importer.retention_days'));
+        Internship::where('origin', 'imported')->where('status', 'open')->where(function ($q) use ($cutoff) {
+            $q->where('posted_at', '<', $cutoff)->orWhere(fn ($q) => $q->whereNull('posted_at')->where('first_seen_at', '<', $cutoff));
+        })->chunkById(100, function ($roles) use (&$count) {
+            foreach ($roles as $role) { $role->update(['status' => 'closed']); $count++; }
+        });
         Internship::where('status', 'open')->where(function ($q) {
             $q->where('expires_at', '<=', now())->orWhere(function ($q) {
                 $q->whereNull('expires_at')->whereDate('closing_at', '<', now('Africa/Tunis')->toDateString());
@@ -250,6 +269,74 @@ class OpportunityImporter
                 }
             });
         return $count;
+    }
+
+    private function employer(ImportSource $source, array $data): Company
+    {
+        $host = $data['website'] ? preg_replace('/^www\./', '', strtolower((string) parse_url($data['website'], PHP_URL_HOST))) : null;
+        if ($source->provider !== 'jsonld') {
+            $identity = $source->id.':'.hash('sha256', 'employer-board|'.$data['employer']);
+        } elseif ($host) {
+            $identity = 'domain:'.$host;
+        } else {
+            // Boards rarely give the employer site, so the same name in the same country is treated as one company.
+            $identity = 'employer:'.hash('sha256', $this->normalizeName($data['employer']).'|'.($data['country_code'] ?? ''));
+        }
+        $company = Company::where('import_identity', $identity)->first()
+            ?? ($host ? Company::where('domain', $host)->first() : null)
+            ?? Company::whereRaw('LOWER(name) = ?', [mb_strtolower(trim($data['employer']))])->first();
+        if (! $company) {
+            $company = new Company();
+            $company->forceFill(['import_identity' => $identity, 'name' => $data['employer'], 'website' => $data['website'],
+                'domain' => $host, 'city_id' => null, 'country_code' => $data['country_code']])->save();
+        }
+        return $company;
+    }
+
+    private function sameRoleOnOtherBoard(Company $company, OpportunitySource $item, array $data): ?Internship
+    {
+        $title = $this->normalizeTitle($data['title']);
+        return Internship::where('company_id', $company->id)->where('origin', 'imported')->where('kind', $data['kind'])
+            ->where('status', 'open')->whereNull('merged_into_id')
+            ->where('first_seen_at', '>=', now()->subDays(config('importer.retention_days')))
+            ->whereDoesntHave('sources', fn ($q) => $q->where('import_source_id', $item->import_source_id))
+            ->latest('id')->limit(50)->get()
+            ->first(fn ($role) => $role->country_code === $data['country_code'] && $this->normalizeTitle($role->title) === $title);
+    }
+
+    private function normalizeName(string $name): string
+    {
+        $name = mb_strtolower(Str::ascii($name));
+        $name = preg_replace('/\b(s\.?a\.?r\.?l|suarl|sa|sas|spa|inc|ltd|llc|gmbh|group|groupe)\b\.?/', ' ', $name);
+        return Str::squish(preg_replace('/[^a-z0-9]+/', ' ', $name));
+    }
+
+    private function normalizeTitle(string $title): string
+    {
+        $title = mb_strtolower(Str::ascii($title));
+        $title = preg_replace('~\((?:[hfm]\s*/\s*[hfm](?:\s*/\s*nb)?|nb)\)~', ' ', $title);
+        return Str::squish(preg_replace('/[^a-z0-9]+/', ' ', $title));
+    }
+
+    private function olderThan(array $data, OpportunitySource $item, int $days): bool
+    {
+        $posted = ! empty($data['posted_at']) ? Carbon::parse($data['posted_at']) : $item->first_seen_at;
+        return $posted !== null && $posted->lt(now()->subDays($days));
+    }
+
+    // Returns why a newly found listing is not imported, or null when it should be.
+    private function skipReason(ImportSource $source, OpportunitySource $item, array $data): ?string
+    {
+        if ($this->olderThan($data, $item, config('importer.max_age_days'))) {
+            return 'Posted more than '.config('importer.max_age_days').' days ago.';
+        }
+        // Worldwide boards keep internships, plus jobs someone in Tunisia can actually take.
+        if (($source->settings['scope'] ?? 'all') === 'reachable' && $data['kind'] === 'job'
+            && $data['country_code'] !== 'TN' && $data['relocation'] !== 'yes' && $data['visa_sponsorship'] !== 'yes'
+            && ! ($data['work_type'] === 'remote' && $data['remote_eligibility'] !== 'restricted')) {
+            return 'Job is not open to candidates in Tunisia.';
+        }
+        return null;
     }
 
     private function classify(array $data): array

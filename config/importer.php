@@ -9,6 +9,9 @@ return [
     'max_sitemaps' => 30,
     'max_discoveries' => 50000,
     'freshness_hours' => 48,
+    // New listings older than this are skipped; imported listings older than the retention window are closed.
+    'max_age_days' => (int) env('OPPORTUNITY_MAX_AGE_DAYS', 30),
+    'retention_days' => (int) env('OPPORTUNITY_RETENTION_DAYS', 60),
     'indexing_enabled' => (bool) env('GOOGLE_INDEXING_ENABLED', false),
     'google_credentials' => env('GOOGLE_INDEXING_CREDENTIALS'),
     'indexing_daily_limit' => (int) env('GOOGLE_INDEXING_DAILY_LIMIT', 200),

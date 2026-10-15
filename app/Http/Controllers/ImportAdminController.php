@@ -103,8 +103,11 @@ class ImportAdminController extends Controller
             'settings.employer_name' => 'nullable|string|max:255',
             'settings.job_path_prefix' => 'nullable|string|max:255|starts_with:/',
             'settings.authoritative_employer' => 'nullable|boolean',
+            'settings.scope' => 'nullable|in:all,reachable',
+            'settings.freshness_hours' => 'nullable|integer|min:24|max:2160',
+            'settings.curated_snapshot' => 'nullable|boolean',
         ]);
-        $data['settings'] = collect($data['settings'] ?? [])->only(['employer_name', 'job_path_prefix', 'authoritative_employer'])->all();
+        $data['settings'] = collect($data['settings'] ?? [])->only(['employer_name', 'job_path_prefix', 'authoritative_employer', 'scope', 'freshness_hours', 'curated_snapshot'])->all();
         if ($source && ($source->url !== $data['url'] || $source->provider !== $data['provider'] || $source->allowed_domains !== $data['allowed_domains']) && $data['permission_status'] === 'approved' && $source->permission_notes === $data['permission_notes']) {
             throw ValidationException::withMessages(['permission_notes' => 'Record a fresh permission review when changing the source URL, provider, or allowed domains.']);
         }

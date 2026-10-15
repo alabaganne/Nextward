@@ -45,11 +45,15 @@ The usual local URL is `http://127.0.0.1:8000`. To inspect complete server-rende
 
 ## Real opportunity seed
 
-`php artisan db:seed` now adds ten real, sourced opportunities plus their employer and reference records. It does not truncate tables or create accounts, applications, messages or other demo activity. Repeat runs preserve existing listings and moderation decisions. `InternshipSeeder` delegates to this same catalogue.
+`php artisan db:seed` now adds six real, sourced opportunities plus their employer and reference records, and the daily import sources. It does not truncate tables or create accounts, applications, messages or other demo activity. Repeat runs preserve existing listings and moderation decisions. `InternshipSeeder` delegates to this same catalogue.
 
-The snapshot was checked on 13 October 2026 and contains four internships and six jobs: five listings in Tunisia, two international internships and three worldwide remote jobs. Each listing links to the original employer page. See [the source list and refresh notes](database/seeders/data/SOURCES.md).
+The snapshot was checked on 15 October 2026 and contains four internships and two jobs, all posted in the last 30 days: three listings in Tunisia, two international internships and one worldwide remote job. Each listing links to the original employer page. See [the source list and refresh notes](database/seeders/data/SOURCES.md).
 
-The existing 48-hour freshness rule applies. An old snapshot is seeded as drafts, and rerunning the seed does not pretend to reverify it. Automated imports for these sources remain disabled until their reuse requirements and provider support are reviewed. Recheck the listings before a later deployment.
+These hand-checked listings stay public for 14 days after the check. An older snapshot is seeded as drafts, and rerunning the seed does not pretend to reverify it. Recheck the listings before a later deployment.
+
+## Daily import
+
+`ImportSourceSeeder` adds the sources the scheduler reads every day at 05:00 Tunis time: Tanitjobs and Keejob for Tunisia, and employer job boards on Greenhouse, Lever and Ashby for worldwide roles. Only listings posted in the last 30 days are added (`OPPORTUNITY_MAX_AGE_DAYS`). Imported listings posted more than 60 days ago are closed (`OPPORTUNITY_RETENTION_DAYS`). Worldwide boards keep internships, plus jobs that are in Tunisia, remote without a country limit, or offer relocation or visa help. The same role found on both Tanitjobs and Keejob is shown once. Check each site's terms of use before a public launch; sources can be paused in Imports.
 
 Use a clean production database. The seed preserves existing data, including any demo data already present. The old complete demo dataset lives in `tests/Fixtures/DemoSeeder.php` for explicit workflow tests. Never deploy a demo database or run the standalone demo account/activity seeders in production.
 

@@ -19,11 +19,14 @@ class OpportunitySeeder extends Seeder
 {
     use WithoutModelEvents;
 
+    // Nothing re-checks these pages automatically, so they stay listed for two weeks after the last hand check.
+    public const FRESHNESS_HOURS = 14 * 24;
+
     public function run(): void
     {
         $catalogue = require __DIR__.'/data/opportunities.php';
         $verifiedAt = CarbonImmutable::parse($catalogue['verified_at']);
-        $fresh = $verifiedAt->gte(now()->subHours(config('importer.freshness_hours', 48)));
+        $fresh = $verifiedAt->gte(now()->subHours(self::FRESHNESS_HOURS));
 
         DB::transaction(function () use ($catalogue, $verifiedAt, $fresh) {
             foreach ($catalogue['opportunities'] as $record) {
@@ -38,8 +41,8 @@ class OpportunitySeeder extends Seeder
                     'url' => $record['url'], 'allowed_domains' => [parse_url($record['url'], PHP_URL_HOST)],
                     'company_id' => $company->id, 'enabled' => false, 'publication_mode' => 'review',
                     'permission_status' => 'approved',
-                    'permission_notes' => 'Editorial inclusion of public vacancy facts and an original Nextward summary, checked on 2026-10-13. Approval covers this curated snapshot only. No employer affiliation or permission for automated full-text copying is claimed. Review permissions and adapter support before enabling imports.',
-                    'settings' => ['employer_name' => $company->name, 'curated_snapshot' => true],
+                    'permission_notes' => 'Editorial inclusion of public vacancy facts and an original Nextward summary, last checked on '.$verifiedAt->toDateString().'. Approval covers this curated snapshot only. No employer affiliation or permission for automated full-text copying is claimed. Review permissions and adapter support before enabling imports.',
+                    'settings' => ['employer_name' => $company->name, 'curated_snapshot' => true, 'freshness_hours' => self::FRESHNESS_HOURS],
                     'cadence_hours' => 24, 'request_delay_ms' => 1000, 'max_requests' => 5,
                 ]);
                 $item = OpportunitySource::firstOrCreate([

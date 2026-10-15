@@ -28,7 +28,13 @@ class ImportOpportunitySource implements ShouldQueue, ShouldBeUniqueUntilProcess
         if ($source->next_run_at?->isFuture() && ! $this->recheck) {
             return;
         }
-        $result = $importer->run($source, $this->limit, false, $this->recheck);
+        try {
+            $result = $importer->run($source, $this->limit, false, $this->recheck);
+        } catch (\Throwable $e) {
+            // The importer already saved the error and the next retry time, so queue retries would only repeat it.
+            report($e);
+            return;
+        }
         // Sync connections cannot honour delayed chains. The scheduler resumes pending work instead.
         if (($result['pending'] ?? false) && config('queue.default') !== 'sync') {
             self::dispatch($source->id, $this->limit)->delay(now()->addSeconds(30));
