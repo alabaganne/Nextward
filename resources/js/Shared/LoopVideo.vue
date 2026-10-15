@@ -22,7 +22,7 @@
 			</video>
 			<button
 				type="button"
-				class="focus-ring absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-navy shadow-sm ring-1 ring-navy/10 transition hover:bg-white hover:text-brand"
+				class="focus-ring absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-navy ring-1 ring-navy/10 transition hover:bg-white hover:text-brand"
 				:aria-label="shared.paused ? 'Play animation' : 'Pause animation'"
 				:title="shared.paused ? 'Play animation' : 'Pause animation'"
 				@click="shared.paused = !this.shared.paused"

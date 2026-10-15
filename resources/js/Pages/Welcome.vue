@@ -41,7 +41,7 @@ const steps = computed(() => [
                 </div>
             </section>
             <section class="public-container relative z-10 -mt-16 pb-14" :aria-label="text('Search opportunities', 'Rechercher des opportunités')">
-                <form method="get" :action="`${prefix}/opportunities`" class="grid md:grid-cols-[2fr_1fr_1fr_auto] gap-4 rounded-2xl bg-white border border-line p-5 shadow-[0_28px_60px_-32px_rgba(10,23,56,.55)]">
+                <form method="get" :action="`${prefix}/opportunities`" class="grid md:grid-cols-[2fr_1fr_1fr_auto] gap-4 rounded-2xl bg-white border border-line p-5">
                     <label class="text-sm font-semibold">{{ text('Keyword', 'Mot-clé') }}<input name="search" type="search" maxlength="150" :placeholder="text('Role, company, or skill', 'Poste, entreprise ou compétence')" class="mt-2 w-full rounded-lg border-line" /></label>
                     <label class="text-sm font-semibold">{{ text('Opportunity type', 'Type d’opportunité') }}<select name="kind" class="mt-2 w-full rounded-lg border-line"><option value="">{{ text('Internships and jobs', 'Stages et emplois') }}</option><option value="internship">{{ text('Internships', 'Stages') }}</option><option value="job">{{ text('Jobs', 'Emplois') }}</option></select></label>
                     <label class="text-sm font-semibold">{{ text('Location', 'Lieu') }}<select name="country" class="mt-2 w-full rounded-lg border-line"><option value="">{{ text('Worldwide', 'Monde entier') }}</option><option value="TN">{{ text('Tunisia', 'Tunisie') }}</option></select></label>

@@ -3,7 +3,7 @@
         type="checkbox"
         :value="value"
         v-model="proxyChecked"
-        class="rounded-sm border-gray-300 text-blue-600 shadow-xs focus:border-blue-300 focus:ring-3 focus:ring-blue-200/50"
+        class="rounded-sm border-gray-300 text-blue-600 focus:border-blue-300 focus:ring-3 focus:ring-blue-200/50"
     />
 </template>
 

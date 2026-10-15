@@ -61,7 +61,7 @@ onBeforeUnmount(() => {
                             <span>{{ fr ? 'FR' : 'EN' }}</span>
                             <ChevronDown class="h-3.5 w-3.5 transition-transform group-open:rotate-180" aria-hidden="true" />
                         </summary>
-                        <nav id="public-language-options" :aria-label="fr ? 'Choisir la langue' : 'Choose language'" class="absolute right-0 top-full mt-3 w-44 rounded-xl border border-line bg-white p-1.5 text-navy shadow-xl">
+                        <nav id="public-language-options" :aria-label="fr ? 'Choisir la langue' : 'Choose language'" class="absolute right-0 top-full mt-3 w-44 rounded-xl border border-line bg-white p-1.5 text-navy">
                             <a v-for="language in languageOptions" :key="language.code" :href="language.href" :lang="language.code" :hreflang="language.code" :aria-current="language.code === (fr ? 'fr' : 'en') ? 'true' : undefined" class="focus-ring flex min-h-11 items-center justify-between rounded-lg px-3 py-2 transition hover:bg-pale" :class="language.code === (fr ? 'fr' : 'en') ? 'bg-pale text-blue-700' : 'text-slate-700'">
                                 {{ language.label }}<Icon v-if="language.code === (fr ? 'fr' : 'en')" name="check" class="h-4 w-4" />
                             </a>
@@ -98,8 +98,8 @@ onBeforeUnmount(() => {
     </div>
 </template>
 <style scoped>
-.site-header { position: sticky; top: 0; z-index: 40; background: var(--color-navy); color: #fff; transition: box-shadow 200ms; }
-.site-header.is-scrolled { box-shadow: 0 1px 0 rgb(255 255 255 / .08), 0 12px 32px -18px rgb(0 0 0 / .7); }
+.site-header { position: sticky; top: 0; z-index: 40; border-bottom: 1px solid transparent; background: var(--color-navy); color: #fff; transition: border-color 200ms; }
+.site-header.is-scrolled { border-bottom-color: rgb(255 255 255 / .1); }
 .site-header .focus-ring:focus-visible { outline-color: #fff; }
 .brand-link { display: inline-flex; align-items: center; gap: 10px; border-radius: 8px; font-family: var(--font-display); font-size: 20px; font-weight: 600; letter-spacing: -.035em; }
 .nav-link { position: relative; padding-block: 8px; color: rgb(255 255 255 / .72); font-size: 14px; font-weight: 600; transition: color 180ms; }
@@ -112,9 +112,9 @@ onBeforeUnmount(() => {
 .language-toggle:hover, details[open] > .language-toggle { border-color: rgb(255 255 255 / .45); color: #fff; }
 .menu-toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 9px; cursor: pointer; list-style: none; }
 .menu-toggle:hover { background: rgb(255 255 255 / .08); }
-.mobile-menu { position: absolute; left: 0; right: 0; top: 100%; max-height: calc(100vh - 72px); overflow-y: auto; border-top: 1px solid rgb(255 255 255 / .08); background: #0f2150; box-shadow: 0 24px 40px -20px rgb(0 0 0 / .7); }
+.mobile-menu { position: absolute; left: 0; right: 0; top: 100%; max-height: calc(100vh - 72px); overflow-y: auto; border-top: 1px solid rgb(255 255 255 / .08); background: #0f2150; }
 .mobile-link { display: flex; align-items: center; justify-content: space-between; padding: 16px 4px; border-bottom: 1px solid rgb(255 255 255 / .08); font-size: 17px; font-weight: 600; color: rgb(255 255 255 / .85); }
-.mobile-link[aria-current='page'] { color: #fff; box-shadow: inset 3px 0 0 #8ab2ff; padding-left: 14px; }
+.mobile-link[aria-current='page'] { color: #fff; border-left: 3px solid #8ab2ff; padding-left: 14px; }
 @media (prefers-reduced-motion: reduce) {
     .nav-link::after { transition: none; }
 }

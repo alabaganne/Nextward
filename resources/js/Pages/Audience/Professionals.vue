@@ -169,7 +169,7 @@ const tools = computed(() => [
 .promises dt svg { width: 20px; height: 20px; color: #8ab2ff; }
 .promises dd { max-width: 460px; margin-top: 6px; padding-left: 30px; font-size: 14px; line-height: 1.75; color: #c5cddc; }
 .example-wrap { position: relative; padding-top: 84px; }
-.example { position: relative; margin: 0; border-radius: 18px; background: #fff; color: var(--color-navy); box-shadow: 0 40px 80px -40px rgb(0 0 0 / .6); }
+.example { position: relative; margin: 0; border-radius: 18px; background: #fff; color: var(--color-navy); }
 .example-head { padding: 26px 28px 20px; border-bottom: 1px solid #0a17381a; }
 .example-tag { display: inline-block; padding: 3px 9px; border-radius: 6px; background: #fdebe7; color: #b5442e; font-size: 11px; font-weight: 600; }
 .example-head h3 { margin-top: 12px; font-size: 22px; font-weight: 600; letter-spacing: -.03em; }

@@ -122,7 +122,7 @@ const faqs = computed(() => [
 .journey { --art-h: 168px; }
 .journey li { position: relative; }
 .journey-art { width: 100%; height: var(--art-h); object-fit: contain; }
-.journey-number { position: relative; display: grid; place-items: center; width: 30px; height: 30px; margin-top: 0; border-radius: 50%; background: var(--color-navy); color: #fff; font-family: var(--font-display); font-size: 14px; font-weight: 600; box-shadow: 0 0 0 6px #faf9f6; }
+.journey-number { position: relative; display: grid; place-items: center; width: 30px; height: 30px; margin-top: 0; border-radius: 50%; background: var(--color-navy); color: #fff; font-family: var(--font-display); font-size: 14px; font-weight: 600; outline: 6px solid #faf9f6; }
 .journey h3 { margin-top: 18px; font-size: 19px; font-weight: 600; letter-spacing: -.025em; }
 .journey p { margin-top: 8px; font-size: 14px; line-height: 1.75; color: #586171; }
 .faq-band { background: #fff; border-block: 1px solid #0a17380f; }

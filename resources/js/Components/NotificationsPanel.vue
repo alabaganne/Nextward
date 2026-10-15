@@ -61,7 +61,7 @@ const clearAll = () => {
 		>
 			<aside
 				v-if="open"
-				class="fixed top-0 right-0 z-50 h-full w-[400px] max-w-[92vw] bg-white border-l border-line shadow-big flex flex-col"
+				class="fixed top-0 right-0 z-50 h-full w-[400px] max-w-[92vw] bg-white border-l border-line flex flex-col"
 				role="dialog"
 				aria-label="Notifications"
 			>
