@@ -56,7 +56,7 @@
 	@apply border-line bg-white text-ink-700 hover:border-blue-300;
 }
 .jcard {
-	@apply bg-white border border-line rounded-[18px] p-6 flex flex-col shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-card hover:border-blue-200;
+	@apply bg-white border border-line rounded-[18px] p-6 flex flex-col transition-all duration-200 hover:-translate-y-1 hover:border-blue-200;
 }
 .tag {
 	@apply inline-flex items-center px-[11px] py-[5px] rounded-lg text-xs font-semibold bg-paper-3 text-ink-700;
@@ -95,7 +95,7 @@ textarea.fld {
 	@apply resize-y min-h-[92px];
 }
 .sw {
-	@apply appearance-none w-[46px] h-[27px] rounded-full bg-paper-3 border border-line relative cursor-pointer shrink-0 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-[21px] after:h-[21px] after:rounded-full after:bg-white after:shadow-[0_1px_3px_rgba(12,19,34,.25)] after:transition-transform;
+	@apply appearance-none w-[46px] h-[27px] rounded-full bg-paper-3 border border-line relative cursor-pointer shrink-0 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-[21px] after:h-[21px] after:rounded-full after:bg-white after:transition-transform;
 }
 .sw:checked {
 	@apply bg-blue-600 border-blue-600 after:translate-x-[19px];
@@ -155,4 +155,30 @@ textarea.fld {
 	50% {
 		transform: translateY(-9px);
 	}
+}
+
+/* Workspace shell */
+.nav-item {
+	@apply flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[14.5px] font-medium text-[#aeb9cf] transition-colors hover:bg-white/[.06] hover:text-white focus-visible:outline-2 focus-visible:outline-blue-400;
+}
+.nav-item.is-active {
+	@apply bg-white/[.09] text-white;
+}
+.nav-item.is-active svg {
+	@apply text-blue-300;
+}
+.nav-badge {
+	@apply ml-auto min-w-5 h-5 px-1.5 rounded-full grid place-items-center text-[11px] font-bold text-white bg-blue-600;
+}
+.icon-btn {
+	@apply relative size-10 rounded-[10px] grid place-items-center text-ink-700 transition-colors hover:bg-paper-2 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-blue-500;
+}
+.cbtn-primary {
+	@apply bg-blue-600 text-white hover:bg-blue-700;
+}
+.cbtn-secondary {
+	@apply bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700;
+}
+.menu-item {
+	@apply flex w-full items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-ink-700 hover:bg-paper-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-blue-500;
 }

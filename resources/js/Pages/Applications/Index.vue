@@ -55,39 +55,32 @@ const partyName = (application) => (isStudent.value ? application.company?.name 
 </script>
 
 <template>
-	<div class="px-10 max-[680px]:px-5 pt-[30px] pb-[50px] w-full max-w-wrap mx-auto">
+	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-wrap mx-auto">
 		<div class="mb-[22px]">
-			<span class="block font-display text-[12.5px] font-semibold tracking-[.18em] uppercase text-blue-600 mb-2">Your pipeline</span>
-			<h1 class="font-display text-[32px] font-semibold tracking-[-.02em]">Applications</h1>
+			<h1 class="font-display text-[28px] font-semibold tracking-[-.02em] leading-tight">Applications</h1>
 			<p class="text-muted text-[15px] mt-1.5">
 				{{ isStudent ? "Track every role you've applied to and see where you stand at a glance." : 'Review every application to your open roles at a glance.' }}
 			</p>
 		</div>
 
-		<!-- PIPELINE -->
-		<p class="text-xs text-muted mb-3">Filter applications on this page</p>
-		<div class="grid grid-cols-5 gap-3.5 mb-[26px] max-[1000px]:grid-cols-3">
+		<div class="flex gap-2 mb-5 overflow-x-auto [scrollbar-width:none]" role="group" aria-label="Filter by status">
 			<button
 				v-for="bucket in buckets"
 				:key="bucket.key"
-				class="pcard text-left bg-white border border-line rounded-[18px] px-5 py-[18px] cursor-pointer transition-colors hover:border-blue-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+				class="chip inline-flex items-center gap-2 h-10 px-4 rounded-full border text-sm font-semibold whitespace-nowrap transition-colors"
 				:class="{ 'is-active': filter === bucket.key }"
 				type="button"
 				:aria-pressed="filter === bucket.key"
 				@click="filter = bucket.key"
 			>
-				<span class="block font-display text-[30px] font-semibold leading-none">{{ countFor(bucket.key) }}</span>
-				<span class="text-[13px] text-muted font-semibold mt-[7px] flex items-center gap-[7px]">
-					<span class="w-2 h-2 rounded-full" :class="bucket.dot"></span>{{ bucket.label }}
-				</span>
+				<span v-if="bucket.key !== 'all'" class="size-2 rounded-full" :class="bucket.dot"></span>
+				{{ bucket.label }}
+				<span class="text-xs opacity-70">{{ countFor(bucket.key) }}</span>
 			</button>
 		</div>
 
 		<!-- TABLE -->
 		<div class="bg-white border border-line rounded-[18px] overflow-hidden">
-			<div class="flex items-center justify-between px-[22px] py-[18px] border-b border-line-2">
-				<b class="text-base font-display font-semibold">All applications</b>
-			</div>
 			<div class="grid grid-cols-[1fr_150px_130px_40px] gap-4 px-[22px] py-3 border-b border-line-2 bg-paper-2 max-[760px]:hidden [&_span]:text-[11.5px] [&_span]:tracking-[.08em] [&_span]:uppercase [&_span]:text-muted-2 [&_span]:font-bold [&_span:last-child]:text-right">
 				<span>{{ isStudent ? 'Role' : 'Applicant · Role' }}</span><span>Applied</span><span>Status</span><span></span>
 			</div>

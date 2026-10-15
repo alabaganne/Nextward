@@ -20,11 +20,10 @@ const icons = {
 </script>
 
 <template>
-	<div class="px-10 max-[680px]:px-5 pt-[30px] pb-[50px] w-full max-w-wrap mx-auto">
+	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-wrap mx-auto">
 		<div class="flex items-end justify-between flex-wrap gap-4 mb-6">
 			<div>
-				<span class="block font-display text-[12.5px] font-semibold tracking-[.18em] uppercase text-blue-600 mb-2">Your shortlist</span>
-				<h1 class="font-display text-[32px] font-semibold tracking-[-.02em]">Saved roles</h1>
+				<h1 class="font-display text-[28px] font-semibold tracking-[-.02em] leading-tight">Saved roles</h1>
 				<p class="text-muted text-[15px] mt-1.5">{{ likes.length }} {{ likes.length === 1 ? 'internship' : 'internships' }} saved for later. Apply before they close.</p>
 			</div>
 			<Link class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all [&_svg]:w-[17px] [&_svg]:h-[17px]" :href="route('opportunities.index')">

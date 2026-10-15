@@ -25,11 +25,10 @@ const meta = computed(() => props.students.meta ?? props.students);
 </script>
 
 <template>
-	<div class="px-10 max-[680px]:px-5 pt-[34px] pb-14 w-full max-w-wrap mx-auto">
+	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-wrap mx-auto">
 		<div class="mb-6 flex items-end justify-between gap-4 flex-wrap">
 			<div>
-			<span class="block font-display text-[12.5px] font-semibold tracking-[.18em] uppercase text-blue-600 mb-2">Directory</span>
-			<h1 class="font-display text-[32px] font-semibold tracking-[-.02em]">Candidates</h1>
+			<h1 class="font-display text-[28px] font-semibold tracking-[-.02em] leading-tight">Candidates</h1>
 			<p class="text-muted text-[15px] mt-1.5">Every candidate profile on Nextward.</p>
 			</div>
 			<Link class="cbtn bg-blue-600 text-white hover:bg-blue-700" :href="route('students.create')">Add candidate</Link>

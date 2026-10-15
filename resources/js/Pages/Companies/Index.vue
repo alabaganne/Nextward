@@ -1,9 +1,10 @@
 <script setup>
-import { Mail, MapPin, Search } from '@lucide/vue';
-import { computed, h, ref } from 'vue';
-import { Link, usePage } from '@inertiajs/vue3';
+import { Building2, Globe2, MapPin, Search } from '@lucide/vue';
+import { h, ref, watch } from 'vue';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
 import CompanyLogo from '@/Components/Ui/CompanyLogo.vue';
+import PageHeader from '@/Components/Ui/PageHeader.vue';
 import Pagination from '@/Components/Ui/Pagination.vue';
 
 defineOptions({
@@ -12,98 +13,87 @@ defineOptions({
 
 const props = defineProps({
 	companies: Object, // plain paginator: { data, links, current_page, ... }
+	filters: { type: Object, default: () => ({}) },
 });
 
-const icons = {
-	search: Search,
-	pin: MapPin,
-	mail: Mail,
-};
-
-const query = ref('');
 const page = usePage();
-const filter = ref('all');
+const search = ref(props.filters.search || '');
+const hiring = ref(!!props.filters.hiring);
 
-const chips = [
-	{ key: 'all', label: 'All companies' },
-	{ key: 'hiring', label: 'With opportunities' },
-];
+let timer;
+const reload = () => {
+	clearTimeout(timer);
+	const query = {};
+	if (search.value.trim()) query.search = search.value.trim();
+	if (hiring.value) query.hiring = 1;
+	router.get(route('companies.index'), query, { preserveState: true, preserveScroll: true, replace: true });
+};
+watch(search, () => {
+	clearTimeout(timer);
+	timer = setTimeout(reload, 300);
+});
+watch(hiring, reload);
 
-const visible = computed(() =>
-	props.companies.data.filter((company) => {
-		const term = query.value.trim().toLowerCase();
-		const matchesTerm =
-			!term ||
-			company.name.toLowerCase().includes(term) ||
-			(company.city?.name || '').toLowerCase().includes(term);
-		const matchesFilter = filter.value === 'all' || company.internships_count > 0;
-		return matchesTerm && matchesFilter;
-	})
-);
-
-// The controller uses a plain paginator, so pagination fields sit at the top level.
-const meta = computed(() => props.companies.meta ?? props.companies);
+const host = (url) => {
+	try {
+		return new URL(url).hostname.replace(/^www\./, '');
+	} catch {
+		return url;
+	}
+};
 </script>
 
 <template>
-	<div class="px-10 max-[680px]:px-5 pt-[34px] pb-14 w-full max-w-wrap mx-auto">
-		<div class="mb-6 flex items-end justify-between gap-4 flex-wrap">
-			<div>
-			<span class="block font-display text-[12.5px] font-semibold tracking-[.18em] uppercase text-blue-600 mb-2">Directory</span>
-			<h1 class="font-display text-[32px] font-semibold tracking-[-.02em]">Companies</h1>
-			<p class="text-muted text-[15px] mt-1.5">Explore companies on Nextward and the opportunities they have posted.</p>
-			</div>
-			<Link v-if="page.props.auth?.user?.is_admin" class="cbtn bg-blue-600 text-white hover:bg-blue-700" :href="route('companies.create')">Add company</Link>
-		</div>
+	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-wrap mx-auto">
+		<PageHeader title="Companies" description="Employers with roles on Nextward.">
+			<template v-if="page.props.auth?.user?.is_admin" #actions>
+				<Link class="cbtn cbtn-primary h-11 !py-0" :href="route('companies.create')">Add company</Link>
+			</template>
+		</PageHeader>
 
-		<!-- TOOLBAR -->
-		<div class="flex items-center gap-3.5 mb-[22px] flex-wrap">
-			<label class="flex items-center gap-2.5 bg-white border border-line rounded-[12px] px-3.5 h-[46px] flex-1 min-w-[240px] focus-within:border-blue-400 [&_svg]:w-[18px] [&_svg]:h-[18px] [&_svg]:text-muted-2 [&_svg]:shrink-0">
-				<component :is="icons.search" aria-hidden="true" />
-				<input v-model="query" class="border-0 bg-transparent outline-none text-[14.5px] w-full" type="text" placeholder="Filter by company name or city…">
+		<div class="flex items-center gap-3 mb-5 flex-wrap">
+			<label class="flex items-center gap-2.5 bg-white border border-line rounded-[12px] px-3.5 h-11 flex-1 min-w-[240px] focus-within:border-blue-400">
+				<Search class="size-[18px] text-muted-2 shrink-0" aria-hidden="true" />
+				<input v-model="search" class="border-0 bg-transparent p-0 outline-none focus:ring-0 text-[14.5px] w-full" type="search" placeholder="Search by company or city" aria-label="Search companies">
 			</label>
-			<div class="flex gap-2 flex-wrap">
-				<button
-					v-for="chip in chips"
-					:key="chip.key"
-					class="chip inline-flex items-center gap-[7px] h-[46px] px-4 rounded-[12px] border text-[13.5px] font-semibold cursor-pointer transition-colors"
-					:class="{ 'is-active': filter === chip.key }"
-					type="button"
-					:aria-pressed="filter === chip.key"
-					@click="filter = chip.key"
-				>{{ chip.label }}</button>
-			</div>
+			<label class="inline-flex items-center gap-2.5 h-11 px-4 rounded-[12px] border border-line bg-white text-sm font-semibold cursor-pointer select-none">
+				<input v-model="hiring" type="checkbox" class="ck">
+				Hiring now
+			</label>
 		</div>
 
-		<p class="text-[13.5px] text-muted font-medium mb-4"><b class="text-ink-700 font-bold">{{ visible.length }}</b> of {{ companies.data.length }} companies</p>
+		<p class="text-sm text-muted mb-4">{{ companies.total }} {{ companies.total === 1 ? 'company' : 'companies' }}</p>
 
-		<!-- GRID -->
-		<div class="grid grid-cols-3 gap-[18px] max-[1180px]:grid-cols-2 max-[760px]:grid-cols-1">
-			<article
-				v-for="company in visible"
+		<div v-if="companies.data.length" class="grid grid-cols-3 gap-4 max-[1180px]:grid-cols-2 max-[760px]:grid-cols-1">
+			<Link
+				v-for="company in companies.data"
 				:key="company.id"
-				class="bg-white border border-line rounded-[18px] p-6 flex flex-col transition-all hover:border-blue-300 hover:-translate-y-[3px]"
+				:href="route('companies.show', company.id)"
+				class="group bg-white border border-line rounded-[16px] p-5 flex flex-col transition-colors hover:border-blue-300 focus-visible:outline-2 focus-visible:outline-blue-500"
 			>
 				<div class="flex items-start gap-3.5">
-					<CompanyLogo class="w-[52px] h-[52px] rounded-[14px] text-[19px]" :name="company.name" />
+					<CompanyLogo class="size-12 rounded-[12px] text-[17px]" :name="company.name" />
 					<div class="flex-1 min-w-0">
-						<h3 class="font-display text-[18px] font-semibold leading-[1.2]">{{ company.name }}</h3>
-						<span class="inline-flex items-center gap-[5px] text-[13px] text-muted mt-[5px] [&_svg]:w-[13px] [&_svg]:h-[13px] [&_svg]:text-muted-2"><component :is="icons.pin" aria-hidden="true" />{{ company.city?.name }}</span>
+						<h2 class="font-display text-[17px] font-semibold leading-snug truncate group-hover:text-blue-700">{{ company.name }}</h2>
+						<span v-if="company.location" class="flex items-center gap-1.5 text-[13px] text-muted mt-1"><MapPin class="size-3.5 text-muted-2 shrink-0" aria-hidden="true" /><span class="truncate">{{ company.location }}</span></span>
 					</div>
-					<span v-if="company.internships_count" class="ml-auto text-xs font-bold text-blue-700 bg-blue-50 px-[11px] py-[5px] rounded-full whitespace-nowrap">{{ company.internships_count }} roles</span>
 				</div>
-				<div class="flex flex-col gap-[9px] mt-[18px] pt-4 border-t border-line-2 flex-1">
-					<div class="flex items-center gap-2.5 text-[13px] text-ink-700 [&_svg]:w-[15px] [&_svg]:h-[15px] [&_svg]:text-muted-2 [&_svg]:shrink-0"><component :is="icons.mail" aria-hidden="true" />{{ company.email }}</div>
+				<div class="flex items-center justify-between gap-3 mt-5 pt-4 border-t border-line-2 text-[13px]">
+					<span v-if="company.website" class="flex items-center gap-1.5 text-muted min-w-0"><Globe2 class="size-3.5 text-muted-2 shrink-0" aria-hidden="true" /><span class="truncate">{{ host(company.website) }}</span></span>
+					<span v-else class="text-muted-2">No website listed</span>
+					<span class="shrink-0 font-semibold" :class="company.open_roles_count ? 'text-blue-700' : 'text-muted-2'">
+						{{ company.open_roles_count ? `${company.open_roles_count} open ${company.open_roles_count === 1 ? 'role' : 'roles'}` : 'No open roles' }}
+					</span>
 				</div>
-				<div class="flex gap-2.5 mt-[18px]">
-					<Link class="flex-1 justify-center h-[42px] inline-flex items-center font-semibold text-[15px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors" :href="route('companies.show', company.id)">View</Link>
-					<Link v-if="company.user_id && company.user_id !== page.props.auth?.user?.id" class="flex-1 justify-center h-[42px] inline-flex items-center font-semibold text-[15px] rounded-[12px] bg-paper-2 border border-line text-ink-700 hover:border-blue-300 hover:text-blue-700 transition-colors" :href="route('messages.show', company.user_id)">Message</Link>
-				</div>
-			</article>
+			</Link>
 		</div>
 
-		<div v-if="!visible.length" class="text-center py-[60px] text-muted">No companies match your filters.</div>
+		<div v-else class="flex flex-col items-center text-center py-16 px-5 bg-white border border-line rounded-[16px]">
+			<Building2 class="size-8 text-muted-2 mb-3" aria-hidden="true" />
+			<h2 class="font-display text-lg font-semibold">No companies found</h2>
+			<p class="text-muted text-sm mt-1.5">Try another name or city, or turn off "Hiring now".</p>
+		</div>
 
-		<Pagination :meta="meta" />
+		<Pagination :meta="companies" />
 	</div>
 </template>

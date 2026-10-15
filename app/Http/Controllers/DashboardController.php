@@ -44,7 +44,12 @@ class DashboardController extends Controller
                 ->count();
         }
 
+        if ($user->isCompany()) {
+            $props['roles_count'] = Internship::where('company_id', $user->userable_id)->open()->count();
+        }
+
         if ($user->isCandidate()) {
+            $props['saved_count'] = $user->userable->likes()->count();
             $preferences = $user->userable->preferences ?: [];
             $query = Internship::open()->withCandidateState($user)->with('company.user', 'city', 'field', 'skills', 'sources.importSource')
                 ->whereNotIn('id', Application::where('student_id', $user->userable_id)->select('internship_id'));

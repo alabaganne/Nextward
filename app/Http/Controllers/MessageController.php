@@ -53,6 +53,7 @@ class MessageController extends Controller
 		$selectedContact = $request->user_id ? User::find($request->user_id) : (sizeof($contacts) > 0 ? $contacts[0] : null);
 
 		if($selectedContact) {
+			Message::where('from_id', $selectedContact['id'])->where('to_id', $auth_id)->whereNull('read_at')->update(['read_at' => now()]);
 			$messages = MessageResource::collection(
 				Message::where(function($query) use ($selectedContact) {
 					$query->where('from_id', auth()->user()->id)

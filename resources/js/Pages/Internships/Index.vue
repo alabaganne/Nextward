@@ -1,6 +1,6 @@
 <script>
-import PublicLayout from '@/Layouts/Public.vue';
-export default { layout: PublicLayout };
+import opportunityLayout from '@/Layouts/opportunityLayout';
+export default { layout: opportunityLayout };
 </script>
 <script setup>
 import { computed, reactive, watch } from 'vue';
@@ -33,7 +33,7 @@ function submit(event) {
 }
 </script>
 <template>
-    <section class="bg-white border-b border-line"><div class="public-container pt-10 pb-7"><p class="text-sm text-blue-700 font-semibold uppercase tracking-widest">{{ text('Students and professionals', 'Étudiants et professionnels') }}</p><h1 class="font-display text-4xl font-semibold tracking-tight mt-3">{{ heading }}</h1><p class="text-slate-600 leading-7 mt-4 max-w-3xl">{{ page.props.seo?.description }}</p><nav class="flex flex-wrap gap-2 mt-6" :aria-label="text('Opportunity categories', 'Catégories d’opportunités')"><Link v-for="item in categories" :key="item.key" :href="`${prefix}/opportunities${item.key ? `/${item.key}` : ''}`" class="rounded-full px-4 py-2 text-sm font-semibold border" :class="(category || '') === item.key ? 'bg-blue-600 text-white border-blue-600' : 'border-line hover:border-blue-300'">{{ item.label }}</Link></nav></div></section>
+    <section :class="page.props.auth?.user ? '' : 'bg-white border-b border-line'"><div class="public-container pt-10 pb-7"><p v-if="!page.props.auth?.user" class="text-sm text-blue-700 font-semibold uppercase tracking-widest">{{ text('Students and professionals', 'Étudiants et professionnels') }}</p><h1 class="font-display text-4xl font-semibold tracking-tight mt-3">{{ heading }}</h1><p class="text-slate-600 leading-7 mt-4 max-w-3xl">{{ page.props.seo?.description }}</p><nav class="flex flex-wrap gap-2 mt-6" :aria-label="text('Opportunity categories', 'Catégories d’opportunités')"><Link v-for="item in categories" :key="item.key" :href="`${prefix}/opportunities${item.key ? `/${item.key}` : ''}`" class="rounded-full px-4 py-2 text-sm font-semibold border" :class="(category || '') === item.key ? 'bg-blue-600 text-white border-blue-600' : 'border-line hover:border-blue-300'">{{ item.label }}</Link></nav></div></section>
     <div class="public-container py-8"><div class="flex flex-wrap justify-between lg:justify-end gap-4 mb-5"><a href="#results" class="lg:hidden text-sm font-semibold text-blue-700">{{ text('Jump to results', 'Voir les résultats') }}</a><Link :href="page.props.auth?.user?.is_candidate ? savedSearchUrl : '/login'" class="text-sm font-semibold text-blue-700">{{ text('Save this search and set alerts', 'Sauvegarder cette recherche et choisir des alertes') }}</Link></div>
         <form :action="action" method="get" @submit.prevent="submit">
             <div class="flex flex-wrap gap-3 mb-6"><label class="flex-1 min-w-52"><span class="sr-only">{{ text('Search title, employer, or description', 'Rechercher par titre, entreprise ou description') }}</span><input v-model="form.search" name="search" type="search" maxlength="150" :placeholder="text('Role, company, or keyword', 'Poste, entreprise ou mot-clé')" class="w-full h-12 rounded-xl border-line bg-white" /></label><button type="submit" class="cta cta-primary">{{ text('Search opportunities', 'Rechercher') }}</button><Link :href="action" class="cta cta-secondary">{{ text('Reset filters', 'Réinitialiser') }}</Link></div>

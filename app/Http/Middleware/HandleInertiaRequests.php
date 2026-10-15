@@ -68,12 +68,15 @@ class HandleInertiaRequests extends Middleware
                     'career_stage' => $user->isCandidate() ? $user->userable->career_stage : null,
                     'userable_id' => $user->userable_id,
                     'userable_type' => $user->userable_type,
-                    'likes_count' => $user->isCandidate() ? $user->userable->likes->count() : null,
+                    'likes_count' => $user->isCandidate() ? $user->userable->likes()->count() : null,
                     'notifications' => ($user->isCandidate() || $user->isCompany()) ? [
                         'data' => NotificationResource::collection($user->notifications()->take(10)->get()),
-                        'unread_count' => $user->unreadNotifications->count(),
+                        'unread_count' => $user->unreadNotifications()->count(),
                     ] : null,
                 ],
+            ],
+            'badges' => fn () => [
+                'messages' => $user->receivedMessages()->whereNull('read_at')->count(),
             ],
 
             'toast' => Session::has('toast') ? Session::get('toast') : null,

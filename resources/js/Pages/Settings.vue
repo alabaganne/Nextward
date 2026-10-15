@@ -104,10 +104,9 @@ const deleteAccount = () => {
 </script>
 
 <template>
-	<div class="px-10 max-[680px]:px-5 pt-[30px] pb-16 w-full max-w-[1080px] mx-auto">
+	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-[1080px] mx-auto">
 		<div class="mb-6">
-			<span class="block font-display text-[12.5px] font-semibold tracking-[.18em] uppercase text-blue-600 mb-2">Account</span>
-			<h1 class="font-display text-[32px] font-semibold tracking-[-.02em]">Settings</h1>
+			<h1 class="font-display text-[28px] font-semibold tracking-[-.02em] leading-tight">Settings</h1>
 			<p class="text-muted text-[15px] mt-1.5">Manage your profile, opportunity preferences, and security.</p>
 		</div>
 

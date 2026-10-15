@@ -1,6 +1,6 @@
 <script>
-import PublicLayout from '@/Layouts/Public.vue';
-export default { layout: PublicLayout };
+import opportunityLayout from '@/Layouts/opportunityLayout';
+export default { layout: opportunityLayout };
 </script>
 <script setup>
 import { computed, ref } from 'vue';

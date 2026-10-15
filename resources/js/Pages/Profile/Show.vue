@@ -65,11 +65,10 @@ const strength = computed(() =>
 </script>
 
 <template>
-	<div class="px-10 max-[680px]:px-5 pt-[30px] pb-16 w-full max-w-[1120px] mx-auto">
+	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-[1120px] mx-auto">
 		<div class="flex items-end justify-between flex-wrap gap-4 mb-6">
 			<div>
-				<span class="block font-display text-[12.5px] font-semibold tracking-[.18em] uppercase text-blue-600 mb-2">Account</span>
-				<h1 class="font-display text-[32px] font-semibold tracking-[-.02em]">Your profile</h1>
+				<h1 class="font-display text-[28px] font-semibold tracking-[-.02em] leading-tight">Your profile</h1>
 				<p class="text-muted text-[15px] mt-1.5">{{ isStudent ? 'Keep your background, skills, and interests up to date.' : isCompany ? 'This is how candidates see your company on Nextward.' : 'Manage your administrator profile and account details.' }}</p>
 			</div>
 			<Link class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors [&_svg]:w-[17px] [&_svg]:h-[17px]" :href="route('settings')">

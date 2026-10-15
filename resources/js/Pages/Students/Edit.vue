@@ -43,7 +43,7 @@ const destroy = () => {
 </script>
 
 <template>
-	<div class="px-10 max-[680px]:px-5 pt-7 pb-14 w-full max-w-[860px] mx-auto">
+	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-[860px] mx-auto">
 		<div class="flex items-center gap-2 text-[13.5px] text-muted font-medium mb-[22px] [&_svg]:w-3.5 [&_svg]:h-3.5 [&_svg]:text-muted-2">
 			<Link class="hover:text-blue-700" :href="route('students.index')">Candidates</Link>
 			<component :is="icons.chevron" aria-hidden="true" />
@@ -51,8 +51,7 @@ const destroy = () => {
 		</div>
 
 		<div class="mb-6">
-			<span class="block font-display text-[12.5px] font-semibold tracking-[.18em] uppercase text-blue-600 mb-2">Catalog</span>
-			<h1 class="font-display text-[32px] font-semibold tracking-[-.02em]">{{ editing ? 'Edit candidate' : 'Add a candidate' }}</h1>
+			<h1 class="font-display text-[28px] font-semibold tracking-[-.02em] leading-tight">{{ editing ? 'Edit candidate' : 'Add a candidate' }}</h1>
 			<p v-if="!editing" class="text-sm text-muted mt-2">They can use Forgot password to set their password.</p>
 		</div>
 

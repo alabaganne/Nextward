@@ -16,11 +16,10 @@ const meta = computed(() => props.fields.meta ?? props.fields);
 </script>
 
 <template>
-	<div class="px-10 max-[680px]:px-5 pt-[34px] pb-14 w-full max-w-[1080px] mx-auto">
+	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-[1080px] mx-auto">
 		<div class="flex items-end justify-between flex-wrap gap-4 mb-6">
 			<div>
-				<span class="block font-display text-[12.5px] font-semibold tracking-[.18em] uppercase text-blue-600 mb-2">Catalog</span>
-				<h1 class="font-display text-[32px] font-semibold tracking-[-.02em]">Fields of study</h1>
+				<h1 class="font-display text-[28px] font-semibold tracking-[-.02em] leading-tight">Fields of study</h1>
 				<p class="text-muted text-[15px] mt-1.5">The disciplines internships and students are organised by.</p>
 			</div>
 			<Link class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors" :href="route('fields.create')">Add field</Link>

@@ -42,7 +42,7 @@ const employmentTypes = { FULL_TIME: 'Full-time', PART_TIME: 'Part-time', CONTRA
 </script>
 
 <template>
-	<div class="px-10 max-[680px]:px-5 pt-7 pb-14 w-full max-w-[1080px] mx-auto">
+	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-[1080px] mx-auto">
 		<div class="flex items-center gap-2 text-sm text-muted mb-6"><Link :href="route('opportunities.index')">Opportunities</Link><ChevronRight :size="14" /><span>{{ editing ? 'Edit opportunity' : 'Post an opportunity' }}</span></div>
 		<div class="mb-6"><span class="block font-display text-xs font-semibold tracking-widest uppercase text-blue-600 mb-2">Hire students and professionals</span><h1 class="font-display text-[32px] font-semibold">{{ editing ? 'Edit opportunity' : 'Post an opportunity' }}</h1><p class="text-muted mt-2">Share clear responsibilities, requirements, compensation, and where candidates can work.</p></div>
 		<form class="bg-white border border-line rounded-[18px]" @submit.prevent="submit">

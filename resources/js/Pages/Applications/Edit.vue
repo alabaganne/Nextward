@@ -50,7 +50,7 @@ const tips = [
 </script>
 
 <template>
-	<div class="px-10 max-[680px]:px-5 pt-7 pb-14 w-full max-w-wrap mx-auto">
+	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-wrap mx-auto">
 		<div class="flex items-center gap-2 text-[13.5px] text-muted font-medium mb-[22px] [&_svg]:w-3.5 [&_svg]:h-3.5 [&_svg]:text-muted-2">
 			<Link class="hover:text-blue-700" :href="route('opportunities.index')">Opportunities</Link>
 			<component :is="icons.chevron" aria-hidden="true" />
@@ -60,8 +60,7 @@ const tips = [
 		</div>
 
 		<div class="mb-6">
-			<span class="block font-display text-[12.5px] font-semibold tracking-[.18em] uppercase text-blue-600 mb-2">{{ editing ? 'Your application' : 'One step left' }}</span>
-			<h1 class="font-display text-[32px] font-semibold tracking-[-.02em]">{{ editing ? 'Edit your application' : 'Introduce yourself' }}</h1>
+			<h1 class="font-display text-[28px] font-semibold tracking-[-.02em] leading-tight">{{ editing ? 'Edit your application' : 'Introduce yourself' }}</h1>
 			<p class="text-muted text-[15px] mt-1.5">What makes you a strong candidate for this opportunity?</p>
 		</div>
 
