@@ -1,0 +1,162 @@
+[
+  {
+    "number": 1,
+    "name": "student-wave",
+    "svg": "svg/01-student-wave.svg",
+    "png": "png/01-student-wave.png",
+    "width": 1600,
+    "height": 1600,
+    "transparent": true,
+    "suggested_use": "Welcome and onboarding"
+  },
+  {
+    "number": 2,
+    "name": "student-prepare-cv",
+    "svg": "svg/02-student-prepare-cv.svg",
+    "png": "png/02-student-prepare-cv.png",
+    "width": 1600,
+    "height": 1600,
+    "transparent": true,
+    "suggested_use": "Resume/profile preparation"
+  },
+  {
+    "number": 3,
+    "name": "recruiter-clipboard",
+    "svg": "svg/03-recruiter-clipboard.svg",
+    "png": "png/03-recruiter-clipboard.png",
+    "width": 1600,
+    "height": 1600,
+    "transparent": true,
+    "suggested_use": "Employer shortlisting"
+  },
+  {
+    "number": 4,
+    "name": "mentor-pointing",
+    "svg": "svg/04-mentor-pointing.svg",
+    "png": "png/04-mentor-pointing.png",
+    "width": 1600,
+    "height": 1600,
+    "transparent": true,
+    "suggested_use": "Tutorial feature callout"
+  },
+  {
+    "number": 5,
+    "name": "resume-document",
+    "svg": "svg/05-resume-document.svg",
+    "png": "png/05-resume-document.png",
+    "width": 1600,
+    "height": 1600,
+    "transparent": true,
+    "suggested_use": "CV upload"
+  },
+  {
+    "number": 6,
+    "name": "internship-listing-board",
+    "svg": "svg/06-internship-listing-board.svg",
+    "png": "png/06-internship-listing-board.png",
+    "width": 1600,
+    "height": 1600,
+    "transparent": true,
+    "suggested_use": "Browse listings"
+  },
+  {
+    "number": 7,
+    "name": "search-internships",
+    "svg": "svg/07-search-internships.svg",
+    "png": "png/07-search-internships.png",
+    "width": 1600,
+    "height": 1600,
+    "transparent": true,
+    "suggested_use": "Search and filter"
+  },
+  {
+    "number": 8,
+    "name": "application-envelope",
+    "svg": "svg/08-application-envelope.svg",
+    "png": "png/08-application-envelope.png",
+    "width": 1600,
+    "height": 1600,
+    "transparent": true,
+    "suggested_use": "Submit application"
+  },
+  {
+    "number": 9,
+    "name": "interview-calendar",
+    "svg": "svg/09-interview-calendar.svg",
+    "png": "png/09-interview-calendar.png",
+    "width": 1600,
+    "height": 1600,
+    "transparent": true,
+    "suggested_use": "Interview scheduling"
+  },
+  {
+    "number": 10,
+    "name": "portfolio-laptop",
+    "svg": "svg/10-portfolio-laptop.svg",
+    "png": "png/10-portfolio-laptop.png",
+    "width": 1600,
+    "height": 1600,
+    "transparent": true,
+    "suggested_use": "Portfolio creation"
+  },
+  {
+    "number": 11,
+    "name": "learning-books-and-cap",
+    "svg": "svg/11-learning-books-and-cap.svg",
+    "png": "png/11-learning-books-and-cap.png",
+    "width": 1600,
+    "height": 1600,
+    "transparent": true,
+    "suggested_use": "Learning and readiness"
+  },
+  {
+    "number": 12,
+    "name": "wand-and-stars",
+    "svg": "svg/12-wand-and-stars.svg",
+    "png": "png/12-wand-and-stars.png",
+    "width": 1600,
+    "height": 1600,
+    "transparent": true,
+    "suggested_use": "Progress and delight"
+  },
+  {
+    "number": 13,
+    "name": "discover-internship",
+    "svg": "svg/13-discover-internship.svg",
+    "png": "png/13-discover-internship.png",
+    "width": 1600,
+    "height": 1105,
+    "transparent": true,
+    "suggested_use": "Discover an internship"
+  },
+  {
+    "number": 14,
+    "name": "prepare-application",
+    "svg": "svg/14-prepare-application.svg",
+    "png": "png/14-prepare-application.png",
+    "width": 1600,
+    "height": 1105,
+    "transparent": true,
+    "suggested_use": "Prepare an application"
+  },
+  {
+    "number": 15,
+    "name": "student-company-conversation",
+    "svg": "svg/15-student-company-conversation.svg",
+    "png": "png/15-student-company-conversation.png",
+    "width": 1600,
+    "height": 1105,
+    "transparent": true,
+    "suggested_use": "Discuss the opportunity"
+  },
+  {
+    "number": 16,
+    "name": "first-day-celebration",
+    "svg": "svg/16-first-day-celebration.svg",
+    "png": "png/16-first-day-celebration.png",
+    "width": 1600,
+    "height": 1105,
+    "transparent": true,
+    "suggested_use": "First-day onboarding"
+  }
+]

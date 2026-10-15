@@ -1,0 +1,242 @@
+[
+  {
+    "number": 1,
+    "name": "student wave",
+    "png": "png/01-student-wave.png",
+    "svg": "svg/01-student-wave.svg",
+    "dimensions": [
+      1600,
+      1600
+    ],
+    "transparent": true,
+    "sha256": "825a918fdf14f5cbfe1deee350129dc3eb0b404e4dd3437d77070133ec30225d"
+  },
+  {
+    "number": 2,
+    "name": "student prepare cv",
+    "png": "png/02-student-prepare-cv.png",
+    "svg": "svg/02-student-prepare-cv.svg",
+    "dimensions": [
+      1600,
+      1600
+    ],
+    "transparent": true,
+    "sha256": "be0fba1e705288b8b4d1b8b74977af057e20254878cfc0411be6930dad993778"
+  },
+  {
+    "number": 3,
+    "name": "recruiter clipboard",
+    "png": "png/03-recruiter-clipboard.png",
+    "svg": "svg/03-recruiter-clipboard.svg",
+    "dimensions": [
+      1600,
+      1600
+    ],
+    "transparent": true,
+    "sha256": "3226cc714f9b8939dc5a618e6a6f1bdf97997b4594f33fae552540ca6afc8f7f"
+  },
+  {
+    "number": 4,
+    "name": "mentor pointing",
+    "png": "png/04-mentor-pointing.png",
+    "svg": "svg/04-mentor-pointing.svg",
+    "dimensions": [
+      1600,
+      1600
+    ],
+    "transparent": true,
+    "sha256": "e3f4087bd836de885677b026876fe73365f91c039fe5f1424935cedd87b4a2eb"
+  },
+  {
+    "number": 5,
+    "name": "resume document",
+    "png": "png/05-resume-document.png",
+    "svg": "svg/05-resume-document.svg",
+    "dimensions": [
+      1600,
+      1600
+    ],
+    "transparent": true,
+    "sha256": "4aae866dd0381d1aedf976e5896d4e9a6fcefc00b2186ce45acf5d08e8995112"
+  },
+  {
+    "number": 6,
+    "name": "internship listing board",
+    "png": "png/06-internship-listing-board.png",
+    "svg": "svg/06-internship-listing-board.svg",
+    "dimensions": [
+      1600,
+      1600
+    ],
+    "transparent": true,
+    "sha256": "d8244d2461574172baae77ed155d702ede7031b61303674a1f61d7a67d779f12"
+  },
+  {
+    "number": 7,
+    "name": "search internships",
+    "png": "png/07-search-internships.png",
+    "svg": "svg/07-search-internships.svg",
+    "dimensions": [
+      1600,
+      1600
+    ],
+    "transparent": true,
+    "sha256": "b88b6a389804e2fb7717fb3a4c6e8558fad3d54de422a5a7510701869ae8cdcb"
+  },
+  {
+    "number": 8,
+    "name": "application envelope",
+    "png": "png/08-application-envelope.png",
+    "svg": "svg/08-application-envelope.svg",
+    "dimensions": [
+      1600,
+      1600
+    ],
+    "transparent": true,
+    "sha256": "0d2c89a7add904e31658c605a8735b04fe5eb6c44cd8171b0c2b57846ff7de3a"
+  },
+  {
+    "number": 9,
+    "name": "interview calendar",
+    "png": "png/09-interview-calendar.png",
+    "svg": "svg/09-interview-calendar.svg",
+    "dimensions": [
+      1600,
+      1600
+    ],
+    "transparent": true,
+    "sha256": "4216dcb568601d7d6397d38aa4d79002dd0f363f11e75c21abbc6cbc635aaf2d"
+  },
+  {
+    "number": 10,
+    "name": "portfolio laptop",
+    "png": "png/10-portfolio-laptop.png",
+    "svg": "svg/10-portfolio-laptop.svg",
+    "dimensions": [
+      1600,
+      1600
+    ],
+    "transparent": true,
+    "sha256": "acc1138e3929345c8c283c85558a2289a8be6145d198f15f99423d069c5122b9"
+  },
+  {
+    "number": 11,
+    "name": "learning books and cap",
+    "png": "png/11-learning-books-and-cap.png",
+    "svg": "svg/11-learning-books-and-cap.svg",
+    "dimensions": [
+      1600,
+      1600
+    ],
+    "transparent": true,
+    "sha256": "b3aea47f3d53469b985fa44c6a7c33b6dd5079f6f45930832b446eb6aa4c64a5"
+  },
+  {
+    "number": 12,
+    "name": "wand and stars",
+    "png": "png/12-wand-and-stars.png",
+    "svg": "svg/12-wand-and-stars.svg",
+    "dimensions": [
+      1600,
+      1600
+    ],
+    "transparent": true,
+    "sha256": "652c7ba531c5e8c1d76b8f811e7b4839979002d6c9a1ed605f34f8821b52911f"
+  },
+  {
+    "number": 13,
+    "name": "discover internship",
+    "png": "png/13-discover-internship.png",
+    "svg": "svg/13-discover-internship.svg",
+    "dimensions": [
+      1600,
+      1105
+    ],
+    "transparent": true,
+    "sha256": "e0fa32a20101004d68751319ac60bf889ee64f8d982a13da5bd06df8d8a94188"
+  },
+  {
+    "number": 14,
+    "name": "prepare application",
+    "png": "png/14-prepare-application.png",
+    "svg": "svg/14-prepare-application.svg",
+    "dimensions": [
+      1600,
+      1105
+    ],
+    "transparent": true,
+    "sha256": "3de19cf89234ee3b92df1673d23814ae49a729e88c53747378f994778be4999e"
+  },
+  {
+    "number": 15,
+    "name": "student company conversation",
+    "png": "png/15-student-company-conversation.png",
+    "svg": "svg/15-student-company-conversation.svg",
+    "dimensions": [
+      1600,
+      1105
+    ],
+    "transparent": true,
+    "sha256": "4e400f12eb285c2ebe80da851ec13eb4cab597beab1c3ca961b599922b3513a8"
+  },
+  {
+    "number": 16,
+    "name": "first day celebration",
+    "png": "png/16-first-day-celebration.png",
+    "svg": "svg/16-first-day-celebration.svg",
+    "dimensions": [
+      1600,
+      1105
+    ],
+    "transparent": true,
+    "sha256": "fe0526b01f6e8d2c0e7566e781db1975c5bdb2d6cbad7a03c079d958f7969fcd"
+  },
+  {
+    "number": 17,
+    "name": "student presenter",
+    "png": "png/17-student-presenter.png",
+    "svg": null,
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "transparent": true,
+    "sha256": "bfba82322da705e05c5a6309ef755c26ff0b08b526b741cd28a86a61b83b9c40"
+  },
+  {
+    "number": 18,
+    "name": "recruiter mentor",
+    "png": "png/18-recruiter-mentor.png",
+    "svg": null,
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "transparent": true,
+    "sha256": "8c8eb363ca73370769d452b8aa1b8bc1ed985708c4a0b1720995b04c517b859f"
+  },
+  {
+    "number": 19,
+    "name": "cozy career workspace",
+    "png": "png/19-cozy-career-workspace.png",
+    "svg": null,
+    "dimensions": [
+      1672,
+      941
+    ],
+    "transparent": false,
+    "sha256": "1e12372d58dcd5dc3c1078f5233d825697912fc0c08cdb1de25e901054dd50d4"
+  },
+  {
+    "number": 20,
+    "name": "campus career journey",
+    "png": "png/20-campus-career-journey.png",
+    "svg": null,
+    "dimensions": [
+      941,
+      1672
+    ],
+    "transparent": false,
+    "sha256": "b4cdb0afc768da5289c621c8c6c4c4f457d69a9e8fd51592621e37002ad50946"
+  }
+]
