@@ -79,16 +79,19 @@ consistent across screens:
 
 ## 3. Typography
 
-Workspace typography uses two families loaded in `resources/views/app.blade.php`:
-public/auth body text uses Inter (`font-sans`) with the same display family.
+Workspace typography uses two families; public/auth body text uses Inter
+(`font-sans`) with the same display family.
 
 - **Display — `Space Grotesk`** (`font-display`): all headings, numbers/stats,
   logo wordmark, eyebrows, button-like figures. Weights 500–700.
 - **Body — `Plus Jakarta Sans`** (`font-body`): everything else. Weights 400–800.
+- **Public/auth body — `Inter`** (`font-sans`). Weights 400–800.
 
-```html
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
-```
+All three are self-hosted: the woff2 files (Latin and Latin Extended) live in
+`resources/fonts/` and the `@font-face` rules in `resources/css/fonts.css`.
+Do not load fonts from Google Fonts or any other outside service; the privacy
+policy says pages contact no other site for fonts. To add a weight or family,
+add its woff2 file there and a matching `@font-face` rule.
 
 Scale & conventions:
 

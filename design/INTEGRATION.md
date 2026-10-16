@@ -46,8 +46,9 @@ brand/token definitions. Arbitrary-value utilities such as `text-[15.5px]` and
 
 ### 1b. Fonts
 
-`resources/views/app.blade.php` loads Inter, Space Grotesk, and Plus Jakarta Sans.
-`AppShell` uses `font-body` for workspace text. Public/auth pages use Inter through
+Inter, Space Grotesk, and Plus Jakarta Sans are self-hosted: woff2 files in
+`resources/fonts/`, `@font-face` rules in `resources/css/fonts.css` (imported by
+`app.css`). No font is loaded from Google. `AppShell` uses `font-body` for workspace text. Public/auth pages use Inter through
 `font-sans`; all share `font-display` for headings.
 
 ### 1c. Shared component CSS and icons
