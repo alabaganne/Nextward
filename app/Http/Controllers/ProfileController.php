@@ -11,6 +11,7 @@ use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
@@ -110,10 +111,19 @@ class ProfileController extends Controller
         ]);
 
         $user->fill(collect($data)->only('name', 'email', 'phone_number', 'linkedin_profile_url')->toArray());
-        if ($user->isDirty('email')) {
+        $emailChanged = $user->isDirty('email');
+        if ($emailChanged) {
             $user->email_verified_at = null;
         }
         $user->save();
+
+        if ($emailChanged) {
+            try {
+                $user->sendEmailVerificationNotification();
+            } catch (\Throwable $exception) {
+                Log::warning('Verification email failed after an email change.', ['user_id' => $user->id, 'error' => $exception->getMessage()]);
+            }
+        }
 
         if ($user->isCompany()) {
             $user->userable->update(collect($data)->only('name', 'about', 'website', 'city_id', 'country_code', 'location')->toArray());
