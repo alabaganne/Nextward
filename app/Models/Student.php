@@ -20,7 +20,12 @@ class Student extends Model
         'location',
         'languages',
         'preferences',
+        'website',
+        'resume_path',
+        'resume_name',
     ];
+
+    protected $hidden = ['resume_path'];
 
     protected $casts = [
         'preferences' => 'array',

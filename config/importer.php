@@ -59,7 +59,7 @@ return [
     'indexing_enabled' => (bool) env('GOOGLE_INDEXING_ENABLED', false),
     'google_credentials' => env('GOOGLE_INDEXING_CREDENTIALS'),
     'indexing_daily_limit' => (int) env('GOOGLE_INDEXING_DAILY_LIMIT', 200),
-    // AI reads each new listing and searches the web for new sources.
+    // AI reads each new listing, searches the web for new sources and drafts cover letters for candidates.
     // OPPORTUNITY_AI_PROVIDER picks openai or anthropic; keys live in config/ai.php.
     'ai' => [
         'enabled' => (bool) env('OPPORTUNITY_AI_ENABLED', true),
@@ -68,10 +68,12 @@ return [
             'openai' => [
                 'review' => env('OPPORTUNITY_OPENAI_MODEL', 'gpt-5.4-mini'),
                 'discovery' => env('OPPORTUNITY_OPENAI_DISCOVERY_MODEL', 'gpt-5.5'),
+                'letter' => env('OPPORTUNITY_OPENAI_LETTER_MODEL', 'gpt-5.5'),
             ],
             'anthropic' => [
                 'review' => env('OPPORTUNITY_AI_MODEL', 'claude-opus-5-5'),
                 'discovery' => env('OPPORTUNITY_AI_MODEL', 'claude-opus-5-5'),
+                'letter' => env('OPPORTUNITY_AI_MODEL', 'claude-opus-5-5'),
             ],
         ],
         'effort' => env('OPPORTUNITY_AI_EFFORT', 'low'),

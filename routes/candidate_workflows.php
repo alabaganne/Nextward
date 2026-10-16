@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\ApplicationController;
+use App\Http\Controllers\CoverLetterController;
 use App\Http\Controllers\OpportunityActivityController;
+use App\Http\Controllers\ResumeController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
@@ -16,4 +18,9 @@ Route::middleware('auth')->group(function () {
         ->whereNumber('application')->name('applications.tracking.update');
     Route::get('/applications/{application}/attachments/{attachment}', [ApplicationController::class, 'downloadAttachment'])
         ->whereNumber('application')->whereNumber('attachment')->name('applications.attachments.download');
+    Route::get('/profile/resume', [ResumeController::class, 'show'])->name('profile.resume.show');
+    Route::post('/profile/resume', [ResumeController::class, 'store'])->middleware('throttle:10,1')->name('profile.resume.store');
+    Route::delete('/profile/resume', [ResumeController::class, 'destroy'])->name('profile.resume.destroy');
+    Route::post('/opportunities/{internship}/cover-letter', [CoverLetterController::class, 'store'])
+        ->whereNumber('internship')->middleware('throttle:10,60,cover-letter')->name('opportunities.cover-letter');
 });

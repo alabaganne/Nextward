@@ -58,6 +58,8 @@ class ProfileController extends Controller
                 'country_code' => $student->country_code,
                 'location' => $student->location,
                 'languages' => $student->languages ?: [],
+                'website' => $student->website,
+                'resume_name' => $student->resume_name,
             ];
         }
 
@@ -128,7 +130,7 @@ class ProfileController extends Controller
         if ($user->isCompany()) {
             $user->userable->update(collect($data)->only('name', 'about', 'website', 'city_id', 'country_code', 'location')->toArray());
         } elseif ($user->isCandidate()) {
-            $user->userable->update(collect($data)->only('about', 'field_id', 'city_id', 'career_stage', 'headline', 'experience_years', 'country_code', 'location', 'languages', 'preferences')->toArray());
+            $user->userable->update(collect($data)->only('about', 'website', 'field_id', 'city_id', 'career_stage', 'headline', 'experience_years', 'country_code', 'location', 'languages', 'preferences')->toArray());
         }
 
         return Redirect::route('profile.show')->with('toast', [
@@ -154,6 +156,7 @@ class ProfileController extends Controller
                 $files = $applications->flatMap(fn ($application) => $application->attachments ?: [])
                     ->map(fn ($attachment) => is_array($attachment) ? Application::attachmentStorage($attachment) : null)
                     ->filter()->all();
+                if ($profile->resume_path) { $files[] = ['disk' => 'local', 'path' => $profile->resume_path]; }
 
                 Application::whereKey($applications->modelKeys())->delete();
                 $profile->likes()->detach();
@@ -208,6 +211,7 @@ class ProfileController extends Controller
                 'location' => $userable->location ?? null,
                 'languages' => $userable->languages ?? [],
                 'preferences' => $userable->preferences ?? [],
+                'resume_name' => $userable->resume_name ?? null,
             ],
         ]);
     }

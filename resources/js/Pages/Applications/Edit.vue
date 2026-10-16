@@ -1,6 +1,6 @@
 <script setup>
 import { ArrowRight, Check, ChevronRight, Clock3, MapPin } from '@lucide/vue';
-import { computed, h } from 'vue';
+import { computed, h, onMounted } from 'vue';
 import { Link, useForm } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
 import CompanyLogo from '@/Components/Ui/CompanyLogo.vue';
@@ -28,6 +28,16 @@ const form = useForm({
 	cover_letter: props.application?.cover_letter || '',
 	message: props.application?.message || '',
 	attachment_files: [],
+});
+
+// A draft from the cover letter button on the opportunity page.
+onMounted(() => {
+	try {
+		const key = `nextward.cover-letter.${props.internship.id}`;
+		const draft = sessionStorage.getItem(key);
+		sessionStorage.removeItem(key);
+		if (draft && !form.cover_letter) form.cover_letter = draft;
+	} catch { /* storage blocked */ }
 });
 
 const submit = () => {

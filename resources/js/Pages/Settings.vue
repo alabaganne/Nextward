@@ -1,5 +1,5 @@
 <script setup>
-import { ShieldCheck, UserRound } from '@lucide/vue';
+import { FileText, ShieldCheck, UserRound } from '@lucide/vue';
 import { computed, h, nextTick, ref } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
@@ -79,6 +79,14 @@ const saveAccount = () => {
 const accountError = (key) =>
 	Object.entries(accountForm.errors).find(([name]) => name === key || name.startsWith(`${key}.`))?.[1];
 const hasAccountErrors = computed(() => Object.keys(accountForm.errors).length > 0);
+
+const resumeForm = useForm({ resume: null });
+const uploadResume = (event) => {
+	resumeForm.resume = event.target.files[0] || null;
+	event.target.value = '';
+	if (resumeForm.resume) resumeForm.post(route('profile.resume.store'), { preserveScroll: true, forceFormData: true });
+};
+const removeResume = () => router.delete(route('profile.resume.destroy'), { preserveScroll: true });
 
 const passwordForm = useForm({
 	current_password: '',
@@ -202,7 +210,7 @@ const deleteAccount = () =>
 									</select>
 									<div v-if="accountForm.errors.field_id" class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.field_id }}</div>
 								</div>
-								<div v-else class="mb-4">
+								<div v-if="!isStudent" class="mb-4">
 									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="settings-website">Website</label>
 									<input id="settings-website" v-model="accountForm.website" class="fld" type="url" placeholder="https://…">
 									<div v-if="accountForm.errors.website" class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.website }}</div>
@@ -225,6 +233,7 @@ const deleteAccount = () =>
 									<label class="text-sm font-semibold">Years of experience<input v-model.number="accountForm.experience_years" class="fld mt-2" type="number" min="0" max="80"><span v-if="accountError('experience_years')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('experience_years') }}</span></label>
 									<label class="text-sm font-semibold">Headline<input v-model="accountForm.headline" class="fld mt-2" maxlength="255" placeholder="Your role or area of interest"><span v-if="accountError('headline')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('headline') }}</span></label>
 									<label class="text-sm font-semibold">Languages<input v-model="languagesText" class="fld mt-2" placeholder="Arabic, French, English"><span v-if="accountError('languages')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('languages') }}</span></label>
+									<label class="text-sm font-semibold">Website or portfolio<input v-model="accountForm.website" class="fld mt-2" type="url" placeholder="https://…"><span v-if="accountError('website')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('website') }}</span></label>
 								</div>
 								<h3 class="font-display text-lg font-semibold mt-7 mb-2">Opportunity preferences</h3>
 								<p class="text-sm text-muted mb-4">These preferences shape your dashboard. You can still browse every opportunity. Manage email alerts in Saved searches.</p>
@@ -246,6 +255,30 @@ const deleteAccount = () =>
 							<button class="cbtn bg-blue-600 text-white hover:bg-blue-700" type="submit" :disabled="accountForm.processing">Save changes</button>
 						</div>
 					</form>
+
+					<div v-if="isStudent" class="bg-white border border-line rounded-[18px] mb-[18px]">
+						<div class="px-[22px] py-[18px] border-b border-line-2">
+							<h3 class="font-display text-[16.5px] font-semibold">Resume</h3>
+							<p class="text-[13px] text-muted mt-[3px]">A PDF of your resume. Only you can see it. We use it with your profile to draft cover letters.</p>
+						</div>
+						<div class="px-[22px] py-[22px]">
+							<div class="flex items-center justify-between gap-4 flex-wrap">
+								<div class="flex items-center gap-3 min-w-0">
+									<FileText class="w-5 h-5 text-muted shrink-0" aria-hidden="true" />
+									<a v-if="settings.resume_name" :href="route('profile.resume.show')" class="text-[14px] font-semibold text-blue-700 hover:underline truncate">{{ settings.resume_name }}</a>
+									<span v-else class="text-[13.5px] text-muted">No resume yet.</span>
+								</div>
+								<div class="flex gap-2.5">
+									<label class="cbtn cbtn-secondary cursor-pointer" :class="{ 'opacity-60 pointer-events-none': resumeForm.processing }">
+										{{ resumeForm.processing ? 'Uploading…' : settings.resume_name ? 'Replace PDF' : 'Upload PDF' }}
+										<input type="file" accept="application/pdf" class="sr-only" @change="uploadResume">
+									</label>
+									<button v-if="settings.resume_name" class="cbtn cbtn-secondary" type="button" @click="removeResume">Remove</button>
+								</div>
+							</div>
+							<div v-if="resumeForm.errors.resume" class="text-xs text-[#dc2626] mt-[10px]" role="alert">{{ resumeForm.errors.resume }}</div>
+						</div>
+					</div>
 				</section>
 
 				<!-- SECURITY -->
