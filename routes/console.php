@@ -13,6 +13,7 @@ Schedule::command('opportunities:import --due --limit=100')->everyFiveMinutes()-
 Schedule::command('opportunities:reconcile')->everyFifteenMinutes()->withoutOverlapping();
 Schedule::command('opportunities:digests')->hourly()->withoutOverlapping();
 Schedule::command('opportunities:indexing --limit=100')->hourly()->withoutOverlapping();
+Schedule::command('companies:logos')->hourly()->withoutOverlapping();
 Schedule::command('seo:indexnow')->hourly()->withoutOverlapping();
 Schedule::call(fn () => \Illuminate\Support\Facades\Cache::put('opportunities:scheduler:last_seen_at', now()->toIso8601String(), now()->addDay()))
     ->everyMinute()->name('opportunities.scheduler-heartbeat');

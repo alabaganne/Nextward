@@ -34,6 +34,8 @@ php artisan storage:link
 
 The city and field catalogues support optional profile choices and filters. Worldwide profiles can use their country and location without a Tunisian city. `storage:link` exposes public company/profile media, not new application attachments.
 
+Pages only load company logos from Nextward. A logo from another site (`companies.logo_url`) is downloaded once by `php artisan companies:logos`, which the scheduler runs every hour: PNG, JPEG, GIF or WebP up to 1 MB, from public hosts only, saved under `company-logos/imported` on the public disk. Until the copy exists, or when the download fails, pages show the initials badge. Failed downloads are tried again after a week. An uploaded logo always wins.
+
 Run the web server and Vite in separate terminals:
 
 ```bash

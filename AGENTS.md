@@ -16,6 +16,7 @@ Shared notes for anyone working on this repo, people or coding tools. `CLAUDE.md
 - **Old names in the code:** the `internships` table and `Internship` model hold every listing (`kind` is `internship` or `job`). The `students` table and `Student` model hold every candidate (`career_stage` is `student`, `graduate` or `professional`). Keep these names for compatibility; use "opportunity" and "candidate" in new copy.
 - **Honest content:** no made-up numbers, testimonials, live activity or company verification.
 - **Privacy:** fonts are self-hosted in `resources/fonts/`. Don't add outside fonts, scripts or trackers without updating the privacy policy (`resources/js/Pages/Privacy.vue`).
+- **Company logos:** pages only show logos stored on Nextward. Outside logo URLs are downloaded by `companies:logos` and never sent to the browser (`README.md#local-setup`).
 - **Design:** flat surfaces, no shadows or glows, and no one-sided accent borders (top stripes, left bars); use tints or solid fills instead. This holds for emails too. Details in `design/DESIGN.md`.
 - **Writing:** plain, everyday words in copy, docs, commits and code comments. Comments are short and rare.
 

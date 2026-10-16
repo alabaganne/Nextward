@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Company extends Model
@@ -20,6 +21,23 @@ class Company extends Model
         'country_code',
         'location',
     ];
+
+    protected $casts = ['logo_fetched_at' => 'datetime'];
+
+    protected static function booted(): void
+    {
+        // A new outside logo is downloaded again by companies:logos.
+        static::saving(function (Company $company) {
+            if ($company->isDirty('logo_url')) {
+                $company->logo_fetched_at = null;
+            }
+        });
+        static::deleted(function (Company $company) {
+            if ($company->logo_path) {
+                Storage::disk('public')->delete($company->logo_path);
+            }
+        });
+    }
 
     public function user() {
         return $this->morphOne(User::class, 'userable');
@@ -42,9 +60,15 @@ class Company extends Model
         return $this->user?->name ?: $this->name ?: 'Employer not specified';
     }
 
+    // Full public URL of a file on the public disk; outside URLs are never sent to the browser.
     public function getLogoAttribute(): ?string
     {
-        return $this->user?->image ?: $this->logo_url;
+        $image = $this->user?->image;
+        if (! $image || preg_match('#^https?://#i', $image)) {
+            $image = $this->logo_path;
+        }
+
+        return $image ? url(Storage::disk('public')->url($image)) : null;
     }
 
     public function getPublicUrlAttribute(): string
