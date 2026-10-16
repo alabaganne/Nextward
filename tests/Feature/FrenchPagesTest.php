@@ -125,6 +125,17 @@ class FrenchPagesTest extends TestCase
             ->assertSessionHasErrors(['email' => 'These credentials do not match our records.']);
     }
 
+    public function test_expired_session_message_follows_the_page_language()
+    {
+        \Illuminate\Support\Facades\Route::middleware('web')->post('/fr/expired', fn () => abort(419));
+        \Illuminate\Support\Facades\Route::middleware('web')->post('/expired', fn () => abort(419));
+
+        $this->from('/fr/login')->post('/fr/expired')->assertRedirect('/fr/login')
+            ->assertSessionHas('toast.message', 'Votre session a expiré. Veuillez réessayer.');
+        $this->from('/login')->post('/expired')->assertRedirect('/login')
+            ->assertSessionHas('toast.message', 'Your session expired. Please try again.');
+    }
+
     public function test_french_error_page_is_in_french()
     {
         config(['app.debug' => false]);

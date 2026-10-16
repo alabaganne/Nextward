@@ -33,7 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
             $status = $response->getStatusCode();
 
             if ($status === 419 && ! $request->expectsJson()) {
-                return back()->with('toast', ['type' => 'error', 'message' => 'Your session expired. Please try again.']);
+                return back()->with('toast', ['type' => 'error', 'message' => __('Your session expired. Please try again.', [], $request->is('fr', 'fr/*') ? 'fr' : 'en')]);
             }
 
             if (! config('app.debug') && in_array($status, [403, 404, 500, 503], true) && ! $request->expectsJson()) {

@@ -31,7 +31,10 @@
 					</div>
 				</header>
 				<main id="auth-main" tabindex="-1" class="auth-main">
-					<div class="auth-form"><slot /></div>
+					<div class="auth-form">
+						<div v-if="$page.props.toast?.message" class="auth-feedback" :class="$page.props.toast.type === 'error' ? 'auth-error' : 'auth-success'" :role="$page.props.toast.type === 'error' ? 'alert' : 'status'"><icon :name="$page.props.toast.type === 'error' ? 'exclamation-circle' : 'check-circle'" /><p>{{ $page.props.toast.message }}</p></div>
+						<slot />
+					</div>
 				</main>
 				<footer class="auth-footer">
 					<p>{{ text('Questions about your account?', 'Une question sur votre compte ?') }} <Link :href="`${prefix}/contact`" class="focus-ring">{{ text('Need a hand? Let’s talk', 'Besoin d’aide ? Parlons-en') }}</Link></p>
