@@ -95,6 +95,11 @@
 				</div>
 			</fieldset>
 
+			<label for="terms" class="auth-consent">
+				<input id="terms" name="terms" v-model="form.terms" type="checkbox" required :aria-invalid="form.errors.terms ? 'true' : undefined" :aria-describedby="form.errors.terms ? 'terms-error' : undefined" />
+				<span>I agree to the <a :href="route('terms')" target="_blank" rel="noopener" class="auth-link focus-ring">terms of use</a> and the <a :href="route('privacy')" target="_blank" rel="noopener" class="auth-link focus-ring">privacy policy</a>.</span>
+			</label>
+			<p v-if="form.errors.terms" id="terms-error" class="auth-field-error">{{ form.errors.terms }}</p>
 			<breeze-button class="auth-submit-spaced" :disabled="form.processing">{{ form.processing ? 'Creating your account…' : isCompany ? 'Create company account' : 'Create candidate account' }}<icon name="arrow-right" /></breeze-button>
 		</form>
 		<p class="auth-switch">Already have an account? <Link :href="route('login')" class="auth-link focus-ring">Log in</Link></p>
@@ -136,6 +141,7 @@ export default {
 				country_code: '',
 				location: '',
 				preferences: { kinds: this.careerStage === 'professional' ? ['job'] : ['internship', 'job'] },
+				terms: false,
 			}),
 		};
 	},

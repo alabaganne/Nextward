@@ -23,7 +23,7 @@ const languageOptions = computed(() => {
         return [{ code: 'en', label: 'English', href: en }, { code: 'fr', label: 'Français', href: french }];
     }
     const path = currentPath.value.replace(/^\/fr(?=\/|$)/, '') || '/';
-    const translatedPaths = ['/', '/for-students', '/for-professionals', '/about', '/contact', '/blog', '/opportunities', ...['internships', 'jobs', 'tunisia', 'remote-from-tunisia', 'relocation'].map((category) => `/opportunities/${category}`)];
+    const translatedPaths = ['/', '/for-students', '/for-professionals', '/about', '/contact', '/privacy', '/terms', '/blog', '/opportunities', ...['internships', 'jobs', 'tunisia', 'remote-from-tunisia', 'relocation'].map((category) => `/opportunities/${category}`)];
     if (!translatedPaths.includes(path)) return [];
     const suffix = page.url.slice(currentPath.value.length);
     return [
@@ -98,7 +98,13 @@ onBeforeUnmount(() => {
                 <div class="max-w-md"><Link :href="prefix || '/'" class="focus-ring inline-flex items-center gap-2.5 rounded-lg font-display text-lg font-semibold tracking-tight text-navy"><BrandLogo size="sm" class="[&>img]:!h-8 [&>img]:!w-8" />Nextward</Link><p class="mt-4 text-sm leading-6 text-slate-600">{{ fr ? 'Stages et emplois pour étudiants et professionnels, en Tunisie et à l’international. Des sources claires pour préparer votre prochaine candidature.' : 'Internships and jobs for students and professionals, in Tunisia and around the world. Clear sources and practical details for your next application.' }}</p></div>
                 <nav :aria-label="fr ? 'Pied de page' : 'Footer'" class="grid grid-cols-2 gap-4 text-sm font-medium text-slate-600"><Link v-for="link in links" :key="link.href" :href="link.href">{{ link.label }}</Link><Link :href="`${prefix}/about`">{{ fr ? 'À propos' : 'About' }}</Link><Link :href="`${prefix}/contact`">Contact</Link><Link href="/register?account=company">{{ fr ? 'Publier une offre' : 'Post an opportunity' }}</Link></nav>
             </div>
-            <div class="public-container border-t border-navy/5 py-5 text-xs text-slate-500">{{ fr ? 'Créé par' : 'Built by' }} <a href="https://alabaganne.com/" class="font-medium text-slate-700">Ala Baganne</a></div>
+            <div class="public-container flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-navy/5 py-5 text-xs text-slate-500">
+                <p>{{ fr ? 'Créé par' : 'Built by' }} <a href="https://alabaganne.com/" class="font-medium text-slate-700">Ala Baganne</a></p>
+                <nav :aria-label="fr ? 'Informations légales' : 'Legal'" class="flex gap-5">
+                    <Link :href="`${prefix}/privacy`">{{ fr ? 'Confidentialité' : 'Privacy' }}</Link>
+                    <Link :href="`${prefix}/terms`">{{ fr ? 'Conditions d’utilisation' : 'Terms' }}</Link>
+                </nav>
+            </div>
         </footer>
     </div>
 </template>

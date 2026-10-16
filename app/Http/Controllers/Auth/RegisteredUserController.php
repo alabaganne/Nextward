@@ -77,7 +77,9 @@ class RegisteredUserController extends Controller
             'about' => 'required_if:account_type,company|nullable|string|min:30',
             'website' => 'required_if:account_type,company|nullable|url:http,https|max:255',
             'company_logo' => 'required_if:account_type,company|nullable|image|max:2048',
+            'terms' => 'accepted',
         ], [
+            'terms.accepted' => 'Please agree to the terms of use and the privacy policy to create an account.',
             'account_type.required' => 'Choose whether you want to find opportunities or hire candidates.',
             'company_logo.required_if' => 'Upload a company logo before creating a company account.',
             'website.required_if' => 'Add your company website before creating a company account.',

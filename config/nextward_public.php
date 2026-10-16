@@ -27,6 +27,8 @@ return [
         'relocation' => ['title' => 'Opportunities abroad with relocation support | Nextward', 'description' => 'Explore opportunities with stated relocation assistance. Check visa sponsorship separately and read the employer requirements before applying.'],
         'about' => ['title' => 'About Nextward | Opportunities for students and professionals', 'description' => 'Nextward connects students and professionals with internships and jobs in Tunisia and worldwide, with clear sources and application details.'],
         'contact' => ['title' => 'Contact Nextward', 'description' => 'Contact Nextward about opportunities, source partnerships, employer hiring, or a problem with a listing.'],
+        'privacy' => ['title' => 'Privacy policy | Nextward', 'description' => 'What data Nextward keeps, why, who sees it, how long it is kept, and how to delete your account. Covers Tunisian law 2004-63 and the GDPR.'],
+        'terms' => ['title' => 'Terms of use | Nextward', 'description' => 'The rules for using Nextward: accounts, applications, company listings, imported listings from other sites, and what is not allowed.'],
         'blog' => ['title' => 'Career guides for students and professionals | Nextward', 'description' => 'Practical advice for finding internships and jobs, preparing applications, assessing eligibility, and hiring candidates.'],
     ],
     'fr' => [
@@ -41,6 +43,8 @@ return [
         'relocation' => ['title' => 'Emplois à l’étranger avec aide à la mobilité | Nextward', 'description' => 'Découvrez les offres avec une aide à la mobilité annoncée. Le parrainage de visa est indiqué séparément lorsqu’il est confirmé.'],
         'about' => ['title' => 'À propos de Nextward | Stages et emplois en Tunisie', 'description' => 'Nextward aide les étudiants et les professionnels à trouver des stages et des emplois en Tunisie et à l’international, avec des sources claires.'],
         'contact' => ['title' => 'Contacter Nextward', 'description' => 'Contactez Nextward au sujet d’une offre, d’un partenariat de source, d’un recrutement ou d’un problème avec une annonce.'],
+        'privacy' => ['title' => 'Politique de confidentialité | Nextward', 'description' => 'Les données que Nextward garde, pourquoi, qui y a accès, leur durée de conservation et comment supprimer votre compte. Loi tunisienne 2004-63 et RGPD.'],
+        'terms' => ['title' => 'Conditions d’utilisation | Nextward', 'description' => 'Les règles d’utilisation de Nextward : comptes, candidatures, offres des entreprises, offres importées d’autres sites et usages interdits.'],
         'blog' => ['title' => 'Guides carrière pour étudiants et professionnels | Nextward', 'description' => 'Conseils pratiques pour trouver un stage ou un emploi en Tunisie : PFE, SIVP, CV, lettre de motivation, entretien et télétravail.'],
     ],
 ];

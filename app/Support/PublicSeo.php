@@ -11,7 +11,7 @@ class PublicSeo
 {
     public static function isPublic(Request $request): bool
     {
-        return $request->routeIs('home', 'about', 'contact', 'blog.*', 'audience.*', 'opportunities.index', 'opportunities.category', 'opportunities.show', 'companies.public', 'fr.*');
+        return $request->routeIs('home', 'about', 'contact', 'privacy', 'terms', 'blog.*', 'audience.*', 'opportunities.index', 'opportunities.category', 'opportunities.show', 'companies.public', 'fr.*');
     }
 
     public static function forRequest(Request $request): array
@@ -21,7 +21,7 @@ class PublicSeo
         $texts = self::copy($fr ? 'fr' : 'en');
         $key = match ($path) {
             '/' => 'home', '/for-students' => 'students', '/for-professionals' => 'professionals',
-            '/about' => 'about', '/contact' => 'contact', '/blog' => 'blog', default => null,
+            '/about' => 'about', '/contact' => 'contact', '/privacy' => 'privacy', '/terms' => 'terms', '/blog' => 'blog', default => null,
         };
         $copy = $texts[$key] ?? ['title' => 'Nextward', 'description' => ''];
         $seo = self::base($request, $copy['title'], $copy['description'], self::isPublic($request));

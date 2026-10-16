@@ -54,9 +54,13 @@ Route::prefix('fr')->name('fr.')->group(function () {
     Route::get('/opportunities/{category}', [InternshipController::class, 'index'])->whereIn('category', ['internships', 'jobs', 'tunisia', 'remote-from-tunisia', 'relocation'])->name('category');
     Route::inertia('/about', 'About')->name('about');
     Route::inertia('/contact', 'Contact')->name('contact');
+    Route::inertia('/privacy', 'Privacy')->name('privacy');
+    Route::inertia('/terms', 'Terms')->name('terms');
 });
 Route::inertia('/about', 'About')->name('about');
 Route::inertia('/contact', 'Contact')->name('contact');
+Route::inertia('/privacy', 'Privacy')->name('privacy');
+Route::inertia('/terms', 'Terms')->name('terms');
 
 foreach (['' => '', 'fr' => 'fr.'] as $prefix => $name) {
     Route::prefix($prefix)->name($name)->group(function () {

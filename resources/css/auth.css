@@ -95,6 +95,11 @@
 .auth-footer { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 64px; padding: 18px clamp(24px, 4.5vw, 72px); border-top: 1px solid #0a17381a; color: #67707e; font-size: 12px; }
 .auth-footer a { color: #586171; font-weight: 500; border-radius: 2px; }
 .auth-footer a:hover { color: var(--color-brand); }
+.auth-legal { display: flex; gap: 18px; }
+.auth-consent { display: flex; align-items: flex-start; gap: 10px; margin-top: 28px; color: #586171; font-size: 13px; line-height: 1.6; cursor: pointer; }
+.auth-consent input { flex-shrink: 0; width: 16px; height: 16px; margin-top: 3px; box-shadow: none; }
+.auth-consent + .auth-field-error { margin-left: 26px; }
+.auth-consent + .auth-field-error + .auth-submit-spaced, .auth-consent + .auth-submit-spaced { margin-top: 20px; }
 @media (min-width: 900px) and (max-height: 820px) {
 	.auth-story { gap: 20px; padding-block: 24px; }
 	.auth-story h2 { font-size: clamp(36px, 3.4vw, 48px); }

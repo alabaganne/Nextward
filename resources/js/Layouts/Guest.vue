@@ -30,8 +30,11 @@
 					<div class="auth-form"><slot /></div>
 				</main>
 				<footer class="auth-footer">
-					<p>Questions about your account?</p>
-					<Link :href="route('contact')" class="focus-ring">Need a hand? Let’s talk</Link>
+					<p>Questions about your account? <Link :href="route('contact')" class="focus-ring">Need a hand? Let’s talk</Link></p>
+					<nav aria-label="Legal" class="auth-legal">
+						<Link :href="route('privacy')" class="focus-ring">Privacy</Link>
+						<Link :href="route('terms')" class="focus-ring">Terms</Link>
+					</nav>
 				</footer>
 			</div>
 		</div>
