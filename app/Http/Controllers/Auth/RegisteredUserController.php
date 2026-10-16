@@ -111,7 +111,7 @@ class RegisteredUserController extends Controller
                 ? $request->file('company_logo')->store('company-logos', 'public')
                 : null;
 
-            return $profile->user()->create([
+            $user = $profile->user()->make([
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
@@ -119,6 +119,10 @@ class RegisteredUserController extends Controller
                 'linkedin_profile_url' => $data['linkedin_profile_url'] ?? null,
                 'image' => $logoPath,
             ]);
+            $user->terms_accepted_at = now();
+            $user->save();
+
+            return $user;
         });
 
         Auth::login($user);
