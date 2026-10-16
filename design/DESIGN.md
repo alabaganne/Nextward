@@ -14,7 +14,8 @@ Tailwind 4, and Vite 8 integration.
 
 ## 1. Personality
 
-Nextward is a **calm, modern, trustworthy SaaS product** for students and companies.
+Nextward is a **calm, modern, trustworthy SaaS product** for students,
+professionals and companies, covering internships and jobs.
 
 - **Clean, not flashy.** White space does the work. One accent colour, used with intent.
 - **Editorial headings, friendly body.** A geometric display face for headings; a
@@ -115,9 +116,12 @@ Small uppercase blue label above most section/page titles:
 - **Radii:** cards `rounded-[18px]`, large feature panels `rounded-[26px]`,
   controls/buttons `rounded-[12px]`, chips/pills `rounded-full` or `rounded-lg`,
   small inner items `rounded-[10px]`–`[11px]`.
-- **Surfaces:** flat fills and borders. Existing shadow tokens are retained for
-  compatibility with older workspace screens, not as a default for new work.
+- **Surfaces:** flat fills and borders. There are no shadow tokens; never add
+  `shadow-*` or `box-shadow` to cards, menus, drawers or the navbar.
 - **Borders:** `border border-line` for cards; `border-line-2` for inner dividers.
+  Never put a border on only one side (top accent stripe, left quote bar) of a
+  card, panel, quote or email block; use no border, a soft tint, or a solid
+  blue fill with light text instead.
 - **Page max width:** `max-w-wrap` (1200px), centered; responsive workspace
   gutters. Public/auth spacing follows their existing layouts.
 - **Rhythm:** cards padded `p-6`/`p-[22px]`; gaps `gap-4`/`gap-6`. Use
@@ -188,8 +192,10 @@ handwrite SVG paths, embed SVG icon strings, or substitute Unicode/emoji icons.
 
 ## 8. Voice
 
-- Headings: confident, short, sentence case. ("Your next internship is one click away.")
+- Headings: confident, short, sentence case. ("Find your next opportunity.")
 - Body: plain, warm, second person. No corporate filler, no exclamation spam.
-- Buttons: verb-first ("Browse internships", "Save preferences", "Message recruiter").
+- Buttons: verb-first ("Explore opportunities", "Save preferences", "Message recruiter").
+- Say "opportunity" when a sentence covers both internships and jobs, and
+  "candidate" when it covers both students and professionals.
 - Numbers are concrete; never invent metric slop to fill space. One thousand no's
   for every yes — if a section feels empty, solve it with layout, not filler.

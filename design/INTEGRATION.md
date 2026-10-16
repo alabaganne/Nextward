@@ -170,7 +170,10 @@ feedback, keep controls stationary, and honour reduced motion for any new effect
 ## 6. Data shapes (historical suggestions)
 
 Use actual controller/resource props as the contract. These prototype suggestions
-are guidance only; do not invent profile fields, metrics, or timeline data:
+are guidance only; do not invent profile fields, metrics, or timeline data.
+`Internship` covers every listing (`kind` is `internship` or `job`) and
+`Student` covers every candidate (`career_stage` is `student`, `graduate` or
+`professional`); the old names stay for compatibility.
 
 - **Internship**: `id, title, company{name,slug,logoGradient,initials}, location,
   workType (remote|hybrid|onsite), durationWeeks, term, pay{amount,unit}, tags[],
@@ -179,7 +182,7 @@ are guidance only; do not invent profile fields, metrics, or timeline data:
   appliedAt, updatedAt, timeline[]`
 - **Company**: `id, slug, name, city, logoGradient, initials, about, openRoles,
   teamSize, foundedYear, remote, contact{email,website,hiringLead}`
-- **User (student)**: `name, initials, headline, location, field, about, skills[],
+- **User (candidate)**: `name, initials, headline, location, field, about, skills[],
   education[], experience[], links[], resume, profileStrength, openTo`
 - **Message thread**: `id, person{name,initials,gradient,role,company}, role(role applied to),
   online, unread, messages[{from(me|them), body, time, daySep?}]`

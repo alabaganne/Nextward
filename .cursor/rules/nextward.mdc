@@ -1,0 +1,6 @@
+---
+description: Nextward project notes
+globs:
+alwaysApply: true
+---
+Read `AGENTS.md` at the repo root first. It holds the product decisions, the working rules and the list of docs to keep up to date.

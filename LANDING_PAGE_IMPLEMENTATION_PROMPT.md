@@ -1,6 +1,6 @@
 # Implementation prompt for Claude
 
-> Historical implementation brief. The current visual direction is documented in `LANDING_PAGE_DESIGN.md`: open layouts without shadows, a flat hero illustration, a dark employer section, and interface icons from `@heroicons/vue`. Follow that document where this earlier brief differs.
+> Historical implementation brief, written before Nextward added professionals and jobs. Its notes on audiences (students only) and the old Internly site are out of date; see `AGENTS.md`. The current visual direction is documented in `LANDING_PAGE_DESIGN.md`: open layouts without shadows, a flat hero illustration, a dark employer section, and interface icons from `@heroicons/vue`. Follow that document where this earlier brief differs.
 
 Improve Nextward's landing page so it feels polished, human, and engaging. Integrate the supplied logo and selected illustrations, add restrained animation and motion graphics, and remove fabricated data and unsupported claims from the public website. Implement and verify the changes; do not stop at a design proposal.
 
