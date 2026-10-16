@@ -43,7 +43,6 @@ const sections = computed(() => [
 			text('Everyone, for company profiles and the opportunities companies publish.', 'Tout le monde, pour les profils d’entreprise et les offres publiées.'),
 			text('The Nextward team, only when needed to run the service or answer you.', 'L’équipe Nextward, uniquement quand c’est nécessaire pour faire fonctionner le service ou vous répondre.'),
 			text('Our service providers, who work for us under contract: hosting by [[hosting provider and server country]] and email sending by [[email provider]].', 'Nos prestataires, qui travaillent pour nous sous contrat : hébergement par [[hébergeur et pays des serveurs]] et envoi des e-mails par [[prestataire e-mail]].'),
-			text('Google, for fonts: our pages load fonts from Google Fonts, so your browser sends your IP address to Google when a page loads. Google’s own privacy policy applies to that.', 'Google, pour les polices : nos pages chargent leurs polices depuis Google Fonts. Votre navigateur envoie donc votre adresse IP à Google au chargement d’une page. La politique de confidentialité de Google s’applique alors.'),
 			text('Public authorities, only when the law requires it.', 'Les autorités publiques, uniquement quand la loi l’exige.'),
 		],
 	] },
@@ -75,7 +74,7 @@ const sections = computed(() => [
 			text('A security cookie (XSRF-TOKEN) that protects forms against fake requests.', 'Un cookie de sécurité (XSRF-TOKEN) qui protège les formulaires contre les fausses requêtes.'),
 			text('A “Remember me” cookie, only if you tick that box when you log in. It keeps you logged in for up to 400 days or until you log out.', 'Un cookie « Se souvenir de moi », seulement si vous cochez cette case à la connexion. Il vous garde connecté jusqu’à 400 jours ou jusqu’à la déconnexion.'),
 		],
-		text('Your browser’s local storage also keeps the roles you viewed or saved before logging in. Fonts come from Google Fonts, as explained above.', 'Le stockage local de votre navigateur garde aussi les offres consultées ou enregistrées avant la connexion. Les polices viennent de Google Fonts, comme expliqué plus haut.'),
+		text('Your browser’s local storage also keeps the roles you viewed or saved before logging in. Fonts are stored on our own servers, so loading them does not contact any other site.', 'Le stockage local de votre navigateur garde aussi les offres consultées ou enregistrées avant la connexion. Les polices sont hébergées sur nos propres serveurs : leur chargement ne contacte aucun autre site.'),
 	] },
 	{ id: 'security', title: text('Security', 'Sécurité'), body: [
 		text('Pages are served over HTTPS, passwords are scrambled, and files attached to an application can only be opened by you and the company you sent them to. No system is perfect: if a breach puts your data at risk, we will tell you and the authorities as the law requires.', 'Les pages sont servies en HTTPS, les mots de passe sont chiffrés et les fichiers joints à une candidature ne peuvent être ouverts que par vous et l’entreprise destinataire. Aucun système n’est parfait : si une fuite met vos données en danger, nous vous préviendrons, ainsi que les autorités, comme la loi l’exige.'),

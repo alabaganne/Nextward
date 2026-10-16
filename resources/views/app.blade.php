@@ -11,11 +11,6 @@
         @php($blogLocale = ($page['props']['locale'] ?? 'en') === 'fr' ? 'fr' : 'en')
         <link rel="alternate" type="application/rss+xml" title="{{ $blogLocale === 'fr' ? 'Guides carrière Nextward' : 'Nextward career guides' }}" href="{{ $blogLocale === 'fr' ? '/fr/blog/feed.xml' : '/blog/feed.xml' }}">
 
-        <!-- Fonts: Inter for public pages, Plus Jakarta Sans for the workspace, and Space Grotesk for headings. -->
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap">
-
         <!-- Scripts -->
         @inertiaHead
         @routes
