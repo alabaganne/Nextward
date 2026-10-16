@@ -7,7 +7,6 @@ import EmptyLayout from './Layouts/Empty.vue';
 import Icon from './Shared/Icon.vue';
 import BrandLogo from './Shared/BrandLogo.vue';
 import PageHead from './Shared/PageHead.vue';
-import reveal from './directives/reveal';
 import { startActivitySync } from './composables/useOpportunityActivity';
 
 const pages = import.meta.glob('./Pages/**/*.vue');
@@ -23,7 +22,6 @@ createInertiaApp({
         const page = usePage();
         app.config.globalProperties.route = (name, params, absolute) => ziggyRoute(name, params, absolute, { ...page.props.ziggy, location: new URL(page.props.ziggy.location) });
         Object.defineProperty(app.config.globalProperties, 'currentUser', { get: () => page.props.auth?.user });
-        app.directive('reveal', reveal);
         app.component('Link', Link);
         app.component('InertiaLink', Link);
         app.component('Icon', Icon);

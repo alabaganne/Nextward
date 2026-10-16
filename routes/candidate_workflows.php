@@ -5,7 +5,7 @@ use App\Http\Controllers\OpportunityActivityController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
-    Route::middleware('throttle:120,1')->group(function () {
+    Route::middleware('throttle:120,1,activity')->group(function () {
         Route::post('/opportunities/{internship}/opened', [OpportunityActivityController::class, 'opened'])
             ->whereNumber('internship')->name('opportunities.opened');
         Route::post('/activity/sync', [OpportunityActivityController::class, 'sync'])->name('activity.sync');

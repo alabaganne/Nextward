@@ -2,6 +2,7 @@
 
 namespace App\Importing;
 
+use App\Ai\OpportunityClassifier;
 use App\Models\Company;
 use App\Models\Field;
 use App\Models\ImportRun;
@@ -18,10 +19,13 @@ use Throwable;
 
 class OpportunityImporter
 {
-    public function run(ImportSource $source, int $limit = 40, bool $dryRun = false, bool $recheck = false): array
+    // $onlyNew reads the source now and looks only at listings never checked before; $maxNew stops after that many new roles.
+    // $focus is a full title regex: only matching listings are checked, the rest wait for the daily import.
+    // $focusFields then keeps only listings sorted into those fields; the others also wait for the daily import.
+    public function run(ImportSource $source, int $limit = 40, bool $dryRun = false, bool $recheck = false, bool $onlyNew = false, ?int $maxNew = null, ?string $focus = null, ?array $focusFields = null): array
     {
         if (! $source->isApproved()) { throw new RuntimeException('Source must be enabled with approved reuse permission.'); }
-        if ($source->next_run_at?->isFuture() && ! $dryRun && ! $recheck) {
+        if ($source->next_run_at?->isFuture() && ! $dryRun && ! $recheck && ! $onlyNew) {
             return ['status' => 'waiting', 'pending' => false];
         }
         $lock = Cache::lock('opportunity-import:'.$source->id, 350);
@@ -39,6 +43,7 @@ class OpportunityImporter
         $deadline = $clock + config('importer.max_run_seconds');
         $http = new SourceHttp($source, $deadline); $reader = new SourceReader($http);
         $normalizer = new OpportunityNormalizer();
+        $classifier = app(OpportunityClassifier::class);
         $stats = ['status' => 'completed', 'complete' => false, 'discovered' => 0, 'processed' => 0, 'published' => 0, 'closed' => 0, 'rejected' => 0, 'requests' => 0];
         $run = null;
         try {
@@ -50,7 +55,8 @@ class OpportunityImporter
                 $source->update(['last_run_at' => $started]);
             }
             // The full list is read once per cycle; follow-up batches only work through the saved backlog.
-            $discover = $dryRun || $recheck || ! $source->last_discovered_at || $source->last_discovered_at->lt($refreshBefore);
+            $discover = $dryRun || $recheck || ! $source->last_discovered_at || $source->last_discovered_at->lt($refreshBefore)
+                || ($onlyNew && $source->last_discovered_at->lt(now()->subMinutes(10)));
             $suspicious = false;
             if ($discover) {
                 $snapshot = $reader->discover($source);
@@ -90,16 +96,19 @@ class OpportunityImporter
             // These providers are read from the saved list payload, so only items still on the board are current.
             $items = $source->items()->where('state', '!=', 'rejected')
             ->when(in_array($source->provider, ['greenhouse', 'lever', 'ashby'], true), fn ($q) => $q->where('last_discovered_at', '>=', $cycle))
-            ->where(function ($query) use ($refreshBefore, $refreshOperator, $recheck) {
+            ->when($onlyNew, fn ($query) => $query->whereNull('last_verified_at'), fn ($query) => $query->where(function ($query) use ($refreshBefore, $refreshOperator, $recheck) {
                 $query->whereNull('last_verified_at')->orWhere('state', 'pending');
                 $query->orWhere('last_verified_at', $refreshOperator, $recheck ? now()->addSecond() : $refreshBefore);
-            })->where(function ($query) use ($cycle) {
+            }))->where(function ($query) use ($cycle) {
                 $query->where('state', '!=', 'closed')->orWhere('last_discovered_at', '>=', $cycle);
-            })->orderByRaw('CASE WHEN last_verified_at IS NULL THEN 0 ELSE 1 END')->orderBy('last_verified_at')->orderBy('id')
-                ->limit(max(1, min($limit, 100)))->get();
+            })->orderByRaw('CASE WHEN last_verified_at IS NULL THEN 0 ELSE 1 END')->orderBy('last_verified_at')->orderBy('id');
+            $items = $focus
+                ? $items->cursor()->filter(fn ($item) => $this->matchesFocus($item, $focus))->take(max(1, min($limit, 100)))->collect()
+                : $items->limit(max(1, min($limit, 100)))->get();
 
+            $newIds = [];
             foreach ($items as $item) {
-                if (microtime(true) > $deadline || $http->requests >= $source->max_requests - 2) { break; }
+                if (microtime(true) > $deadline || $http->requests >= $source->max_requests - 2 || ($maxNew && count($newIds) >= $maxNew)) { break; }
                 try {
                     $data = $normalizer->normalize($reader->read($source, $item));
                     $item->update(['normalized_data' => $data, 'last_verified_at' => now(), 'error' => null, 'application_url' => $data['application_url']]);
@@ -114,11 +123,28 @@ class OpportunityImporter
                         $this->closeSource($item);
                         $item->update(['state' => 'rejected', 'error' => 'Posted more than '.config('importer.retention_days').' days ago.']);
                         $stats['closed']++;
-                    } elseif ($source->publication_mode === 'automatic' || $item->internship_id) {
-                        $this->publish($item);
-                        $stats['published']++;
+                    } elseif (! $item->internship_id && $item->content_hash) {
+                        // It was published before and its listing was deleted since, so it stays out.
+                        $item->update(['state' => 'rejected', 'error' => 'Added before and removed later.']);
+                        $stats['rejected']++;
                     } else {
-                        $item->update(['state' => 'review']);
+                        // Claude reads each listing once, before it is first published; the answer is kept for later refreshes.
+                        if (! $item->ai_review && ! $item->internship_id && $classifier->enabled()) {
+                            $item->ai_review = $classifier->classify($data, $this->fieldNames());
+                        }
+                        if ($item->ai_review) {
+                            $data = $this->withReview($data, $item->ai_review);
+                            $item->update(['ai_review' => $item->ai_review, 'normalized_data' => $data]);
+                        }
+                        if ($focusFields && ! $item->internship_id && ! $this->inFocus($data, $focusFields)) {
+                            $stats['rejected']++;
+                        } elseif ($source->publication_mode === 'automatic' || $item->internship_id) {
+                            $role = $this->publish($item);
+                            if ($role->wasRecentlyCreated) { $newIds[] = $role->id; }
+                            $stats['published']++;
+                        } else {
+                            $item->update(['state' => 'review']);
+                        }
                     }
                 } catch (SourceBudgetException) {
                     break;
@@ -161,7 +187,7 @@ class OpportunityImporter
             $source->update(['last_complete_at' => $stats['complete'] ? now() : $source->last_complete_at,
                 'next_run_at' => $pending ? now()->addSeconds(30) : $next, 'last_error' => $error]);
             $run->update([...$stats, 'requests' => $http->requests, 'finished_at' => now(), 'error' => $error]);
-            return [...$stats, 'pending' => $pending, 'requests' => $http->requests];
+            return [...$stats, 'pending' => $pending, 'requests' => $http->requests, 'new' => $newIds];
         } catch (Throwable $e) {
             if (! $dryRun) {
                 $message = Str::limit($e->getMessage(), 1500);
@@ -211,7 +237,7 @@ class OpportunityImporter
             $isPrimary = ! $opportunity->exists || ! $opportunity->sources()->where('id', '<', $item->id)->where('state', 'published')->exists();
             if (! $opportunity->exists || ($opportunity->origin === 'imported' && ((! $hasEmployerSource && $isPrimary) || ($source->settings['authoritative_employer'] ?? false)))) {
                 $fields = collect($data)->except(['employer', 'website', 'requisition_id'])->all();
-                [$fieldId, $skillIds] = $this->classify($data);
+                $fieldId = $this->classify($data);
                 $overrides = $opportunity->moderation_overrides ?? [];
                 foreach (array_keys($overrides) as $key) { unset($fields[$key]); }
                 $existingStatus = $opportunity->publication_status;
@@ -225,7 +251,7 @@ class OpportunityImporter
                 // Preserve an already verified employer link when refreshing a merged source.
                 if ($opportunity->exists) { unset($fields['company_id'], $fields['field_id'], $fields['city_id']); }
                 $opportunity->fill($fields)->save();
-                if (! array_key_exists('skills', $overrides)) { $opportunity->skills()->sync($skillIds); }
+                if (! array_key_exists('skills', $overrides)) { $opportunity->skills()->sync($this->skillIds($data['title'], $data['description'])); }
             }
             $item->update(['internship_id' => $opportunity->id, 'state' => 'published', 'content_hash' => $hash, 'error' => null]);
             return $opportunity;
@@ -318,6 +344,14 @@ class OpportunityImporter
         return Str::squish(preg_replace('/[^a-z0-9]+/', ' ', $title));
     }
 
+    // Checks the title before any page is fetched: board payloads carry it, and board job URLs end with a title slug.
+    private function matchesFocus(OpportunitySource $item, string $focus): bool
+    {
+        $title = $item->payload['title'] ?? $item->payload['text'] ?? rawurldecode((string) parse_url($item->source_url, PHP_URL_PATH));
+        $title = Str::ascii(mb_strtolower(str_replace(['-', '_', '/'], ' ', (string) $title)));
+        return (bool) preg_match($focus, $title);
+    }
+
     private function olderThan(array $data, OpportunitySource $item, int $days): bool
     {
         $posted = ! empty($data['posted_at']) ? Carbon::parse($data['posted_at']) : $item->first_seen_at;
@@ -339,36 +373,74 @@ class OpportunityImporter
         return null;
     }
 
-    private function classify(array $data): array
+    private function fieldNames(): array
+    {
+        Field::firstOrCreate(['name' => 'Other']);
+        return Field::orderBy('name')->pluck('name')->all();
+    }
+
+    // Claude's answers replace the keyword guesses; "unknown" keeps whatever the rules found.
+    private function withReview(array $data, array $review): array
+    {
+        $data['kind'] = $review['kind'];
+        $data['field'] = $review['field'];
+        $data['is_software_role'] = $review['is_software_role'];
+        if ($review['seniority'] !== 'unspecified') { $data['seniority'] = $review['seniority']; }
+        if ($data['work_type'] === 'remote' && $review['remote_from_tunisia'] !== 'unknown') {
+            $data['remote_eligibility'] = $review['remote_from_tunisia'];
+            if ($review['evidence'] !== '') { $data['eligibility_evidence']['remote'] = Str::limit($review['evidence'], 400); }
+        }
+        foreach (['relocation', 'visa_sponsorship'] as $key) {
+            if ($review[$key] !== 'unknown') {
+                $data[$key] = $review[$key];
+                if ($review['evidence'] !== '') { $data['eligibility_evidence'][$key] = Str::limit($review['evidence'], 400); }
+            }
+        }
+        return $data;
+    }
+
+    private function inFocus(array $data, array $fields): bool
+    {
+        $field = $data['field'] ?? Field::find($this->classify($data))?->name;
+        return in_array($field, $fields, true) && ($data['is_software_role'] ?? true);
+    }
+
+    // Only skills from importer.skills are tagged, so words like "product" in a description never become skills.
+    public function skillIds(string $title, string $description): array
+    {
+        return array_map(fn ($name) => Skill::firstOrCreate(['name' => $name])->id, (new OpportunityNormalizer())->skills($title, $description));
+    }
+
+    private function classify(array $data): int
     {
         $title = mb_strtolower($data['title']);
         $description = mb_strtolower($data['description']);
+        // Ordered from most to least specific: on a tie the earlier field wins.
         $patterns = [
-            'Software Engineering' => 'software engineer|ingénieur logiciel|développeur logiciel|backend|full.stack',
-            'Web Development' => 'web develop|développ.{0,12}web|frontend|front.end',
-            'Mobile Development' => 'mobile develop|développ.{0,12}mobile|android|ios developer',
-            'Data Science & AI' => 'data scien|machine learning|intelligence artificielle',
+            'Mobile Development' => 'mobile (?:develop|engineer|app)|(?:engineer|developer|intern)\\W+mobile|d[ée]velopp\\w* mobile|application mobile|android|ios\\b|flutter|react native|kotlin|swift',
+            'Web Development' => 'web develop|d[ée]velopp\\w* web|front.?end|int[ée]grateur web|php|symfony|laravel|angular|react|vue(?:js)?|javascript|typescript|wordpress',
+            'Software Engineering' => 'software|ing[ée]nieur (?:logiciel|d[ée]veloppement|informatique)|d[ée]veloppeur|developer|programm(?:er|eur)|back.?end|full.?stack|\\.net|java|spring|python|golang|c#|c\\+\\+',
+            'Data Science & AI' => 'data scien|machine learning|intelligence artificielle|\\bai\\b|\\bia\\b|llm',
+            'DevOps & Cloud' => 'devops|cloud engineer|site reliability',
             'Cybersecurity' => 'cybersecurity|cybersécurité|security engineer|sécurité informatique',
+            'Embedded Systems' => 'embedded|embarqué|firmware',
             'Network & Systems' => 'network engineer|administrateur (?:système|réseau)|systems engineer',
             'UI/UX Design' => 'ux design|ui design|product design|designer ux|designer ui',
-            'DevOps & Cloud' => 'devops|cloud engineer|site reliability',
-            'Embedded Systems' => 'embedded|embarqué|firmware',
             'Business Intelligence' => 'business intelligence|bi analyst|analyste bi',
-            'Digital Marketing' => 'digital marketing|marketing digital|seo specialist|growth marketing',
+            'Digital Marketing' => 'digital marketing|marketing digital|seo\\b|r[ée]f[ée]renceur|growth marketing',
             'Finance & Accounting' => 'accountant|accounting|comptable|comptabilité|financial analyst|analyste financ',
         ];
+        $fields = Field::where('name', '!=', 'Other')->get()->keyBy('name');
         $scores = [];
-        foreach (Field::where('name', '!=', 'Other')->get() as $field) {
-            $pattern = $patterns[$field->name] ?? preg_quote(mb_strtolower($field->name), '/');
-            $score = preg_match('/'.$pattern.'/iu', $title) ? 3 : (preg_match('/'.$pattern.'/iu', $description) ? 1 : 0);
-            if ($score) { $scores[$field->id] = $score; }
+        foreach ([...$patterns, ...$fields->keys()->diff(array_keys($patterns))->mapWithKeys(fn ($name) => [$name => preg_quote(mb_strtolower($name), '/')])] as $name => $pattern) {
+            if (! $fields->has($name)) { continue; }
+            $score = preg_match('/(?<![\\pL\\pN])(?:'.$pattern.')/iu', $title) ? 3 : (preg_match('/(?<![\\pL\\pN])(?:'.$pattern.')/iu', $description) ? 1 : 0);
+            if ($score) { $scores[$fields[$name]->id] = $score; }
         }
         arsort($scores);
         $best = $scores ? array_key_first($scores) : null;
-        if ($best && count(array_filter($scores, fn ($score) => $score === $scores[$best])) > 1) { $best = null; }
-        $skills = Skill::all()->filter(fn ($skill) => mb_strlen($skill->name) >= 3
-            && preg_match('/(?<![\pL\pN])'.preg_quote($skill->name, '/').'(?![\pL\pN])/iu', $title.' '.$description))->take(20)->pluck('id')->all();
-        return [$best ?: Field::firstOrCreate(['name' => 'Other'])->id, $skills];
+        if (! empty($data['field'])) { $best = $fields->get($data['field'])?->id; }
+        return $best ?: Field::firstOrCreate(['name' => 'Other'])->id;
     }
 
     private function expired(array $data): bool

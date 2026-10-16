@@ -1,24 +1,25 @@
-label, .label {
+label {
 	@apply block text-sm font-medium text-gray-700;
 }
 
-input {
-	@apply focus:outline-hidden;
+/* Use an outline for focus instead of the forms plugin's box-shadow ring. */
+input:focus,
+select:focus,
+textarea:focus {
+	box-shadow: none;
 }
 
-.form-control {
-	@apply px-3 py-2 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md;
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+	outline: 2px solid var(--color-brand);
+	outline-offset: 2px;
 }
 
 input[type="checkbox"] {
-	@apply h-4 w-4 focus:ring-2 focus:ring-blue-500 text-blue-600 border-gray-300 rounded-sm;
+	@apply h-4 w-4 text-blue-600 border-gray-300 rounded-sm;
 }
 
 textarea {
 	resize: none;
-}
-
-.required::after {
-	content: "*";
-	@apply text-red-500 font-medium text-sm ml-0.5;
 }

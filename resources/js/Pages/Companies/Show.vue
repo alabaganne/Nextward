@@ -1,6 +1,6 @@
 <script setup>
 import { ArrowRight, Briefcase, ChevronRight, Clock3, Globe2, Mail, MapPin, Phone } from '@lucide/vue';
-import { computed, h } from 'vue';
+import { computed, h, ref } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
 import Pagination from '@/Components/Ui/Pagination.vue';
@@ -29,6 +29,7 @@ const internships = computed(() => props.company.internships?.data ?? props.comp
 const pagination = computed(() => props.company.internships?.meta);
 const totalRoles = computed(() => pagination.value?.total ?? internships.value.length);
 const page = usePage();
+const logoFailed = ref(false);
 const ownsCompany = computed(() => page.props.auth?.user?.id === props.company.user_id);
 const canEdit = computed(() => ownsCompany.value || page.props.auth?.user?.is_admin);
 const canManageRole = (role) => canEdit.value && (page.props.auth?.user?.is_admin || role.origin === 'native');
@@ -63,7 +64,8 @@ const roleInitials = (title) =>
 		<div class="relative bg-gradient-to-br from-navy-800 to-navy-900 rounded-[26px] px-[34px] py-8 overflow-hidden mb-6">
 			<div class="absolute inset-0 bg-[radial-gradient(560px_240px_at_12%_-40%,rgba(59,130,246,.32),transparent_70%)]"></div>
 			<div class="relative z-[1] flex items-center gap-5 flex-wrap">
-				<div class="w-[78px] h-[78px] rounded-[20px] grid place-items-center text-white font-bold font-display text-[30px] shrink-0" :style="{ background: gradientFor(company.name) }">{{ company.name.slice(0, 1).toUpperCase() }}</div>
+				<img v-if="company.image && !logoFailed" :src="company.image" :alt="`${company.name} logo`" width="78" height="78" class="w-[78px] h-[78px] rounded-[20px] object-contain bg-white shrink-0" @error="logoFailed = true">
+				<div v-else class="w-[78px] h-[78px] rounded-[20px] grid place-items-center text-white font-bold font-display text-[30px] shrink-0" :style="{ background: gradientFor(company.name) }">{{ company.name.slice(0, 1).toUpperCase() }}</div>
 				<div>
 					<h1 class="font-display text-white text-[30px] font-semibold leading-[1.1]">{{ company.name }}</h1>
 					<div class="flex items-center gap-3.5 flex-wrap mt-2.5 text-[#aebfdd] text-sm [&_span]:inline-flex [&_span]:items-center [&_span]:gap-1.5 [&_svg]:w-[15px] [&_svg]:h-[15px] [&_svg]:opacity-80">

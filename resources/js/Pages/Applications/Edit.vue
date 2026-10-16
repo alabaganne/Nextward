@@ -41,10 +41,14 @@ const submit = () => {
 const pickFiles = (event) => {
 	form.attachment_files = Array.from(event.target.files || []);
 };
+// Errors for single files come back as attachment_files.0, attachment_files.1…
+const attachmentError = computed(() =>
+	Object.entries(form.errors).find(([key]) => key === 'attachment_files' || key.startsWith('attachment_files.'))?.[1]
+);
 
 const tips = [
 	'Lead with your strongest, most relevant qualification.',
-	'Show evidence , projects, links, numbers , not adjectives.',
+	'Show evidence (projects, links, numbers), not adjectives.',
 	'Keep it short: cut anything that isn’t earning its place.',
 ];
 </script>
@@ -80,7 +84,7 @@ const tips = [
 
 					<div class="mb-6">
 						<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="message">Message <span class="text-muted-2 font-medium">(optional)</span></label>
-						<p class="text-[13px] text-muted mb-2.5">Any questions about this opportunity or the company , you can even request a video call.</p>
+						<p class="text-[13px] text-muted mb-2.5">Any questions about this opportunity or the company? You can even ask for a video call.</p>
 						<textarea id="message" v-model="form.message" class="fld !min-h-[130px]" rows="6"></textarea>
 						<div class="flex justify-between mt-[7px] text-xs">
 							<span class="text-[#dc2626]">{{ form.errors.message }}</span>
@@ -89,10 +93,10 @@ const tips = [
 					</div>
 
 					<div>
-						<label class="block text-[13px] font-semibold mb-[7px] text-ink-700">Attachments</label>
-						<p class="text-[13px] text-muted mb-2.5">Up to 10 files, 10&nbsp;MB each. PDF, Word, text, or RTF files. Your résumé, work samples, or anything that supports your application.</p>
-						<input class="fld !py-[9px]" type="file" accept=".pdf,.doc,.docx,.txt,.rtf" multiple @input="pickFiles">
-						<div v-if="form.errors.attachment_files" class="text-xs text-[#dc2626] mt-[7px]">{{ form.errors.attachment_files }}</div>
+						<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="attachment_files">Attachments</label>
+						<p id="attachment_files-hint" class="text-[13px] text-muted mb-2.5">Up to 10 files, 10&nbsp;MB each. PDF, Word, text, or RTF files. Your résumé, work samples, or anything that supports your application.</p>
+						<input id="attachment_files" class="fld !py-[9px]" type="file" accept=".pdf,.doc,.docx,.txt,.rtf" multiple aria-describedby="attachment_files-hint" @input="pickFiles">
+						<div v-if="attachmentError" class="text-xs text-[#dc2626] mt-[7px]">{{ attachmentError }}</div>
 						<div v-if="application?.attachments?.length" class="flex flex-wrap gap-2 mt-3">
 							<span v-for="attachment in application.attachments" :key="attachment.url || attachment.name" class="inline-flex items-center px-[11px] py-[5px] rounded-lg text-xs font-semibold bg-paper-3 text-ink-700">{{ attachment.name }}</span>
 						</div>
@@ -111,7 +115,7 @@ const tips = [
 				<section class="bg-white border border-line rounded-[18px] p-6">
 					<h3 class="text-sm tracking-[.04em] text-muted font-bold font-display mb-4">YOU'RE APPLYING TO</h3>
 					<div class="flex items-center gap-[13px] mb-4">
-						<CompanyLogo class="w-[46px] h-[46px] rounded-[12px] text-base" :name="internship.company.name" />
+						<CompanyLogo class="w-[46px] h-[46px] rounded-[12px] text-base" :name="internship.company.name" :src="internship.company.image" />
 						<div>
 							<b class="font-display text-base block">{{ internship.title }}</b>
 							<span class="text-[13px] text-muted">{{ internship.company.name }} · {{ internship.location_label || internship.city?.name }}</span>

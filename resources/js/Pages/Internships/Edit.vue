@@ -5,7 +5,8 @@ import { Link, useForm } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
 
 defineOptions({ layout: (_h, page) => h(AppShell, { active: 'internships' }, () => page) });
-const props = defineProps({ fields: Array, cities: { type: Array, default: () => [] }, internship: { type: Object, default: null } });
+const props = defineProps({ fields: Array, cities: { type: Array, default: () => [] }, skills: { type: Array, default: () => [] }, internship: { type: Object, default: null } });
+const MAX_SKILLS = 12;
 const editing = computed(() => !!props.internship);
 const role = computed(() => props.internship || {});
 const formData = (role) => ({
@@ -20,6 +21,7 @@ const formData = (role) => ({
 	remote_eligibility: role.remote_eligibility || 'unknown', relocation: role.relocation || 'unknown', visa_sponsorship: role.visa_sponsorship || 'unknown',
 	eligible_countries: role.eligible_countries || [], excluded_countries: role.excluded_countries || [],
 	status: role.status || 'open', publication_status: role.publication_status || 'published', attachment_files: [],
+	remove_attachments: false, skills: (role.skills || []).map((skill) => skill.id),
 });
 const form = useForm(formData(role.value));
 const eligibleCountries = ref(form.eligible_countries.join(', '));
@@ -31,12 +33,20 @@ watch(() => role.value.id, () => {
 	excludedCountries.value = form.excluded_countries.join(', ');
 });
 const countries = (text) => [...new Set(text.split(',').map((part) => part.trim().toUpperCase()).filter(Boolean))];
+const skillSearch = ref('');
+const shownSkills = computed(() => {
+	const term = skillSearch.value.trim().toLowerCase();
+	return term ? props.skills.filter((skill) => form.skills.includes(skill.id) || skill.name.toLowerCase().includes(term)) : props.skills;
+});
+// File uploads drop empty arrays, so an empty string clears every skill.
+const payload = (data) => ({ ...data, skills: data.skills.length ? data.skills : '' });
 const submit = () => {
 	form.eligible_countries = countries(eligibleCountries.value);
 	form.excluded_countries = countries(excludedCountries.value);
 	if (form.kind === 'job') { form.duration_weeks = null; form.term = ''; form.program_type = ''; }
-	if (editing.value) form.transform((data) => ({ ...data, _method: 'put' })).post(route('internships.update', role.value.id));
-	else form.post(route('internships.store'));
+	const options = { onSuccess: () => form.reset('remove_attachments') };
+	if (editing.value) form.transform((data) => ({ ...payload(data), _method: 'put' })).post(route('internships.update', role.value.id), options);
+	else form.transform(payload).post(route('internships.store'), options);
 };
 const employmentTypes = { FULL_TIME: 'Full-time', PART_TIME: 'Part-time', CONTRACTOR: 'Contract / freelance', TEMPORARY: 'Temporary', INTERN: 'Internship', VOLUNTEER: 'Volunteer', OTHER: 'Other' };
 </script>
@@ -55,6 +65,20 @@ const employmentTypes = { FULL_TIME: 'Full-time', PART_TIME: 'Part-time', CONTRA
 					<label class="text-sm font-semibold">Experience level<select v-model="form.seniority" class="fld mt-2"><option value="">Not specified</option><option v-for="level in ['entry', 'graduate', 'mid', 'senior', 'lead', 'executive']" :key="level" :value="level">{{ level }}</option></select></label>
 				</div>
 				<fieldset><legend class="text-sm font-semibold mb-2">Employment type</legend><div class="flex flex-wrap gap-x-6 gap-y-3"><label v-for="(label, value) in employmentTypes" :key="value" class="text-sm flex gap-2 items-center"><input v-model="form.employment_types" type="checkbox" :value="value"> {{ label }}</label></div></fieldset>
+				<fieldset v-if="skills.length">
+					<legend class="text-sm font-semibold">Skills</legend>
+					<p class="text-xs text-muted mt-1 mb-3">Pick up to {{ MAX_SKILLS }} skills candidates should have. {{ form.skills.length }} of {{ MAX_SKILLS }} picked.</p>
+					<input v-if="skills.length > 20" v-model="skillSearch" class="fld mb-3 max-w-sm" type="search" placeholder="Search skills" aria-label="Search skills">
+					<div class="flex flex-wrap gap-2 max-h-[232px] overflow-y-auto">
+						<label
+							v-for="skill in shownSkills"
+							:key="skill.id"
+							class="inline-flex items-center text-[13px] font-semibold px-3 py-[7px] rounded-[9px] border cursor-pointer select-none transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-blue-500 has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed"
+							:class="form.skills.includes(skill.id) ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-line text-ink-700 hover:border-blue-300'"
+						><input v-model="form.skills" type="checkbox" class="sr-only" :value="skill.id" :disabled="!form.skills.includes(skill.id) && form.skills.length >= MAX_SKILLS">{{ skill.name }}</label>
+						<p v-if="!shownSkills.length" class="text-sm text-muted">No skills match.</p>
+					</div>
+				</fieldset>
 				<h2 class="font-display text-lg font-semibold pt-3">Location and work arrangement</h2>
 				<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
 					<label class="text-sm font-semibold">Work arrangement<select v-model="form.work_type" class="fld mt-2"><option value="onsite">On-site</option><option value="hybrid">Hybrid</option><option value="remote">Fully remote</option></select></label>
@@ -91,6 +115,12 @@ const employmentTypes = { FULL_TIME: 'Full-time', PART_TIME: 'Part-time', CONTRA
 				<label class="block text-sm font-semibold">Description<textarea v-model="form.description" class="fld mt-2 !min-h-[220px]" rows="12" required placeholder="Responsibilities, requirements, benefits, and application instructions"></textarea></label>
 				<label class="block text-sm font-semibold">Description language code<input v-model="form.language" class="fld mt-2 max-w-xs" maxlength="10" placeholder="en, fr, ar..."></label>
 				<label class="block text-sm font-semibold">Attachments<input class="fld mt-2" type="file" multiple accept=".pdf,.doc,.docx,.txt" @change="form.attachment_files = Array.from($event.target.files || [])"><span class="text-xs font-normal text-muted">Public role documents. Up to 10 files, 10 MB each.</span></label>
+				<div v-if="role.attachments?.length" class="rounded-xl border border-line-2 bg-paper-2 p-4">
+					<p class="text-xs font-semibold text-muted mb-2">Current files</p>
+					<ul class="text-sm space-y-1"><li v-for="file in role.attachments" :key="file.url"><a class="text-blue-700 font-semibold" :href="file.url" target="_blank" rel="noopener">{{ file.name }}</a></li></ul>
+					<label class="mt-3 text-sm flex gap-2 items-center"><input v-model="form.remove_attachments" type="checkbox"> Remove current files</label>
+					<p class="text-xs text-muted mt-1">New files replace the current ones.</p>
+				</div>
 				<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
 					<label class="text-sm font-semibold">Publication<select v-model="form.publication_status" class="fld mt-2"><option value="published">Published</option><option value="draft">Draft</option></select></label>
 					<label class="text-sm font-semibold">Availability<select v-model="form.status" class="fld mt-2"><option value="open">Open</option><option value="closed">Closed</option></select></label>

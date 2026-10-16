@@ -1,43 +1,6 @@
-button {
-	@apply focus:outline-hidden;
-}
-
-/* Base */
-.btn {
-	@apply inline-flex justify-center items-center px-3.5 py-2 border border-transparent rounded-sm uppercase font-semibold text-sm text-center text-white focus:outline-hidden transition ease-in-out duration-150 ;
-}
-.btn.disabled {
-	@apply opacity-75 cursor-default;
-}
-/* Colors */
-.btn-primary {
-	@apply bg-blue-600 hover:bg-blue-700 focus:ring-blue-500;
-}
-.btn-primary.disabled {
-	@apply hover:bg-blue-600;
-}
-.btn-secondary {
-	@apply border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:ring-blue-500;
-}
-.btn-secondary.disabled {
-	@apply hover:bg-white;
-}
-.btn-dark {
-	@apply bg-gray-800 hover:bg-gray-700 focus:border-gray-900 focus:ring-gray-500;
-}
-.btn-dark.disabled {
-	@apply hover:bg-gray-800;
-}
-.btn-danger {
-	@apply bg-red-600 hover:bg-red-700 focus:ring-red-500;
-}
-.btn-danger.disabled {
-	@apply hover:bg-red-600;
-}
-/* Sizes */
-.btn-lg {
-	@apply px-5 py-2.5 text-base rounded-md;
-}
-.btn-sm {
-	@apply px-2 py-1 text-xs;
+button:focus-visible,
+[role="button"]:focus-visible,
+a:focus-visible {
+	outline: 2px solid var(--color-brand);
+	outline-offset: 2px;
 }

@@ -6,6 +6,7 @@ use App\Events\NewMessage;
 use App\Http\Resources\MessageResource;
 use App\Models\Message;
 use App\Models\User;
+use App\Notifications\MessageReceived;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
@@ -111,6 +112,14 @@ class MessageController extends Controller
 				'to_id' => $request->to_id,
 				'error' => $exception->getMessage(),
 			]);
+		}
+
+		if (MessageReceived::shouldEmail($message)) {
+			try {
+				$message->receiver->notify(new MessageReceived($message));
+			} catch (\Throwable $exception) {
+				Log::warning('Message email failed; message was still saved.', ['message_id' => $message->id, 'error' => $exception->getMessage()]);
+			}
 		}
 
         return Redirect::route('messages.index', [ 'user_id' => $request->to_id ]);

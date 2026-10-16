@@ -28,7 +28,6 @@ Prepared on 13 October 2026. Status: implemented and locally verified in the wor
    | Companies | Several reads assume every company has an account | Support imported companies without creating fake users |
    | Applications | Native employer workflow | Add external apply and honest, candidate-managed tracking |
    | SEO | Blanket indexing metadata, a query-stripping canonical, and a sitemap capped at 500 roles | Route-specific indexing, correct canonicals, and complete sitemaps |
-   | Local setup | Locked Laravel 13 dependencies differ from the installed Laravel 8 vendor directory | Restore the locked dependencies before implementation verification |
    | CV files | Application attachments use public storage | Move CV access behind authorization as part of the application work |
 
    Relevant starting points: [routes](/Users/alabaganne/Desktop/Projects/nextward/routes/web.php), [HTML template](/Users/alabaganne/Desktop/Projects/nextward/resources/views/app.blade.php), [frontend entry](/Users/alabaganne/Desktop/Projects/nextward/resources/js/app.js), [listing controller](/Users/alabaganne/Desktop/Projects/nextward/app/Http/Controllers/InternshipController.php), and [application controller](/Users/alabaganne/Desktop/Projects/nextward/app/Http/Controllers/ApplicationController.php).

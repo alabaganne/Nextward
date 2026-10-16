@@ -1,24 +1,4 @@
 /* Shared component classes from the design prototypes (INTEGRATION.md §1c). */
-.check input {
-	@apply appearance-none w-[18px] h-[18px] border-[1.5px] border-line rounded-[5px] cursor-pointer shrink-0 relative transition-all;
-}
-.check input:checked {
-	@apply bg-blue-600 border-blue-600;
-}
-.check input:checked::after {
-	content: "";
-	@apply absolute left-[5px] top-[1.5px] w-[5px] h-[9px] border-solid border-white rotate-45;
-	border-width: 0 2px 2px 0;
-}
-.range input[type="range"] {
-	accent-color: #2563eb;
-}
-.qtab {
-	@apply text-muted border-transparent;
-}
-.qtab.is-active {
-	@apply text-blue-700 border-blue-600;
-}
 .conv {
 	@apply flex gap-3 px-[18px] py-3.5 cursor-pointer border-b border-line-2 border-l-[3px] border-l-transparent transition-colors hover:bg-paper-2;
 }
@@ -30,12 +10,6 @@
 }
 .prev.unread {
 	@apply text-ink font-semibold;
-}
-.daysep {
-	@apply text-center text-xs text-muted-2 font-semibold my-3.5;
-}
-.daysep span {
-	@apply bg-paper-3 px-3.5 py-[5px] rounded-full;
 }
 .bubble {
 	@apply max-w-[64%] px-[15px] py-[11px] rounded-2xl text-[14.5px] leading-[1.5] mb-[3px];
@@ -54,12 +28,6 @@
 }
 .chip {
 	@apply border-line bg-white text-ink-700 hover:border-blue-300;
-}
-.jcard {
-	@apply bg-white border border-line rounded-[18px] p-6 flex flex-col transition-all duration-200 hover:-translate-y-1 hover:border-blue-200;
-}
-.tag {
-	@apply inline-flex items-center px-[11px] py-[5px] rounded-lg text-xs font-semibold bg-paper-3 text-ink-700;
 }
 .ck {
 	@apply appearance-none w-[18px] h-[18px] border-[1.5px] border-line rounded-[5px] cursor-pointer shrink-0 relative transition-all;
@@ -85,7 +53,7 @@
 	@apply text-blue-600;
 }
 .fld {
-	@apply w-full border-[1.5px] border-line rounded-[11px] px-3.5 py-3 text-[14.5px] text-ink bg-white transition-colors focus:outline-none focus:border-blue-500 placeholder:text-muted-2;
+	@apply w-full border-[1.5px] border-line rounded-[11px] px-3.5 py-3 text-[14.5px] text-ink bg-white transition-colors focus:border-blue-500 placeholder:text-muted-2;
 }
 select.fld {
 	@apply appearance-auto cursor-pointer pr-3.5;
@@ -94,67 +62,15 @@ select.fld {
 textarea.fld {
 	@apply resize-y min-h-[92px];
 }
-.sw {
-	@apply appearance-none w-[46px] h-[27px] rounded-full bg-paper-3 border border-line relative cursor-pointer shrink-0 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-[21px] after:h-[21px] after:rounded-full after:bg-white after:transition-transform;
-}
-.sw:checked {
-	@apply bg-blue-600 border-blue-600 after:translate-x-[19px];
-}
-.trow {
-	@apply flex items-center justify-between gap-[18px] py-[17px] border-b border-line-2 first:pt-0 last:border-b-0 last:pb-0;
-}
-.trow .tt b {
-	@apply text-[14.5px] font-semibold block;
-}
-.trow .tt span {
-	@apply text-[13px] text-muted block mt-0.5 max-w-[520px] leading-[1.5];
-}
 .cbtn {
-	@apply inline-flex items-center justify-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] transition-colors cursor-pointer;
+	@apply inline-flex items-center justify-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand;
+}
+/* A label.cbtn wrapping a hidden file input shows the ring for that input. */
+.cbtn:has(input:focus-visible) {
+	@apply outline-2 outline-offset-2 outline-brand;
 }
 .chip.is-active {
 	@apply bg-navy-900 border-navy-900 text-white hover:border-navy-900;
-}
-.pcard.is-active {
-	@apply border-blue-600 bg-blue-50;
-}
-.dbody ul {
-	@apply list-none flex flex-col gap-[11px] mb-1.5;
-}
-.dbody ul li {
-	@apply relative pl-[30px] text-[15.5px] leading-[1.6] text-ink-700;
-}
-.dbody ul li::before {
-	content: "";
-	@apply absolute left-2 top-2.5 w-1.5 h-1.5 rounded-full bg-blue-600;
-}
-.cover-grid::after {
-	content: "";
-	@apply absolute inset-0;
-	background-image: linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-		linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
-	background-size: 40px 40px;
-}
-.art-body > * {
-	@apply max-w-[720px];
-}
-.art-body p {
-	@apply text-[18px] leading-[1.78] text-ink-700 mb-6;
-}
-.art-body h2 {
-	@apply font-display text-[28px] font-semibold mt-[46px] mb-4;
-}
-.art-body h3 {
-	@apply font-display text-[21px] font-semibold mt-[34px] mb-3;
-}
-.art-body .lead {
-	@apply text-[21px]! leading-[1.65]! text-ink! font-medium;
-}
-
-@keyframes bob {
-	50% {
-		transform: translateY(-9px);
-	}
 }
 
 /* Workspace shell */

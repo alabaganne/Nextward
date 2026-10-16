@@ -27,7 +27,8 @@ const edit = (search) => {
     form.consent = search.frequency !== 'off';
 };
 const pause = (search) => router.put(route('saved-searches.update', search.id), { ...search, frequency: 'off', consent: undefined }, { preserveScroll: true });
-const remove = (search) => router.delete(route('saved-searches.destroy', search.id), { preserveScroll: true });
+const removingId = ref(null);
+const remove = (search) => router.delete(route('saved-searches.destroy', search.id), { preserveScroll: true, onFinish: () => { removingId.value = null; } });
 </script>
 
 <template>
@@ -47,7 +48,12 @@ const remove = (search) => router.delete(route('saved-searches.destroy', search.
                     <h2 class="font-display text-lg font-semibold"><a :href="search.browse_url" class="hover:text-blue-700">{{ search.name }}</a></h2>
                     <p class="text-sm text-muted mt-1.5 break-words">{{ formatFilter(search.filters) }}</p>
                     <p class="text-sm mt-3">{{ search.frequency === 'off' ? 'Email alerts paused' : `${search.frequency === 'daily' ? 'Daily' : 'Weekly'} alerts, after 09:00 (${search.timezone})` }}</p>
-                    <div class="flex flex-wrap gap-4 mt-4 pt-4 border-t border-line-2 text-sm font-semibold"><a :href="search.browse_url" class="text-blue-700 hover:underline">View matches</a><button type="button" class="text-blue-700 hover:underline" @click="edit(search)">Edit</button><button v-if="search.frequency !== 'off'" type="button" class="text-ink-700 hover:underline" @click="pause(search)">Pause emails</button><button type="button" class="text-red-600 hover:underline ml-auto" @click="remove(search)">Remove</button></div>
+                    <div class="flex flex-wrap gap-4 mt-4 pt-4 border-t border-line-2 text-sm font-semibold"><a :href="search.browse_url" class="text-blue-700 hover:underline">View matches</a><button type="button" class="text-blue-700 hover:underline" @click="edit(search)">Edit</button><button v-if="search.frequency !== 'off'" type="button" class="text-ink-700 hover:underline" @click="pause(search)">Pause emails</button><button type="button" class="text-red-600 hover:underline ml-auto" :aria-expanded="removingId === search.id" @click="removingId = search.id">Remove</button></div>
+                    <div v-if="removingId === search.id" class="flex flex-wrap items-center gap-3 mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm">
+                        <p class="text-red-900 mr-auto" role="alert">Remove this saved search? Its email alerts stop too.</p>
+                        <button type="button" class="font-semibold text-ink-700 hover:underline" @click="removingId = null">Cancel</button>
+                        <button type="button" class="cbtn !px-4 !py-2 !text-sm bg-[#dc2626] text-white hover:bg-[#b91c1c]" @click="remove(search)">Yes, remove</button>
+                    </div>
                 </article>
             </section>
             <form v-if="hasFilters || editing" class="bg-white border border-line rounded-[16px] p-6 space-y-4 lg:sticky lg:top-20" @submit.prevent="save">

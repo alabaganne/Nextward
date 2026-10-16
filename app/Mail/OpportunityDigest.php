@@ -25,7 +25,7 @@ class OpportunityDigest extends Mailable
 
     public function build()
     {
-        return $this->subject('Nextward opportunities for '.$this->search->name)->view('emails.opportunity-digest')->with([
+        return $this->subject('New roles for '.$this->search->name.' on Nextward')->markdown('emails.opportunity-digest')->with([
             'unsubscribeUrl' => URL::signedRoute('saved-searches.unsubscribe', ['savedSearch' => $this->search->id]),
             'browseUrl' => SavedSearchController::browseUrl($this->search->filters),
         ]);

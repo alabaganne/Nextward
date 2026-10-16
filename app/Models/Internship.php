@@ -149,7 +149,9 @@ class Internship extends Model
 
     public function getLocationLabelAttribute(): string
     {
-        return $this->location ?: (collect([$this->city?->name, $this->country_code])->filter()->implode(', ') ?: __('Location not specified'));
+        $country = $this->country_code ? app(\App\Importing\OpportunityNormalizer::class)->countryName($this->country_code) : null;
+
+        return $this->location ?: (collect([$this->city?->name, $country])->filter()->implode(', ') ?: __('Location not specified'));
     }
 
     public function scopePublished($query)

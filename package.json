@@ -6,7 +6,10 @@
 		"build": "vite build && vite build --ssr",
 		"build:client": "vite build",
 		"ssr": "node bootstrap/ssr/ssr.js",
-		"dev": "vite"
+		"dev": "vite",
+		"scrape": "php artisan opportunities:fetch --focus=tech",
+		"import-csv": "php artisan opportunities:import-csv",
+		"discover": "php artisan opportunities:discover"
 	},
 	"devDependencies": {
 		"@inertiajs/vue3": "^3.9.1",

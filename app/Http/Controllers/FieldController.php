@@ -61,7 +61,7 @@ class FieldController extends Controller
      */
     public function show(Field $field)
     {
-        //
+        return Redirect::route('fields.edit', $field);
     }
 
     /**

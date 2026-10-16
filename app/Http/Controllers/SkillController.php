@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Requests\SkillRequest;
 use App\Models\Skill;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 
 class SkillController extends Controller
@@ -13,81 +15,61 @@ class SkillController extends Controller
     {
         $this->middleware(EnsureUserIsAdmin::class);
     }
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+
     public function index()
     {
         return Inertia::render('Skills/Index', [
-            'skills' => Skill::all()
+            'skills' => Skill::withCount(['internships', 'students'])->orderBy('name')->paginate(20),
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function create()
     {
-        //
+        return Inertia::render('Skills/Edit');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
+    public function store(SkillRequest $request)
     {
-        //
+        Skill::create($request->validated());
+
+        return Redirect::route('skills.index')->with('toast', [
+            'type' => 'store',
+            'message' => 'Skill created successfully.'
+        ]);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Skill  $skill
-     * @return \Illuminate\Http\Response
-     */
     public function show(Skill $skill)
     {
-        //
+        return Redirect::route('skills.edit', $skill);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Skill  $skill
-     * @return \Illuminate\Http\Response
-     */
     public function edit(Skill $skill)
     {
-        //
+        return Inertia::render('Skills/Edit', [
+            'skill' => $skill->loadCount(['internships', 'students']),
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Skill  $skill
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Skill $skill)
+    public function update(SkillRequest $request, Skill $skill)
     {
-        //
+        $skill->update($request->validated());
+
+        return Redirect::route('skills.index')->with('toast', [
+            'type' => 'update',
+            'message' => 'Skill updated successfully.'
+        ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Skill  $skill
-     * @return \Illuminate\Http\Response
-     */
     public function destroy(Skill $skill)
     {
-        //
+        DB::transaction(function () use ($skill) {
+            DB::table('skillables')->where('skill_id', $skill->id)->delete();
+            $skill->delete();
+        });
+
+        return Redirect::route('skills.index')->with('toast', [
+            'type' => 'destroy',
+            'message' => 'Skill deleted successfully.'
+        ]);
     }
 }

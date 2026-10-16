@@ -219,7 +219,8 @@ class PublicInternshipListingTest extends TestCase
     private function company(string $name): Company
     {
         $company = Company::create(['website' => 'https://example.com', 'about' => 'A company used in tests.', 'city_id' => $this->city->id]);
-        $company->user()->create(['name' => $name, 'email' => str($name)->slug().'@example.com', 'password' => 'password']);
+        $company->user()->create(['name' => $name, 'email' => str($name)->slug().'@example.com', 'password' => 'password'])
+            ->forceFill(['email_verified_at' => now()])->save();
 
         return $company->load('user');
     }
@@ -228,7 +229,10 @@ class PublicInternshipListingTest extends TestCase
     {
         $student = Student::create(['field_id' => $this->field->id, 'city_id' => $this->city->id]);
 
-        return $student->user()->create(['name' => 'Test Student', 'email' => 'student@example.com', 'password' => 'password']);
+        $user = $student->user()->create(['name' => 'Test Student', 'email' => 'student@example.com', 'password' => 'password']);
+        $user->forceFill(['email_verified_at' => now()])->save();
+
+        return $user;
     }
 
     private function internship(Company $company, string $title, $closingAt): Internship

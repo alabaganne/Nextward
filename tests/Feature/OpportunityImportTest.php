@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Ai\OpportunityClassifier;
+use App\Ai\SourceDiscovery;
 use App\Importing\OpportunityImporter;
 use App\Importing\OpportunityNormalizer;
 use App\Importing\SourceHttp;
@@ -28,12 +30,15 @@ class OpportunityImportTest extends TestCase
         parent::setUp();
         $this->travelTo(Carbon::parse('2026-10-15 10:00:00', 'UTC'));
         SourceHttp::$resolveUsing = fn () => ['93.184.216.34'];
+        config(['importer.csv_path' => sys_get_temp_dir().'/nextward-test-'.uniqid().'.csv']);
         Field::create(['name' => 'Web Development']);
     }
 
     protected function tearDown(): void
     {
         SourceHttp::$resolveUsing = null;
+        OpportunityClassifier::resetOffReason();
+        @unlink(config('importer.csv_path'));
         parent::tearDown();
     }
 
@@ -190,6 +195,224 @@ class OpportunityImportTest extends TestCase
         $this->assertSame(1, Company::where('name', 'Canonical')->count());
     }
 
+    public function test_fetch_adds_the_requested_number_and_never_repeats_or_restores_deleted_ones(): void
+    {
+        Http::fake([
+            '*/robots.txt' => Http::response('', 404),
+            'boards-api.greenhouse.io/v1/boards/acme/jobs*' => Http::response(['jobs' => [
+                $this->greenhouseJob(1, 'Design Intern', 'Paris, France', 1),
+                $this->greenhouseJob(2, 'Data Intern', 'Berlin, Germany', 2),
+                $this->greenhouseJob(3, 'Product Intern', 'Remote', 3),
+            ]]),
+        ]);
+        $this->source(['key' => 'greenhouse-acme', 'provider' => 'greenhouse',
+            'url' => 'https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true',
+            'allowed_domains' => ['boards-api.greenhouse.io', 'job-boards.greenhouse.io'], 'settings' => ['scope' => 'reachable']]);
+
+        $this->artisan('opportunities:fetch --count=2')->expectsOutputToContain('2 new opportunities added.')->assertSuccessful();
+        $this->assertSame(2, Internship::count());
+
+        $this->artisan('opportunities:fetch --count=2')->expectsOutputToContain('1 new opportunity added.')->assertSuccessful();
+        $this->artisan('opportunities:fetch --count=2')->expectsOutputToContain('No new opportunities found.')->assertSuccessful();
+        $this->assertSame(3, Internship::count());
+
+        Internship::where('title', 'Design Intern')->delete();
+        $this->travel(1)->days();
+        app(OpportunityImporter::class)->run(ImportSource::sole(), 100);
+        $this->assertSame(0, Internship::where('title', 'Design Intern')->count());
+        $this->assertSame(2, Internship::count());
+    }
+
+    public function test_fetch_with_a_focus_only_adds_matching_titles_and_leaves_the_rest_for_later(): void
+    {
+        Http::fake([
+            '*/robots.txt' => Http::response('', 404),
+            'boards-api.greenhouse.io/v1/boards/acme/jobs*' => Http::response(['jobs' => [
+                $this->greenhouseJob(1, 'Account Executive Intern', 'Paris, France', 1),
+                $this->greenhouseJob(2, 'Mobile Developer Intern (Flutter)', 'Paris, France', 2),
+            ]]),
+        ]);
+        $this->source(['key' => 'greenhouse-acme', 'provider' => 'greenhouse',
+            'url' => 'https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true',
+            'allowed_domains' => ['boards-api.greenhouse.io', 'job-boards.greenhouse.io'], 'settings' => ['scope' => 'reachable']]);
+
+        Field::create(['name' => 'Mobile Development']);
+        Field::create(['name' => 'Software Engineering']);
+
+        $this->artisan('opportunities:fetch --focus=tech --count=5')->expectsOutputToContain('1 new opportunity added.')->assertSuccessful();
+
+        $this->assertSame(['Mobile Developer Intern (Flutter)'], Internship::pluck('title')->all());
+        $this->assertSame('Mobile Development', Internship::sole()->field->name);
+        $this->assertNull(OpportunitySource::where('external_id', '1')->value('last_verified_at'));
+    }
+
+    public function test_ai_review_sets_the_field_and_keeps_non_software_roles_out_of_a_tech_fetch(): void
+    {
+        $this->app->instance(OpportunityClassifier::class, new class extends OpportunityClassifier {
+            public function enabled(): bool { return true; }
+
+            public function classify(array $data, array $fields): ?array
+            {
+                $software = ! str_contains($data['title'], 'Trainer');
+                return ['is_software_role' => $software, 'field' => $software ? 'Mobile Development' : 'Other', 'kind' => 'job',
+                    'seniority' => 'senior', 'remote_from_tunisia' => 'eligible', 'relocation' => 'unknown', 'visa_sponsorship' => 'unknown',
+                    'evidence' => 'We hire anywhere in the world.', 'model' => 'test'];
+            }
+        });
+        Field::create(['name' => 'Mobile Development']);
+        Http::fake([
+            '*/robots.txt' => Http::response('', 404),
+            'boards-api.greenhouse.io/v1/boards/acme/jobs*' => Http::response(['jobs' => [
+                $this->greenhouseJob(1, 'Web Developer Trainer', 'Remote', 1),
+                $this->greenhouseJob(2, 'Flutter Developer', 'Remote', 2),
+            ]]),
+        ]);
+        $this->source(['key' => 'greenhouse-acme', 'provider' => 'greenhouse',
+            'url' => 'https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true',
+            'allowed_domains' => ['boards-api.greenhouse.io', 'job-boards.greenhouse.io'], 'settings' => ['scope' => 'reachable']]);
+
+        $this->artisan('opportunities:fetch --focus=tech --count=5 --no-csv')->expectsOutputToContain('1 new opportunity added.')->assertSuccessful();
+
+        $role = Internship::sole();
+        $this->assertSame(['Flutter Developer', 'Mobile Development', 'senior', 'eligible'], [$role->title, $role->field->name, $role->seniority, $role->remote_eligibility]);
+        $this->assertSame('pending', OpportunitySource::where('external_id', '1')->value('state'));
+        $this->assertSame('test', OpportunitySource::where('external_id', '2')->first()->ai_review['model']);
+    }
+
+    public function test_openai_reads_each_new_listing_through_the_ai_package(): void
+    {
+        $this->useOpenAi();
+        Field::create(['name' => 'Mobile Development']);
+        $review = ['is_software_role' => true, 'field' => 'Mobile Development', 'kind' => 'internship', 'seniority' => 'entry',
+            'remote_from_tunisia' => 'eligible', 'relocation' => 'unknown', 'visa_sponsorship' => 'unknown', 'evidence' => 'Hiring worldwide.'];
+        Http::fake([
+            '*/robots.txt' => Http::response('', 404),
+            'boards-api.greenhouse.io/v1/boards/acme/jobs*' => Http::response(['jobs' => [$this->greenhouseJob(1, 'Flutter Developer Intern', 'Remote', 1)]]),
+            'api.openai.com/v1/responses' => Http::response($this->openAiReply([$this->openAiText(json_encode($review))])),
+        ]);
+        $this->source(['key' => 'greenhouse-acme', 'provider' => 'greenhouse',
+            'url' => 'https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true',
+            'allowed_domains' => ['boards-api.greenhouse.io', 'job-boards.greenhouse.io'], 'settings' => ['scope' => 'reachable']]);
+
+        $this->artisan('opportunities:fetch --focus=tech --count=5 --no-csv')
+            ->expectsOutputToContain('OpenAI reads each new listing')->expectsOutputToContain('1 new opportunity added.')->assertSuccessful();
+
+        $role = Internship::sole();
+        $this->assertSame(['Mobile Development', 'internship', 'eligible'], [$role->field->name, $role->kind, $role->remote_eligibility]);
+        $this->assertSame('gpt-5.4-mini-2026-03-17', OpportunitySource::sole()->ai_review['model']);
+        Http::assertSent(fn ($request) => str_ends_with($request->url(), '/responses') && $request['model'] === 'gpt-5.4-mini'
+            && $request['text']['format']['type'] === 'json_schema' && $request['reasoning']['effort'] === 'low');
+    }
+
+    public function test_a_bad_openai_key_stops_ai_for_the_run_and_keyword_rules_carry_on(): void
+    {
+        $this->useOpenAi();
+        Http::fake([
+            '*/robots.txt' => Http::response('', 404),
+            'boards-api.greenhouse.io/v1/boards/acme/jobs*' => Http::response(['jobs' => [
+                $this->greenhouseJob(1, 'Software Engineering Intern', 'Paris, France', 1),
+                $this->greenhouseJob(2, 'Web Developer Intern', 'Paris, France', 2),
+            ]]),
+            'api.openai.com/v1/responses' => Http::response(['error' => ['message' => 'Incorrect API key provided.', 'code' => 'invalid_api_key']], 401),
+        ]);
+        $this->source(['key' => 'greenhouse-acme', 'provider' => 'greenhouse',
+            'url' => 'https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true',
+            'allowed_domains' => ['boards-api.greenhouse.io', 'job-boards.greenhouse.io'], 'settings' => ['scope' => 'reachable']]);
+
+        $this->artisan('opportunities:fetch --count=2 --no-csv')
+            ->expectsOutputToContain('OpenAI stopped during this run, so keyword rules sorted the rest: Incorrect API key provided.')
+            ->expectsOutputToContain('2 new opportunities added.')->assertSuccessful();
+
+        $this->assertCount(1, Http::recorded(fn ($request) => str_ends_with($request->url(), '/responses')));
+    }
+
+    public function test_a_csv_from_one_machine_adds_the_same_opportunities_once_on_another(): void
+    {
+        Http::fake([
+            '*/robots.txt' => Http::response('', 404),
+            'boards-api.greenhouse.io/v1/boards/acme/jobs*' => Http::response(['jobs' => [
+                $this->greenhouseJob(1, 'Software Engineering Intern', 'Paris, France', 1),
+                $this->greenhouseJob(2, 'Mobile Engineering Intern', 'Paris, France', 2),
+            ]]),
+        ]);
+        $this->source(['key' => 'greenhouse-acme', 'provider' => 'greenhouse',
+            'url' => 'https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true',
+            'allowed_domains' => ['boards-api.greenhouse.io', 'job-boards.greenhouse.io'], 'settings' => ['scope' => 'reachable']]);
+        $this->artisan('opportunities:fetch --count=2')->expectsOutputToContain('Saved 2 to')->assertSuccessful();
+
+        // The server starts without these listings but with the same sources.
+        OpportunitySource::query()->delete();
+        Internship::query()->delete();
+        Company::query()->delete();
+
+        $this->artisan('opportunities:import-csv')->expectsOutputToContain('2 added, 0 already here, 0 skipped.')->assertSuccessful();
+        $this->artisan('opportunities:import-csv')->expectsOutputToContain('0 added, 2 already here, 0 skipped.')->assertSuccessful();
+        $this->assertSame(2, Internship::available()->count());
+        $this->assertSame(1, Company::count());
+    }
+
+    public function test_a_csv_checked_too_long_ago_is_not_published(): void
+    {
+        Http::fake([
+            '*/robots.txt' => Http::response('', 404),
+            'boards-api.greenhouse.io/v1/boards/acme/jobs*' => Http::response(['jobs' => [$this->greenhouseJob(1, 'Software Engineering Intern', 'Paris, France', 1)]]),
+        ]);
+        $this->source(['key' => 'greenhouse-acme', 'provider' => 'greenhouse',
+            'url' => 'https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true',
+            'allowed_domains' => ['boards-api.greenhouse.io', 'job-boards.greenhouse.io'], 'settings' => ['scope' => 'reachable']]);
+        $this->artisan('opportunities:fetch --count=1')->assertSuccessful();
+        OpportunitySource::query()->delete();
+        Internship::query()->delete();
+
+        $this->travel(3)->days();
+        $this->artisan('opportunities:import-csv')->expectsOutputToContain('0 added, 0 already here, 1 skipped.')->assertSuccessful();
+    }
+
+    public function test_suggested_sources_are_checked_and_saved_switched_off(): void
+    {
+        Http::fake([
+            '*/robots.txt' => Http::response('', 404),
+            'boards-api.greenhouse.io/v1/boards/tunisoft/jobs' => Http::response(['jobs' => [['id' => 1, 'title' => 'Developer', 'absolute_url' => 'https://job-boards.greenhouse.io/tunisoft/jobs/1']]]),
+            'boards-api.greenhouse.io/v1/boards/empty/jobs' => Http::response(['jobs' => []]),
+        ]);
+        $discovery = app(SourceDiscovery::class);
+        $suggest = fn (string $board) => $discovery->store(['provider' => 'greenhouse', 'board' => $board, 'company' => 'TuniSoft', 'job_path_prefix' => '', 'why' => 'Hires developers in Tunis.']);
+
+        $this->assertSame('added', $suggest('tunisoft')[0]);
+        $this->assertSame('skipped', $suggest('tunisoft')[0]);
+        $this->assertSame('skipped', $suggest('empty')[0]);
+        $this->assertSame('skipped', $suggest('https://boards.greenhouse.io/x')[0]);
+
+        $source = ImportSource::sole();
+        $this->assertSame(['greenhouse-tunisoft', false, 'pending'], [$source->key, $source->enabled, $source->permission_status]);
+        $this->assertSame(['boards-api.greenhouse.io', 'job-boards.greenhouse.io'], $source->allowed_domains);
+    }
+
+    public function test_openai_discovery_saves_the_sources_it_suggests(): void
+    {
+        $this->useOpenAi();
+        $call = ['type' => 'function_call', 'id' => 'fc_1', 'call_id' => 'call_1', 'name' => 'suggest_source', 'status' => 'completed',
+            'arguments' => json_encode(['provider' => 'greenhouse', 'board' => 'tunisoft', 'company' => 'TuniSoft', 'job_path_prefix' => '', 'why' => 'Hires developers in Tunis.'])];
+        Http::fake([
+            '*/robots.txt' => Http::response('', 404),
+            'boards-api.greenhouse.io/v1/boards/tunisoft/jobs' => Http::response(['jobs' => [['id' => 1, 'title' => 'Developer', 'absolute_url' => 'https://job-boards.greenhouse.io/tunisoft/jobs/1']]]),
+            'api.openai.com/v1/responses' => Http::sequence()
+                ->push($this->openAiReply([['type' => 'web_search_call', 'id' => 'ws_1', 'status' => 'completed'], $call]))
+                ->push($this->openAiReply([$this->openAiText('Saved one source.')])),
+        ]);
+
+        $this->artisan('opportunities:discover --max=1')->expectsOutputToContain('1 new source saved for review in Imports.')
+            ->expectsOutputToContain('and 1 web searches.')->assertSuccessful();
+
+        $source = ImportSource::sole();
+        $this->assertSame(['greenhouse-tunisoft', false], [$source->key, $source->enabled]);
+        $this->assertStringStartsWith('Suggested by OpenAI on', $source->permission_notes);
+        $requests = Http::recorded(fn ($request) => str_ends_with($request->url(), '/responses'))->map(fn ($pair) => $pair[0]->data())->values();
+        $this->assertSame('gpt-5.5', $requests[0]['model']);
+        $this->assertContains('web_search', collect($requests[0]['tools'])->pluck('type')->all());
+        $this->assertSame('call_1', collect($requests[1]['input'])->firstWhere('type', 'function_call_output')['call_id']);
+    }
+
     public function test_follow_up_batches_reuse_the_saved_backlog(): void
     {
         $jobs = ['https://www.tanitjobs.com/job/31/a/', 'https://www.tanitjobs.com/job/32/b/', 'https://www.tanitjobs.com/job/33/c/'];
@@ -251,6 +474,23 @@ class OpportunityImportTest extends TestCase
         $this->assertFalse($result['complete']);
         $this->assertSame(1, $source->items()->count());
         $this->assertSame('completed', ImportRun::sole()->status);
+    }
+
+    private function useOpenAi(): void
+    {
+        config(['importer.ai.enabled' => true, 'importer.ai.provider' => 'openai', 'ai.providers.openai.key' => 'test-key']);
+    }
+
+    private function openAiReply(array $output): array
+    {
+        return ['id' => 'resp_'.uniqid(), 'object' => 'response', 'status' => 'completed', 'model' => 'gpt-5.4-mini-2026-03-17',
+            'output' => $output, 'usage' => ['input_tokens' => 100, 'output_tokens' => 20, 'total_tokens' => 120]];
+    }
+
+    private function openAiText(string $text): array
+    {
+        return ['type' => 'message', 'id' => 'msg_'.uniqid(), 'role' => 'assistant', 'status' => 'completed',
+            'content' => [['type' => 'output_text', 'text' => $text, 'annotations' => []]]];
     }
 
     private function source(array $attributes): ImportSource

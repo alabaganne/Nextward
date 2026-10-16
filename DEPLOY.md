@@ -14,7 +14,7 @@ Provision the following before running application commands:
 - MySQL or PostgreSQL, with an application database and a dedicated database user. The examples use MySQL.
 - Supervisor and cron, enabled on boot.
 - A service account named `nextward`, with access to the repository, and the `www-data` web server group.
-- A working mail provider and a verified sender for password resets and notifications.
+- A Resend API key and a sender on a domain verified in Resend (today `nextward@alabaganne.com`), for email verification, password resets and notifications.
 
 Keep database and SSR ports private. Serve only `/srv/nextward/current/public`. Configure the dedicated PHP-FPM pool to run as `nextward`, using the example in [the VPS guide](VPS_DEPLOYMENT.md#php-fpm).
 
@@ -95,7 +95,7 @@ OPPORTUNITY_DIGESTS_ENABLED=false
 GOOGLE_INDEXING_ENABLED=false
 ```
 
-Configure `MAIL_*` for the real provider; the example's Mailhog settings are for local development. `APP_URL` must be the canonical HTTPS origin used in search results, sitemaps and email links. Leave optional digest sending and Google indexing disabled until their delivery and credentials are verified. File cache and sessions use shared storage on this one VPS; the repository does not provision database cache/session tables.
+Set `RESEND_API_KEY`, `MAIL_FROM_ADDRESS` and `MAIL_CONTACT_ADDRESS`, and leave `MAIL_MAILER` empty so Resend is used (see [Email](README.md#email)). Application and message emails are queued, so the queue worker must run. `APP_URL` must be the canonical HTTPS origin used in search results, sitemaps and email links. Leave optional digest sending and Google indexing disabled until their delivery and credentials are verified. File cache and sessions use shared storage on this one VPS; the repository does not provision database cache/session tables.
 
 Do not copy local testing settings or a demo database onto the VPS. Follow [the existing credential exposure instructions](VPS_DEPLOYMENT.md#existing-credential-exposure) before using any credentials from an older installation.
 
@@ -228,20 +228,13 @@ Submit `/sitemap.xml` in Search Console. Configure an external monitor for `oppo
 
 ## 7. Create the first administrator and configure imports
 
-Production seeding creates no users. With production mail configured, open `php artisan tinker` as `nextward` and create a dedicated admin using an email address you control that is not already registered:
+Production seeding creates no users. Create a dedicated admin with an email address you control that is not already registered:
 
-```php
-\App\Models\User::create([
-    'name' => 'Nextward Admin',
-    'email' => 'replace-with-your-admin-email@example.com',
-    'password' => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(64)),
-    'is_admin' => true,
-    'userable_type' => null,
-    'userable_id' => null,
-]);
+```bash
+sudo -u nextward php artisan nextward:make-admin you@example.com
 ```
 
-Exit Tinker and use the site's forgot-password flow to set the admin password through that mailbox. The random initial password is not a shared default. An admin must have no student/company profile under the current `User::isAdmin()` rules; setting `is_admin` on an existing candidate or employer is insufficient. On updates, keep the existing admin account.
+It asks for a name and a password (typed hidden) and marks the email as confirmed. An admin must have no student/company profile under the current `User::isAdmin()` rules, so the command refuses accounts that have one. On updates, keep the existing admin account.
 
 Open `/admin/imports` to configure sources. Start with approved permission evidence, correct allowed domains, a supported provider, review mode and small request limits. Follow [the import instructions](README.md#approved-sources-and-import-operation). A real seed listing does not by itself establish that its source is ready for recurring scraping. Dry-run imports still make network requests.
 

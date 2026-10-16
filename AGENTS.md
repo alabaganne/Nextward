@@ -19,6 +19,10 @@ Shared notes for anyone working on this repo, people or coding tools. `CLAUDE.md
 - **Company logos:** pages only show logos stored on Nextward. Outside logo URLs are downloaded by `companies:logos` and never sent to the browser (`README.md#local-setup`).
 - **Design:** flat surfaces, no shadows or glows, and no one-sided accent borders (top stripes, left bars); use tints or solid fills instead. This holds for emails too. Details in `design/DESIGN.md`.
 - **Writing:** plain, everyday words in copy, docs, commits and code comments. Comments are short and rare.
+- **Email:** sent through Resend from `nextward@alabaganne.com` until a Nextward domain is verified. Every email uses the shared layout in `resources/views/vendor/mail` (new logo, white card with no borders, solid blue card for quoted text, navy button). Text people type is shown as plain text. Details in `README.md#email`.
+- **Email verification:** required before applying, messaging, posting or editing roles, saving searches with alerts and claiming a company. Browsing and the dashboard work without it.
+- **Tunisian boards:** Tanitjobs and Keejob stay on automatic publishing by the owner's choice; checking their terms is the owner's call.
+- **Error monitoring:** none for now (Laravel logs only), by the owner's choice.
 
 ## Stack
 

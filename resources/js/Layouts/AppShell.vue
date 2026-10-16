@@ -4,6 +4,7 @@ import { router } from '@inertiajs/vue3';
 import AppSidebar from './AppSidebar.vue';
 import AppTopbar from './AppTopbar.vue';
 import NotificationsPanel from '@/Components/NotificationsPanel.vue';
+import VerifyEmailBanner from '@/Components/VerifyEmailBanner.vue';
 import WorkspaceNotice from '@/Components/WorkspaceNotice.vue';
 
 defineProps({
@@ -27,6 +28,7 @@ onBeforeUnmount(() => stopListening?.());
 		<AppSidebar :active="active" :mobile-open="navigationOpen" @close="navigationOpen = false" />
 		<div class="flex flex-col min-w-0" :class="{ 'overflow-hidden': fill }">
 			<AppTopbar :navigation-open="navigationOpen" @navigation="navigationOpen = !navigationOpen" @notifications="notificationsOpen = true" />
+			<VerifyEmailBanner />
 			<main id="main" class="flex-1 flex flex-col min-h-0" tabindex="-1">
 				<slot />
 			</main>

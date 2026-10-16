@@ -1,11 +1,11 @@
-# Marketing Plan for Stagi.tn
+# Marketing Plan for Nextward
 ## Internship Management Platform for Tunisia
 
 ---
 
 ## Executive Summary
 
-Stagi.tn is a comprehensive internship management platform designed specifically for the Tunisian market. This marketing plan outlines strategies to position Stagi.tn as the leading platform connecting students, companies, and universities in Tunisia, streamlining the internship process for all stakeholders.
+Nextward is a comprehensive internship management platform designed specifically for the Tunisian market. This marketing plan outlines strategies to position Nextward as the leading platform connecting students, companies, and universities in Tunisia, streamlining the internship process for all stakeholders.
 
 ---
 
@@ -320,7 +320,7 @@ Stagi.tn is a comprehensive internship management platform designed specifically
 ### 6.6 Community Building
 
 #### Online Community
-- **Facebook Group**: "Stagi.tn Internship Community"
+- **Facebook Group**: "Nextward Internship Community"
   - Student networking
   - Q&A sessions with HR professionals
   - Internship tips and resources
@@ -452,18 +452,18 @@ Stagi.tn is a comprehensive internship management platform designed specifically
 
 **Content**:
 - Background and challenges
-- How they used Stagi.tn
+- How they used Nextward
 - Application process
 - Results and impact
 - Quote and photo
 
 ### Company Case Study Template
-**Title**: "[Company Name] Finds Top Talent in 2 Weeks with Stagi.tn"
+**Title**: "[Company Name] Finds Top Talent in 2 Weeks with Nextward"
 
 **Content**:
 - Company background and hiring challenges
 - Previous internship recruitment process
-- Stagi.tn implementation
+- Nextward implementation
 - Results: Time saved, quality of candidates, ROI
 - Testimonial from HR manager
 
@@ -527,7 +527,7 @@ To become the leading career platform in North Africa, empowering millions of st
 
 ## Conclusion
 
-This marketing plan provides a comprehensive roadmap for establishing Stagi.tn as the leading internship platform in Tunisia. Success depends on:
+This marketing plan provides a comprehensive roadmap for establishing Nextward as the leading internship platform in Tunisia. Success depends on:
 
 1. **Multi-sided approach**: Simultaneously acquiring students, companies, and university partners
 2. **Local focus**: Emphasizing Tunisia-specific features and relationships
@@ -535,7 +535,7 @@ This marketing plan provides a comprehensive roadmap for establishing Stagi.tn a
 4. **Data-driven optimization**: Continuously measuring and improving performance
 5. **Long-term vision**: Building sustainable competitive advantages
 
-By executing this plan with discipline and agility, Stagi.tn can capture significant market share and create meaningful value for the Tunisian education and employment ecosystem.
+By executing this plan with discipline and agility, Nextward can capture significant market share and create meaningful value for the Tunisian education and employment ecosystem.
 
 ---
 

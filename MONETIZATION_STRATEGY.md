@@ -1,11 +1,11 @@
-# Monetization Strategy for Stagi.tn
+# Monetization Strategy for Nextward
 ## Revenue Model & Profitability Plan
 
 ---
 
 ## Executive Summary
 
-This document outlines the comprehensive monetization strategy for Stagi.tn, transforming it from a free platform into a profitable business while maintaining value for all stakeholders. The strategy focuses on a multi-sided revenue model targeting companies, universities, and value-added services.
+This document outlines the comprehensive monetization strategy for Nextward, transforming it from a free platform into a profitable business while maintaining value for all stakeholders. The strategy focuses on a multi-sided revenue model targeting companies, universities, and value-added services.
 
 **Target Revenue (Year 1)**: $150,000 - $250,000
 **Target Revenue (Year 3)**: $1,000,000+
@@ -65,7 +65,7 @@ This document outlines the comprehensive monetization strategy for Stagi.tn, tra
 - Interview scheduling tools
 - Analytics dashboard (views, applications, conversion)
 - Priority email support
-- Remove "Powered by Stagi.tn" branding
+- Remove "Powered by Nextward" branding
 - Export applicant data (CSV)
 - 5 supervisor accounts
 
@@ -137,7 +137,7 @@ This document outlines the comprehensive monetization strategy for Stagi.tn, tra
 ### 2.3 Recruitment Services (White-Glove)
 
 #### Full-Service Recruitment
-**Service**: Stagi.tn handles the entire recruitment process
+**Service**: Nextward handles the entire recruitment process
 **Pricing**: 15-20% of intern's salary OR flat fee of 1,500-3,000 TND (~$500-$1,000)
 
 **Includes**:
@@ -525,7 +525,7 @@ This document outlines the comprehensive monetization strategy for Stagi.tn, tra
 | Glassdoor | Subscription | $300-800/month |
 | Handshake (US) | University-based | Free for students, paid for companies |
 
-**Stagi.tn Positioning**:
+**Nextward Positioning**:
 - 70-90% cheaper than global platforms
 - Better suited for Tunisian market
 - Internship-specific features
@@ -534,7 +534,7 @@ This document outlines the comprehensive monetization strategy for Stagi.tn, tra
 ### Local Competitors
 - **Traditional Methods**: Newspaper ads (500-2,000 TND), recruitment agencies (15-30% of salary)
 - **DIY Approach**: Free but time-consuming, limited reach
-- **Stagi.tn Value**: Lower cost than agencies, better than DIY, targeted reach
+- **Nextward Value**: Lower cost than agencies, better than DIY, targeted reach
 
 ---
 
@@ -798,7 +798,7 @@ This document outlines the comprehensive monetization strategy for Stagi.tn, tra
 
 ## Conclusion
 
-Stagi.tn has strong monetization potential through a multi-sided revenue model. The key to profitability is:
+Nextward has strong monetization potential through a multi-sided revenue model. The key to profitability is:
 
 1. **Free Students, Paid Companies**: This model maximizes network effects while capturing value from those who benefit most
 2. **Multiple Revenue Streams**: Diversification reduces risk and maximizes revenue
@@ -812,7 +812,7 @@ Stagi.tn has strong monetization potential through a multi-sided revenue model. 
 - Year 2: Scale paid customers and revenue streams (~$520K revenue)
 - Year 3: Expand geographically and vertically (~$1M+ revenue)
 
-With disciplined execution, Stagi.tn can become a profitable, sustainable business while creating massive value for the Tunisian internship ecosystem.
+With disciplined execution, Nextward can become a profitable, sustainable business while creating massive value for the Tunisian internship ecosystem.
 
 ---
 

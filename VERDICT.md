@@ -3,11 +3,14 @@
 **Rank 9 of 11 as software.** But there is a version of this that works, and it is not a SaaS.
 
 ## State of the code
-35% done, ~14 weeks. Laravel 8 + Inertia + Vue 3. Originally a university project
-(`alabaganne/internships-for-students`, DB `issatso_internships`), rebranded three times: Stagi in
-the README, Qodwa in the design doc, Nextward in the UI. Neither stagi.tn nor internly.tn resolves.
-**Zero payment code** — no plan table among the 15 migrations, no PSP, no pricing page, no quota
-enforcement. What exists is 43KB of strategy prose written in May 2025.
+*Updated 16 October 2026.* The code is far past the 35% this note first claimed. It runs on Laravel 13 +
+Inertia 3 + Vue 3 with server rendering, 25+ migrations and a test suite run on every push (GitHub
+Actions). Candidates, companies and admins all have working flows: search, saved roles, internal and
+external applications, messages, saved-search alerts, company pages, a daily import from Tunisian boards and
+employer job boards, an admin review screen, English and French public pages, and branded emails sent
+through Resend with email verification. Started as a university project (`alabaganne/internships-for-students`,
+DB `issatso_internships`); the name is now Nextward everywhere. **There is still no payment code** — no plan
+table, no payment provider, no pricing page, no quotas.
 
 ## Why the SaaS is dead — checked competitor by competitor
 - **stage-tunisie.tn** — DNS no longer resolves. Dead.

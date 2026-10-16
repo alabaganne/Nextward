@@ -135,6 +135,8 @@ server {
     client_max_body_size 32m;
     add_header X-Content-Type-Options nosniff always;
     add_header Referrer-Policy strict-origin-when-cross-origin always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Frame-Options SAMEORIGIN always;
 
     location / {
         try_files $uri $uri/ /index.php?$query_string;

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\ApplicationResource;
 use App\Models\Application;
 use App\Models\Internship;
+use App\Models\User;
 use App\Http\Resources\InternshipResource;
 
 class DashboardController extends Controller
@@ -98,6 +99,26 @@ class DashboardController extends Controller
             $props['recommendation_reasons'] = $reasons ?: ['Recent opportunities to explore. Add preferences in Settings for a closer match.'];
         }
 
+        $props['is_new_user'] = $this->isNewUser($user, $applications ?? null);
+
         return \Inertia\Inertia::render('Dashboard', $props);
+    }
+
+    // New means the account is under a day old or nothing has been done with it yet.
+    private function isNewUser(User $user, $applications): bool
+    {
+        if ($user->isAdmin()) {
+            return false;
+        }
+        // Users have no timestamps, so use the profile's creation date.
+        $joinedAt = $user->userable?->created_at ?? $user->terms_accepted_at;
+        if ($joinedAt?->gt(now()->subDay())) {
+            return true;
+        }
+
+        return ! (($applications && (clone $applications)->exists())
+            || $user->sentMessages()->exists()
+            || ($user->isCandidate() && ($user->userable->likes()->exists() || $user->userable->openedOpportunities()->exists()))
+            || ($user->isCompany() && Internship::where('company_id', $user->userable_id)->exists()));
     }
 }

@@ -66,6 +66,17 @@ class InternshipRequest extends FormRequest
             'publication_status' => 'sometimes|required|in:published,draft',
             'attachment_files' => 'nullable|array|max:10',
             'attachment_files.*' => 'file|mimes:pdf,doc,docx,txt|max:10240',
+            'remove_attachments' => 'nullable|boolean',
+            'skills' => 'nullable|array|max:12',
+            'skills.*' => 'integer|distinct|exists:skills,id',
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'skills.max' => 'Pick up to 12 skills.',
+            'skills.*.exists' => 'One of the chosen skills no longer exists.',
         ];
     }
 

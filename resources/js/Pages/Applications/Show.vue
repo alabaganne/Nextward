@@ -1,6 +1,6 @@
 <script setup>
 import { ArrowRight, ArrowUpRight, CalendarCheck, Check, ChevronRight, Circle, Clock3, Download, Mail, MapPin, Phone, UserRound } from '@lucide/vue';
-import { computed, h } from 'vue';
+import { computed, h, ref } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
 import CompanyLogo from '@/Components/Ui/CompanyLogo.vue';
@@ -77,6 +77,7 @@ const counterpart = computed(() =>
 const reviewForm = useForm({
 	status: ['viewed', 'review', 'interview'].includes(normalizedStatus.value) ? normalizedStatus.value : '',
 });
+const confirmingDisqualify = ref(false);
 const reply = (status) => {
 	if (reviewForm.processing || !status) return;
 	reviewForm.status = status;
@@ -121,7 +122,7 @@ const saveTracking = () => trackingForm.patch(route('applications.tracking.updat
 			<div class="flex flex-col gap-4">
 				<section class="bg-white border border-line rounded-[18px] overflow-hidden px-8 py-[30px]">
 					<div class="flex items-start gap-[18px]">
-						<CompanyLogo class="w-[62px] h-[62px] rounded-[16px] text-[22px]" :name="application.company.name" />
+						<CompanyLogo class="w-[62px] h-[62px] rounded-[16px] text-[22px]" :name="application.company.name" :src="application.company.image" />
 						<div>
 							<h1 class="font-display text-[26px] font-semibold leading-[1.12]">{{ application.internship.title }}</h1>
 							<p class="text-[15px] text-muted mt-1.5"><b class="text-ink-700 font-semibold">{{ application.company.name }}</b> · {{ application.internship.field.name }}</p>
@@ -222,9 +223,16 @@ const saveTracking = () => trackingForm.patch(route('applications.tracking.updat
 					<button class="w-full justify-center inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 [&_svg]:w-[17px] [&_svg]:h-[17px]" type="button" :disabled="reviewForm.processing" @click="reply('offer')">
 						Advance to offer <component :is="icons.arrow" aria-hidden="true" />
 					</button>
-					<button class="w-full justify-center mt-2.5 inline-flex items-center font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all disabled:opacity-50" type="button" :disabled="reviewForm.processing" @click="reply('closed')">
+					<button class="w-full justify-center mt-2.5 inline-flex items-center font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all disabled:opacity-50" type="button" :disabled="reviewForm.processing" :aria-expanded="confirmingDisqualify" @click="confirmingDisqualify = true">
 						Disqualify
 					</button>
+					<div v-if="confirmingDisqualify" class="mt-2.5 rounded-[12px] border border-red-200 bg-red-50 p-4">
+						<p class="text-[13.5px] text-red-900" role="alert">Mark this application as not selected? We'll let the applicant know. This can't be undone.</p>
+						<div class="flex gap-2.5 mt-3">
+							<button class="cbtn flex-1 !px-3 !py-2.5 !text-sm bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700" type="button" @click="confirmingDisqualify = false">Cancel</button>
+							<button class="cbtn flex-1 !px-3 !py-2.5 !text-sm bg-[#dc2626] text-white hover:bg-[#b91c1c] disabled:opacity-50" type="button" :disabled="reviewForm.processing" @click="reply('closed')">Yes, disqualify</button>
+						</div>
+					</div>
 				</section>
 
 				<section class="bg-white border border-line rounded-[18px] px-6 py-[22px]">
@@ -238,12 +246,13 @@ const saveTracking = () => trackingForm.patch(route('applications.tracking.updat
 				<section class="bg-white border border-line rounded-[18px] px-6 py-[22px]">
 					<h3 class="text-sm tracking-[.04em] text-muted font-bold font-display mb-4">{{ isStudent ? 'COMPANY' : 'APPLICANT' }}</h3>
 					<div class="flex items-center gap-[13px] mb-4">
-						<CompanyLogo class="w-[46px] h-[46px] rounded-[12px] text-base" :name="counterpart.name" />
+						<CompanyLogo class="w-[46px] h-[46px] rounded-[12px] text-base" :name="counterpart.name" :src="counterpart.role === 'Company' ? counterpart.image : null" />
 						<div><b class="font-display text-base block">{{ counterpart.name }}</b><span class="text-[13px] text-muted">{{ counterpart.role }}</span></div>
 					</div>
 					<div v-if="counterpart.email" class="flex items-center gap-3 py-[9px] text-sm text-ink-700 [&_svg]:w-[17px] [&_svg]:h-[17px] [&_svg]:text-muted-2 [&_svg]:shrink-0"><component :is="icons.mail" aria-hidden="true" />{{ counterpart.email }}</div>
 					<div v-if="counterpart.phone_number" class="flex items-center gap-3 py-[9px] text-sm text-ink-700 [&_svg]:w-[17px] [&_svg]:h-[17px] [&_svg]:text-muted-2 [&_svg]:shrink-0"><component :is="icons.phone" aria-hidden="true" />{{ counterpart.phone_number }}</div>
 					<div v-if="counterpart.city?.name" class="flex items-center gap-3 py-[9px] text-sm text-ink-700 [&_svg]:w-[17px] [&_svg]:h-[17px] [&_svg]:text-muted-2 [&_svg]:shrink-0"><component :is="icons.pin" aria-hidden="true" />{{ counterpart.city.name }}</div>
+					<Link v-if="!isStudent && !isExternal" class="w-full justify-center mt-[14px] inline-flex items-center font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all" :href="route('students.show', application.student.id)">View profile</Link>
 					<Link v-if="!isExternal && counterpart.user_id" class="w-full justify-center mt-[14px] inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors [&_svg]:w-[17px] [&_svg]:h-[17px]" :href="route('messages.show', counterpart.user_id)">
 						{{ isStudent ? 'Message recruiter' : 'Message applicant' }} <component :is="icons.arrow" aria-hidden="true" />
 					</Link>

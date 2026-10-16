@@ -2,6 +2,7 @@
 import { computed, h } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
+import PageHeader from '@/Components/Ui/PageHeader.vue';
 import Pagination from '@/Components/Ui/Pagination.vue';
 
 defineOptions({
@@ -17,17 +18,15 @@ const meta = computed(() => props.fields.meta ?? props.fields);
 
 <template>
 	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-[1080px] mx-auto">
-		<div class="flex items-end justify-between flex-wrap gap-4 mb-6">
-			<div>
-				<h1 class="font-display text-[28px] font-semibold tracking-[-.02em] leading-tight">Fields of study</h1>
-				<p class="text-muted text-[15px] mt-1.5">The disciplines internships and students are organised by.</p>
-			</div>
-			<Link class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors" :href="route('fields.create')">Add field</Link>
-		</div>
+		<PageHeader title="Fields of study" description="The areas that opportunities and candidates are grouped by.">
+			<template #actions>
+				<Link class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors" :href="route('fields.create')">Add field</Link>
+			</template>
+		</PageHeader>
 
 		<div class="bg-white border border-line rounded-[18px] overflow-hidden">
 			<div class="grid grid-cols-[1fr_160px_160px_90px] gap-4 px-[22px] py-3 border-b border-line-2 bg-paper-2 max-[760px]:hidden [&_span]:text-[11.5px] [&_span]:tracking-[.08em] [&_span]:uppercase [&_span]:text-muted-2 [&_span]:font-bold [&_span:last-child]:text-right">
-				<span>Field</span><span>Internships</span><span>Students</span><span></span>
+				<span>Field</span><span>Opportunities</span><span>Candidates</span><span></span>
 			</div>
 			<div
 				v-for="(field, index) in fields.data"

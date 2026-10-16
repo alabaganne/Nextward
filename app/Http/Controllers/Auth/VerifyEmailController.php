@@ -16,14 +16,11 @@ class VerifyEmailController extends Controller
      */
     public function __invoke(EmailVerificationRequest $request)
     {
-        if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
-        }
-
-        if ($request->user()->markEmailAsVerified()) {
+        if (! $request->user()->hasVerifiedEmail() && $request->user()->markEmailAsVerified()) {
             event(new Verified($request->user()));
         }
 
-        return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
+        return redirect()->intended(route('dashboard', absolute: false))
+            ->with('toast', ['type' => 'success', 'message' => 'Your email is confirmed. You can now apply, message employers and get alerts.']);
     }
 }

@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'default' => env('MAIL_MAILER', 'log'),
+    'default' => env('MAIL_MAILER') ?: (env('RESEND_API_KEY') ? 'resend' : 'log'),
 
     /*
     |--------------------------------------------------------------------------
@@ -112,7 +112,22 @@ return [
 
     'from' => [
         'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
+        'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Nextward')),
     ],
+
+    'reply_to' => [
+        'address' => env('MAIL_REPLY_TO_ADDRESS'),
+        'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Nextward')),
+    ],
+
+    'markdown' => [
+        'theme' => env('MAIL_MARKDOWN_THEME', 'nextward'),
+        'paths' => [
+            resource_path('views/vendor/mail'),
+        ],
+    ],
+
+    // Where contact form messages go.
+    'contact_address' => env('MAIL_CONTACT_ADDRESS', env('MAIL_FROM_ADDRESS')),
 
 ];

@@ -6,9 +6,11 @@ use App\Http\Requests\CompanyRequest;
 use App\Http\Resources\InternshipResource;
 use App\Models\City;
 use App\Models\Company;
+use App\Notifications\AccountCreated;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 class CompanyController extends Controller
@@ -51,6 +53,7 @@ class CompanyController extends Controller
 						'id' => $company->id,
 						'user_id' => $company->user?->id,
 						'name' => $company->display_name,
+						'image' => $company->logo,
 						'website' => $company->website,
 						'location' => $company->city?->name ?: $company->location,
 						'open_roles_count' => $company->open_roles_count,
@@ -79,12 +82,19 @@ class CompanyController extends Controller
      */
     public function store(CompanyRequest $request)
     {
-        DB::transaction(function () use ($request) {
-            Company::create($request->only('name', 'about', 'website', 'city_id', 'country_code', 'location'))->user()->create([
+        $request->validate(['logo' => 'nullable|image|max:2048']);
+
+        $logo = $request->file('logo')?->store('company-logos', 'public');
+
+        $user = DB::transaction(function () use ($request, $logo) {
+            return Company::create($request->only('name', 'about', 'website', 'city_id', 'country_code', 'location'))->user()->create([
                 ...$request->only('name', 'email', 'phone_number'),
+                'image' => $logo,
                 'password' => Hash::make(Str::random(64)),
             ]);
         });
+
+        $user->notify(new AccountCreated);
 
         return Redirect::route('companies.index')->with('toast', [
             'type' => 'store',
@@ -141,6 +151,7 @@ class CompanyController extends Controller
 				'id' => $company->id,
 				'name' => $company->display_name,
 				'email' => $company->user?->email,
+				'user_id' => $company->user?->id,
 				'phone_number' => $company->user?->phone_number,
 				'image' => $company->logo,
 				'website' => $company->website,
@@ -162,9 +173,17 @@ class CompanyController extends Controller
      */
     public function update(CompanyRequest $request, Company $company)
     {
+        $request->validate(['logo' => 'nullable|image|max:2048']);
+
         $company->update($request->only('name', 'about', 'website', 'city_id', 'country_code', 'location'));
 
         $company->user()->update($request->only('name', 'email', 'phone_number'));
+
+        if ($request->hasFile('logo') && $user = $company->user()->first()) {
+            $old = $user->image;
+            $user->update(['image' => $request->file('logo')->store('company-logos', 'public')]);
+            $this->deleteLogo($old);
+        }
 
         return Redirect::route('companies.show', $company)->with('toast', [
             'type' => 'update',
@@ -180,12 +199,21 @@ class CompanyController extends Controller
      */
     public function destroy(Company $company)
     {
+        $logo = $company->user?->image;
         $company->user()->delete();
         $company->delete();
+        $this->deleteLogo($logo);
 
         return Redirect::route('companies.index')->with('toast', [
             'type' => 'destroy',
             'message' => 'Company deleted successfully.'
         ]);
+    }
+
+    private function deleteLogo(?string $path): void
+    {
+        if ($path && str_starts_with($path, 'company-logos/') && ! str_contains($path, '..')) {
+            Storage::disk('public')->delete($path);
+        }
     }
 }

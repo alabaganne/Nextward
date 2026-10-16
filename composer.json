@@ -8,9 +8,11 @@
     "require": {
         "php": "^8.3",
         "inertiajs/inertia-laravel": "^3.0",
+        "laravel/ai": "^1.2",
         "laravel/framework": "^13.0",
         "laravel/tinker": "^3.0",
         "pusher/pusher-php-server": "^7.2",
+        "resend/resend-php": "^1.16",
         "symfony/yaml": "^8.1",
         "tightenco/ziggy": "^2.6"
     },
@@ -56,6 +58,18 @@
         ],
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi"
+        ],
+        "scrape": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php artisan opportunities:fetch --focus=tech --ansi"
+        ],
+        "import-csv": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php artisan opportunities:import-csv --ansi"
+        ],
+        "discover": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php artisan opportunities:discover --ansi"
         ]
     },
     "extra": {

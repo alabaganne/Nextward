@@ -22,7 +22,6 @@ createServer((page) => createInertiaApp({
         const ziggy = { ...page.props.ziggy, location: new URL(page.props.ziggy.location) };
         app.config.globalProperties.route = (name, params, absolute) => ziggyRoute(name, params, absolute, ziggy);
         Object.defineProperty(app.config.globalProperties, 'currentUser', { get: () => page.props.auth?.user });
-        app.directive('reveal', { getSSRProps: () => ({}) });
         app.component('Link', Link);
         app.component('InertiaLink', Link);
         app.component('Icon', Icon);

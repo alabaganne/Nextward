@@ -26,7 +26,7 @@ class ApplicationController extends Controller
         $this->authorizeResource(Application::class);
     }
 
-    public function index() // TODO: only students are authorized to access this route
+    public function index(Request $request) // TODO: only students are authorized to access this route
     {
         $query = Application::with('internship', 'internship.company', 'internship.city', 'internship.field');
 
@@ -38,11 +38,31 @@ class ApplicationController extends Controller
             }
         }
 
+        // Status filters; "review" is every application not in one of these.
+        $buckets = ['interview' => ['interview'], 'offer' => ['offer', 'accepted'], 'closed' => ['closed', 'rejected']];
+        $byStatus = (clone $query)->toBase()->select('status')->selectRaw('count(*) as total')->groupBy('status')->pluck('total', 'status');
+        $counts = ['all' => (int) $byStatus->sum()];
+        foreach ($buckets as $bucket => $statuses) {
+            $counts[$bucket] = (int) $byStatus->only($statuses)->sum();
+        }
+        $counts['review'] = $counts['all'] - $counts['interview'] - $counts['offer'] - $counts['closed'];
+
+        $status = $request->query('status');
+        $status = is_string($status) && array_key_exists($status, $counts) ? $status : 'all';
+        if ($status === 'review') {
+            $query->where(fn ($query) => $query->whereNotIn('status', array_merge(...array_values($buckets)))->orWhereNull('status'));
+        } elseif ($status !== 'all') {
+            $query->whereIn('status', $buckets[$status]);
+        }
+
         return Inertia::render('Applications/Index', [
             'applications' => ApplicationResource::collection(
                 $query->latest()
                     ->paginate(8)
-            )
+                    ->withQueryString()
+            ),
+            'counts' => $counts,
+            'status' => $status,
         ]);
     }
 
@@ -82,6 +102,12 @@ class ApplicationController extends Controller
 
     public function show(Application $application)
     {
+        $user = Auth::user();
+        if ($user->isCompany() && $user->userable_id === $application->company_id
+            && $application->channel === 'internal' && $application->status === 'submitted') {
+            $application->update(['status' => 'viewed']);
+        }
+
         return Inertia::render('Applications/Show', [
             'application' => (new ApplicationResource($application))->resolve(),
         ]);

@@ -1,42 +1,8 @@
 @import './buttons.css';
 @import './form.css';
-@import './transitions.css';
 @import './public.css';
 
-svg {
+/* Default size for icons with no width attribute. Lucide icons size themselves. */
+svg:not([width]) {
 	@apply h-6 w-6;
-}
-
-.flex-center {
-	@apply flex justify-center items-center;
-}
-
-.tag {
-	@apply px-3 py-1 inline-flex text-xs leading-5 font-medium rounded-sm bg-gray-200 text-gray-900;
-}
-.tag-sm {
-	@apply px-2 py-0;
-}
-.tag-primary {
-	@apply bg-blue-100 text-blue-600;
-}
-.tag-success {
-	@apply bg-green-100 text-green-900;
-}
-.tag-danger {
-	@apply bg-red-100 text-red-900;
-}
-.tag-warning {
-	@apply bg-yellow-100 text-yellow-900;
-}
-
-.c-grid-col-sm {
-	grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
-}
-
-.link {
-	@apply text-blue-600 hover:text-blue-900 cursor-pointer;
-}
-.link-gray {
-	@apply text-gray-500 hover:text-gray-800 cursor-pointer;
 }

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import { Bell, BellOff, Trash2, X } from '@lucide/vue';
 
@@ -13,16 +13,35 @@ const page = usePage();
 const notifications = computed(() => page.props.auth?.user?.notifications?.data ?? []);
 const unreadCount = computed(() => page.props.auth?.user?.notifications?.unread_count ?? 0);
 
+const panel = ref(null);
+const closeButton = ref(null);
+let returnFocusTo = null;
+
+// Keep Tab inside the open panel and close it with Escape.
 const onKeydown = (event) => {
-	if (event.key === 'Escape') emit('close');
+	if (event.key === 'Escape') return emit('close');
+	if (event.key !== 'Tab' || !panel.value) return;
+	const items = [...panel.value.querySelectorAll('button, [href], [tabindex]:not([tabindex="-1"])')];
+	if (!items.length) return;
+	const first = items[0];
+	const last = items[items.length - 1];
+	if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+	else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
 };
 
 watch(
 	() => props.open,
-	(open) => {
+	async (open) => {
 		document.body.style.overflow = open ? 'hidden' : '';
-		if (open) window.addEventListener('keydown', onKeydown);
-		else window.removeEventListener('keydown', onKeydown);
+		if (open) {
+			returnFocusTo = document.activeElement;
+			window.addEventListener('keydown', onKeydown);
+			await nextTick();
+			closeButton.value?.focus();
+		} else {
+			window.removeEventListener('keydown', onKeydown);
+			returnFocusTo?.focus?.();
+		}
 	}
 );
 
@@ -62,14 +81,17 @@ const clearAll = () => {
 		>
 			<aside
 				v-if="open"
+				ref="panel"
 				class="fixed top-0 right-0 z-50 h-full w-[400px] max-w-[92vw] bg-white border-l border-line flex flex-col"
 				role="dialog"
-				aria-label="Notifications"
+				aria-modal="true"
+				aria-labelledby="notifications-title"
 			>
 				<header class="flex items-center gap-3 px-6 py-5 border-b border-line-2">
-					<h2 class="font-display text-[19px] font-semibold tracking-[-.01em]">Notifications</h2>
+					<h2 id="notifications-title" class="font-display text-[19px] font-semibold tracking-[-.01em]">Notifications</h2>
 					<span v-if="unreadCount" class="text-xs font-bold text-blue-700 bg-blue-50 px-[9px] py-[3px] rounded-full">{{ unreadCount }} new</span>
 					<button
+						ref="closeButton"
 						class="ml-auto w-9 h-9 rounded-[10px] border border-line grid place-items-center text-muted hover:border-blue-300 hover:text-blue-700 transition-colors"
 						type="button"
 						aria-label="Close notifications"
@@ -95,7 +117,8 @@ const clearAll = () => {
 							<span class="block text-[13.5px] text-muted leading-[1.55] mt-0.5">{{ notification.data.body_text }}</span>
 							<span class="block text-xs text-muted-2 mt-1.5">{{ notification.created_at }}</span>
 						</span>
-						<span v-if="!notification.read_at" class="w-2 h-2 rounded-full bg-blue-600 mt-2 shrink-0" aria-label="Unread"></span>
+						<span v-if="!notification.read_at" class="w-2 h-2 rounded-full bg-blue-600 mt-2 shrink-0" aria-hidden="true"></span>
+							<span v-if="!notification.read_at" class="sr-only">Unread</span>
 					</button>
 				</div>
 
@@ -103,7 +126,7 @@ const clearAll = () => {
 					<div class="text-center">
 						<div class="w-14 h-14 rounded-full bg-paper-2 border border-line-2 grid place-items-center text-muted-2 mx-auto mb-4"><BellOff :size="22" /></div>
 						<b class="block font-display text-[16px] font-semibold">You're all caught up</b>
-						<p class="text-[13.5px] text-muted mt-1">Application updates will land here.</p>
+						<p class="text-[13.5px] text-muted mt-1">Application updates will show up here.</p>
 					</div>
 				</div>
 

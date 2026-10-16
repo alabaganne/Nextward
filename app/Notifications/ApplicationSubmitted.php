@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Http\Resources\NotificationResource;
 use App\Models\Application;
+use App\Support\MailText;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
@@ -12,7 +13,7 @@ use Illuminate\Notifications\Notification;
 
 use App\Models\Notification as NotificationModel;
 
-class ApplicationSubmitted extends Notification
+class ApplicationSubmitted extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -36,11 +37,13 @@ class ApplicationSubmitted extends Notification
      */
     public function via($notifiable)
     {
-        return [
-			// 'mail',
-			'database',
-			'broadcast'
-		];
+        return ['mail', 'database', 'broadcast'];
+    }
+
+    // Only the email waits in the queue; the in-app notice shows right away.
+    public function viaConnections(): array
+    {
+        return ['database' => 'sync', 'broadcast' => 'sync'];
     }
 
     /**
@@ -51,9 +54,20 @@ class ApplicationSubmitted extends Notification
      */
     public function toMail($notifiable)
     {
+        $application = $this->application;
+        $role = $application->internship->title;
+
         return (new MailMessage)
-                    ->line('A new application has been submitted to ' . $this->application->internship->title . '.')
-                    ->action('View details', route('applications.show', $this->application));
+            ->subject('New application for '.$role)
+            ->markdown('mail.application-submitted', [
+                'company' => MailText::plain($application->company->display_name, 120),
+                'candidate' => MailText::plain($application->student->user->name, 120),
+                'role' => MailText::plain($role, 160),
+                'excerpt' => filled($application->message ?: $application->cover_letter)
+                    ? MailText::plain($application->message ?: $application->cover_letter, 400) : null,
+                'attachments' => count($application->attachments ?? []),
+                'url' => route('applications.show', $application),
+            ]);
     }
 
     /**

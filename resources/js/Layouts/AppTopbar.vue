@@ -48,7 +48,7 @@ const logout = () => router.post(route('logout'));
 		</button>
 
 		<form class="flex-1 min-w-0 max-w-[480px]" role="search" @submit.prevent="submitSearch">
-			<label class="flex items-center gap-2.5 bg-paper-2 border border-transparent rounded-[10px] px-3 h-10 transition-colors focus-within:bg-white focus-within:border-blue-400">
+			<label class="flex items-center gap-2.5 bg-paper-2 border border-transparent rounded-[10px] px-3 h-10 transition-colors focus-within:bg-white focus-within:border-blue-500 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-blue-600">
 				<Search class="size-4 shrink-0 text-muted-2" aria-hidden="true" />
 				<input
 					v-model="search"

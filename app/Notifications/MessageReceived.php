@@ -3,60 +3,50 @@
 namespace App\Notifications;
 
 use App\Models\Message;
+use App\Support\MailText;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Cache;
 
-class MessageReceived extends Notification
+class MessageReceived extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    private $message;
+    // One email per conversation in this many minutes, so a long chat doesn't flood the inbox.
+    public const QUIET_MINUTES = 30;
 
-    /**
-     * Create a new notification instance.
-     *
-     * @return void
-     */
-    public function __construct(Message $message)
+    public function __construct(public Message $message)
     {
-        $this->message = $message;
     }
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @param  mixed  $notifiable
-     * @return array
-     */
+    public static function shouldEmail(Message $message): bool
+    {
+        return Cache::add(
+            'message-email:'.$message->from_id.':'.$message->to_id,
+            true,
+            now()->addMinutes(self::QUIET_MINUTES),
+        );
+    }
+
     public function via($notifiable)
     {
         return ['mail'];
     }
 
-    /**
-     * Get the mail representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return \Illuminate\Notifications\Messages\MailMessage
-     */
     public function toMail($notifiable)
     {
-        return (new MailMessage)
-				->line($this->message->from->name . ' has sent you a message')
-				->line($this->message->text)
-				->action('View', url('/'));
-    }
+        $sender = $this->message->sender;
+        $senderName = $sender->isCompany() ? ($sender->userable?->display_name ?? $sender->name) : $sender->name;
 
-    /**
-     * Get the array representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return array
-     */
-    public function toArray($notifiable)
-    {
-        return [];
+        return (new MailMessage)
+            ->subject($senderName.' sent you a message on Nextward')
+            ->markdown('mail.message-received', [
+                'sender' => MailText::plain($senderName, 120),
+                'recipient' => MailText::plain(MailText::firstName($notifiable->name), 80),
+                'excerpt' => MailText::plain($this->message->text, 500),
+                'url' => route('messages.show', $sender),
+            ]);
     }
 }

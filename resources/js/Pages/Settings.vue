@@ -1,8 +1,9 @@
 <script setup>
 import { ShieldCheck, UserRound } from '@lucide/vue';
-import { computed, h, ref } from 'vue';
-import { useForm, usePage } from '@inertiajs/vue3';
+import { computed, h, nextTick, ref } from 'vue';
+import { router, useForm, usePage } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
+import PageHeader from '@/Components/Ui/PageHeader.vue';
 
 defineOptions({
 	layout: (_h, page) => h(AppShell, { active: 'settings' }, () => page),
@@ -74,6 +75,10 @@ const saveAccount = () => {
 	accountForm.languages = splitValues(languagesText.value);
 	accountForm.put(route('profile.update'), { preserveScroll: true });
 };
+// List fields come back as "languages.0" or "preferences.skills.2", so match on the prefix too.
+const accountError = (key) =>
+	Object.entries(accountForm.errors).find(([name]) => name === key || name.startsWith(`${key}.`))?.[1];
+const hasAccountErrors = computed(() => Object.keys(accountForm.errors).length > 0);
 
 const passwordForm = useForm({
 	current_password: '',
@@ -89,26 +94,30 @@ const savePassword = () =>
 
 const deleteForm = useForm({ password: '' });
 const confirmingDelete = ref(false);
+const deletePassword = ref(null);
+const deleteButton = ref(null);
 
-const deleteAccount = () => {
-	if (!confirmingDelete.value) {
-		confirmingDelete.value = true;
-		setTimeout(() => (confirmingDelete.value = false), 4000);
-		return;
-	}
-	const password = prompt('Enter your password to permanently delete your account:');
-	if (!password) return;
-	deleteForm.password = password;
-	deleteForm.delete(route('profile.destroy'));
+const startDelete = () => {
+	confirmingDelete.value = true;
+	nextTick(() => deletePassword.value?.focus());
 };
+const cancelDelete = () => {
+	confirmingDelete.value = false;
+	deleteForm.reset();
+	deleteForm.clearErrors();
+	nextTick(() => deleteButton.value?.focus());
+};
+const deleteAccount = () =>
+	deleteForm.delete(route('profile.destroy'), {
+		preserveScroll: true,
+		onError: () => deletePassword.value?.focus(),
+		onFinish: () => deleteForm.reset('password'),
+	});
 </script>
 
 <template>
 	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-[1080px] mx-auto">
-		<div class="mb-6">
-			<h1 class="font-display text-[28px] font-semibold tracking-[-.02em] leading-tight">Settings</h1>
-			<p class="text-muted text-[15px] mt-1.5">Manage your profile, opportunity preferences, and security.</p>
-		</div>
+		<PageHeader title="Settings" description="Manage your profile, opportunity preferences, and security." />
 
 		<div class="grid grid-cols-[226px_1fr] gap-[22px] items-start max-[860px]:grid-cols-1">
 			<!-- SUB NAV -->
@@ -135,7 +144,6 @@ const deleteAccount = () => {
 							<p class="text-[13px] text-muted mt-[3px]">Shown on your profile and applications.</p>
 						</div>
 						<div class="px-[22px] py-[22px]">
-							<p v-for="(error, key) in accountForm.errors" :key="key" class="text-sm text-red-600 mb-2" role="alert">{{ error }}</p>
 							<div class="flex items-center gap-[18px]">
 								<div class="w-[72px] h-[72px] rounded-[20px] bg-gradient-to-br from-blue-300 to-blue-700 grid place-items-center text-white font-bold font-display text-[27px] shrink-0">{{ initials }}</div>
 								<div>
@@ -152,79 +160,85 @@ const deleteAccount = () => {
 							<p class="text-[13px] text-muted mt-[3px]">Your basic information.</p>
 						</div>
 						<div class="px-[22px] py-[22px]">
+							<p v-if="hasAccountErrors" class="text-sm text-[#dc2626] font-semibold mb-4" role="alert">Please fix the fields below.</p>
 							<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
 								<div class="mb-4">
-									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700">Full name</label>
-									<input v-model="accountForm.name" class="fld" type="text">
+									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="settings-name">Full name</label>
+									<input id="settings-name" v-model="accountForm.name" class="fld" type="text" autocomplete="name">
 									<div v-if="accountForm.errors.name" class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.name }}</div>
 								</div>
 								<div class="mb-4">
-									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700">Email</label>
-									<input v-model="accountForm.email" class="fld" type="email">
+									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="settings-email">Email</label>
+									<input id="settings-email" v-model="accountForm.email" class="fld" type="email" autocomplete="email">
 									<div v-if="accountForm.errors.email" class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.email }}</div>
 								</div>
 							</div>
 							<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
 								<div class="mb-4">
-									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700">Phone</label>
-									<input v-model="accountForm.phone_number" class="fld" type="tel">
+									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="settings-phone">Phone</label>
+									<input id="settings-phone" v-model="accountForm.phone_number" class="fld" type="tel" autocomplete="tel">
 									<div v-if="accountForm.errors.phone_number" class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.phone_number }}</div>
 								</div>
 								<div class="mb-4">
-									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700">LinkedIn URL</label>
-									<input v-model="accountForm.linkedin_profile_url" class="fld" type="url" placeholder="https://linkedin.com/in/…">
+									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="settings-linkedin">LinkedIn URL</label>
+									<input id="settings-linkedin" v-model="accountForm.linkedin_profile_url" class="fld" type="url" placeholder="https://linkedin.com/in/…">
 									<div v-if="accountForm.errors.linkedin_profile_url" class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.linkedin_profile_url }}</div>
 								</div>
 							</div>
 							<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
 								<div class="mb-4">
-									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700">Location</label>
-									<select v-model="accountForm.city_id" class="fld">
+									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="settings-city">Location</label>
+									<select id="settings-city" v-model="accountForm.city_id" class="fld">
 										<option :value="null">Not selected</option>
 										<option v-for="city in cities" :key="city.id" :value="city.id">{{ city.name }}</option>
 									</select>
+									<div v-if="accountForm.errors.city_id" class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.city_id }}</div>
 								</div>
 								<div v-if="isStudent" class="mb-4">
-									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700">Field of work or study</label>
-									<select v-model="accountForm.field_id" class="fld">
+									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="settings-field">Field of work or study</label>
+									<select id="settings-field" v-model="accountForm.field_id" class="fld">
 										<option :value="null">Not selected</option>
 										<option v-for="field in fields" :key="field.id" :value="field.id">{{ field.name }}</option>
 									</select>
+									<div v-if="accountForm.errors.field_id" class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.field_id }}</div>
 								</div>
 								<div v-else class="mb-4">
-									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700">Website</label>
-									<input v-model="accountForm.website" class="fld" type="url" placeholder="https://…">
+									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="settings-website">Website</label>
+									<input id="settings-website" v-model="accountForm.website" class="fld" type="url" placeholder="https://…">
 									<div v-if="accountForm.errors.website" class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.website }}</div>
 								</div>
 							</div>
 							<div>
-								<label class="block text-[13px] font-semibold mb-[7px] text-ink-700">About</label>
-								<textarea v-model="accountForm.about" class="fld"></textarea>
-								<div class="text-xs text-muted-2 mt-[7px]">Brief intro shown at the top of your profile.</div>
+								<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="settings-about">About</label>
+								<textarea id="settings-about" v-model="accountForm.about" class="fld" aria-describedby="settings-about-hint"></textarea>
+								<div v-if="accountForm.errors.about" class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.about }}</div>
+								<div id="settings-about-hint" class="text-xs text-muted-2 mt-[7px]">Brief intro shown at the top of your profile.</div>
 							</div>
 							<div class="grid grid-cols-2 gap-4 mt-5 max-[560px]:grid-cols-1">
-								<label class="text-sm font-semibold">Country code<input v-model="accountForm.country_code" class="fld mt-2" maxlength="2" placeholder="TN, FR, US..."></label>
-								<label class="text-sm font-semibold">City or location<input v-model="accountForm.location" class="fld mt-2" placeholder="Your location anywhere in the world"></label>
+								<label class="text-sm font-semibold">Country code<input v-model="accountForm.country_code" class="fld mt-2" maxlength="2" placeholder="TN, FR, US..."><span v-if="accountForm.errors.country_code" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountForm.errors.country_code }}</span></label>
+								<label class="text-sm font-semibold">City or location<input v-model="accountForm.location" class="fld mt-2" placeholder="Your location anywhere in the world"><span v-if="accountForm.errors.location" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountForm.errors.location }}</span></label>
 							</div>
 							<template v-if="isStudent">
 								<h3 class="font-display text-lg font-semibold mt-7 mb-4">Your experience</h3>
 								<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
-									<label class="text-sm font-semibold">Career stage<select v-model="accountForm.career_stage" class="fld mt-2"><option value="student">Student</option><option value="graduate">Graduate</option><option value="professional">Professional</option></select></label>
-									<label class="text-sm font-semibold">Years of experience<input v-model.number="accountForm.experience_years" class="fld mt-2" type="number" min="0" max="80"></label>
-									<label class="text-sm font-semibold">Headline<input v-model="accountForm.headline" class="fld mt-2" maxlength="255" placeholder="Your role or area of interest"></label>
-									<label class="text-sm font-semibold">Languages<input v-model="languagesText" class="fld mt-2" placeholder="Arabic, French, English"></label>
+									<label class="text-sm font-semibold">Career stage<select v-model="accountForm.career_stage" class="fld mt-2"><option value="student">Student</option><option value="graduate">Graduate</option><option value="professional">Professional</option></select><span v-if="accountError('career_stage')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('career_stage') }}</span></label>
+									<label class="text-sm font-semibold">Years of experience<input v-model.number="accountForm.experience_years" class="fld mt-2" type="number" min="0" max="80"><span v-if="accountError('experience_years')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('experience_years') }}</span></label>
+									<label class="text-sm font-semibold">Headline<input v-model="accountForm.headline" class="fld mt-2" maxlength="255" placeholder="Your role or area of interest"><span v-if="accountError('headline')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('headline') }}</span></label>
+									<label class="text-sm font-semibold">Languages<input v-model="languagesText" class="fld mt-2" placeholder="Arabic, French, English"><span v-if="accountError('languages')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('languages') }}</span></label>
 								</div>
 								<h3 class="font-display text-lg font-semibold mt-7 mb-2">Opportunity preferences</h3>
 								<p class="text-sm text-muted mb-4">These preferences shape your dashboard. You can still browse every opportunity. Manage email alerts in Saved searches.</p>
-								<fieldset class="mb-5"><legend class="text-sm font-semibold mb-2">Opportunity types</legend><div class="flex gap-5"><label class="flex gap-2 items-center"><input v-model="accountForm.preferences.kinds" type="checkbox" value="internship"> Internships</label><label class="flex gap-2 items-center"><input v-model="accountForm.preferences.kinds" type="checkbox" value="job"> Jobs</label></div></fieldset>
-								<fieldset class="mb-5"><legend class="text-sm font-semibold mb-2">Work arrangements</legend><div class="flex flex-wrap gap-5"><label v-for="mode in ['onsite', 'hybrid', 'remote']" :key="mode" class="flex gap-2 items-center capitalize"><input v-model="accountForm.preferences.work_types" type="checkbox" :value="mode"> {{ mode }}</label></div></fieldset>
+								<p v-if="accountForm.errors.preferences" class="text-xs text-[#dc2626] mb-4">{{ accountForm.errors.preferences }}</p>
+								<fieldset class="mb-5"><legend class="text-sm font-semibold mb-2">Opportunity types</legend><div class="flex gap-5"><label class="flex gap-2 items-center"><input v-model="accountForm.preferences.kinds" type="checkbox" value="internship"> Internships</label><label class="flex gap-2 items-center"><input v-model="accountForm.preferences.kinds" type="checkbox" value="job"> Jobs</label></div><p v-if="accountError('preferences.kinds')" class="text-xs text-[#dc2626] mt-[7px]">{{ accountError('preferences.kinds') }}</p></fieldset>
+								<fieldset class="mb-5"><legend class="text-sm font-semibold mb-2">Work arrangements</legend><div class="flex flex-wrap gap-5"><label v-for="mode in ['onsite', 'hybrid', 'remote']" :key="mode" class="flex gap-2 items-center capitalize"><input v-model="accountForm.preferences.work_types" type="checkbox" :value="mode"> {{ mode }}</label></div><p v-if="accountError('preferences.work_types')" class="text-xs text-[#dc2626] mt-[7px]">{{ accountError('preferences.work_types') }}</p></fieldset>
 								<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
-									<label class="text-sm font-semibold">Target countries<input v-model="targetCountries" class="fld mt-2" placeholder="TN, FR, DE"><span class="text-xs font-normal text-muted">Comma-separated country codes. Leave empty to explore all locations.</span></label>
-									<label class="text-sm font-semibold">Skills to match<input v-model="skillsText" class="fld mt-2" placeholder="Python, sales, design"><span class="text-xs font-normal text-muted">Comma-separated skills.</span></label>
-									<label class="text-sm font-semibold">Fields of interest<select v-model="accountForm.preferences.fields" class="fld mt-2" multiple><option v-for="field in fields" :key="field.id" :value="field.id">{{ field.name }}</option></select></label>
-									<label class="text-sm font-semibold">Experience levels<select v-model="accountForm.preferences.seniority" class="fld mt-2" multiple><option v-for="level in ['entry','graduate','mid','senior','lead','executive']" :key="level" :value="level">{{ level }}</option></select></label>
+									<label class="text-sm font-semibold">Target countries<input v-model="targetCountries" class="fld mt-2" placeholder="TN, FR, DE"><span class="text-xs font-normal text-muted">Comma-separated country codes. Leave empty to explore all locations.</span><span v-if="accountError('preferences.countries')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('preferences.countries') }}</span></label>
+									<label class="text-sm font-semibold">Skills to match<input v-model="skillsText" class="fld mt-2" placeholder="Python, sales, design"><span class="text-xs font-normal text-muted">Comma-separated skills.</span><span v-if="accountError('preferences.skills')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('preferences.skills') }}</span></label>
+									<label class="text-sm font-semibold">Fields of interest<select v-model="accountForm.preferences.fields" class="fld mt-2" multiple><option v-for="field in fields" :key="field.id" :value="field.id">{{ field.name }}</option></select><span v-if="accountError('preferences.fields')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('preferences.fields') }}</span></label>
+									<label class="text-sm font-semibold">Experience levels<select v-model="accountForm.preferences.seniority" class="fld mt-2" multiple><option v-for="level in ['entry','graduate','mid','senior','lead','executive']" :key="level" :value="level">{{ level }}</option></select><span v-if="accountError('preferences.seniority')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('preferences.seniority') }}</span></label>
 								</div>
 								<label class="flex gap-2 items-start mt-5 text-sm"><input v-model="accountForm.preferences.include_unknown_eligibility" type="checkbox" class="mt-1"> Include remote roles whose eligibility from Tunisia is unknown. Check the employer's requirements before applying.</label>
+								<p v-if="accountError('preferences.include_unknown_eligibility')" class="text-xs text-[#dc2626] mt-[7px]">{{ accountError('preferences.include_unknown_eligibility') }}</p>
 							</template>
 						</div>
 						<div class="px-[22px] py-4 border-t border-line-2 flex justify-end gap-2.5 bg-white rounded-b-[18px]">
@@ -243,19 +257,19 @@ const deleteAccount = () => {
 						</div>
 						<div class="px-[22px] py-[22px]">
 							<div class="mb-4">
-								<label class="block text-[13px] font-semibold mb-[7px] text-ink-700">Current password</label>
-								<input v-model="passwordForm.current_password" class="fld" type="password" placeholder="••••••••" autocomplete="current-password">
+								<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="current-password">Current password</label>
+								<input id="current-password" v-model="passwordForm.current_password" class="fld" type="password" placeholder="••••••••" autocomplete="current-password">
 								<div v-if="passwordForm.errors.current_password" class="text-xs text-[#dc2626] mt-[7px]">{{ passwordForm.errors.current_password }}</div>
 							</div>
 							<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
 								<div class="mb-4">
-									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700">New password</label>
-									<input v-model="passwordForm.password" class="fld" type="password" placeholder="••••••••" autocomplete="new-password">
+									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="new-password">New password</label>
+									<input id="new-password" v-model="passwordForm.password" class="fld" type="password" placeholder="••••••••" autocomplete="new-password">
 									<div v-if="passwordForm.errors.password" class="text-xs text-[#dc2626] mt-[7px]">{{ passwordForm.errors.password }}</div>
 								</div>
 								<div class="mb-4">
-									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700">Confirm new password</label>
-									<input v-model="passwordForm.password_confirmation" class="fld" type="password" placeholder="••••••••" autocomplete="new-password">
+									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="confirm-password">Confirm new password</label>
+									<input id="confirm-password" v-model="passwordForm.password_confirmation" class="fld" type="password" placeholder="••••••••" autocomplete="new-password">
 								</div>
 							</div>
 						</div>
@@ -276,11 +290,32 @@ const deleteAccount = () => {
 									<b class="text-[14.5px] font-semibold block">Delete account</b>
 									<span class="text-[13px] text-muted block mt-0.5">Permanently remove your profile, applications, and messages.</span>
 								</div>
-								<button class="cbtn !px-[18px] !py-2.5 bg-[#dc2626] text-white hover:bg-[#b91c1c] whitespace-nowrap" type="button" @click="deleteAccount">
-									{{ confirmingDelete ? 'Click again to confirm' : 'Delete account' }}
+								<button v-if="!confirmingDelete" ref="deleteButton" class="cbtn !px-[18px] !py-2.5 bg-[#dc2626] text-white hover:bg-[#b91c1c] whitespace-nowrap" type="button" @click="startDelete">
+									Delete account
 								</button>
 							</div>
-							<div v-if="deleteForm.errors.password" class="text-xs text-[#dc2626] mt-[10px]">{{ deleteForm.errors.password }}</div>
+							<form v-if="confirmingDelete" class="mt-[18px] rounded-[14px] border border-[#fecaca] bg-[#fef2f2] p-[18px]" @submit.prevent="deleteAccount" @keydown.esc="cancelDelete">
+								<p class="text-[13.5px] text-[#991b1b] font-semibold">This can't be undone. Your profile, applications, and messages will be deleted for good.</p>
+								<label class="block text-[13px] font-semibold mt-4 mb-[7px] text-ink-700" for="delete-password">Enter your password to confirm</label>
+								<input
+									id="delete-password"
+									ref="deletePassword"
+									v-model="deleteForm.password"
+									class="fld max-w-[360px]"
+									type="password"
+									autocomplete="current-password"
+									required
+									:aria-invalid="!!deleteForm.errors.password"
+									:aria-describedby="deleteForm.errors.password ? 'delete-password-error' : undefined"
+								>
+								<div v-if="deleteForm.errors.password" id="delete-password-error" class="text-xs text-[#dc2626] mt-[7px]" role="alert">{{ deleteForm.errors.password }}</div>
+								<div class="flex flex-wrap gap-2.5 mt-4">
+									<button class="cbtn cbtn-secondary !px-[18px] !py-2.5" type="button" @click="cancelDelete">Cancel</button>
+									<button class="cbtn !px-[18px] !py-2.5 bg-[#dc2626] text-white hover:bg-[#b91c1c] disabled:opacity-60" type="submit" :disabled="deleteForm.processing || !deleteForm.password">
+										{{ deleteForm.processing ? 'Deleting…' : 'Delete account' }}
+									</button>
+								</div>
+							</form>
 						</div>
 					</div>
 				</section>

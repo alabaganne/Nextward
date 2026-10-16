@@ -57,6 +57,31 @@ These hand-checked listings stay public for 14 days after the check. An older sn
 
 `ImportSourceSeeder` adds the sources the scheduler reads every day at 05:00 Tunis time: Tanitjobs and Keejob for Tunisia, and employer job boards on Greenhouse, Lever and Ashby for worldwide roles. Only listings posted in the last 30 days are added (`OPPORTUNITY_MAX_AGE_DAYS`). Imported listings posted more than 60 days ago are closed (`OPPORTUNITY_RETENTION_DAYS`). Worldwide boards keep internships, plus jobs that are in Tunisia, remote without a country limit, or offer relocation or visa help. The same role found on both Tanitjobs and Keejob is shown once. Check each site's terms of use before a public launch; sources can be paused in Imports.
 
+To add new listings right away, without waiting for the schedule, run either of these on your machine or on the server:
+
+```bash
+composer scrape
+npm run scrape
+```
+
+It reads the sources now and stops after adding 10 software, web or mobile development opportunities that were never added before: about half from Tunisian boards and half from worldwide boards. The title keywords live under `focus.tech` in `config/importer.php`; add words for one run with `--keywords=flutter,react`, or drop `--focus=tech` from the script to take every field. Listings already in the database, listings found earlier on another board, listings removed by an admin, and listings that are too old or not open to Tunisia are skipped. Pass a different number with `composer scrape -- --count=20` or `npm run scrape -- --count=20`, or call `php artisan opportunities:fetch --focus=tech --count=20` directly. Listings that don't match the focus are left for the daily import. On a server, run it as the user that owns the app (for example `sudo -u www-data composer scrape`) so cache and log files keep the right owner.
+
+### AI
+
+AI reads each new listing once before it is published and sets its field, internship or job, seniority, and whether someone in Tunisia can take a remote role, relocate or get a visa. It runs on OpenAI or Claude through the `laravel/ai` package; pick one with `OPPORTUNITY_AI_PROVIDER=openai` (default) or `anthropic` and set its key (`OPENAI_API_KEY` or `ANTHROPIC_API_KEY`). Models are set per provider under `ai.models` in `config/importer.php` (`OPPORTUNITY_OPENAI_MODEL`, default `gpt-5.4-mini`, and `OPPORTUNITY_OPENAI_DISCOVERY_MODEL`, default `gpt-5.5`; `OPPORTUNITY_AI_MODEL`, default `claude-opus-5-5`, for Claude). The answer is kept with the listing, so daily refreshes do not call it again. With a focus such as `--focus=tech`, only listings the AI places in software, web or mobile development are added; the others wait for the daily import. If the key is missing, the account has no credit, or a call fails, the keyword rules are used instead and the run carries on. Set `OPPORTUNITY_AI_ENABLED=false` to turn it off.
+
+`composer discover` (or `php artisan opportunities:discover`) asks the AI to search the web for new places to read developer jobs: employer boards on Greenhouse, Lever or Ashby, and Tunisian sites with job sitemaps. Each suggestion is checked against the board itself and saved switched off, waiting for approval in Imports. The scheduler also runs it every Monday at 06:00 Tunis time.
+
+### Moving opportunities to another server with a CSV file
+
+`composer scrape` also adds every new listing to `storage/app/opportunities/found.csv` (`OPPORTUNITY_CSV_PATH`; skip with `--no-csv`). `php artisan opportunities:export-csv` adds the open imported listings already in the database. Copy the file to the server and run:
+
+```bash
+php artisan opportunities:import-csv storage/app/opportunities/found.csv
+```
+
+It needs the same sources there (`php artisan db:seed --class=ImportSourceSeeder`). Listings already on the server, listings removed there earlier, and listings checked more than 48 hours before the import are skipped, so run the scraper again for a fresh file when needed. Running it twice adds nothing new. Once imported, the server's scheduler re-checks them like any other listing; without it they move to draft 48 hours after their last check.
+
 Use a clean production database. The seed preserves existing data, including any demo data already present. The old complete demo dataset lives in `tests/Fixtures/DemoSeeder.php` for explicit workflow tests. Never deploy a demo database or run the standalone demo account/activity seeders in production.
 
 ## Public pages and search visibility
@@ -167,6 +192,35 @@ php artisan opportunities:reconcile
 | `--due` | Select sources whose next run is due. |
 
 Without `--sync` or `--dry-run`, eligible sources are queued. No approved, enabled sources means no import work. Review source errors and staged records before increasing coverage or request volume.
+
+## Email
+
+Mail goes through [Resend](https://resend.com). In `.env`:
+
+```bash
+RESEND_API_KEY=re_...
+MAIL_FROM_ADDRESS=nextward@alabaganne.com
+MAIL_CONTACT_ADDRESS=you@example.com
+```
+
+Leave `MAIL_MAILER` empty: it uses Resend when `RESEND_API_KEY` is set and writes mail to `storage/logs/laravel.log` otherwise, which is handy locally. The sender domain must be verified in Resend (`alabaganne.com` is today; switch `MAIL_FROM_ADDRESS` when a Nextward domain is added).
+
+Every email uses the same Nextward layout: `resources/views/vendor/mail` (theme in `html/themes/nextward.css`) and the templates in `resources/views/mail` and `resources/views/emails`. Text people type (messages, contact form, names) is shown as plain text, so it can't add links or formatting.
+
+| Email | Sent when |
+| --- | --- |
+| Confirm your email | Someone signs up, or changes their email |
+| Reset your password | Someone asks on the sign-in page |
+| Your account is ready | An admin creates an account; the link lets the person choose a password |
+| New application | A candidate applies to a company's role |
+| Application update | A company changes the status of an application |
+| New message | Someone gets a message (at most one email per conversation every 30 minutes) |
+| New roles for a saved search | Daily or weekly digests, when turned on (below) |
+| Contact form | Someone sends the form at `/contact`; replying answers them directly |
+
+Email verification is required before applying, messaging, posting or editing roles, saving searches with alerts and claiming a company. Signed-in people can still browse and use their dashboard. Choosing a password from an emailed link also confirms the address.
+
+Application and message emails wait in the queue, so production needs the queue worker running (see below). The in-app notice still shows right away.
 
 ## Saved searches and email digests
 

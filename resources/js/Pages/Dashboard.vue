@@ -22,6 +22,7 @@ const props = defineProps({
 	applications: { type: Array, default: () => [] },
 	recommended: { type: Array, default: () => [] },
 	recommendation_reasons: { type: Array, default: () => [] },
+	is_new_user: { type: Boolean, default: false },
 });
 
 const page = usePage();
@@ -64,7 +65,7 @@ const cards = computed(() => {
 
 <template>
 	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-wrap mx-auto">
-		<PageHeader :title="`Welcome back, ${firstName}`" :description="description">
+		<PageHeader :title="`${is_new_user ? 'Welcome' : 'Welcome back'}, ${firstName}`" document-title="Dashboard" :description="description">
 			<template #actions>
 				<Link v-if="isCompany" class="cbtn cbtn-secondary h-11 !py-0" :href="managedRolesHref">Manage your roles</Link>
 				<Link v-else-if="!isAdmin" class="cbtn cbtn-primary h-11 !py-0" :href="route('opportunities.index')">Browse opportunities</Link>
@@ -100,7 +101,7 @@ const cards = computed(() => {
 					:class="{ 'border-b border-line-2': index !== applications.length - 1 }"
 					:href="route('applications.show', application.id)"
 				>
-					<CompanyLogo class="size-10 rounded-[10px] text-[14px]" :name="partyName(application)" />
+					<CompanyLogo class="size-10 rounded-[10px] text-[14px]" :name="partyName(application)" :src="isCompany ? null : application.company?.image" />
 					<div class="flex-1 min-w-0">
 						<b class="text-[15px] font-semibold block truncate">{{ application.internship.title }}</b>
 						<span class="text-[13px] text-muted block truncate">{{ [partyName(application), application.internship.city?.name].filter(Boolean).join(', ') }}</span>
@@ -135,7 +136,7 @@ const cards = computed(() => {
 						class="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-paper-2"
 						:href="item.public_url || route('internships.show', item.id)"
 					>
-						<CompanyLogo class="size-9 rounded-[9px] text-[12px]" :name="item.company?.name || ''" />
+						<CompanyLogo class="size-9 rounded-[9px] text-[12px]" :name="item.company?.name || ''" :src="item.company?.image" />
 						<div class="min-w-0">
 							<b class="text-sm font-semibold block truncate">{{ item.title }}</b>
 							<span class="text-[12.5px] text-muted block truncate">{{ [item.company?.name, item.location_label || item.city?.name].filter(Boolean).join(', ') }}</span>

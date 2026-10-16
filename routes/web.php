@@ -61,6 +61,7 @@ Route::prefix('fr')->name('fr.')->group(function () {
 });
 Route::inertia('/about', 'About')->name('about');
 Route::inertia('/contact', 'Contact')->name('contact');
+Route::post('/contact', [\App\Http\Controllers\ContactController::class, 'store'])->middleware('throttle:5,10,contact')->name('contact.store');
 Route::inertia('/privacy', 'Privacy')->name('privacy');
 Route::inertia('/terms', 'Terms')->name('terms');
 
@@ -98,16 +99,16 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('/settings', [ProfileController::class, 'settings'])->name('settings');
     Route::put('/password', [\App\Http\Controllers\Auth\PasswordController::class, 'update'])->name('password.change');
     // Resources
-    Route::resource('internships', InternshipController::class)->except(['index', 'show']);
+    Route::resource('internships', InternshipController::class)->except(['index', 'show'])->middleware('verified');
     Route::resource('companies', CompanyController::class);
     Route::resource('students', StudentController::class);
     Route::resource('fields', FieldController::class);
     Route::resource('skills', SkillController::class);
     // Applications
-    Route::post('/applications/{application}', [ApplicationController::class, 'reply'])->name('applications.reply');
+    Route::post('/applications/{application}', [ApplicationController::class, 'reply'])->middleware('verified')->name('applications.reply');
     Route::get('/applications', [ApplicationController::class, 'index'])->name('applications.index');
-    Route::get('/internships/{internship}/apply', [ApplicationController::class, 'create'])->name('applications.create');
-    Route::post('/internship/{internship}/apply', [ApplicationController::class, 'store'])->middleware('throttle:10,1,apply')->name('applications.store');
+    Route::get('/internships/{internship}/apply', [ApplicationController::class, 'create'])->middleware('verified')->name('applications.create');
+    Route::post('/internship/{internship}/apply', [ApplicationController::class, 'store'])->middleware(['verified', 'throttle:10,1,apply'])->name('applications.store');
     Route::get('/applications/{application}/edit', [ApplicationController::class, 'edit'])->name('applications.edit');
     Route::get('/applications/{application}', [ApplicationController::class, 'show'])->name('applications.show');
     Route::put('/applications/{application}', [ApplicationController::class, 'update'])->name('applications.update');
@@ -120,7 +121,7 @@ Route::group(['middleware' => 'auth'], function() {
 	// Messages
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
     Route::get('/messages/{user}', [MessageController::class, 'show'])->name('messages.show');
-    Route::post('/messages', [MessageController::class, 'store'])->middleware('throttle:30,1,messages')->name('messages.store');
+    Route::post('/messages', [MessageController::class, 'store'])->middleware(['verified', 'throttle:30,1,messages'])->name('messages.store');
 	// Notifications
 	Route::delete('/notifications', [NotificationController::class, 'clear'])->name('notifications.clear');
     Route::post('/notifications/{notification}', [NotificationController::class, 'store'])->name('notifications.store');

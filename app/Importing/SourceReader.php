@@ -134,7 +134,7 @@ class SourceReader
                 'posted_at' => $data['datePosted'] ?? null, 'expires_at' => $data['validThrough'] ?? null,
                 'locations' => $this->list($data['jobLocation'] ?? []),
                 'employment_types' => (array) ($data['employmentType'] ?? []),
-                'work_type' => ($data['jobLocationType'] ?? '') === 'TELECOMMUTE' ? 'remote' : null,
+                'work_type' => preg_grep('/^\s*telecommute\s*$/i', array_filter((array) ($data['jobLocationType'] ?? []), 'is_string')) ? 'remote' : null,
                 'applicant_locations' => $this->list($data['applicantLocationRequirements'] ?? []),
                 'salary' => $data['baseSalary'] ?? null, 'language' => $data['inLanguage'] ?? null,
                 'application_url' => $data['url'] ?? $item->source_url,
@@ -186,6 +186,15 @@ class SourceReader
             ];
         }
         throw new RuntimeException('Unsupported provider.');
+    }
+
+    // Reads a board listing from its saved list payload, or returns null when that would need a request.
+    public function saved(ImportSource $source, OpportunitySource $item): ?array
+    {
+        $saved = $item->payload && match ($source->provider) {
+            'greenhouse' => isset($item->payload['content']), 'lever', 'ashby' => true, default => false,
+        };
+        return $saved ? $this->read($source, $item) : null;
     }
 
     public function jobPosting(string $html): ?array

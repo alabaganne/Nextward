@@ -6,6 +6,7 @@ use App\Http\Requests\StudentRequest;
 use App\Models\Student;
 use App\Models\Field;
 use App\Models\City;
+use App\Notifications\AccountCreated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -29,11 +30,6 @@ class StudentController extends Controller
         return Inertia::render('Students/Index', [
             'students' => Student::with('field', 'user')
                     ->latest()
-                    ->where(function ($query) {
-                        if (auth()->user()->isCandidate()) {
-                            $query->where('id', '<>', auth()->user()->userable->id);
-                        }
-                    })
                     ->paginate(12)
 					->through(function ($student) {
 						return [
@@ -72,12 +68,14 @@ class StudentController extends Controller
      */
     public function store(StudentRequest $request)
     {
-        DB::transaction(function () use ($request) {
-            Student::create($request->only('about', 'field_id', 'city_id', 'career_stage', 'headline', 'experience_years', 'country_code', 'location'))->user()->create([
+        $user = DB::transaction(function () use ($request) {
+            return Student::create($request->only('about', 'field_id', 'city_id', 'career_stage', 'headline', 'experience_years', 'country_code', 'location'))->user()->create([
                 ...$request->only('name', 'email', 'phone_number'),
                 'password' => Hash::make(Str::random(64)),
             ]);
         });
+
+        $user->notify(new AccountCreated);
 
         return Redirect::route('students.index')->with('toast', [
             'type' => 'store',

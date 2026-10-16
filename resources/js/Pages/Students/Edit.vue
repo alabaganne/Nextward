@@ -57,51 +57,53 @@ const destroy = () => {
 
 		<form class="bg-white border border-line rounded-[18px]" @submit.prevent="submit">
 			<div class="px-8 max-[560px]:px-5 py-[26px]">
-				<p v-for="(error, key) in form.errors" :key="key" class="text-sm text-red-600 mb-2" role="alert">{{ error }}</p>
+				<p v-if="Object.keys(form.errors).length" class="text-sm text-[#dc2626] font-semibold mb-4" role="alert">Please fix the fields below.</p>
 				<div class="grid grid-cols-2 gap-4 mb-5 max-[560px]:grid-cols-1">
-					<label class="text-sm font-semibold">Career stage<select v-model="form.career_stage" class="fld mt-2"><option value="student">Student</option><option value="graduate">Graduate</option><option value="professional">Professional</option></select></label>
-					<label class="text-sm font-semibold">Headline<input v-model="form.headline" class="fld mt-2" maxlength="255"></label>
-					<label class="text-sm font-semibold">Country code<input v-model="form.country_code" class="fld mt-2" maxlength="2" placeholder="TN, FR, US..."></label>
-					<label class="text-sm font-semibold">City or location<input v-model="form.location" class="fld mt-2"></label>
-					<label class="text-sm font-semibold">Years of experience<input v-model.number="form.experience_years" class="fld mt-2" type="number" min="0" max="80"></label>
+					<label class="text-sm font-semibold">Career stage<select v-model="form.career_stage" class="fld mt-2"><option value="student">Student</option><option value="graduate">Graduate</option><option value="professional">Professional</option></select><span v-if="form.errors.career_stage" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ form.errors.career_stage }}</span></label>
+					<label class="text-sm font-semibold">Headline<input v-model="form.headline" class="fld mt-2" maxlength="255"><span v-if="form.errors.headline" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ form.errors.headline }}</span></label>
+					<label class="text-sm font-semibold">Country code<input v-model="form.country_code" class="fld mt-2" maxlength="2" placeholder="TN, FR, US..."><span v-if="form.errors.country_code" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ form.errors.country_code }}</span></label>
+					<label class="text-sm font-semibold">City or location<input v-model="form.location" class="fld mt-2"><span v-if="form.errors.location" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ form.errors.location }}</span></label>
+					<label class="text-sm font-semibold">Years of experience<input v-model.number="form.experience_years" class="fld mt-2" type="number" min="0" max="80"><span v-if="form.errors.experience_years" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ form.errors.experience_years }}</span></label>
 				</div>
 				<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
 					<div class="mb-4">
-						<label class="block text-[13px] font-semibold mb-[7px] text-ink-700">Full name</label>
-						<input v-model="form.name" class="fld" type="text">
+						<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="student-name">Full name</label>
+						<input id="student-name" v-model="form.name" class="fld" type="text">
 						<div v-if="form.errors.name" class="text-xs text-[#dc2626] mt-[7px]">{{ form.errors.name }}</div>
 					</div>
 					<div class="mb-4">
-						<label class="block text-[13px] font-semibold mb-[7px] text-ink-700">Email</label>
-						<input v-model="form.email" class="fld" type="email">
+						<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="student-email">Email</label>
+						<input id="student-email" v-model="form.email" class="fld" type="email">
 						<div v-if="form.errors.email" class="text-xs text-[#dc2626] mt-[7px]">{{ form.errors.email }}</div>
 					</div>
 				</div>
 				<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
 					<div class="mb-4">
-						<label class="block text-[13px] font-semibold mb-[7px] text-ink-700">Phone</label>
-						<input v-model="form.phone_number" class="fld" type="tel">
+						<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="student-phone">Phone</label>
+						<input id="student-phone" v-model="form.phone_number" class="fld" type="tel">
 						<div v-if="form.errors.phone_number" class="text-xs text-[#dc2626] mt-[7px]">{{ form.errors.phone_number }}</div>
 					</div>
 					<div class="mb-4">
-						<label class="block text-[13px] font-semibold mb-[7px] text-ink-700">City</label>
-						<select v-model="form.city_id" class="fld">
+						<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="student-city">City</label>
+						<select id="student-city" v-model="form.city_id" class="fld">
 							<option :value="null">-</option>
 							<option v-for="city in cities" :key="city.id" :value="city.id">{{ city.name }}</option>
 						</select>
+						<div v-if="form.errors.city_id" class="text-xs text-[#dc2626] mt-[7px]">{{ form.errors.city_id }}</div>
 					</div>
 				</div>
 				<div class="mb-4">
-					<label class="block text-[13px] font-semibold mb-[7px] text-ink-700">Field of work or study</label>
-					<select v-model="form.field_id" class="fld">
+					<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="student-field">Field of work or study</label>
+					<select id="student-field" v-model="form.field_id" class="fld">
 						<option :value="null">-</option>
 						<option v-for="field in fields" :key="field.id" :value="field.id">{{ field.name }}</option>
 					</select>
 					<div v-if="form.errors.field_id" class="text-xs text-[#dc2626] mt-[7px]">{{ form.errors.field_id }}</div>
 				</div>
 				<div>
-					<label class="block text-[13px] font-semibold mb-[7px] text-ink-700">About</label>
-					<textarea v-model="form.about" class="fld"></textarea>
+					<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="student-about">About</label>
+					<textarea id="student-about" v-model="form.about" class="fld"></textarea>
+					<div v-if="form.errors.about" class="text-xs text-[#dc2626] mt-[7px]">{{ form.errors.about }}</div>
 				</div>
 			</div>
 			<div class="px-8 max-[560px]:px-5 py-4 border-t border-line-2 flex items-center gap-2.5 bg-white rounded-b-[18px]">

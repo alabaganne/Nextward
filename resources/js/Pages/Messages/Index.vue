@@ -53,14 +53,23 @@ const form = useForm({ to_id: null, text: '' });
 const thread = ref(null);
 const scrollToBottom = () => nextTick(() => thread.value && (thread.value.scrollTop = thread.value.scrollHeight));
 
+const sendError = ref('');
+
 const send = () => {
 	if (form.processing || !form.text.trim() || !props.selectedContact) return;
+	sendError.value = '';
 	form.to_id = props.selectedContact.id;
 	form.post(route('messages.store'), {
 		preserveScroll: true,
 		onSuccess: () => {
 			form.reset('text');
 			scrollToBottom();
+		},
+		onHttpException: (response) => {
+			sendError.value = response.status === 403
+				? 'You can’t message this account yet. Companies can reply once you apply or write to them first.'
+				: response.status === 429 ? 'You are sending messages too fast. Please wait a minute.' : 'Your message could not be sent. Please try again.';
+			return false;
 		},
 	});
 };
@@ -89,7 +98,7 @@ onMounted(() => {
 					<h1 class="font-display text-[21px] font-semibold">Messages</h1>
 					<span class="text-[13px] text-muted font-medium">{{ contacts.length }} {{ contacts.length === 1 ? 'conversation' : 'conversations' }}</span>
 				</div>
-				<div class="flex items-center gap-[9px] bg-paper-2 border border-line rounded-[10px] px-3 h-10 focus-within:border-blue-400 [&_svg]:w-4 [&_svg]:h-4 [&_svg]:text-muted-2">
+				<div class="flex items-center gap-[9px] bg-paper-2 border border-line rounded-[10px] px-3 h-10 focus-within:border-blue-500 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-blue-600 [&_svg]:w-4 [&_svg]:h-4 [&_svg]:text-muted-2">
 					<component :is="icons.search" aria-hidden="true" />
 					<input v-model="search" class="border-0 bg-transparent outline-none text-sm w-full" type="text" placeholder="Search conversations" aria-label="Search conversations">
 				</div>
@@ -137,9 +146,10 @@ onMounted(() => {
 				>{{ message.text }}<span class="time">{{ message.created_at }}</span></div>
 			</div>
 
+			<p v-if="form.errors.text || form.errors.to_id || sendError" class="shrink-0 bg-white px-6 pt-3 text-[13.5px] text-red-700" role="alert">{{ form.errors.text || form.errors.to_id || sendError }}</p>
 			<div class="shrink-0 bg-white border-t border-line px-6 py-3.5 flex items-end gap-3">
-				<div class="flex-1 flex items-center bg-paper-2 border border-line rounded-[13px] px-4 min-h-[46px] focus-within:border-blue-400">
-					<input v-model="form.text" class="border-0 bg-transparent outline-none text-[14.5px] w-full py-3 text-ink" type="text" placeholder="Write a message…" aria-label="Write a message" @keydown.enter="send">
+				<div class="flex-1 flex items-center bg-paper-2 border border-line rounded-[13px] px-4 min-h-[46px] focus-within:border-blue-500 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-blue-600">
+					<input v-model="form.text" class="border-0 bg-transparent outline-none text-[14.5px] w-full py-3 text-ink" type="text" maxlength="5000" placeholder="Write a message…" aria-label="Write a message" :aria-invalid="!!form.errors.text" @keydown.enter="send">
 				</div>
 				<button class="w-[46px] h-[46px] rounded-[13px] bg-blue-600 text-white border-0 grid place-items-center cursor-pointer shrink-0 hover:bg-blue-700 transition-colors [&_svg]:w-[19px] [&_svg]:h-[19px]" type="button" aria-label="Send message" :disabled="form.processing || !form.text.trim()" @click="send"><component :is="icons.send" aria-hidden="true" /></button>
 			</div>
@@ -147,7 +157,7 @@ onMounted(() => {
 
 		<section v-else class="flex flex-col items-center justify-center min-h-0 bg-paper-2 text-center px-6 max-[860px]:hidden">
 			<h3 class="font-display text-xl font-semibold mb-2">No conversation selected</h3>
-			<p class="text-muted text-[15px] max-w-[340px]">Message a company from an internship or application page and the conversation will show up here.</p>
+			<p class="text-muted text-[15px] max-w-[340px]">Start a conversation from a company's page or one of your applications, and it will show up here.</p>
 		</section>
 	</div>
 </template>

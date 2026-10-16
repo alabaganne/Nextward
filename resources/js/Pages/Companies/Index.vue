@@ -1,6 +1,6 @@
 <script setup>
 import { Building2, Globe2, MapPin, Search } from '@lucide/vue';
-import { h, ref, watch } from 'vue';
+import { h, reactive, ref, watch } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
 import CompanyLogo from '@/Components/Ui/CompanyLogo.vue';
@@ -19,6 +19,7 @@ const props = defineProps({
 const page = usePage();
 const search = ref(props.filters.search || '');
 const hiring = ref(!!props.filters.hiring);
+const brokenLogos = reactive(new Set());
 
 let timer;
 const reload = () => {
@@ -52,7 +53,7 @@ const host = (url) => {
 		</PageHeader>
 
 		<div class="flex items-center gap-3 mb-5 flex-wrap">
-			<label class="flex items-center gap-2.5 bg-white border border-line rounded-[12px] px-3.5 h-11 flex-1 min-w-[240px] focus-within:border-blue-400">
+			<label class="flex items-center gap-2.5 bg-white border border-line rounded-[12px] px-3.5 h-11 flex-1 min-w-[240px] focus-within:border-blue-500 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-blue-600">
 				<Search class="size-[18px] text-muted-2 shrink-0" aria-hidden="true" />
 				<input v-model="search" class="border-0 bg-transparent p-0 outline-none focus:ring-0 text-[14.5px] w-full" type="search" placeholder="Search by company or city" aria-label="Search companies">
 			</label>
@@ -72,7 +73,8 @@ const host = (url) => {
 				class="group bg-white border border-line rounded-[16px] p-5 flex flex-col transition-colors hover:border-blue-300 focus-visible:outline-2 focus-visible:outline-blue-500"
 			>
 				<div class="flex items-start gap-3.5">
-					<CompanyLogo class="size-12 rounded-[12px] text-[17px]" :name="company.name" />
+					<img v-if="company.image && !brokenLogos.has(company.id)" :src="company.image" alt="" width="48" height="48" loading="lazy" class="size-12 rounded-[12px] border border-line object-contain bg-white shrink-0" @error="brokenLogos.add(company.id)">
+					<CompanyLogo v-else class="size-12 rounded-[12px] text-[17px]" :name="company.name" />
 					<div class="flex-1 min-w-0">
 						<h2 class="font-display text-[17px] font-semibold leading-snug truncate group-hover:text-blue-700">{{ company.name }}</h2>
 						<span v-if="company.location" class="flex items-center gap-1.5 text-[13px] text-muted mt-1"><MapPin class="size-3.5 text-muted-2 shrink-0" aria-hidden="true" /><span class="truncate">{{ company.location }}</span></span>

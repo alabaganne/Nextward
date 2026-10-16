@@ -33,7 +33,7 @@ const toggleSave = () => toggleSaved(props.internship);
 <template>
     <article class="bg-white border border-line rounded-[18px] p-5 sm:p-6 flex flex-col transition-colors hover:border-blue-300">
         <div class="flex gap-4 items-start">
-            <CompanyLogo class="w-12 h-12 rounded-xl text-lg shrink-0" :name="internship.company?.name || 'Company'" />
+            <CompanyLogo class="w-12 h-12 rounded-xl text-lg shrink-0" :name="internship.company?.name || 'Company'" :src="internship.company?.image" />
             <div class="min-w-0 flex-1"><p class="text-xs uppercase tracking-wider text-blue-700 font-bold mb-2">{{ internship.kind === 'job' ? text('Job', 'Emploi') : text('Internship', 'Stage') }}</p><h3 class="font-display text-xl font-semibold leading-snug"><Link :href="publicUrl" class="hover:text-blue-700">{{ internship.title }}</Link></h3><p class="text-sm text-slate-600 mt-2">{{ internship.company?.name }}<span v-if="internship.location_label || internship.city?.name"> · {{ internship.location_label || internship.city?.name }}</span></p></div>
             <button v-if="candidate || !user" type="button" :aria-label="saved ? text('Remove from saved', 'Retirer des favoris') : text('Save opportunity', 'Sauvegarder l’offre')" :aria-pressed="saved" class="focus-ring w-10 h-10 shrink-0 rounded-xl border grid place-items-center" :class="saved ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-line text-slate-500'" @click="toggleSave"><Bookmark :size="18" :fill="saved ? 'currentColor' : 'none'" /></button>
         </div>

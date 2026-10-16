@@ -2,7 +2,7 @@
 	<span class="inline-flex shrink-0 flex-col" :class="stacked ? 'items-center gap-2 text-center' : 'items-start gap-1'">
 		<img
 			src="/brand/nextward/symbol-192.png"
-			alt="Nextward"
+			:alt="label"
 			:width="height"
 			:height="height"
 			:style="{ width: `${height}px`, height: `${height}px` }"
@@ -17,6 +17,11 @@ const SIZES = { sm: 40, md: 48, lg: 56 };
 
 export default {
 	props: {
+		// Leave empty when "Nextward" is shown as text next to the logo.
+		label: {
+			type: String,
+			default: '',
+		},
 		tagline: {
 			type: String,
 			default: '',

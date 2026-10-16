@@ -10,7 +10,7 @@ Nextward now supports students and professionals, internships and jobs, Tunisia 
 - [ ] Start approved sources in review mode, check field quality and attribution, then allow automatic publication source by source.
 - [ ] Measure real inventory coverage, freshness, duplicate rates and source failures before expanding the catalogue or making coverage claims.
 - [ ] Verify the production domain and sitemaps in Search Console. Review detail-page structured data, canonical URLs and indexing coverage.
-- [ ] Configure and test the mail provider with controlled accounts, then enable consent-based digests. Establish a process for ambiguous delivery review.
+- [ ] Mail goes through Resend (sender `nextward@alabaganne.com`). Add `RESEND_API_KEY`, send a test of each email to controlled accounts, then enable consent-based digests. Move the sender to a Nextward domain once one is verified in Resend.
 - [ ] Optionally configure the Google Indexing API service account, ownership and quota; monitor the outbox after enabling it.
 - [x] Update inherited test expectations for the new routes, optional worldwide profile fields, live homepage, sitemap index and migration order. The authorized updates passed the full suite: 59 tests and 726 assertions.
 

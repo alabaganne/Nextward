@@ -45,7 +45,7 @@ class AdminAccountCreationTest extends TestCase
         }
 
         $this->assertNotSame($passwords[0], $passwords[1]);
-        Notification::assertNothingSent();
+        Notification::assertSentTimes(\App\Notifications\AccountCreated::class, 2);
     }
 
     public function test_admin_student_creation_validates_supplied_profile_references(): void

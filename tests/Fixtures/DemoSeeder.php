@@ -265,5 +265,7 @@ class DemoSeeder extends Seeder
             $profile->skills()->sync($skills->random(3)->pluck('id'));
             $profile->user()->create(['name' => $faker->name(), 'email' => 'candidate'.($index + 1).'@example.com', 'password' => $password, 'phone_number' => $faker->unique()->numerify('########')]);
         }
+
+        User::query()->whereNull('email_verified_at')->update(['email_verified_at' => now()]);
     }
 }

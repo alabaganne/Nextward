@@ -8,6 +8,7 @@ use App\Models\City;
 use App\Models\Company;
 use App\Models\Field;
 use App\Models\Internship;
+use App\Models\Skill;
 use App\Support\PublicSeo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -127,6 +128,7 @@ class InternshipController extends Controller
         return Inertia::render('Internships/Edit', [
             'fields' => $this->getFields(),
             'cities' => City::select('id', 'name')->orderBy('name')->get(),
+            'skills' => Skill::select('id', 'name')->orderBy('name')->get(),
         ]);
     }
 
@@ -140,6 +142,7 @@ class InternshipController extends Controller
         $data['application_mode'] = 'internal';
         $data['attachments'] = $this->storeAttachments($request, 'internships');
         $internship = Internship::create($data);
+        $internship->skills()->sync($request->validated('skills') ?? []);
 
         return redirect($internship->publication_status === 'published'
             ? route('opportunities.show', ['opportunity' => $internship->id.'-'.$internship->slug])
@@ -198,9 +201,10 @@ class InternshipController extends Controller
     {
         $this->authorize('update', $internship);
         return Inertia::render('Internships/Edit', [
-            'internship' => $internship,
+            'internship' => $internship->load('skills:id,name'),
             'fields' => $this->getFields(),
             'cities' => City::select('id', 'name')->orderBy('name')->get(),
+            'skills' => Skill::select('id', 'name')->orderBy('name')->get(),
         ]);
     }
 
@@ -208,13 +212,22 @@ class InternshipController extends Controller
     {
         $this->authorize('update', $internship);
         $data = $this->nativeData($request);
-        if ($request->hasFile('attachment_files')) {
+        $oldAttachments = $internship->attachments ?: [];
+        $replaceFiles = $request->hasFile('attachment_files') || $request->boolean('remove_attachments');
+        if ($replaceFiles) {
             $data['attachments'] = $this->storeAttachments($request, 'internships');
         }
+        $skills = $request->has('skills') ? ($request->validated('skills') ?? []) : null;
         if ($internship->origin === 'imported') {
-            $data['moderation_overrides'] = array_replace($internship->moderation_overrides ?: [], $data);
+            $data['moderation_overrides'] = array_replace($internship->moderation_overrides ?: [], $data, $skills === null ? [] : ['skills' => $skills]);
         }
         $internship->update($data);
+        if ($skills !== null) {
+            $internship->skills()->sync($skills);
+        }
+        if ($replaceFiles) {
+            $this->deleteAttachments($oldAttachments);
+        }
 
         return redirect($internship->publication_status === 'published'
             ? route('opportunities.show', ['opportunity' => $internship->id.'-'.$internship->slug])
@@ -234,7 +247,7 @@ class InternshipController extends Controller
 
     private function nativeData(InternshipRequest $request): array
     {
-        $data = $request->safe()->except(['attachment_files']);
+        $data = $request->safe()->except(['attachment_files', 'remove_attachments', 'skills']);
         if (array_key_exists('pay_amount', $data) && ! array_key_exists('pay_min', $data)) {
             $data['pay_min'] = $data['pay_amount'];
             $data['pay_max'] = $data['pay_amount'];
@@ -267,5 +280,15 @@ class InternshipController extends Controller
                 'mime' => $file->getMimeType(),
             ];
         })->values()->all();
+    }
+
+    private function deleteAttachments(array $attachments): void
+    {
+        foreach ($attachments as $attachment) {
+            $path = is_array($attachment) ? parse_url($attachment['url'] ?? '', PHP_URL_PATH) : null;
+            if (is_string($path) && str_starts_with($path, '/storage/internships/') && ! str_contains($path, '..')) {
+                Storage::disk('public')->delete(substr($path, strlen('/storage/')));
+            }
+        }
     }
 }
