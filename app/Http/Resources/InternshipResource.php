@@ -10,7 +10,8 @@ class InternshipResource extends JsonResource
     public function toArray($request)
     {
         $user = $request->user();
-        $detail = $request->routeIs('opportunities.show');
+        $detail = $request->routeIs('opportunities.show', 'fr.opportunity');
+        $locale = $request->is('fr', 'fr/*') ? 'fr' : 'en';
         $candidate = $user && $user->isCandidate() ? $user->userable : null;
         $application = $candidate && $this->relationLoaded('candidateApplications')
             ? $this->candidateApplications->firstWhere('student_id', $candidate->id)
@@ -28,7 +29,7 @@ class InternshipResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'description' => $detail ? $this->description : Str::limit($this->description, 320),
-            'public_url' => $this->public_url,
+            'public_url' => $this->publicUrl($locale),
             'slug' => $this->slug,
             'kind' => $this->kind,
             'origin' => $this->origin,
@@ -74,19 +75,19 @@ class InternshipResource extends JsonResource
             'created_at' => $this->created_at?->diffForHumans(),
             'posted_at' => $this->posted_at?->toIso8601String(),
             'posted_label' => $this->posted_at
-                ? 'Posted '.$this->posted_at->diffForHumans()
-                : 'Added to Nextward '.($this->first_seen_at?->diffForHumans() ?? 'recently'),
+                ? __('Posted :time', ['time' => $this->posted_at->diffForHumans()])
+                : __('Added to Nextward :time', ['time' => $this->first_seen_at?->diffForHumans() ?? __('recently')]),
             'first_seen_at' => $this->first_seen_at?->toIso8601String(),
             'last_verified_at' => $this->last_verified_at?->toIso8601String(),
             'last_verified_label' => $this->last_verified_at?->diffForHumans(),
-            'source_name' => $source?->importSource?->name ?? ($this->origin === 'native' ? 'Posted on Nextward' : null),
+            'source_name' => $source?->importSource?->name ?? ($this->origin === 'native' ? __('Posted on Nextward') : null),
             'source_url' => $source?->source_url,
             'company' => [
                 'id' => $company?->id,
                 'user_id' => $companyUser?->id,
                 'image' => $company?->logo,
                 'name' => $company?->display_name ?? 'Employer not specified',
-                'public_url' => $company?->hasPublicName() ? $company->public_url : null,
+                'public_url' => $company?->hasPublicName() ? $company->publicUrl($locale) : null,
                 'website' => $company?->website,
                 'country_code' => $company?->country_code,
                 'location' => $company?->location,

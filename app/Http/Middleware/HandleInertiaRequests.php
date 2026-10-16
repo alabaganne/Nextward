@@ -42,6 +42,7 @@ class HandleInertiaRequests extends Middleware
     public function handle(Request $request, Closure $next)
     {
         Inertia::disableSsr(fn () => !PublicSeo::isPublic($request));
+        app()->setLocale($request->is('fr', 'fr/*') ? 'fr' : 'en');
         $response = parent::handle($request, $next);
         if (!PublicSeo::isPublic($request)) {
             $response->headers->set('X-Robots-Tag', 'noindex, nofollow');

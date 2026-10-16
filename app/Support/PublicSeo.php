@@ -11,7 +11,8 @@ class PublicSeo
 {
     public static function isPublic(Request $request): bool
     {
-        return $request->routeIs('home', 'about', 'contact', 'privacy', 'terms', 'blog.*', 'audience.*', 'opportunities.index', 'opportunities.category', 'opportunities.show', 'companies.public', 'fr.*');
+        return $request->routeIs('home', 'about', 'contact', 'privacy', 'terms', 'blog.*', 'audience.*', 'opportunities.index', 'opportunities.category', 'opportunities.show', 'companies.public', 'fr.*')
+            && ! $request->routeIs('fr.login*', 'fr.register*', 'fr.password.*');
     }
 
     public static function forRequest(Request $request): array
@@ -98,28 +99,34 @@ class PublicSeo
 
     public static function company(Company $company, int $openRoles): array
     {
+        $fr = request()->is('fr/*');
         $name = $company->display_name;
         $location = $company->city?->name ?: $company->location;
         $about = trim(preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags((string) $company->about))));
-        $description = $openRoles
-            ? Str::limit("{$openRoles} open ".($openRoles === 1 ? 'opportunity' : 'internships and jobs')." at {$name}".($location ? " ({$location})" : '').'. '.($about ?: 'See the requirements, location and how to apply on Nextward.'), 155)
-            : Str::limit($about ?: "{$name} on Nextward: company profile and past internships and jobs.", 155);
-        $seo = self::base(request(), $name.' internships and jobs | Nextward', $description, $company->isIndexable($openRoles));
-        $seo['canonical'] = $company->public_url;
+        $description = $fr
+            ? ($openRoles
+                ? Str::limit("{$openRoles} ".($openRoles === 1 ? 'offre ouverte' : 'stages et emplois ouverts')." chez {$name}".($location ? " ({$location})" : '').'. '.($about ?: 'Consultez les exigences, le lieu et la façon de postuler sur Nextward.'), 155)
+                : Str::limit($about ?: "{$name} sur Nextward : profil de l’entreprise et anciens stages et emplois.", 155))
+            : ($openRoles
+                ? Str::limit("{$openRoles} open ".($openRoles === 1 ? 'opportunity' : 'internships and jobs')." at {$name}".($location ? " ({$location})" : '').'. '.($about ?: 'See the requirements, location and how to apply on Nextward.'), 155)
+                : Str::limit($about ?: "{$name} on Nextward: company profile and past internships and jobs.", 155));
+        $seo = self::base(request(), ($fr ? "Stages et emplois chez {$name}" : $name.' internships and jobs').' | Nextward', $description, $company->isIndexable($openRoles));
+        $seo['canonical'] = $company->publicUrl($fr ? 'fr' : 'en');
+        $seo['alternates'] = self::pairs($company->publicUrl('en'), $company->publicUrl('fr'));
         if ($company->logo && filter_var($company->logo, FILTER_VALIDATE_URL)) {
             $seo['image'] = $company->logo;
             $seo['image_alt'] = $name;
         }
         $seo['structured_data'] = [array_filter([
-            '@context' => 'https://schema.org', '@type' => 'Organization', 'name' => $name, 'url' => $company->public_url,
+            '@context' => 'https://schema.org', '@type' => 'Organization', 'name' => $name, 'url' => $seo['canonical'],
             'description' => $about ? Str::limit($about, 500) : null,
             'sameAs' => $company->website && filter_var($company->website, FILTER_VALIDATE_URL) ? [$company->website] : null,
             'logo' => isset($seo['image_alt']) ? $seo['image'] : null,
             'address' => $location || $company->country_code ? array_filter(['@type' => 'PostalAddress', 'addressLocality' => $location, 'addressCountry' => $company->country_code]) : null,
         ]), [
             '@context' => 'https://schema.org', '@type' => 'BreadcrumbList', 'itemListElement' => [
-                ['@type' => 'ListItem', 'position' => 1, 'name' => 'Opportunities', 'item' => self::url('/opportunities')],
-                ['@type' => 'ListItem', 'position' => 2, 'name' => $name, 'item' => $company->public_url],
+                ['@type' => 'ListItem', 'position' => 1, 'name' => $fr ? 'Opportunités' : 'Opportunities', 'item' => self::url($fr ? '/fr/opportunities' : '/opportunities')],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => $name, 'item' => $seo['canonical']],
             ],
         ]];
         return $seo;
@@ -164,10 +171,12 @@ class PublicSeo
     public static function opportunity(Internship $opportunity): array
     {
         $opportunity->loadMissing('company.user', 'city', 'field');
+        $fr = request()->is('fr/*');
         $company = $opportunity->company?->user?->name ?: $opportunity->company?->name;
         $description = Str::limit(trim(html_entity_decode(strip_tags($opportunity->description))), 155);
-        $seo = self::base(request(), $opportunity->title.($company ? ' at '.$company : '').' | Nextward', $description, $opportunity->isOpen());
-        $seo['canonical'] = $opportunity->public_url;
+        $seo = self::base(request(), $opportunity->title.($company ? ($fr ? ' chez ' : ' at ').$company : '').' | Nextward', $description, $opportunity->isOpen());
+        $seo['canonical'] = $opportunity->publicUrl($fr ? 'fr' : 'en');
+        $seo['alternates'] = self::pairs($opportunity->publicUrl('en'), $opportunity->publicUrl('fr'));
         $seo['type'] = 'article';
         $eligibleCountries = array_values(array_diff(array_filter((array) $opportunity->eligible_countries,
             fn ($country) => is_string($country) && preg_match('/^[A-Z]{2}$/', $country)), (array) $opportunity->excluded_countries));
@@ -186,7 +195,7 @@ class PublicSeo
         $job = [
             '@context' => 'https://schema.org', '@type' => 'JobPosting', 'title' => $opportunity->title,
             'description' => '<p>'.nl2br(e(trim(strip_tags($opportunity->description)))).'</p>',
-            'datePosted' => $opportunity->posted_at->toIso8601String(), 'url' => $opportunity->public_url,
+            'datePosted' => $opportunity->posted_at->toIso8601String(), 'url' => $seo['canonical'],
             'hiringOrganization' => array_filter(['@type' => 'Organization', 'name' => $company, 'sameAs' => $opportunity->company?->website]),
             'identifier' => ['@type' => 'PropertyValue', 'name' => 'Nextward', 'value' => (string) $opportunity->id],
         ];
@@ -226,8 +235,8 @@ class PublicSeo
         }
         $seo['structured_data'] = [$job, [
             '@context' => 'https://schema.org', '@type' => 'BreadcrumbList', 'itemListElement' => [
-                ['@type' => 'ListItem', 'position' => 1, 'name' => 'Opportunities', 'item' => self::url('/opportunities')],
-                ['@type' => 'ListItem', 'position' => 2, 'name' => $opportunity->title, 'item' => $opportunity->public_url],
+                ['@type' => 'ListItem', 'position' => 1, 'name' => $fr ? 'Opportunités' : 'Opportunities', 'item' => self::url($fr ? '/fr/opportunities' : '/opportunities')],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => $opportunity->title, 'item' => $seo['canonical']],
             ],
         ]];
         return $seo;
@@ -254,6 +263,11 @@ class PublicSeo
             ['lang' => 'fr', 'url' => self::url('/fr'.($path === '/' ? '' : $path)).$suffix],
             ['lang' => 'x-default', 'url' => self::url($path).$suffix],
         ];
+    }
+
+    private static function pairs(string $en, string $fr): array
+    {
+        return [['lang' => 'en', 'url' => $en], ['lang' => 'fr', 'url' => $fr], ['lang' => 'x-default', 'url' => $en]];
     }
 
     private static function url(string $path): string

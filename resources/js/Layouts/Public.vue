@@ -73,7 +73,7 @@ onBeforeUnmount(() => {
                         </nav>
                     </details>
                     <div class="hidden xl:flex items-center gap-5">
-                        <template v-if="!currentUser"><Link href="/login" class="focus-ring nav-link">{{ fr ? 'Connexion' : 'Log in' }}</Link><Link href="/register" class="cta cta-light focus-ring px-4 py-2.5 text-sm">{{ fr ? 'Créer un compte' : 'Create account' }}</Link></template>
+                        <template v-if="!currentUser"><Link :href="`${prefix}/login`" class="focus-ring nav-link">{{ fr ? 'Connexion' : 'Log in' }}</Link><Link :href="`${prefix}/register`" class="cta cta-light focus-ring px-4 py-2.5 text-sm">{{ fr ? 'Créer un compte' : 'Create account' }}</Link></template>
                         <Link v-else href="/dashboard" class="cta cta-light focus-ring px-4 py-2.5 text-sm">{{ fr ? 'Mon espace' : 'Dashboard' }}</Link>
                     </div>
                     <details ref="mobileMenu" name="public-header-menu" class="group xl:hidden" @keydown.esc.stop.prevent="dismissMenu(mobileMenu)">
@@ -82,8 +82,8 @@ onBeforeUnmount(() => {
                             <div class="public-container py-4">
                                 <a v-for="link in links" :key="link.href" :href="link.href" class="focus-ring mobile-link" :aria-current="isActive(link.href) ? 'page' : undefined">{{ link.label }}<Icon name="arrow-up-right" class="h-4 w-4 opacity-50" /></a>
                                 <div class="mt-4 grid gap-3 sm:grid-cols-2">
-                                    <Link :href="currentUser ? '/dashboard' : '/login'" class="cta cta-ghost focus-ring">{{ currentUser ? (fr ? 'Mon espace' : 'Dashboard') : (fr ? 'Connexion' : 'Log in') }}</Link>
-                                    <Link v-if="!currentUser" href="/register" class="cta cta-light focus-ring">{{ fr ? 'Créer un compte' : 'Create account' }}</Link>
+                                    <Link :href="currentUser ? '/dashboard' : `${prefix}/login`" class="cta cta-ghost focus-ring">{{ currentUser ? (fr ? 'Mon espace' : 'Dashboard') : (fr ? 'Connexion' : 'Log in') }}</Link>
+                                    <Link v-if="!currentUser" :href="`${prefix}/register`" class="cta cta-light focus-ring">{{ fr ? 'Créer un compte' : 'Create account' }}</Link>
                                 </div>
                             </div>
                         </nav>
@@ -96,7 +96,7 @@ onBeforeUnmount(() => {
         <footer class="border-t border-navy/10">
             <div class="public-container py-12 grid gap-8 md:grid-cols-2">
                 <div class="max-w-md"><Link :href="prefix || '/'" class="focus-ring inline-flex items-center gap-2.5 rounded-lg font-display text-lg font-semibold tracking-tight text-navy"><BrandLogo size="sm" class="[&>img]:!h-8 [&>img]:!w-8" />Nextward</Link><p class="mt-4 text-sm leading-6 text-slate-600">{{ fr ? 'Stages et emplois pour étudiants et professionnels, en Tunisie et à l’international. Des sources claires pour préparer votre prochaine candidature.' : 'Internships and jobs for students and professionals, in Tunisia and around the world. Clear sources and practical details for your next application.' }}</p></div>
-                <nav :aria-label="fr ? 'Pied de page' : 'Footer'" class="grid grid-cols-2 gap-4 text-sm font-medium text-slate-600"><Link v-for="link in links" :key="link.href" :href="link.href">{{ link.label }}</Link><Link :href="`${prefix}/about`">{{ fr ? 'À propos' : 'About' }}</Link><Link :href="`${prefix}/contact`">Contact</Link><Link href="/register?account=company">{{ fr ? 'Publier une offre' : 'Post an opportunity' }}</Link></nav>
+                <nav :aria-label="fr ? 'Pied de page' : 'Footer'" class="grid grid-cols-2 gap-4 text-sm font-medium text-slate-600"><Link v-for="link in links" :key="link.href" :href="link.href">{{ link.label }}</Link><Link :href="`${prefix}/about`">{{ fr ? 'À propos' : 'About' }}</Link><Link :href="`${prefix}/contact`">Contact</Link><Link :href="`${prefix}/register?account=company`">{{ fr ? 'Publier une offre' : 'Post an opportunity' }}</Link></nav>
             </div>
             <div class="public-container flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-navy/5 py-5 text-xs text-slate-500">
                 <p>{{ fr ? 'Créé par' : 'Built by' }} <a href="https://alabaganne.com/" class="font-medium text-slate-700">Ala Baganne</a></p>

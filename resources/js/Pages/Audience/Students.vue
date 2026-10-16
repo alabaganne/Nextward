@@ -84,7 +84,7 @@ const faqs = computed(() => [
                     <div>
                         <img src="/nextward-assets/mascots/04-mentor-pointing.svg" alt="" width="768" height="768" loading="lazy" class="faq-art" />
                         <h2 id="student-faq-title" class="section-title">{{ text('Questions students ask us', 'Les questions des étudiants') }}</h2>
-                        <p class="section-description">{{ text('Still unsure about something? Write to us from the contact page.', 'Une autre question ? Écrivez-nous depuis la page contact.') }} <Link href="/contact" class="font-semibold text-blue-700 underline underline-offset-4">{{ text('Contact us', 'Nous contacter') }}</Link></p>
+                        <p class="section-description">{{ text('Still unsure about something? Write to us from the contact page.', 'Une autre question ? Écrivez-nous depuis la page contact.') }} <Link :href="`${prefix}/contact`" class="font-semibold text-blue-700 underline underline-offset-4">{{ text('Contact us', 'Nous contacter') }}</Link></p>
                     </div>
                     <div class="faq-list">
                         <details v-for="item in faqs" :key="item.q" class="faq-item"><summary class="focus-ring">{{ item.q }}<Icon name="plus" class="faq-toggle" /></summary><p>{{ item.a }}</p></details>
@@ -104,7 +104,7 @@ const faqs = computed(() => [
                         <h2 class="section-title">{{ text('Your first day starts with one search.', 'Votre premier jour commence par une recherche.') }}</h2>
                         <p class="mt-4 text-lg">{{ text('Create a student account to save roles, apply and follow every application.', 'Créez votre compte étudiant pour sauvegarder des offres, candidater et suivre chaque candidature.') }}</p>
                         <div class="hero-buttons">
-                            <Link href="/register?account=student&career_stage=student" class="cta cta-light focus-ring">{{ text('Create a student account', 'Créer un compte étudiant') }}</Link>
+                            <Link :href="`${prefix}/register?account=student&career_stage=student`" class="cta cta-light focus-ring">{{ text('Create a student account', 'Créer un compte étudiant') }}</Link>
                             <Link :href="`${prefix}/opportunities/internships`" class="cta cta-ghost focus-ring">{{ text('Browse internships', 'Voir les stages') }}</Link>
                         </div>
                     </div>

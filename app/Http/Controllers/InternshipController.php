@@ -159,9 +159,10 @@ class InternshipController extends Controller
         abort_unless(preg_match('/^([1-9][0-9]*)(?:-.+)?$/u', $opportunity, $matches), 404);
         $internship = $this->canonicalOpportunity(Internship::findOrFail($matches[1]));
         abort_unless($internship->publication_status === 'published', 404);
-        $canonicalSegment = basename(parse_url($internship->public_url, PHP_URL_PATH));
+        $locale = $request->is('fr/*') ? 'fr' : 'en';
+        $canonicalSegment = basename(parse_url($internship->publicUrl($locale), PHP_URL_PATH));
         if ($opportunity !== $canonicalSegment) {
-            return redirect($internship->public_url, 301);
+            return redirect($internship->publicUrl($locale), 301);
         }
         $internship->load(['company.user', 'company.city', 'field', 'city', 'skills', 'sources.importSource']);
         if ($request->user()?->isCandidate()) {
@@ -178,6 +179,7 @@ class InternshipController extends Controller
             'internship' => (new InternshipResource($internship))->resolve($request),
             'related' => InternshipResource::collection($related),
             'seo' => PublicSeo::opportunity($internship),
+            'translation' => parse_url($internship->publicUrl($locale === 'fr' ? 'en' : 'fr'), PHP_URL_PATH),
         ]);
     }
 

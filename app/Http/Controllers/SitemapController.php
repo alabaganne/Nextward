@@ -49,7 +49,7 @@ class SitemapController extends Controller
     {
         $rows = Company::publicIndexable()->get();
         abort_if($rows->isEmpty(), 404);
-        return $this->urlset($rows->map(fn ($company) => ['url' => $company->public_url, 'modified' => $company->updated_at?->toIso8601String()]));
+        return $this->urlset($rows->flatMap(fn ($company) => array_map(fn ($locale) => ['url' => $company->publicUrl($locale), 'modified' => $company->updated_at?->toIso8601String()], ['en', 'fr'])));
     }
 
     public function opportunities(int $page)
@@ -57,7 +57,7 @@ class SitemapController extends Controller
         abort_if($page < 1, 404);
         $rows = Internship::available()->select('id', 'slug', 'title', 'content_updated_at')->orderBy('id')->skip(($page - 1) * self::CHUNK_SIZE)->take(self::CHUNK_SIZE)->get();
         abort_if($rows->isEmpty(), 404);
-        return $this->urlset($rows->map(fn ($row) => ['url' => $row->public_url, 'modified' => $row->content_updated_at?->toIso8601String()]));
+        return $this->urlset($rows->flatMap(fn ($row) => array_map(fn ($locale) => ['url' => $row->publicUrl($locale), 'modified' => $row->content_updated_at?->toIso8601String()], ['en', 'fr'])));
     }
 
     private function urlset($rows)

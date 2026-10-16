@@ -1,6 +1,6 @@
 <template>
 	<div class="auth-field">
-		<label :for="id">{{ label }} <span v-if="optional" class="auth-optional">(optional)</span></label>
+		<label :for="id">{{ label }} <span v-if="optional" class="auth-optional">{{ fr ? '(facultatif)' : '(optional)' }}</span></label>
 		<div class="auth-input-wrap">
 			<input
 				v-bind="$attrs"
@@ -14,7 +14,7 @@
 				:aria-describedby="error ? `${id}-error` : hint ? `${id}-hint` : undefined"
 				@input="$emit('update:modelValue', $event.target.value)"
 			/>
-			<button v-if="type === 'password'" type="button" class="auth-password-toggle focus-ring" :aria-label="`${showPassword ? 'Hide' : 'Show'} ${label.toLowerCase()}`" :aria-pressed="showPassword" :aria-controls="id" @click="showPassword = !showPassword">
+			<button v-if="type === 'password'" type="button" class="auth-password-toggle focus-ring" :aria-label="fr ? `${showPassword ? 'Masquer' : 'Afficher'} le champ « ${label} »` : `${showPassword ? 'Hide' : 'Show'} ${label.toLowerCase()}`" :aria-pressed="showPassword" :aria-controls="id" @click="showPassword = !showPassword">
 				<icon :name="showPassword ? 'eye-slash' : 'eye'" />
 			</button>
 		</div>
@@ -38,6 +38,11 @@ export default {
 	},
 	data() {
 		return { showPassword: false };
+	},
+	computed: {
+		fr() {
+			return this.$page.props.locale === 'fr';
+		},
 	},
 };
 </script>

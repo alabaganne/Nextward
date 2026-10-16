@@ -139,12 +139,17 @@ class Internship extends Model
 
     public function getPublicUrlAttribute(): string
     {
-        return rtrim(config('app.url'), '/').'/opportunities/'.$this->id.'-'.($this->slug ?: (Str::slug($this->title) ?: 'opportunity'));
+        return $this->publicUrl();
+    }
+
+    public function publicUrl(string $locale = 'en'): string
+    {
+        return rtrim(config('app.url'), '/').($locale === 'fr' ? '/fr' : '').'/opportunities/'.$this->id.'-'.($this->slug ?: (Str::slug($this->title) ?: 'opportunity'));
     }
 
     public function getLocationLabelAttribute(): string
     {
-        return $this->location ?: (collect([$this->city?->name, $this->country_code])->filter()->implode(', ') ?: 'Location not specified');
+        return $this->location ?: (collect([$this->city?->name, $this->country_code])->filter()->implode(', ') ?: __('Location not specified'));
     }
 
     public function scopePublished($query)

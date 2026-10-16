@@ -14,12 +14,13 @@ class PublicCompanyController extends Controller
     {
         abort_unless(preg_match('/^([1-9][0-9]*)-/', $companySlug, $matches), 404);
         $model = Company::with('user', 'city')->findOrFail($matches[1]);
+        $locale = $request->is('fr/*') ? 'fr' : 'en';
         if ($model->claimed_by_company_id) {
-            return redirect(Company::with('user')->findOrFail($model->claimed_by_company_id)->public_url, 301);
+            return redirect(Company::with('user')->findOrFail($model->claimed_by_company_id)->publicUrl($locale), 301);
         }
         abort_unless($model->hasPublicName(), 404);
-        if ($companySlug !== basename(parse_url($model->public_url, PHP_URL_PATH))) {
-            return redirect($model->public_url, 301);
+        if ($companySlug !== basename(parse_url($model->publicUrl($locale), PHP_URL_PATH))) {
+            return redirect($model->publicUrl($locale), 301);
         }
         $opportunities = $model->internships()->available()
             ->with(['company.user', 'company.city', 'field', 'city', 'skills', 'sources.importSource'])
@@ -38,6 +39,7 @@ class PublicCompanyController extends Controller
             ],
             'opportunities' => InternshipResource::collection($opportunities),
             'seo' => PublicSeo::company($model, $opportunities->count()),
+            'translation' => parse_url($model->publicUrl($locale === 'fr' ? 'en' : 'fr'), PHP_URL_PATH),
         ]);
     }
 }

@@ -52,6 +52,8 @@ Route::prefix('fr')->name('fr.')->group(function () {
     Route::get('/for-professionals', [PublicPageController::class, 'audience'])->defaults('audience', 'professionals')->name('professionals');
     Route::get('/opportunities', [InternshipController::class, 'index'])->name('opportunities');
     Route::get('/opportunities/{category}', [InternshipController::class, 'index'])->whereIn('category', ['internships', 'jobs', 'tunisia', 'remote-from-tunisia', 'relocation'])->name('category');
+    Route::get('/opportunities/{opportunity}', [InternshipController::class, 'publicShow'])->where('opportunity', '[0-9]+(?:-[a-z0-9-]+)?')->name('opportunity');
+    Route::get('/companies/{companySlug}', [PublicCompanyController::class, 'show'])->where('companySlug', '[0-9]+-[a-z0-9-]+')->name('company');
     Route::inertia('/about', 'About')->name('about');
     Route::inertia('/contact', 'Contact')->name('contact');
     Route::inertia('/privacy', 'Privacy')->name('privacy');

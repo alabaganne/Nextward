@@ -79,12 +79,12 @@ class RegisteredUserController extends Controller
             'company_logo' => 'required_if:account_type,company|nullable|image|max:2048',
             'terms' => 'accepted',
         ], [
-            'terms.accepted' => 'Please agree to the terms of use and the privacy policy to create an account.',
-            'account_type.required' => 'Choose whether you want to find opportunities or hire candidates.',
-            'company_logo.required_if' => 'Upload a company logo before creating a company account.',
-            'website.required_if' => 'Add your company website before creating a company account.',
-            'about.required_if' => 'Tell candidates about your company before creating a company account.',
-            'about.min' => 'The company description should be at least 30 characters.',
+            'terms.accepted' => __('Please agree to the terms of use and the privacy policy to create an account.'),
+            'account_type.required' => __('Choose whether you want to find opportunities or hire candidates.'),
+            'company_logo.required_if' => __('Upload a company logo before creating a company account.'),
+            'website.required_if' => __('Add your company website before creating a company account.'),
+            'about.required_if' => __('Tell candidates about your company before creating a company account.'),
+            'about.min' => __('The company description should be at least 30 characters.'),
         ]);
 
         $user = DB::transaction(function () use ($request, $data) {

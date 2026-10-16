@@ -1,0 +1,57 @@
+<?php
+
+// Only the rules used on public forms. Missing keys fall back to English.
+return [
+    'accepted' => 'Vous devez accepter le champ :attribute.',
+    'array' => 'Le champ :attribute doit être une liste.',
+    'boolean' => 'Le champ :attribute doit être vrai ou faux.',
+    'confirmed' => 'La confirmation du champ :attribute ne correspond pas.',
+    'email' => 'Le champ :attribute doit être une adresse e-mail valide.',
+    'exists' => 'La valeur choisie pour :attribute n’est pas valide.',
+    'image' => 'Le champ :attribute doit être une image.',
+    'in' => 'La valeur choisie pour :attribute n’est pas valide.',
+    'integer' => 'Le champ :attribute doit être un nombre entier.',
+    'max' => [
+        'array' => 'Le champ :attribute ne doit pas contenir plus de :max éléments.',
+        'file' => 'Le fichier :attribute ne doit pas dépasser :max kilo-octets.',
+        'numeric' => 'Le champ :attribute ne doit pas dépasser :max.',
+        'string' => 'Le champ :attribute ne doit pas dépasser :max caractères.',
+    ],
+    'min' => [
+        'array' => 'Le champ :attribute doit contenir au moins :min éléments.',
+        'file' => 'Le fichier :attribute doit faire au moins :min kilo-octets.',
+        'numeric' => 'Le champ :attribute doit être au moins :min.',
+        'string' => 'Le champ :attribute doit contenir au moins :min caractères.',
+    ],
+    'regex' => 'Le format du champ :attribute n’est pas valide.',
+    'required' => 'Le champ :attribute est obligatoire.',
+    'required_if' => 'Le champ :attribute est obligatoire quand :other vaut :value.',
+    'size' => [
+        'array' => 'Le champ :attribute doit contenir :size éléments.',
+        'file' => 'Le fichier :attribute doit faire :size kilo-octets.',
+        'numeric' => 'Le champ :attribute doit valoir :size.',
+        'string' => 'Le champ :attribute doit contenir :size caractères.',
+    ],
+    'string' => 'Le champ :attribute doit être un texte.',
+    'unique' => 'Cette valeur de :attribute est déjà utilisée.',
+    'uploaded' => 'Le fichier :attribute n’a pas pu être envoyé.',
+    'url' => 'Le champ :attribute doit être une adresse web valide.',
+
+    'attributes' => [
+        'about' => 'présentation',
+        'account_type' => 'type de compte',
+        'career_stage' => 'situation',
+        'city_id' => 'ville',
+        'company_logo' => 'logo',
+        'country_code' => 'code pays',
+        'email' => 'adresse e-mail',
+        'field_id' => 'domaine',
+        'linkedin_profile_url' => 'page LinkedIn',
+        'location' => 'lieu',
+        'name' => 'nom',
+        'password' => 'mot de passe',
+        'password_confirmation' => 'confirmation du mot de passe',
+        'phone_number' => 'numéro de téléphone',
+        'website' => 'site web',
+    ],
+];

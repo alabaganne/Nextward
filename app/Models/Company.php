@@ -49,7 +49,12 @@ class Company extends Model
 
     public function getPublicUrlAttribute(): string
     {
-        return rtrim(config('app.url'), '/').'/companies/'.$this->id.'-'.(Str::slug($this->display_name) ?: 'company');
+        return $this->publicUrl();
+    }
+
+    public function publicUrl(string $locale = 'en'): string
+    {
+        return rtrim(config('app.url'), '/').($locale === 'fr' ? '/fr' : '').'/companies/'.$this->id.'-'.(Str::slug($this->display_name) ?: 'company');
     }
 
     public function hasPublicName(): bool

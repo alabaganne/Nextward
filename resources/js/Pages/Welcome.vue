@@ -88,7 +88,7 @@ const steps = computed(() => [
                         <p class="landing-label text-blue-700">{{ text('For employers', 'Pour les employeurs') }}</p>
                         <h2 class="section-title">{{ text('Hire students and professionals.', 'Recrutez des étudiants et des professionnels.') }}</h2>
                         <p class="section-description">{{ text('Publish an internship or a job. Introduce your company, review applications, and keep candidate conversations in one place.', 'Publiez un stage ou un emploi. Présentez votre entreprise, examinez les candidatures et centralisez les échanges avec les candidats.') }}</p>
-                        <Link :href="currentUser?.userable_type === 'company' ? '/internships/create' : '/register?account=company'" class="cta cta-primary focus-ring mt-8">{{ text('Post an opportunity', 'Publier une opportunité') }}</Link>
+                        <Link :href="currentUser?.userable_type === 'company' ? '/internships/create' : `${prefix}/register?account=company`" class="cta cta-primary focus-ring mt-8">{{ text('Post an opportunity', 'Publier une opportunité') }}</Link>
                     </div>
                 </div>
             </section>

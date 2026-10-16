@@ -140,8 +140,8 @@ const tools = computed(() => [
                         <h2 class="section-title">{{ text('Ready for your next move?', 'Prêt pour la suite ?') }}</h2>
                         <p class="mt-4 text-lg">{{ text('Create a candidate account to save jobs, set alerts and follow every application.', 'Créez un compte candidat pour sauvegarder des offres, créer des alertes et suivre chaque candidature.') }}</p>
                         <div class="hero-buttons">
-                            <Link href="/register?account=student&career_stage=professional" class="cta cta-light focus-ring">{{ text('Create a candidate account', 'Créer un compte candidat') }}</Link>
-                            <Link href="/register?account=company" class="cta cta-ghost focus-ring">{{ text('Hiring? Post a job', 'Vous recrutez ? Publiez une offre') }}</Link>
+                            <Link :href="`${prefix}/register?account=student&career_stage=professional`" class="cta cta-light focus-ring">{{ text('Create a candidate account', 'Créer un compte candidat') }}</Link>
+                            <Link :href="`${prefix}/register?account=company`" class="cta cta-ghost focus-ring">{{ text('Hiring? Post a job', 'Vous recrutez ? Publiez une offre') }}</Link>
                         </div>
                     </div>
                 </div>

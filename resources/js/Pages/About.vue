@@ -33,7 +33,7 @@ const highlights = computed(() => [
 						<p class="hero-lead">{{ text('Nextward helps students and professionals find internships and jobs in Tunisia and worldwide. Browse employer posts and approved public sources, understand the requirements, and apply through Nextward or the original application website.', 'Nextward aide les étudiants et les professionnels à trouver des stages et des emplois en Tunisie et à l’international. Consultez les offres des employeurs et des sources autorisées, comprenez les conditions et postulez sur Nextward ou sur le site d’origine.') }}</p>
 						<div class="hero-buttons">
 							<Link :href="`${prefix}/opportunities`" class="cta cta-primary focus-ring">{{ text('Browse opportunities', 'Voir les offres') }}<Icon name="arrow-up-right" class="action-icon" /></Link>
-							<Link :href="route('register')" class="cta cta-ghost focus-ring">{{ text('Create account', 'Créer un compte') }}</Link>
+							<Link :href="`${prefix}/register`" class="cta cta-ghost focus-ring">{{ text('Create account', 'Créer un compte') }}</Link>
 						</div>
 					</div>
 					<figure class="hero-stage about-stage">

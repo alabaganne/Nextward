@@ -97,7 +97,7 @@ const updated = computed(() => props.post.updated_at && props.post.updated_at !=
 					</div>
 					<div class="flex flex-col sm:flex-row gap-3 shrink-0">
 						<Link :href="`${prefix}/opportunities`" class="cta cta-light focus-ring">{{ text('Browse opportunities', 'Voir les offres') }}</Link>
-						<Link v-if="!page.props.auth?.user" :href="route('register')" class="cta cta-ghost focus-ring">{{ text('Create account', 'Créer un compte') }}</Link>
+						<Link v-if="!page.props.auth?.user" :href="`${prefix}/register`" class="cta cta-ghost focus-ring">{{ text('Create account', 'Créer un compte') }}</Link>
 					</div>
 				</div>
 			</section>
