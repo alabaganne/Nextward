@@ -101,7 +101,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('/applications/{application}', [ApplicationController::class, 'reply'])->name('applications.reply');
     Route::get('/applications', [ApplicationController::class, 'index'])->name('applications.index');
     Route::get('/internships/{internship}/apply', [ApplicationController::class, 'create'])->name('applications.create');
-    Route::post('/internship/{internship}/apply', [ApplicationController::class, 'store'])->name('applications.store');
+    Route::post('/internship/{internship}/apply', [ApplicationController::class, 'store'])->middleware('throttle:10,1,apply')->name('applications.store');
     Route::get('/applications/{application}/edit', [ApplicationController::class, 'edit'])->name('applications.edit');
     Route::get('/applications/{application}', [ApplicationController::class, 'show'])->name('applications.show');
     Route::put('/applications/{application}', [ApplicationController::class, 'update'])->name('applications.update');
@@ -114,10 +114,9 @@ Route::group(['middleware' => 'auth'], function() {
 	// Messages
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
     Route::get('/messages/{user}', [MessageController::class, 'show'])->name('messages.show');
-    Route::post('/messages', [MessageController::class, 'store'])->name('messages.store');
-    Route::delete('/messages/{message}', [MessageController::class, 'destroy'])->name('messages.destroy');
+    Route::post('/messages', [MessageController::class, 'store'])->middleware('throttle:30,1,messages')->name('messages.store');
 	// Notifications
-	Route::get('/notifications/clear', [NotificationController::class, 'clear'])->name('notifications.clear');
+	Route::delete('/notifications', [NotificationController::class, 'clear'])->name('notifications.clear');
     Route::post('/notifications/{notification}', [NotificationController::class, 'store'])->name('notifications.store');
 });
 

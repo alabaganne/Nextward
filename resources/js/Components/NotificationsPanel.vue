@@ -38,7 +38,8 @@ const openNotification = (notification) => {
 };
 
 const clearAll = () => {
-	router.get(route('notifications.clear'), {}, { preserveScroll: true });
+	if (!confirm('Delete all your notifications? This cannot be undone.')) return;
+	router.delete(route('notifications.clear'), { preserveScroll: true });
 };
 </script>
 

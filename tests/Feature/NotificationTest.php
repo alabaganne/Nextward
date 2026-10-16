@@ -51,10 +51,21 @@ class NotificationTest extends TestCase
         $student = User::where('email', 'student@example.com')->first();
         $company = User::where('email', 'company@example.com')->first();
 
-        $this->actingAs($student)->get(route('notifications.clear'))->assertRedirect();
+        $this->actingAs($student)->delete(route('notifications.clear'))->assertRedirect();
 
         $this->assertSame(0, $student->notifications()->count());
         $this->assertGreaterThan(0, $company->notifications()->count());
+    }
+
+    public function test_a_get_request_cannot_clear_notifications(): void
+    {
+        $student = User::where('email', 'student@example.com')->first();
+        $count = $student->notifications()->count();
+
+        $this->actingAs($student)->get('/notifications/clear')->assertStatus(405);
+
+        $this->assertGreaterThan(0, $count);
+        $this->assertSame($count, $student->notifications()->count());
     }
 
     public function test_notification_bodies_escape_user_supplied_names_and_titles(): void

@@ -7,10 +7,13 @@ use App\Http\Resources\ApplicationResource;
 use App\Http\Resources\InternshipResource;
 use App\Models\Application;
 use App\Models\Internship;
+use App\Models\User;
 use App\Notifications\ApplicationReviewed;
 use App\Notifications\ApplicationSubmitted;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -69,7 +72,7 @@ class ApplicationController extends Controller
             ]);
         });
 
-        $application->company->user?->notify(new ApplicationSubmitted($application));
+        $this->notifySafely($application->company->user, new ApplicationSubmitted($application));
 
         return Redirect::route('applications.index')->with('toast', [
             'type' => 'store',
@@ -134,13 +137,27 @@ class ApplicationController extends Controller
             ])
         );
 
-        $application->student->user->notify(new ApplicationReviewed($application));
+        $this->notifySafely($application->student->user, new ApplicationReviewed($application));
 
         return Redirect::back()->with('toast', [
             'type' => 'notification',
             'message' => 'Reply sent to the applicant.'
         ]);
     }
+    // The application is already saved, so a mail or broadcast error must not fail the request.
+    private function notifySafely(?User $user, Notification $notification): void
+    {
+        try {
+            $user?->notify($notification);
+        } catch (\Throwable $exception) {
+            Log::warning('Application notification failed; the application was still saved.', [
+                'user_id' => $user?->id,
+                'notification' => $notification::class,
+                'error' => $exception->getMessage(),
+            ]);
+        }
+    }
+
     private function storeAttachments(Request $request, string $directory): array
     {
         return collect($request->file('attachment_files', []))->map(function ($file) use ($directory) {

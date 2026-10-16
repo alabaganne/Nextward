@@ -53,14 +53,14 @@ class DemoSeeder extends Seeder
         $password = Hash::make('password');
 
         $student = Student::create(['about' => 'Software engineering student focused on Laravel, Vue, and product-minded web applications.', 'field_id' => $fields['Software Engineering']->id, 'city_id' => $cities['Tunis']->id, 'career_stage' => 'student', 'headline' => 'Software engineering student seeking a PFE internship', 'experience_years' => 0, 'country_code' => 'TN', 'location' => 'Tunis', 'languages' => ['ar', 'fr', 'en'], 'preferences' => ['kinds' => ['internship'], 'countries' => ['TN', 'FR'], 'work_types' => ['onsite', 'hybrid', 'remote'], 'include_unknown_eligibility' => false]]);
-        $studentUser = $student->user()->create(['name' => 'Ala Baganne', 'email' => 'student@example.com', 'password' => $password, 'phone_number' => '50101959', 'is_admin' => false]);
+        $studentUser = $student->user()->create(['name' => 'Ala Baganne', 'email' => 'student@example.com', 'password' => $password, 'phone_number' => '50101959']);
 
         $student->skills()->sync($skills->only(['Laravel', 'Vue', 'SQL'])->pluck('id'));
         $professional = Student::create(['about' => 'Fictional demo profile: backend engineer with five years of experience building APIs and data products.', 'field_id' => $fields['Software Engineering']->id, 'city_id' => $cities['Sousse']->id, 'career_stage' => 'professional', 'headline' => 'Backend engineer, Laravel and PostgreSQL', 'experience_years' => 5, 'country_code' => 'TN', 'location' => 'Sousse', 'languages' => ['ar', 'fr', 'en'], 'preferences' => ['kinds' => ['job'], 'countries' => ['TN', 'DE', 'FR'], 'work_types' => ['remote', 'hybrid'], 'include_unknown_eligibility' => false]]);
-        $professionalUser = $professional->user()->create(['name' => 'Yasmine Demo', 'email' => 'professional@example.com', 'password' => $password, 'is_admin' => false]);
+        $professionalUser = $professional->user()->create(['name' => 'Yasmine Demo', 'email' => 'professional@example.com', 'password' => $password]);
         $professional->skills()->sync($skills->only(['Laravel', 'PostgreSQL', 'Docker'])->pluck('id'));
 
-        User::create(['name' => 'Platform Admin', 'email' => 'admin@example.com', 'password' => $password, 'phone_number' => '00000000', 'is_admin' => true]);
+        User::forceCreate(['name' => 'Platform Admin', 'email' => 'admin@example.com', 'password' => $password, 'phone_number' => '00000000', 'is_admin' => true]);
 
         $companySpecs = [
             ['Atlas Cloud','https://atlas.example.com','Tunis','Cloud infrastructure startup building developer-first deployment tooling.'],
@@ -73,7 +73,7 @@ class DemoSeeder extends Seeder
         $companies = collect();
         foreach ($companySpecs as [$name,$website,$city,$about]) {
             $company = Company::create(['name' => $name, 'website' => $website, 'domain' => parse_url($website, PHP_URL_HOST), 'about' => 'Fictional demo employer. '.$about, 'city_id' => $cities[$city]->id, 'country_code' => 'TN', 'location' => $city]);
-            $company->user()->create(['name' => $name, 'email' => strtolower(str_replace(' ', '', $name)).'@example.com', 'password' => $password, 'phone_number' => $faker->unique()->numerify('########'), 'is_admin' => false]);
+            $company->user()->create(['name' => $name, 'email' => strtolower(str_replace(' ', '', $name)).'@example.com', 'password' => $password, 'phone_number' => $faker->unique()->numerify('########')]);
             $companies[$name] = $company;
         }
         $companies['Realinflo']->user->update(['email' => 'company@example.com']);
@@ -263,7 +263,7 @@ class DemoSeeder extends Seeder
             if ($index % 3 === 2) { $factory = $factory->graduate(); }
             $profile = $factory->create();
             $profile->skills()->sync($skills->random(3)->pluck('id'));
-            $profile->user()->create(['name' => $faker->name(), 'email' => 'candidate'.($index + 1).'@example.com', 'password' => $password, 'phone_number' => $faker->unique()->numerify('########'), 'is_admin' => false]);
+            $profile->user()->create(['name' => $faker->name(), 'email' => 'candidate'.($index + 1).'@example.com', 'password' => $password, 'phone_number' => $faker->unique()->numerify('########')]);
         }
     }
 }

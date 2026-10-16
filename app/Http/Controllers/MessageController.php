@@ -51,6 +51,9 @@ class MessageController extends Controller
 		});
 
 		$selectedContact = $request->user_id ? User::find($request->user_id) : (sizeof($contacts) > 0 ? $contacts[0] : null);
+		if ($selectedContact instanceof User && ! $contacts->contains('id', $selectedContact->id) && ! $request->user()->canMessage($selectedContact)) {
+			$selectedContact = null;
+		}
 
 		if($selectedContact) {
 			Message::where('from_id', $selectedContact['id'])->where('to_id', $auth_id)->whereNull('read_at')->update(['read_at' => now()]);
@@ -91,6 +94,8 @@ class MessageController extends Controller
 			'to_id' => ['required', 'integer', 'exists:users,id'],
 			'text' => ['required', 'string', 'max:5000'],
 		]);
+
+		abort_unless($request->user()->canMessage(User::findOrFail($request->to_id)), 403, 'You cannot message this user.');
 
 		$message = Message::create([
 			'from_id' => auth()->user()->id,

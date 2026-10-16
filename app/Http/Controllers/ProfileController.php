@@ -2,9 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Application;
 use App\Models\City;
+use App\Models\Company;
 use App\Models\Field;
+use App\Models\SavedSearch;
+use App\Models\Student;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 
@@ -102,7 +109,11 @@ class ProfileController extends Controller
             'preferences.include_unknown_eligibility' => 'nullable|boolean',
         ]);
 
-        $user->update(collect($data)->only('name', 'email', 'phone_number', 'linkedin_profile_url')->toArray());
+        $user->fill(collect($data)->only('name', 'email', 'phone_number', 'linkedin_profile_url')->toArray());
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+        $user->save();
 
         if ($user->isCompany()) {
             $user->userable->update(collect($data)->only('name', 'about', 'website', 'city_id', 'country_code', 'location')->toArray());
@@ -123,10 +134,38 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+        $files = [];
 
-        \Illuminate\Support\Facades\Auth::logout();
+        DB::transaction(function () use ($user, &$files) {
+            $profile = $user->userable;
 
-        $user->delete();
+            if ($profile instanceof Student) {
+                $applications = Application::where('student_id', $profile->id)->get();
+                $files = $applications->flatMap(fn ($application) => $application->attachments ?: [])
+                    ->map(fn ($attachment) => is_array($attachment) ? Application::attachmentStorage($attachment) : null)
+                    ->filter()->all();
+
+                Application::whereKey($applications->modelKeys())->delete();
+                $profile->likes()->detach();
+                $profile->openedOpportunities()->detach();
+                $profile->skills()->detach();
+                $profile->delete();
+            } elseif ($profile instanceof Company) {
+                // Keep the company row so candidates still see who they applied to.
+                $profile->internships()->update(['status' => 'closed', 'publication_status' => 'suppressed']);
+                $profile->update(['name' => $profile->name ?: $user->name]);
+            }
+
+            SavedSearch::where('user_id', $user->id)->delete();
+            $user->notifications()->delete();
+            $user->delete();
+        });
+
+        foreach ($files as $file) {
+            Storage::disk($file['disk'])->delete($file['path']);
+        }
+
+        Auth::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

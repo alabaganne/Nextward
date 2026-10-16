@@ -47,7 +47,6 @@ const meta = computed(() => props.students.meta ?? props.students);
 				</div>
 				<div class="flex gap-2.5 px-6 pb-6 mt-auto">
 					<Link class="flex-1 justify-center h-[42px] inline-flex items-center font-semibold text-[15px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors" :href="route('students.show', student.id)">Profile</Link>
-					<Link class="flex-1 justify-center h-[42px] inline-flex items-center font-semibold text-[15px] rounded-[12px] bg-paper-2 border border-line text-ink-700 hover:border-blue-300 hover:text-blue-700 transition-colors" :href="route('messages.show', student.user_id)">Message</Link>
 				</div>
 			</article>
 		</div>

@@ -23,9 +23,6 @@ class User extends Authenticatable
         'phone_number',
         'image',
         'linkedin_profile_url',
-        'userable_id',
-        'userable_type',
-        'is_admin'
     ];
 
     public $timestamps = false;
@@ -67,6 +64,25 @@ class User extends Authenticatable
 
     public function isAdmin() {
         return (bool) $this->is_admin && !$this->isCompany() && !$this->isStudent();
+    }
+
+    // Candidates can open a chat with a company; companies reply or write to their applicants.
+    public function canMessage(User $to): bool
+    {
+        if ($this->is($to) || ! $this->userable_id || ! $to->userable_id) {
+            return false;
+        }
+
+        if ($this->isCandidate() && $to->isCompany()) {
+            return true;
+        }
+
+        if (! ($this->isCompany() && $to->isCandidate())) {
+            return false;
+        }
+
+        return Application::where('student_id', $to->userable_id)->where('company_id', $this->userable_id)->where('channel', 'internal')->exists()
+            || Message::where('from_id', $to->id)->where('to_id', $this->id)->exists();
     }
 
     public function sentMessages() {

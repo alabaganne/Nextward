@@ -1,5 +1,5 @@
 <script setup>
-import { ArrowRight, ArrowUpRight, ChevronRight, GraduationCap, Mail, MapPin, Phone } from '@lucide/vue';
+import { ArrowUpRight, ChevronRight, GraduationCap, Mail, MapPin, Phone } from '@lucide/vue';
 import { computed, h } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
@@ -19,7 +19,6 @@ const icons = {
 	mail: Mail,
 	phone: Phone,
 	external: ArrowUpRight,
-	arrow: ArrowRight,
 };
 
 const page = usePage();
@@ -59,9 +58,6 @@ const initials = computed(() =>
 				</div>
 				<div class="flex gap-2.5 pt-3.5">
 					<Link v-if="isAdmin" class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[18px] h-10 rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all" :href="route('students.edit', student.id)">Edit</Link>
-					<Link class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[18px] h-10 rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors [&_svg]:w-[17px] [&_svg]:h-[17px]" :href="route('messages.show', student.user_id)">
-						Message <component :is="icons.arrow" aria-hidden="true" />
-					</Link>
 				</div>
 			</div>
 		</section>
