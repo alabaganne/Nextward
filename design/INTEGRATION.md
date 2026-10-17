@@ -131,6 +131,12 @@ footer block, and the topbar search/actions all translate 1:1.
 Public pages use `Public.vue`; auth pages use `Guest.vue`. Their approved structure,
 assets, responsive layouts, and form controls already exist. Reuse these components
 rather than porting the obsolete marketing or split-auth prototype helpers.
+
+Shared public styles live in `resources/css/public.css`. Guide cards use
+`Components/Blog/GuideCard.vue`, and article photos are matched by slug in
+`Components/Blog/guideImages.js` (English and French slugs are both listed).
+The landing hero (`Components/Landing/LandingHero.vue`) and the cobalt closing
+banner (`Components/Landing/ClosingBanner.vue`) are shared by the landing and blog pages.
 ---
 
 ## 4. Porting a page — checklist

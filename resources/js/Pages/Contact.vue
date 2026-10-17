@@ -39,9 +39,9 @@ const submit = () => form.post('/contact', {
 	<PublicLayout>
 		<div class="landing">
 			<section aria-labelledby="contact-title" class="hero-dark">
-				<div class="hero-grid public-container">
+				<div class="public-container hero-grid hero-pad">
 					<div>
-						<p class="landing-label"><span class="label-dot" aria-hidden="true"></span>Contact</p>
+						<p class="landing-label">Contact</p>
 						<h1 id="contact-title" class="hero-title">{{ text('Let’s talk about your next opportunity.', 'Parlons de votre prochaine opportunité.') }}</h1>
 						<p class="hero-lead">{{ text('Students, professionals, employers and source partners can all reach the Nextward team here. We read every message.', 'Étudiants, professionnels, employeurs et partenaires peuvent écrire à l’équipe Nextward ici. Nous lisons chaque message.') }}</p>
 					</div>
@@ -106,8 +106,8 @@ const submit = () => form.post('/contact', {
 					</form>
 				</div>
 
-				<aside class="self-start rounded-2xl bg-white border border-line p-8">
-					<h3 class="text-xl font-semibold text-navy">{{ text('Good to know', 'Bon à savoir') }}</h3>
+				<aside class="self-start rounded-2xl bg-pale p-8">
+					<h3 class="font-display text-xl font-semibold text-navy">{{ text('Good to know', 'Bon à savoir') }}</h3>
 					<ul class="contact-notes mt-5">
 						<li><Icon name="exclamation-triangle" /><span>{{ text('To fix or remove a listing, choose “Problem with a listing” and paste its link. You can also use “Report an issue” on the listing page.', 'Pour corriger ou retirer une offre, choisissez « Problème avec une offre » et collez son lien. Vous pouvez aussi utiliser « Signaler un problème » sur la page de l’offre.') }}</span></li>
 						<li><Icon name="briefcase" /><span>{{ text('Employers can post roles for free after creating a company account.', 'Les employeurs peuvent publier des offres gratuitement après avoir créé un compte entreprise.') }}</span></li>
@@ -124,7 +124,7 @@ const submit = () => form.post('/contact', {
 </template>
 
 <style scoped>
-.contact-stage { width: min(100%, 340px); justify-self: center; }
+.contact-stage { width: min(100%, 320px); }
 .contact-form { display: grid; gap: 20px; padding: 28px; border: 1px solid var(--color-line); border-radius: 16px; background: #fff; }
 .contact-form label { display: block; margin-bottom: 6px; color: var(--color-navy); font-size: 14px; font-weight: 600; }
 .contact-form input, .contact-form select, .contact-form textarea { width: 100%; border: 1px solid var(--color-line); border-radius: 12px; background-color: #fff; padding: 11px 14px; font-size: 15px; color: var(--color-ink); }

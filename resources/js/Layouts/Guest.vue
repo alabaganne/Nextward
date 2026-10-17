@@ -7,7 +7,7 @@
 			<aside class="auth-story" :aria-label="text('Your next chapter', 'Votre prochaine étape')">
 				<Link :href="prefix || '/'" class="focus-ring auth-brand"><brand-logo size="sm" /><span>Nextward</span></Link>
 				<div class="auth-story-inner">
-					<p class="auth-kicker"><span aria-hidden="true"></span>{{ text('Your next chapter', 'Votre prochaine étape') }}</p>
+					<p class="auth-kicker">{{ text('Your next chapter', 'Votre prochaine étape') }}</p>
 					<h2 v-if="fr">Petit pas.<br /><span>Grand départ.</span></h2>
 					<h2 v-else>Small step.<br /><span>Big beginning.</span></h2>
 					<p class="auth-story-description">{{ text('Find internships and jobs for students and professionals, in Tunisia and worldwide.', 'Des stages et des emplois pour étudiants et professionnels, en Tunisie et à l’international.') }}</p>

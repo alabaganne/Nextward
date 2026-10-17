@@ -14,7 +14,6 @@ const links = computed(() => [
 ]);
 const languageMenu = ref(null);
 const mobileMenu = ref(null);
-const scrolled = ref(false);
 const currentPath = computed(() => page.url.split(/[?#]/)[0]);
 const isActive = (href) => currentPath.value === href || currentPath.value.startsWith(`${href}/`);
 const languageOptions = computed(() => {
@@ -40,27 +39,23 @@ const dismissMenu = (menu) => {
     menu.open = false;
     menu.querySelector('summary')?.focus();
 };
-const onScroll = () => { scrolled.value = window.scrollY > 8; };
 onMounted(() => {
     document.addEventListener('click', closeMenus);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
 });
 onBeforeUnmount(() => {
     document.removeEventListener('click', closeMenus);
-    window.removeEventListener('scroll', onScroll);
 });
 </script>
 <template>
-    <div class="min-h-screen bg-[#faf9f6] text-navy flex flex-col">
+    <div class="min-h-screen bg-pale text-navy flex flex-col">
         <a href="#main" class="focus-ring sr-only z-50 rounded-lg bg-white px-4 py-2 font-semibold focus:not-sr-only focus:fixed focus:left-4 focus:top-4">{{ fr ? 'Aller au contenu' : 'Skip to content' }}</a>
-        <header class="site-header" :class="{ 'is-scrolled': scrolled }">
+        <header class="site-header">
             <div class="public-container flex h-[72px] items-center justify-between gap-4">
                 <Link :href="prefix || '/'" class="focus-ring brand-link"><BrandLogo size="sm" class="!h-9 [&>img]:!h-9 [&>img]:!w-9" /><span>Nextward</span></Link>
                 <nav :aria-label="fr ? 'Navigation principale' : 'Main navigation'" class="hidden xl:flex items-center gap-8">
                     <Link v-for="link in links" :key="link.href" :href="link.href" class="focus-ring nav-link" :aria-current="isActive(link.href) ? 'page' : undefined">{{ link.label }}</Link>
                 </nav>
-                <div class="flex shrink-0 items-center gap-2 xl:gap-5 text-sm font-semibold">
+                <div class="flex shrink-0 items-center gap-2 xl:gap-4 text-sm font-semibold">
                     <details v-if="languageOptions.length" ref="languageMenu" name="public-header-menu" class="group relative" @keydown.esc.stop.prevent="dismissMenu(languageMenu)" @focusout="($event.relatedTarget && !languageMenu.contains($event.relatedTarget)) && (languageMenu.open = false)">
                         <summary :aria-label="fr ? 'Langue : Français' : 'Language: English'" aria-controls="public-language-options" class="focus-ring language-toggle">
                             <Flag :code="fr ? 'fr' : 'en'" />
@@ -83,7 +78,7 @@ onBeforeUnmount(() => {
                         <summary class="focus-ring menu-toggle"><span class="sr-only">{{ fr ? 'Menu' : 'Navigation menu' }}</span><Icon name="menu" class="h-6 w-6 group-open:hidden" /><Icon name="x" class="hidden h-6 w-6 group-open:block" /></summary>
                         <nav :aria-label="fr ? 'Navigation mobile' : 'Mobile navigation'" class="mobile-menu">
                             <div class="public-container py-4">
-                                <a v-for="link in links" :key="link.href" :href="link.href" class="focus-ring mobile-link" :aria-current="isActive(link.href) ? 'page' : undefined">{{ link.label }}<Icon name="arrow-up-right" class="h-4 w-4 opacity-50" /></a>
+                                <a v-for="link in links" :key="link.href" :href="link.href" class="focus-ring mobile-link" :aria-current="isActive(link.href) ? 'page' : undefined">{{ link.label }}<Icon name="arrow-right" class="h-4 w-4 opacity-50" /></a>
                                 <div class="mt-4 grid gap-3 sm:grid-cols-2">
                                     <Link :href="currentUser ? '/dashboard' : `${prefix}/login`" class="cta cta-ghost focus-ring">{{ currentUser ? (fr ? 'Mon espace' : 'Dashboard') : (fr ? 'Connexion' : 'Log in') }}</Link>
                                     <Link v-if="!currentUser" :href="`${prefix}/register`" class="cta cta-light focus-ring">{{ fr ? 'Créer un compte' : 'Create account' }}</Link>
@@ -120,8 +115,7 @@ onBeforeUnmount(() => {
     </div>
 </template>
 <style scoped>
-.site-header { position: sticky; top: 0; z-index: 40; border-bottom: 1px solid transparent; background: var(--color-navy); color: #fff; transition: border-color 200ms; }
-.site-header.is-scrolled { border-bottom-color: rgb(255 255 255 / .1); }
+.site-header { position: sticky; top: 0; z-index: 40; border-bottom: 1px solid rgb(255 255 255 / .08); background: var(--color-navy); color: #fff; }
 .site-header .focus-ring:focus-visible, .site-footer .focus-ring:focus-visible { outline-color: #fff; }
 .site-footer { background: var(--color-navy); color: #fff; }
 .footer-link { width: fit-content; border-radius: 2px; color: rgb(255 255 255 / .72); text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 5px; transition: color 180ms, text-decoration-color 180ms; }
@@ -143,14 +137,15 @@ onBeforeUnmount(() => {
 .language-option[aria-current='true'] { background: #eef4ff; color: var(--color-brand-dark); }
 .language-option .flag { width: 26px; height: 26px; transition: transform 200ms cubic-bezier(.2, .7, .2, 1); }
 .language-option:hover .flag { transform: rotate(-8deg) scale(1.08); }
+.site-header .language-option:focus-visible { outline-color: var(--color-brand); }
 .language-check { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--color-brand); color: #fff; }
 .language-check svg { width: 12px; height: 12px; }
 @keyframes menu-pop { from { opacity: 0; transform: translateY(-4px) scale(.96); } }
 .menu-toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 9px; cursor: pointer; list-style: none; }
 .menu-toggle:hover { background: rgb(255 255 255 / .08); }
 .mobile-menu { position: absolute; left: 0; right: 0; top: 100%; max-height: calc(100vh - 72px); overflow-y: auto; border-top: 1px solid rgb(255 255 255 / .08); background: #0f2150; }
-.mobile-link { display: flex; align-items: center; justify-content: space-between; padding: 16px 4px; border-bottom: 1px solid rgb(255 255 255 / .08); font-size: 17px; font-weight: 600; color: rgb(255 255 255 / .85); }
-.mobile-link[aria-current='page'] { color: #fff; border-left: 3px solid #8ab2ff; padding-left: 14px; }
+.mobile-link { display: flex; align-items: center; justify-content: space-between; padding: 15px 12px; border-bottom: 1px solid rgb(255 255 255 / .08); font-size: 17px; font-weight: 600; color: rgb(255 255 255 / .85); }
+.mobile-link[aria-current='page'] { border-radius: 10px; border-bottom-color: transparent; background: rgb(255 255 255 / .1); color: #fff; }
 @media (prefers-reduced-motion: reduce) {
     .nav-link::after { transition: none; }
     .language-menu { animation: none; }

@@ -51,14 +51,13 @@ const cards = computed(() => {
 		return [
 			{ label: 'Open roles', value: props.roles_count, icon: Briefcase, href: managedRolesHref.value },
 			{ label: 'Active applications', value: props.applications_count, icon: FileText, href: route('applications.index') },
-			{ label: 'Interviews', value: props.interviews_count, icon: CalendarCheck, href: route('applications.index') },
+			{ label: 'Interviews', value: props.interviews_count, icon: CalendarCheck, href: route('applications.index', { status: 'interview' }) },
 		];
 	}
 	return [
 		{ label: 'Active applications', value: props.applications_count, icon: FileText, href: route('applications.index') },
-		{ label: 'Interviews', value: props.interviews_count, icon: CalendarCheck, href: route('applications.index') },
+		{ label: 'Interviews', value: props.interviews_count, icon: CalendarCheck, href: route('applications.index', { status: 'interview' }) },
 		{ label: 'Saved roles', value: props.saved_count, icon: Bookmark, href: route('likes.index') },
-		{ label: 'Open opportunities', value: props.internships_count, icon: Briefcase, href: route('opportunities.index') },
 	];
 });
 </script>
@@ -72,16 +71,16 @@ const cards = computed(() => {
 			</template>
 		</PageHeader>
 
-		<div class="grid gap-4 mb-6 max-[1000px]:grid-cols-2 max-[480px]:gap-3" :class="cards.length === 3 ? 'grid-cols-3' : 'grid-cols-4'">
+		<div class="grid grid-cols-3 gap-4 mb-6 max-[480px]:gap-2">
 			<Link
 				v-for="card in cards"
 				:key="card.label"
 				:href="card.href"
 				class="group bg-white border border-line rounded-[16px] p-5 max-[480px]:p-4 transition-colors hover:border-blue-300 focus-visible:outline-2 focus-visible:outline-blue-500"
 			>
-				<div class="flex items-center justify-between text-muted">
+				<div class="flex items-center justify-between gap-2 text-muted">
 					<span class="text-sm font-semibold leading-snug">{{ card.label }}</span>
-					<component :is="card.icon" class="size-[18px] text-muted-2 group-hover:text-blue-600 transition-colors" aria-hidden="true" />
+					<component :is="card.icon" class="size-[18px] shrink-0 text-muted-2 group-hover:text-blue-600 transition-colors max-[480px]:hidden" aria-hidden="true" />
 				</div>
 				<div class="font-display text-[34px] max-[480px]:text-[28px] font-semibold mt-3 leading-none">{{ card.value ?? 0 }}</div>
 			</Link>

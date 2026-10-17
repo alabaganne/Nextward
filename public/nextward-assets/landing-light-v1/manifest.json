@@ -1,0 +1,294 @@
+{
+  "method": "Exact pixel crops from generated page mockups. No regeneration, reconstruction or upscaling.",
+  "assets": [
+    {
+      "name": "home-hero",
+      "use": "Home hero: two people collaborating",
+      "source": "output/imagegen/nextward-light-concepts-2026-10-17/home.png",
+      "crop_box": [
+        451,
+        54,
+        940,
+        318
+      ],
+      "width": 489,
+      "height": 264,
+      "png": "home-hero.png",
+      "webp": "home-hero.webp",
+      "url": "/nextward-assets/landing-light-v1/home-hero.webp",
+      "webp_bytes": 24740
+    },
+    {
+      "name": "home-student-portrait",
+      "use": "Home student audience panel",
+      "source": "output/imagegen/nextward-light-concepts-2026-10-17/home.png",
+      "crop_box": [
+        283,
+        486,
+        458,
+        682
+      ],
+      "width": 175,
+      "height": 196,
+      "png": "home-student-portrait.png",
+      "webp": "home-student-portrait.webp",
+      "url": "/nextward-assets/landing-light-v1/home-student-portrait.webp",
+      "webp_bytes": 8492
+    },
+    {
+      "name": "home-professional-portrait",
+      "use": "Home professional audience panel",
+      "source": "output/imagegen/nextward-light-concepts-2026-10-17/home.png",
+      "crop_box": [
+        724,
+        486,
+        895,
+        682
+      ],
+      "width": 171,
+      "height": 196,
+      "png": "home-professional-portrait.png",
+      "webp": "home-professional-portrait.webp",
+      "url": "/nextward-assets/landing-light-v1/home-professional-portrait.webp",
+      "webp_bytes": 6748
+    },
+    {
+      "name": "home-guide-portrait",
+      "use": "Home career guide preview",
+      "source": "output/imagegen/nextward-light-concepts-2026-10-17/home.png",
+      "crop_box": [
+        508,
+        1487,
+        670,
+        1598
+      ],
+      "width": 162,
+      "height": 111,
+      "png": "home-guide-portrait.png",
+      "webp": "home-guide-portrait.webp",
+      "url": "/nextward-assets/landing-light-v1/home-guide-portrait.webp",
+      "webp_bytes": 6052
+    },
+    {
+      "name": "professionals-hero",
+      "use": "Professionals hero",
+      "source": "output/imagegen/nextward-light-concepts-2026-10-17/for-professionals.png",
+      "crop_box": [
+        457,
+        61,
+        880,
+        330
+      ],
+      "width": 423,
+      "height": 269,
+      "png": "professionals-hero.png",
+      "webp": "professionals-hero.webp",
+      "url": "/nextward-assets/landing-light-v1/professionals-hero.webp",
+      "webp_bytes": 15702
+    },
+    {
+      "name": "professionals-guide-shortlist",
+      "use": "Professionals shortlist guide preview",
+      "source": "output/imagegen/nextward-light-concepts-2026-10-17/for-professionals.png",
+      "crop_box": [
+        57,
+        1473,
+        221,
+        1581
+      ],
+      "width": 164,
+      "height": 108,
+      "png": "professionals-guide-shortlist.png",
+      "webp": "professionals-guide-shortlist.webp",
+      "url": "/nextward-assets/landing-light-v1/professionals-guide-shortlist.webp",
+      "webp_bytes": 4438
+    },
+    {
+      "name": "professionals-guide-remote",
+      "use": "Professionals remote guide preview",
+      "source": "output/imagegen/nextward-light-concepts-2026-10-17/for-professionals.png",
+      "crop_box": [
+        467,
+        1473,
+        634,
+        1581
+      ],
+      "width": 167,
+      "height": 108,
+      "png": "professionals-guide-remote.png",
+      "webp": "professionals-guide-remote.webp",
+      "url": "/nextward-assets/landing-light-v1/professionals-guide-remote.webp",
+      "webp_bytes": 5494
+    },
+    {
+      "name": "students-hero",
+      "use": "Students hero",
+      "source": "output/imagegen/nextward-light-concepts-2026-10-17/for-students.png",
+      "crop_box": [
+        422,
+        59,
+        776,
+        347
+      ],
+      "width": 354,
+      "height": 288,
+      "png": "students-hero.png",
+      "webp": "students-hero.webp",
+      "url": "/nextward-assets/landing-light-v1/students-hero.webp",
+      "webp_bytes": 23460
+    },
+    {
+      "name": "students-guide-application",
+      "use": "Students application guide preview",
+      "source": "output/imagegen/nextward-light-concepts-2026-10-17/for-students.png",
+      "crop_box": [
+        42,
+        1357,
+        395,
+        1470
+      ],
+      "width": 353,
+      "height": 113,
+      "png": "students-guide-application.png",
+      "webp": "students-guide-application.webp",
+      "url": "/nextward-assets/landing-light-v1/students-guide-application.webp",
+      "webp_bytes": 8604
+    },
+    {
+      "name": "students-guide-library",
+      "use": "Students internship guide preview",
+      "source": "output/imagegen/nextward-light-concepts-2026-10-17/for-students.png",
+      "crop_box": [
+        418,
+        1357,
+        773,
+        1470
+      ],
+      "width": 355,
+      "height": 113,
+      "png": "students-guide-library.png",
+      "webp": "students-guide-library.webp",
+      "url": "/nextward-assets/landing-light-v1/students-guide-library.webp",
+      "webp_bytes": 11030
+    },
+    {
+      "name": "students-closing-portrait",
+      "use": "Students closing banner portrait with blue background",
+      "source": "output/imagegen/nextward-light-concepts-2026-10-17/for-students.png",
+      "crop_box": [
+        419,
+        1730,
+        780,
+        1872
+      ],
+      "width": 361,
+      "height": 142,
+      "png": "students-closing-portrait.png",
+      "webp": "students-closing-portrait.webp",
+      "url": "/nextward-assets/landing-light-v1/students-closing-portrait.webp",
+      "webp_bytes": 8892
+    },
+    {
+      "name": "guide-remote-work",
+      "use": "Remote eligibility featured article image",
+      "source": "output/imagegen/nextward-light-concepts-2026-10-17/career-guides.png",
+      "crop_box": [
+        51,
+        399,
+        611,
+        697
+      ],
+      "width": 560,
+      "height": 298,
+      "png": "guide-remote-work.png",
+      "webp": "guide-remote-work.webp",
+      "url": "/nextward-assets/landing-light-v1/guide-remote-work.webp",
+      "webp_bytes": 34230
+    },
+    {
+      "name": "guide-cv-application",
+      "use": "Internship application article image",
+      "source": "output/imagegen/nextward-light-concepts-2026-10-17/career-guides.png",
+      "crop_box": [
+        51,
+        788,
+        457,
+        952
+      ],
+      "width": 406,
+      "height": 164,
+      "png": "guide-cv-application.png",
+      "webp": "guide-cv-application.webp",
+      "url": "/nextward-assets/landing-light-v1/guide-cv-application.webp",
+      "webp_bytes": 9014
+    },
+    {
+      "name": "guide-job-shortlist",
+      "use": "Comparing job opportunities article image",
+      "source": "output/imagegen/nextward-light-concepts-2026-10-17/career-guides.png",
+      "crop_box": [
+        484,
+        788,
+        891,
+        952
+      ],
+      "width": 407,
+      "height": 164,
+      "png": "guide-job-shortlist.png",
+      "webp": "guide-job-shortlist.webp",
+      "url": "/nextward-assets/landing-light-v1/guide-job-shortlist.webp",
+      "webp_bytes": 12742
+    },
+    {
+      "name": "guide-find-internship",
+      "use": "Finding an internship article image",
+      "source": "output/imagegen/nextward-light-concepts-2026-10-17/career-guides.png",
+      "crop_box": [
+        51,
+        1058,
+        457,
+        1238
+      ],
+      "width": 406,
+      "height": 180,
+      "png": "guide-find-internship.png",
+      "webp": "guide-find-internship.webp",
+      "url": "/nextward-assets/landing-light-v1/guide-find-internship.webp",
+      "webp_bytes": 21944
+    },
+    {
+      "name": "guide-hiring-interns",
+      "use": "Hiring interns article image",
+      "source": "output/imagegen/nextward-light-concepts-2026-10-17/career-guides.png",
+      "crop_box": [
+        484,
+        1058,
+        891,
+        1238
+      ],
+      "width": 407,
+      "height": 180,
+      "png": "guide-hiring-interns.png",
+      "webp": "guide-hiring-interns.webp",
+      "url": "/nextward-assets/landing-light-v1/guide-hiring-interns.webp",
+      "webp_bytes": 17446
+    },
+    {
+      "name": "guide-platform",
+      "use": "Internship platform article image",
+      "source": "output/imagegen/nextward-light-concepts-2026-10-17/career-guides.png",
+      "crop_box": [
+        51,
+        1332,
+        431,
+        1487
+      ],
+      "width": 380,
+      "height": 155,
+      "png": "guide-platform.png",
+      "webp": "guide-platform.webp",
+      "url": "/nextward-assets/landing-light-v1/guide-platform.webp",
+      "webp_bytes": 9278
+    }
+  ]
+}

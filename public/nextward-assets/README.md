@@ -2,7 +2,7 @@
 
 Ready-to-use assets for the landing page and public website. Browser URLs start with `/nextward-assets/`, not `/public/nextward-assets/`.
 
-The current landing page uses the lighter editorial assets in [`landing/`](landing/README.md). The illustrations and loops below remain available for other uses.
+The public pages use the cartoon mascots and the desk scene in `mascots/`, and the article photos in [`landing-light-v1/`](landing-light-v1/README.md). The older [`landing/`](landing/README.md) assets, the illustrations and the loops below remain available for other uses.
 
 | PNG | Dimensions | Suggested use |
 |---|---|---|
@@ -31,4 +31,4 @@ The new logo lives in `/brand/nextward/`. The complete implementation prompt is 
 
 ## Mascots
 
-`mascots/` holds the cartoon pack from `brand/cartoon-assets-2026-10-14/`, used on the public landing pages. Files 01–16 are the editable SVGs (small, sharp at any size). Files 17–20 are WebP copies of the large PNGs: 17 and 18 are 900 × 900 with transparency, 19 is the 1672 × 941 workspace background with an empty left side for text, and 20 is the 941 × 1672 portrait background.
+`mascots/` holds the cartoon pack from `brand/cartoon-assets-2026-10-14/`, used on the public and sign-in pages. Files 01–16 are the editable SVGs (small, sharp at any size). Files 17–20 are WebP copies of the large PNGs: 17 and 18 are 900 × 900 with transparency, 19 is the 1672 × 941 workspace background with an empty left side for text, and 20 is the 941 × 1672 portrait background. 21 is a navy (`#0D2353`) night version of 19 (source: `brand/cartoon-assets-2026-10-14/png/19-cozy-career-workspace-dark-blue.png`), used for the employer card on the home page.

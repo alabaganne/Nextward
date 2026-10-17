@@ -10,7 +10,6 @@
 .auth-brand img { width: 36px !important; height: 36px !important; }
 .auth-story-inner { width: 100%; max-width: 440px; margin-inline: auto; }
 .auth-kicker { display: flex; align-items: center; gap: 10px; font-size: 11px; line-height: 1.5; font-weight: 600; letter-spacing: .15em; text-transform: uppercase; color: #b9d0ff; }
-.auth-kicker span { width: 7px; height: 7px; border-radius: 50%; background: #f78c78; }
 .auth-story h2 { margin-top: 22px; font-family: var(--font-display); font-size: clamp(40px, 4vw, 58px); font-weight: 600; line-height: 1.06; letter-spacing: -.06em; }
 .auth-story h2 span { color: #8ab2ff; }
 .auth-story-description { max-width: 360px; margin-top: 18px; font-size: 15px; line-height: 1.75; color: #c5cddc; }

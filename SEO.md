@@ -39,7 +39,7 @@ Copy an existing file to start. Front matter fields:
 | `draft: true` | Shows the post only on your local machine. Remove it to publish. |
 | `links` | Opportunity pages shown under the post. |
 | `faq` | Questions and answers shown at the end, also sent as FAQ structured data. |
-| `cover`, `cover_alt` | Optional 1200×630 image, also used as the share image. |
+| `cover`, `cover_alt` | Optional 1200×630 image, also used as the share image. The smaller page photos in `Components/Blog/guideImages.js` are only shown on the site, not used as share images. |
 
 Rules that help both Google and AI tools:
 - Answer the question in the first 2–3 sentences.

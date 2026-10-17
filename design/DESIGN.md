@@ -172,12 +172,12 @@ handwrite SVG paths, embed SVG icon strings, or substitute Unicode/emoji icons.
   In HTML this is the `<app-shell active="…">…</app-shell>` wrapper. In Vue it's the
   `AppShell` persistent layout with `<slot/>`. The page only writes the content;
   the chrome is never duplicated per page.
-- **Public pages**: use `Public.vue` for the approved warm header/footer and
+- **Public pages**: use `Public.vue` for the navy header/footer and
   `Guest.vue` for authentication. Do not recreate the obsolete `MarketingLayout`
   or `AuthSplit` prototypes.
-- **Dark sections**: the approved landing page uses a photographic background,
-  dark overlay, and light text. Follow its existing implementation and the public
-  design notes; avoid adding decorative glows or a new hero treatment by default.
+- **Public sections**: a dark navy hero with cartoon mascots, then white, cool grey
+  and ice blue sections, and a flat cobalt closing banner. No cream, glows or
+  decorative gradients. See [LANDING_PAGE_DESIGN.md](../LANDING_PAGE_DESIGN.md).
 ---
 
 ## 7. Motion

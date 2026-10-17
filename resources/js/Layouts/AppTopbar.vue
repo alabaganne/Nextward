@@ -96,7 +96,7 @@ const logout = () => router.post(route('logout'));
 						<Link class="menu-item" role="menuitem" :href="route('profile.show')" @click="menuOpen = false"><CircleUserRound class="size-4 text-muted-2" />Profile</Link>
 						<Link class="menu-item" role="menuitem" :href="route('settings')" @click="menuOpen = false"><Settings class="size-4 text-muted-2" />Settings</Link>
 						<div class="h-px bg-line-2 my-1.5"></div>
-						<button class="menu-item hover:!text-red-600" role="menuitem" type="button" @click="logout"><LogOut class="size-4 text-muted-2" />Log out</button>
+						<button class="group menu-item transition-colors hover:bg-red-600 hover:text-white focus-visible:bg-red-600 focus-visible:text-white" role="menuitem" type="button" @click="logout"><LogOut class="size-4 text-muted-2 transition-colors group-hover:text-white group-focus-visible:text-white" />Log out</button>
 					</div>
 				</Transition>
 			</div>
