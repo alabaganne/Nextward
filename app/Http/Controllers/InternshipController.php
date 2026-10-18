@@ -183,6 +183,9 @@ class InternshipController extends Controller
             'related' => InternshipResource::collection($related),
             'seo' => PublicSeo::opportunity($internship),
             'translation' => parse_url($internship->publicUrl($locale === 'fr' ? 'en' : 'fr'), PHP_URL_PATH),
+            'kits' => $request->user()?->isCandidate()
+                ? \App\Models\ApplicationKit::where('student_id', $request->user()->userable_id)->where('internship_id', $internship->id)->get(['id', 'locale', 'status'])
+                : [],
         ]);
     }
 

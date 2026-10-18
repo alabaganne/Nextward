@@ -74,7 +74,15 @@ Every published listing also gets an English and a French version. When a listin
 
 After uploading a resume in Settings, a candidate (admins included) can press **Fill my profile from this resume**. The AI (`review` model) reads the PDF and suggests a headline, bio, location, links, languages, skills, experience, education and projects. Settings shows each suggestion next to the current value; the candidate ticks what to use, checks the form and presses Save. Nothing is saved before that. Each candidate can read their resume 5 times an hour.
 
-Candidates can also ask for a cover letter draft on any open opportunity page. The AI writes it in simple words from their profile and the resume PDF they add in Settings (`OPPORTUNITY_OPENAI_LETTER_MODEL`, default `gpt-5.5`), in the language of the listing. Each candidate can ask for 10 drafts an hour.
+On any open opportunity page, a candidate can press **Tailor my CV and cover letter** and pick English or French. A queued job (`letter` model, `OPPORTUNITY_OPENAI_LETTER_MODEL`, default `gpt-5.5`) writes both from their profile, experience, education, projects and resume PDF, using only facts found there. The result is a "kit" under **CV & letters** (`/kits`): the candidate edits the CV and the letter, downloads them as PDF (dompdf, on the server), copies the letter, uses it to apply on Nextward, or asks for a new draft. Each candidate can start 10 kits or rewrites an hour.
+
+### Credits (paid later, off for now)
+
+Tailored kits are meant to become paid. The logic is built but switched off with `BILLING_ENABLED=false`, so nothing is charged or blocked today.
+- One credit covers a kit's first draft plus `BILLING_REWRITES_PER_KIT` rewrites (default 3). Every candidate gets `BILLING_SIGNUP_CREDITS` (default 1) when the account is made; existing candidates got theirs in a migration. Admins never use credits. A failed first draft gives its credit back.
+- Packs (3, 10 and 25 credits) are in `config/billing.php`. Set their prices in millimes (TND) and cents (USD) with the `BILLING_*_TND` / `BILLING_*_USD` variables before turning billing on; packs with no price are hidden.
+- Payment providers: **Konnect** and **Flouci** for Tunisian cards and wallets (TND), and **Lemon Squeezy** for international cards and PayPal (USD, one product variant per pack). Each only shows once its keys are set. Every payment is checked again with the provider (Konnect and Flouci through their API, Lemon Squeezy through the signed webhook) and credits are added once per payment. Webhooks go to `/webhooks/billing/{konnect|flouci|lemonsqueezy}`.
+- With billing on, candidates see a **Credits** page (`/billing`) with their balance, packs and history. Add or remove credits by hand with `php artisan credits:grant email@example.com 5 --note="Bank transfer"`.
 
 `composer discover` (or `php artisan opportunities:discover`) asks the AI to search the web for new places to read developer jobs: employer boards on Greenhouse, Lever or Ashby, and Tunisian sites with job sitemaps. Each suggestion is checked against the board itself and saved switched off, waiting for approval in Imports. The scheduler also runs it every Monday at 06:00 Tunis time.
 

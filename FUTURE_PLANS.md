@@ -14,6 +14,9 @@ Nextward now supports students and professionals, internships and jobs, Tunisia 
 - [ ] Optionally configure the Google Indexing API service account, ownership and quota; monitor the outbox after enabling it.
 - [x] Update inherited test expectations for the new routes, optional worldwide profile fields, live homepage, sitemap index and migration order. The authorized updates passed the full suite: 59 tests and 726 assertions.
 
+- [ ] After deploying the bilingual listings, run `php artisan opportunities:translate --limit=500` a few times so the open listings get their English or French version faster than the hourly 200.
+- [ ] Before turning on paid credits: set pack prices, open Konnect, Flouci and Lemon Squeezy merchant accounts (check that Lemon Squeezy still takes new stores and pays out to a Tunisian bank), create one Lemon Squeezy variant per pack, test each gateway in sandbox, update the Terms and Privacy pages, then set `BILLING_ENABLED=true`.
+
 Operational commands, environment switches and deployment steps are documented in `README.md`.
 
 ## Product improvements after observing real usage

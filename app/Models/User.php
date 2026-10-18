@@ -27,6 +27,16 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public $timestamps = false;
 
+    protected static function booted(): void
+    {
+        // Every new candidate gets the free credit, ready for when paid features open.
+        static::created(function (User $user) {
+            if ($user->userable_type === 'student' && ($credits = (int) config('billing.signup_credits')) > 0) {
+                CreditTransaction::create(['user_id' => $user->id, 'amount' => $credits, 'reason' => 'welcome']);
+            }
+        });
+    }
+
     /**
      * The attributes that should be hidden for arrays.
      *

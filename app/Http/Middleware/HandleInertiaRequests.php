@@ -71,6 +71,7 @@ class HandleInertiaRequests extends Middleware
                     'userable_id' => $user->userable_id,
                     'userable_type' => $user->userable_type,
                     'likes_count' => $user->isCandidate() ? $user->userable->likes()->count() : null,
+                    'credits' => config('billing.enabled') && $user->isCandidate() ? app(\App\Billing\Credits::class)->balance($user) : null,
                     'notifications' => ($user->isCandidate() || $user->isCompany()) ? [
                         'data' => NotificationResource::collection($user->notifications()->take(10)->get()),
                         'unread_count' => $user->unreadNotifications()->count(),
@@ -92,6 +93,7 @@ class HandleInertiaRequests extends Middleware
             'locale' => $request->is('fr', 'fr/*') ? 'fr' : 'en',
             'ziggy' => fn () => [...(new Ziggy)->toArray(), 'location' => $request->url()],
             'seo' => fn () => PublicSeo::forRequest($request),
+            'billing' => ['enabled' => (bool) config('billing.enabled')],
         ], $shared);
     }
 }

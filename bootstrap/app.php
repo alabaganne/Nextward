@@ -22,6 +22,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->trustProxies(at: '*');
 
+        // Payment gateways call these from their own servers.
+        $middleware->validateCsrfTokens(except: ['webhooks/billing/*']);
+
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
         ]);

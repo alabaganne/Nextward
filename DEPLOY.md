@@ -95,7 +95,7 @@ OPPORTUNITY_DIGESTS_ENABLED=false
 GOOGLE_INDEXING_ENABLED=false
 ```
 
-Set `RESEND_API_KEY`, `MAIL_FROM_ADDRESS` and `MAIL_CONTACT_ADDRESS`, and leave `MAIL_MAILER` empty so Resend is used (see [Email](README.md#email)). Application and message emails are queued, so the queue worker must run. `APP_URL` must be the canonical HTTPS origin used in search results, sitemaps and email links. Leave optional digest sending and Google indexing disabled until their delivery and credentials are verified. File cache and sessions use shared storage on this one VPS; the repository does not provision database cache/session tables.
+Set `RESEND_API_KEY`, `MAIL_FROM_ADDRESS` and `MAIL_CONTACT_ADDRESS`, and leave `MAIL_MAILER` empty so Resend is used (see [Email](README.md#email)). Application and message emails, listing translations and tailored CV kits are queued, so the queue worker must run. `APP_URL` must be the canonical HTTPS origin used in search results, sitemaps and email links. Leave optional digest sending and Google indexing disabled until their delivery and credentials are verified. File cache and sessions use shared storage on this one VPS; the repository does not provision database cache/session tables.
 
 Do not copy local testing settings or a demo database onto the VPS. Follow [the existing credential exposure instructions](VPS_DEPLOYMENT.md#existing-credential-exposure) before using any credentials from an older installation.
 

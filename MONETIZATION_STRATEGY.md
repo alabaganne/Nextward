@@ -1,4 +1,6 @@
 # Monetization Strategy for Nextward
+
+> **Current decision (October 2026):** finding and applying stay free for everyone. The first paid feature is for candidates: tailored CV and cover letter "kits", sold as credit packs (Konnect and Flouci in TND, Lemon Squeezy in USD), with one free credit per candidate. It is built but switched off until prices are set. The plans below are older ideas, kept for reference.
 ## Revenue Model & Profitability Plan
 
 ---

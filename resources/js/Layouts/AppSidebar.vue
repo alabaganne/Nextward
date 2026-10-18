@@ -9,10 +9,12 @@ import {
 	Compass,
 	Database,
 	FileText,
+	FileUser,
 	GraduationCap,
 	LayoutDashboard,
 	MessageSquare,
 	SearchCheck,
+	Wallet,
 	Sparkles,
 	X,
 } from '@lucide/vue';
@@ -39,6 +41,8 @@ const main = computed(() => [
 	...(isCandidate.value ? [
 		{ id: 'saved', label: 'Saved roles', route: 'likes.index', icon: Bookmark, badge: user.value?.likes_count },
 		{ id: 'saved-searches', label: 'Saved searches', route: 'saved-searches.index', icon: SearchCheck },
+		{ id: 'kits', label: 'CV & letters', route: 'kits.index', icon: FileUser },
+		...(page.props.billing?.enabled ? [{ id: 'billing', label: 'Credits', route: 'billing.index', icon: Wallet, badge: user.value?.credits }] : []),
 	] : []),
 	{ id: 'messages', label: 'Messages', route: 'messages.index', icon: MessageSquare, badge: badges.value.messages },
 	{ id: 'companies', label: 'Companies', route: 'companies.index', icon: Building2 },

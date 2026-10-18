@@ -44,6 +44,14 @@ Route::get('/sitemaps/pages.xml', [SitemapController::class, 'pages']);
 Route::get('/sitemaps/companies.xml', [SitemapController::class, 'companies']);
 Route::get('/sitemaps/opportunities-{page}.xml', [SitemapController::class, 'opportunities'])->whereNumber('page');
 
+Route::match(['get', 'post'], '/webhooks/billing/{gateway}', \App\Http\Controllers\BillingWebhookController::class)
+    ->whereIn('gateway', ['konnect', 'flouci', 'lemonsqueezy'])->middleware('throttle:120,1')->name('billing.webhook');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/billing', [\App\Http\Controllers\BillingController::class, 'index'])->name('billing.index');
+    Route::post('/billing/checkout', [\App\Http\Controllers\BillingController::class, 'checkout'])->middleware('throttle:10,1')->name('billing.checkout');
+    Route::get('/billing/return/{gateway}', [\App\Http\Controllers\BillingController::class, 'return'])->whereIn('gateway', ['konnect', 'flouci', 'lemonsqueezy'])->name('billing.return');
+});
+
 Route::get('/', [PublicPageController::class, 'home'])->name('home');
 // The student and professional pages were merged into the home page.
 Route::permanentRedirect('/for-students', '/');

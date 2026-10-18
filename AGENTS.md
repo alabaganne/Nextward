@@ -30,6 +30,9 @@ Shared notes for anyone working on this repo, people or coding tools. `CLAUDE.md
 - **Admin accounts** are candidates too: each admin has a candidate profile (made by `nextward:make-admin`, or the first time they open Settings), so they fill in the same profile and resume as anyone else.
 - **Tunisian boards:** Tanitjobs and Keejob stay on automatic publishing by the owner's choice; checking their terms is the owner's call.
 - **Error monitoring:** none for now (Laravel logs only), by the owner's choice.
+- **What is free:** browsing, saving, applying, alerts, tracking and filling a profile from a resume are free for everyone. The tailored CV and cover letter ("kit") is the future paid feature: credit packs, one credit per role with a few rewrites, one free credit for every candidate. Everything is free for now; billing stays off (`BILLING_ENABLED=false`) until the owner sets prices and opens merchant accounts. Never block a free feature behind credits.
+- **Payments:** Konnect and Flouci for Tunisian payers (TND), Lemon Squeezy for international payers (USD). Payments are always checked with the provider before credits are added. Details in `README.md#credits-paid-later-off-for-now`.
+- **AI output:** the AI only uses facts from the candidate's own profile and resume, and people always review and edit before anything is saved or sent.
 
 ## Stack
 
