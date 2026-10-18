@@ -44,12 +44,12 @@ const main = computed(() => [
 	{ id: 'companies', label: 'Companies', route: 'companies.index', icon: Building2 },
 ]);
 
-const admin = [
+const admin = computed(() => [
 	{ id: 'imports', label: 'Sources and imports', route: 'imports.index', icon: Database },
-	{ id: 'students', label: 'Candidates', route: 'students.index', icon: GraduationCap },
+	{ id: 'students', label: 'Candidates', route: 'students.index', icon: GraduationCap, badge: badges.value.public_profiles },
 	{ id: 'fields', label: 'Fields', route: 'fields.index', icon: BookOpen },
 	{ id: 'skills', label: 'Skills', route: 'skills.index', icon: Sparkles },
-];
+]);
 </script>
 
 <template>
@@ -99,6 +99,7 @@ const admin = [
 				>
 					<component :is="item.icon" class="size-[18px] shrink-0" aria-hidden="true" />
 					<span class="truncate">{{ item.label }}</span>
+					<span v-if="item.badge" class="nav-badge" :aria-label="`${item.badge} waiting for review`">{{ item.badge > 99 ? '99+' : item.badge }}</span>
 				</Link>
 			</nav>
 		</template>

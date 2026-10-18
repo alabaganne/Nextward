@@ -3,6 +3,7 @@ import { ArrowUpRight, ChevronRight, GraduationCap, Mail, MapPin, Phone } from '
 import { computed, h } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
+import PublicReview from '@/Components/Candidate/PublicReview.vue';
 
 defineOptions({
 	layout: (_h, page) => h(AppShell, { active: 'students' }, () => page),
@@ -60,6 +61,12 @@ const initials = computed(() =>
 					<Link v-if="isAdmin" class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[18px] h-10 rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all" :href="route('students.edit', student.id)">Edit</Link>
 				</div>
 			</div>
+		</section>
+
+		<section v-if="isAdmin && student.public_status" class="bg-white border border-line rounded-[18px] mb-[18px] px-[22px] py-[18px]">
+			<h3 class="font-display text-[16.5px] font-semibold">Public profile</h3>
+			<p class="text-[13px] text-muted mt-[3px] mb-3.5">This candidate asked to show their profile on the public site. Their email, phone and resume are never shown there.</p>
+			<PublicReview :student="student" />
 		</section>
 
 		<div class="grid grid-cols-[1.65fr_1fr] gap-[18px] items-start max-[980px]:grid-cols-1">

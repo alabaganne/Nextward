@@ -23,7 +23,7 @@ const languageOptions = computed(() => {
         return [{ code: 'en', label: 'English', href: en }, { code: 'fr', label: 'Français', href: french }];
     }
     const path = currentPath.value.replace(/^\/fr(?=\/|$)/, '') || '/';
-    const translatedPaths = ['/', '/for-students', '/for-professionals', '/about', '/contact', '/privacy', '/terms', '/blog', '/opportunities', ...['internships', 'jobs', 'tunisia', 'remote-from-tunisia', 'relocation'].map((category) => `/opportunities/${category}`)];
+    const translatedPaths = ['/', '/for-students', '/for-professionals', '/about', '/contact', '/privacy', '/terms', '/blog', '/opportunities', '/candidates', ...['internships', 'jobs', 'tunisia', 'remote-from-tunisia', 'relocation'].map((category) => `/opportunities/${category}`)];
     if (!translatedPaths.includes(path)) return [];
     const suffix = page.url.slice(currentPath.value.length);
     return [
@@ -99,6 +99,7 @@ onBeforeUnmount(() => {
                 </div>
                 <nav :aria-label="fr ? 'Pied de page' : 'Footer'" class="grid grid-cols-2 content-start gap-x-8 gap-y-3 text-sm font-medium">
                     <Link v-for="link in links" :key="link.href" :href="link.href" class="focus-ring footer-link">{{ link.label }}</Link>
+                    <Link :href="`${prefix}/candidates`" class="focus-ring footer-link">{{ fr ? 'Profils de candidats' : 'Candidate profiles' }}</Link>
                     <Link :href="`${prefix}/about`" class="focus-ring footer-link">{{ fr ? 'À propos' : 'About' }}</Link>
                     <Link :href="`${prefix}/contact`" class="focus-ring footer-link">Contact</Link>
                     <Link :href="`${prefix}/register?account=company`" class="focus-ring footer-link">{{ fr ? 'Publier une offre' : 'Post an opportunity' }}</Link>

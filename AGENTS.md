@@ -22,7 +22,9 @@ Shared notes for anyone working on this repo, people or coding tools. `CLAUDE.md
 - **Public images:** cartoon mascots and the desk scene from `public/nextward-assets/mascots/`; generated photos from `landing-light-v1/` only as article images. Never present the photos as real users, staff, offices or partners.
 - **Writing:** plain, everyday words in copy, docs, commits and code comments. Comments are short and rare.
 - **Email:** sent through Resend from `nextward@alabaganne.com` until a Nextward domain is verified. Every email uses the shared layout in `resources/views/vendor/mail` (new logo, white card with no borders, solid blue card for quoted text, navy button). Text people type is shown as plain text. Details in `README.md#email`.
-- **Email verification:** required before applying, messaging, posting or editing roles, saving searches with alerts and claiming a company. Browsing and the dashboard work without it.
+- **Email verification:** required before applying, messaging, posting or editing roles, saving searches with alerts, claiming a company and asking for a public profile. Browsing and the dashboard work without it.
+- **Public candidate profiles:** private by default. A candidate asks from Settings, an admin approves under Candidates, and only then the profile shows at `/candidates`. It shows name, headline, stage, field, location, experience, bio, skills, languages, website and LinkedIn, never email, phone or resume. These pages are `noindex` and stay out of the sitemap. The candidate can go private at any time; editing an approved profile keeps it live.
+- **Admin accounts** have no candidate or company profile, so Settings only shows account fields for them.
 - **Tunisian boards:** Tanitjobs and Keejob stay on automatic publishing by the owner's choice; checking their terms is the owner's call.
 - **Error monitoring:** none for now (Laravel logs only), by the owner's choice.
 

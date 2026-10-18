@@ -19,6 +19,7 @@ The goal is for Nextward to show up on Google (most searches from Tunisia are in
 - **RSS feeds:** `/blog/feed.xml` and `/fr/blog/feed.xml`.
 - **IndexNow:** `php artisan seo:indexnow` runs every hour and tells Bing about new or changed pages. ChatGPT search and Copilot use Bing's index.
 - **Public company pages:** `/companies/{id}-{slug}`. Pages with no open roles and a short "about" text are kept out of Google (`noindex`).
+- **Public candidate profiles:** `/candidates` and `/candidates/{id}-{slug}` (also under `/fr`). They hold personal data, so they are always `noindex` and are not in the sitemap.
 
 ## Writing a blog post
 

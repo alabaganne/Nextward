@@ -15,6 +15,7 @@ use App\Http\Controllers\SkillController;
 use App\Http\Controllers\StudentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\PublicCandidateController;
 use App\Http\Controllers\PublicCompanyController;
 use App\Http\Controllers\PublicPageController;
 use App\Http\Controllers\SeoFilesController;
@@ -54,6 +55,8 @@ Route::prefix('fr')->name('fr.')->group(function () {
     Route::get('/opportunities/{category}', [InternshipController::class, 'index'])->whereIn('category', ['internships', 'jobs', 'tunisia', 'remote-from-tunisia', 'relocation'])->name('category');
     Route::get('/opportunities/{opportunity}', [InternshipController::class, 'publicShow'])->where('opportunity', '[0-9]+(?:-[a-z0-9-]+)?')->name('opportunity');
     Route::get('/companies/{companySlug}', [PublicCompanyController::class, 'show'])->where('companySlug', '[0-9]+-[a-z0-9-]+')->name('company');
+    Route::get('/candidates', [PublicCandidateController::class, 'index'])->name('candidates');
+    Route::get('/candidates/{candidateSlug}', [PublicCandidateController::class, 'show'])->where('candidateSlug', '[0-9]+-[a-z0-9-]+')->name('candidate');
     Route::inertia('/about', 'About')->name('about');
     Route::inertia('/contact', 'Contact')->name('contact');
     Route::inertia('/privacy', 'Privacy')->name('privacy');
@@ -81,6 +84,9 @@ Route::get('/opportunities/{opportunity}', [InternshipController::class, 'public
     ->where('opportunity', '[0-9]+(?:-[a-z0-9-]+)?')->name('opportunities.show');
 Route::get('/companies/{companySlug}', [PublicCompanyController::class, 'show'])
     ->where('companySlug', '[0-9]+-[a-z0-9-]+')->name('companies.public');
+Route::get('/candidates', [PublicCandidateController::class, 'index'])->name('candidates.public.index');
+Route::get('/candidates/{candidateSlug}', [PublicCandidateController::class, 'show'])
+    ->where('candidateSlug', '[0-9]+-[a-z0-9-]+')->name('candidates.public.show');
 Route::get('/internships', function (\Illuminate\Http\Request $request) {
     $query = $request->only('search', 'fields', 'cities', 'companies', 'page', 'work_type', 'country');
     return redirect('/opportunities/internships'.($query ? '?'.http_build_query($query) : ''), 301);
@@ -97,6 +103,8 @@ Route::group(['middleware' => 'auth'], function() {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('/settings', [ProfileController::class, 'settings'])->name('settings');
+    Route::put('/profile/public', [PublicCandidateController::class, 'update'])->middleware('verified')->name('profile.public.update');
+    Route::post('/students/{student}/public-profile', [PublicCandidateController::class, 'review'])->middleware('admin')->name('students.public.review');
     Route::put('/password', [\App\Http\Controllers\Auth\PasswordController::class, 'update'])->name('password.change');
     // Resources
     Route::resource('internships', InternshipController::class)->except(['index', 'show'])->middleware('verified');

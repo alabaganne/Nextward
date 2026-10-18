@@ -17,7 +17,7 @@ const sections = computed(() => [
 		text('We only keep what we need to run Nextward:', 'Nous ne gardons que ce qui est utile au fonctionnement de Nextward :'),
 		[
 			text('Account: your name, email address and password. The password is stored in a scrambled form that we cannot read. Phone number and LinkedIn link are optional.', 'Compte : votre nom, votre adresse e-mail et votre mot de passe. Le mot de passe est enregistré sous une forme chiffrée que nous ne pouvons pas lire. Le numéro de téléphone et le lien LinkedIn sont facultatifs.'),
-			text('Candidate profile: career stage, field, city or country, short bio, skills and the kind of roles you want.', 'Profil candidat : niveau d’études ou d’expérience, domaine, ville ou pays, courte présentation, compétences et types de postes recherchés.'),
+			text('Candidate profile: career stage, field, city or country, short bio, skills and the kind of roles you want. It stays private unless you ask to make it public and we approve it.', 'Profil candidat : niveau d’études ou d’expérience, domaine, ville ou pays, courte présentation, compétences et types de postes recherchés. Il reste privé sauf si vous demandez à le rendre public et que nous l’acceptons.'),
 			text('Company profile: company name, logo, website, description and location. This profile is public.', 'Profil entreprise : nom, logo, site web, description et lieu. Ce profil est public.'),
 			text('Applications sent through Nextward: your message, cover letter, CV and other files you attach, and the status of the application.', 'Candidatures envoyées via Nextward : votre message, votre lettre de motivation, votre CV et les autres fichiers joints, ainsi que l’état de la candidature.'),
 			text('Saved roles and tracking: the opportunities you save, the ones you mark as applied elsewhere, and your private notes.', 'Offres enregistrées et suivi : les offres que vous enregistrez, celles où vous indiquez avoir postulé ailleurs et vos notes privées.'),
@@ -38,9 +38,10 @@ const sections = computed(() => [
 	] },
 	{ id: 'sharing', title: text('Who sees it', 'Qui y a accès'), body: [
 		[
-			text('Companies: when you apply through Nextward, the company that receives your application sees it, with your CV, your files and the profile details shown with it. Companies cannot browse candidate profiles.', 'Les entreprises : quand vous postulez via Nextward, l’entreprise qui reçoit votre candidature la voit, avec votre CV, vos fichiers et les informations de profil qui l’accompagnent. Les entreprises ne peuvent pas parcourir les profils des candidats.'),
+			text('Companies: when you apply through Nextward, the company that receives your application sees it, with your CV, your files and the profile details shown with it. Companies cannot browse private candidate profiles.', 'Les entreprises : quand vous postulez via Nextward, l’entreprise qui reçoit votre candidature la voit, avec votre CV, vos fichiers et les informations de profil qui l’accompagnent. Les entreprises ne peuvent pas parcourir les profils privés des candidats.'),
 			text('The people you write to, for messages.', 'Les personnes à qui vous écrivez, pour les messages.'),
 			text('Everyone, for company profiles and the opportunities companies publish.', 'Tout le monde, pour les profils d’entreprise et les offres publiées.'),
+			text('Everyone, for candidate profiles you chose to make public and that we approved: your name, headline, career stage, field, location, years of experience, bio, skills, languages, website and LinkedIn link. Your email address, phone number and resume are never shown. We ask search engines not to list these pages, and you can make your profile private again at any time in Settings.', 'Tout le monde, pour les profils de candidats que vous avez choisi de rendre publics et que nous avons acceptés : votre nom, votre titre, votre niveau, votre domaine, votre lieu, vos années d’expérience, votre présentation, vos compétences, vos langues, votre site et votre lien LinkedIn. Votre adresse e-mail, votre numéro de téléphone et votre CV ne sont jamais affichés. Nous demandons aux moteurs de recherche de ne pas référencer ces pages, et vous pouvez rendre votre profil privé à tout moment dans Paramètres.'),
 			text('The Nextward team, only when needed to run the service or answer you.', 'L’équipe Nextward, uniquement quand c’est nécessaire pour faire fonctionner le service ou vous répondre.'),
 			text('Our service providers, who work for us under contract: hosting by [[hosting provider and server country]] and email sending by [[email provider]].', 'Nos prestataires, qui travaillent pour nous sous contrat : hébergement par [[hébergeur et pays des serveurs]] et envoi des e-mails par [[prestataire e-mail]].'),
 			text('Public authorities, only when the law requires it.', 'Les autorités publiques, uniquement quand la loi l’exige.'),
@@ -91,7 +92,7 @@ const sections = computed(() => [
 			:label="text('Legal', 'Mentions légales')"
 			:title="text('Privacy policy', 'Politique de confidentialité')"
 			:lead="text('What data Nextward keeps, why, who sees it, and how you stay in control of it.', 'Les données que Nextward garde, pourquoi, qui y a accès et comment vous en gardez le contrôle.')"
-			:updated="text('Last updated: 16 October 2026', 'Dernière mise à jour : 16 octobre 2026')"
+			:updated="text('Last updated: 18 October 2026', 'Dernière mise à jour : 18 octobre 2026')"
 			:toc-label="text('On this page', 'Sur cette page')"
 			:sections="sections"
 		>

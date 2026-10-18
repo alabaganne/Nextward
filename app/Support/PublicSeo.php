@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Company;
 use App\Models\Internship;
+use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -11,7 +12,7 @@ class PublicSeo
 {
     public static function isPublic(Request $request): bool
     {
-        return $request->routeIs('home', 'about', 'contact', 'privacy', 'terms', 'blog.*', 'audience.*', 'opportunities.index', 'opportunities.category', 'opportunities.show', 'companies.public', 'fr.*')
+        return $request->routeIs('home', 'about', 'contact', 'privacy', 'terms', 'blog.*', 'audience.*', 'opportunities.index', 'opportunities.category', 'opportunities.show', 'companies.public', 'candidates.public.*', 'fr.*')
             && ! $request->routeIs('fr.login*', 'fr.register*', 'fr.password.*');
     }
 
@@ -129,6 +130,28 @@ class PublicSeo
                 ['@type' => 'ListItem', 'position' => 2, 'name' => $name, 'item' => $seo['canonical']],
             ],
         ]];
+        return $seo;
+    }
+
+    // Candidate pages hold personal data, so they stay out of search engines.
+    public static function candidates(): array
+    {
+        $fr = request()->is('fr', 'fr/*');
+        $seo = self::base(request(), $fr ? 'Profils de candidats | Nextward' : 'Candidate profiles | Nextward', $fr
+            ? 'Des étudiants et des professionnels qui ont choisi de rendre leur profil public sur Nextward.'
+            : 'Students and professionals who chose to make their profile public on Nextward.', false);
+        $seo['alternates'] = self::pairs(self::url('/candidates'), self::url('/fr/candidates'));
+        return $seo;
+    }
+
+    public static function candidate(Student $student): array
+    {
+        $fr = request()->is('fr/*');
+        $name = $student->user->name;
+        $about = trim(preg_replace('/\s+/u', ' ', strip_tags((string) $student->about)));
+        $seo = self::base(request(), $name.' | Nextward', Str::limit($student->headline ?: ($about ?: ($fr ? "Profil de {$name} sur Nextward." : "{$name}'s profile on Nextward.")), 155), false);
+        $seo['canonical'] = $student->publicUrl($fr ? 'fr' : 'en');
+        $seo['alternates'] = self::pairs($student->publicUrl('en'), $student->publicUrl('fr'));
         return $seo;
     }
 

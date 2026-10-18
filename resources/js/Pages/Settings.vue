@@ -22,6 +22,8 @@ const icons = {
 
 const page = usePage();
 const isStudent = computed(() => props.settings.userable_type === 'student');
+// Admin accounts have no candidate or company profile, so only account fields apply.
+const hasProfile = computed(() => ['student', 'company'].includes(props.settings.userable_type));
 const initials = computed(() =>
 	(props.settings.name || '')
 		.split(/\s+/)
@@ -87,6 +89,19 @@ const uploadResume = (event) => {
 	if (resumeForm.resume) resumeForm.post(route('profile.resume.store'), { preserveScroll: true, forceFormData: true });
 };
 const removeResume = () => router.delete(route('profile.resume.destroy'), { preserveScroll: true });
+
+const publicBusy = ref(false);
+const setPublic = (value) =>
+	router.put(route('profile.public.update'), { public: value }, {
+		preserveScroll: true,
+		onStart: () => (publicBusy.value = true),
+		onFinish: () => (publicBusy.value = false),
+	});
+const publicText = computed(() => ({
+	pending: 'Waiting for review. Your profile is still private.',
+	approved: 'Your profile is public.',
+	declined: 'Not approved. Update your profile and ask again.',
+}[props.settings.public_status] || 'Your profile is private.'));
 
 const passwordForm = useForm({
 	current_password: '',
@@ -193,6 +208,7 @@ const deleteAccount = () =>
 									<div v-if="accountForm.errors.linkedin_profile_url" class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.linkedin_profile_url }}</div>
 								</div>
 							</div>
+							<template v-if="hasProfile">
 							<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
 								<div class="mb-4">
 									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="settings-city">Location</label>
@@ -226,6 +242,7 @@ const deleteAccount = () =>
 								<label class="text-sm font-semibold">Country code<input v-model="accountForm.country_code" class="fld mt-2" maxlength="2" placeholder="TN, FR, US..."><span v-if="accountForm.errors.country_code" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountForm.errors.country_code }}</span></label>
 								<label class="text-sm font-semibold">City or location<input v-model="accountForm.location" class="fld mt-2" placeholder="Your location anywhere in the world"><span v-if="accountForm.errors.location" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountForm.errors.location }}</span></label>
 							</div>
+							</template>
 							<template v-if="isStudent">
 								<h3 class="font-display text-lg font-semibold mt-7 mb-4">Your experience</h3>
 								<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
@@ -277,6 +294,22 @@ const deleteAccount = () =>
 								</div>
 							</div>
 							<div v-if="resumeForm.errors.resume" class="text-xs text-[#dc2626] mt-[10px]" role="alert">{{ resumeForm.errors.resume }}</div>
+						</div>
+					</div>
+
+					<div v-if="isStudent" class="bg-white border border-line rounded-[18px] mb-[18px]">
+						<div class="px-[22px] py-[18px] border-b border-line-2">
+							<h3 class="font-display text-[16.5px] font-semibold">Public profile</h3>
+							<p class="text-[13px] text-muted mt-[3px]">Show your profile on Nextward's public candidate page so companies can find you. The Nextward team checks each profile first. Your email, phone number and resume are never shown.</p>
+						</div>
+						<div class="px-[22px] py-[22px] flex items-center justify-between gap-4 flex-wrap">
+							<div class="min-w-0">
+								<b class="text-[14.5px] font-semibold block" role="status">{{ publicText }}</b>
+								<a v-if="settings.public_status" :href="settings.public_url" target="_blank" rel="noopener" class="text-[13.5px] font-semibold text-blue-700 hover:underline">{{ settings.public_status === 'approved' ? 'Open your public page' : 'Preview your public page' }}</a>
+								<p v-else-if="!settings.email_verified" class="text-[13px] text-muted mt-1">Verify your email address first.</p>
+							</div>
+							<button v-if="['pending', 'approved'].includes(settings.public_status)" class="cbtn cbtn-secondary" type="button" :disabled="publicBusy" @click="setPublic(false)">Make it private</button>
+							<button v-else class="cbtn bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60" type="button" :disabled="publicBusy || !settings.email_verified" @click="setPublic(true)">Ask to make it public</button>
 						</div>
 					</div>
 				</section>

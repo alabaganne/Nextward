@@ -25,12 +25,18 @@ class StudentController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
+        $public = in_array($request->query('public'), ['pending', 'approved'], true) ? $request->query('public') : null;
+
         return Inertia::render('Students/Index', [
+            'filter' => $public,
+            'pending_count' => Student::where('public_status', 'pending')->count(),
             'students' => Student::with('field', 'user')
+                    ->when($public, fn ($query) => $query->where('public_status', $public))
                     ->latest()
                     ->paginate(12)
+                    ->withQueryString()
 					->through(function ($student) {
 						return [
 							'id' => $student->id,
@@ -39,6 +45,8 @@ class StudentController extends Controller
 							'career_stage' => $student->career_stage,
 							'email' => $student->user->email,
 							'image' => $student->user->image,
+							'public_status' => $student->public_status,
+							'public_url' => parse_url($student->publicUrl(), PHP_URL_PATH),
 							'field' => [
 								'name' => $student->field?->name
 							]
@@ -107,6 +115,8 @@ class StudentController extends Controller
 				'phone_number' => $student->user->phone_number,
 				'image' => $student->user->image,
 				'skills' => $student->skills->pluck('name'),
+				'public_status' => $student->public_status,
+				'public_url' => parse_url($student->publicUrl(), PHP_URL_PATH),
 				'field' => [
 					'name' => $student->field?->name,
 				],

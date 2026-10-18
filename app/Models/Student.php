@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Student extends Model
 {
@@ -31,7 +32,23 @@ class Student extends Model
         'preferences' => 'array',
         'languages' => 'array',
         'experience_years' => 'integer',
+        'public_reviewed_at' => 'datetime',
     ];
+
+    public function scopePubliclyListed($query)
+    {
+        return $query->where('public_status', 'approved')->whereHas('user');
+    }
+
+    public function isPubliclyListed(): bool
+    {
+        return $this->public_status === 'approved';
+    }
+
+    public function publicUrl(string $locale = 'en'): string
+    {
+        return rtrim(config('app.url'), '/').($locale === 'fr' ? '/fr' : '').'/candidates/'.$this->id.'-'.(Str::slug($this->user?->name ?? '') ?: 'candidate');
+    }
 
     public function user() {
         return $this->morphOne(User::class, 'userable');

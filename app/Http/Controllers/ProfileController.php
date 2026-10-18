@@ -212,6 +212,9 @@ class ProfileController extends Controller
                 'languages' => $userable->languages ?? [],
                 'preferences' => $userable->preferences ?? [],
                 'resume_name' => $userable->resume_name ?? null,
+                'email_verified' => $user->hasVerifiedEmail(),
+                'public_status' => $user->isCandidate() ? $userable->public_status : null,
+                'public_url' => $user->isCandidate() ? parse_url($userable->publicUrl(), PHP_URL_PATH) : null,
             ],
         ]);
     }
