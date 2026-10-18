@@ -1,18 +1,21 @@
 <script setup>
 import { ArrowRight, Bookmark } from '@lucide/vue';
-import { h } from 'vue';
+import { computed, h } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
 import PageHeader from '@/Components/Ui/PageHeader.vue';
 import RoleCard from '@/Components/Opportunity/RoleCard.vue';
+import Pagination from '@/Components/Ui/Pagination.vue';
 
 defineOptions({
 	layout: (_h, page) => h(AppShell, { active: 'saved' }, () => page),
 });
 
-defineProps({
-	likes: { type: Array, default: () => [] },
+const props = defineProps({
+	likes: { type: Object, default: () => ({ data: [], meta: {} }) },
 });
+
+const total = computed(() => props.likes.meta?.total || 0);
 
 const icons = {
 	arrow: ArrowRight,
@@ -22,7 +25,7 @@ const icons = {
 
 <template>
 	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-wrap mx-auto">
-		<PageHeader title="Saved roles" :description="`${likes.length} ${likes.length === 1 ? 'role' : 'roles'} saved for later. Apply before they close.`">
+		<PageHeader title="Saved roles" :description="`${total} ${total === 1 ? 'role' : 'roles'} saved for later. Apply before they close.`">
 			<template #actions>
 				<Link class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all [&_svg]:w-[17px] [&_svg]:h-[17px]" :href="route('opportunities.index')">
 				Find more roles <component :is="icons.arrow" aria-hidden="true" />
@@ -30,9 +33,12 @@ const icons = {
 			</template>
 		</PageHeader>
 
-		<div v-if="likes.length" class="flex flex-col gap-3.5">
-			<RoleCard v-for="opportunity in likes" :key="opportunity.id" :opportunity="{ ...opportunity, liked: true }" />
-		</div>
+		<section v-if="likes.data?.length" class="@container" aria-label="Saved roles">
+			<div class="grid grid-cols-1 @3xl:grid-cols-2 gap-5">
+				<RoleCard v-for="opportunity in likes.data" :key="opportunity.id" :opportunity="{ ...opportunity, liked: true }" />
+			</div>
+			<Pagination :meta="likes.meta" />
+		</section>
 
 		<!-- empty state -->
 		<div v-else class="flex flex-col items-center text-center py-[70px] px-5">

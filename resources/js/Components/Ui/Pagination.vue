@@ -28,7 +28,6 @@ const links = computed(() =>
 				:class="{ '!bg-blue-600 !text-white !border-blue-600': link.active }"
 				:aria-label="link.icon ? link.label : `Page ${link.label}`"
 				:aria-current="link.active ? 'page' : undefined"
-				preserve-scroll
 			><component v-if="link.icon" :is="link.icon" :size="18" aria-hidden="true" /><template v-else>{{ link.label }}</template></Link>
 			<span v-else :aria-label="link.icon ? link.label : undefined" aria-disabled="true"><component v-if="link.icon" :is="link.icon" :size="18" aria-hidden="true" /><template v-else>{{ link.label }}</template></span>
 		</template>

@@ -6,6 +6,7 @@ use App\Models\Company;
 use App\Models\Opportunity;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class SaveAndMessageTest extends TestCase
@@ -31,6 +32,21 @@ class SaveAndMessageTest extends TestCase
 
         $this->actingAs($candidate)->post("/like/{$opportunity->id}")->assertRedirect();
         $this->assertFalse($candidate->userable->fresh()->likes->contains($opportunity->id));
+    }
+
+    public function test_saved_roles_are_paged(): void
+    {
+        $candidate = User::where('email', 'student@example.com')->firstOrFail();
+        $candidate->userable->likes()->sync(Opportunity::factory()->count(21)->create()->pluck('id'));
+
+        $this->actingAs($candidate)->get('/likes')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->component('Opportunities/Likes')
+            ->has('likes.data', 20)
+            ->where('likes.meta.total', 21)
+            ->where('likes.meta.last_page', 2)
+            ->where('likes.data.0.liked', true));
+        $this->actingAs($candidate)->get('/likes?page=2')->assertInertia(fn (Assert $page) => $page->has('likes.data', 1));
+        $this->actingAs($candidate)->get('/likes?page=3')->assertRedirect('/likes?page=2');
     }
 
     public function test_companies_cannot_save_roles(): void

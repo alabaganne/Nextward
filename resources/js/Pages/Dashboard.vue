@@ -2,6 +2,7 @@
 import { Bookmark, Briefcase, Building2, CalendarCheck, ChevronRight, FileText, GraduationCap } from '@lucide/vue';
 import { computed, h } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
+import { sitePath } from '@/utils/url';
 import AppShell from '@/Layouts/AppShell.vue';
 import CompanyLogo from '@/Components/Ui/CompanyLogo.vue';
 import PageHeader from '@/Components/Ui/PageHeader.vue';
@@ -133,7 +134,7 @@ const cards = computed(() => {
 						v-for="item in recommended"
 						:key="item.id"
 						class="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-paper-2"
-						:href="item.public_url || route('internships.show', item.id)"
+						:href="sitePath(item.public_url) || route('internships.show', item.id)"
 					>
 						<CompanyLogo class="size-9 rounded-[9px] text-[12px]" :name="item.company?.name || ''" :src="item.company?.image" />
 						<div class="min-w-0">

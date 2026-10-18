@@ -2,6 +2,7 @@
 import { ArrowRight, ArrowUpRight, CalendarCheck, Check, ChevronRight, Circle, Clock3, Download, Mail, MapPin, Phone, UserRound } from '@lucide/vue';
 import { computed, h, ref } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { sitePath } from '@/utils/url';
 import AppShell from '@/Layouts/AppShell.vue';
 import CompanyLogo from '@/Components/Ui/CompanyLogo.vue';
 
@@ -131,7 +132,7 @@ const saveTracking = () => trackingForm.patch(route('applications.tracking.updat
 					<div class="flex flex-wrap gap-2.5 mt-[22px] [&_.m]:flex [&_.m]:items-center [&_.m]:gap-[7px] [&_.m]:text-[13.5px] [&_.m]:text-ink-700 [&_.m]:font-medium [&_.m]:bg-paper-2 [&_.m]:border [&_.m]:border-line-2 [&_.m]:px-[13px] [&_.m]:py-2 [&_.m]:rounded-[9px] [&_svg]:w-[15px] [&_svg]:h-[15px] [&_svg]:text-blue-600">
 						<span class="m"><component :is="icons.pin" aria-hidden="true" />{{ application.opportunity.city.name }}</span>
 						<span class="m"><component :is="icons.clock" aria-hidden="true" />{{ application.opportunity.closing_at ? `Closes ${application.opportunity.closing_at}` : 'No deadline listed' }}</span>
-						<Link class="m no-underline" :href="application.opportunity.public_url || route('internships.show', application.opportunity.id)"><component :is="icons.external" aria-hidden="true" />View opportunity</Link>
+						<Link class="m no-underline" :href="sitePath(application.opportunity.public_url) || route('internships.show', application.opportunity.id)"><component :is="icons.external" aria-hidden="true" />View opportunity</Link>
 					</div>
 				</section>
 

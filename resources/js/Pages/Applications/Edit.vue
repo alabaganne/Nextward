@@ -2,6 +2,7 @@
 import { ArrowRight, Check, ChevronRight, Clock3, MapPin } from '@lucide/vue';
 import { computed, h, onMounted } from 'vue';
 import { Link, useForm } from '@inertiajs/vue3';
+import { sitePath } from '@/utils/url';
 import AppShell from '@/Layouts/AppShell.vue';
 import CompanyLogo from '@/Components/Ui/CompanyLogo.vue';
 
@@ -68,7 +69,7 @@ const tips = [
 		<div class="flex items-center gap-2 text-[13.5px] text-muted font-medium mb-[22px] [&_svg]:w-3.5 [&_svg]:h-3.5 [&_svg]:text-muted-2">
 			<Link class="hover:text-blue-700" :href="route('opportunities.index')">Opportunities</Link>
 			<component :is="icons.chevron" aria-hidden="true" />
-			<Link class="hover:text-blue-700" :href="opportunity.public_url || route('internships.show', opportunity.id)">{{ opportunity.title }}</Link>
+			<Link class="hover:text-blue-700" :href="sitePath(opportunity.public_url) || route('internships.show', opportunity.id)">{{ opportunity.title }}</Link>
 			<component :is="icons.chevron" aria-hidden="true" />
 			<span class="text-ink-700 font-semibold">{{ editing ? 'Edit application' : 'Apply' }}</span>
 		</div>
@@ -113,7 +114,7 @@ const tips = [
 					</div>
 				</div>
 				<div class="px-8 max-[560px]:px-5 py-4 border-t border-line-2 flex justify-end gap-2.5 bg-white rounded-b-[18px]">
-					<Link class="cbtn bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700" :href="editing ? route('applications.show', application.id) : opportunity.public_url || route('internships.show', opportunity.id)">Cancel</Link>
+					<Link class="cbtn bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700" :href="editing ? route('applications.show', application.id) : sitePath(opportunity.public_url) || route('internships.show', opportunity.id)">Cancel</Link>
 					<button class="cbtn bg-blue-600 text-white hover:bg-blue-700 [&_svg]:w-[17px] [&_svg]:h-[17px]" type="submit" :disabled="form.processing">
 						{{ editing ? 'Save changes' : 'Submit application' }} <component :is="icons.arrow" aria-hidden="true" />
 					</button>

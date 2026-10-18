@@ -5,6 +5,7 @@ import { Link, useForm, usePage } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
 import Pagination from '@/Components/Ui/Pagination.vue';
 import { gradientFor } from '@/utils/brand';
+import { sitePath } from '@/utils/url';
 
 defineOptions({
 	layout: (_h, page) => h(AppShell, { active: 'companies' }, () => page),
@@ -35,7 +36,7 @@ const canEdit = computed(() => ownsCompany.value || page.props.auth?.user?.is_ad
 const canManageRole = (role) => canEdit.value && (page.props.auth?.user?.is_admin || role.origin === 'native');
 const roleHref = (role) => canManageRole(role)
 	? route('opportunities.edit', role.id)
-	: role.publication_status === 'published' ? role.public_url : null;
+	: role.publication_status === 'published' ? sitePath(role.public_url) : null;
 const roleStatus = (role) => role.publication_status === 'draft' ? 'Draft'
 	: role.publication_status === 'suppressed' ? 'Suppressed'
 	: role.is_open ? 'Open' : 'Closed';

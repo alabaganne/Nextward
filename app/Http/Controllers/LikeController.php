@@ -4,17 +4,25 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\OpportunityResource;
 use App\Models\Opportunity;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class LikeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        abort_unless(auth()->user()->isCandidate(), 403);
+        abort_unless($request->user()->isCandidate(), 403);
+        $likes = $request->user()->userable->likes()->withCandidateState($request->user())
+            ->with(['company.user', 'company.city', 'field', 'city', 'skills', 'sources.importSource', 'translations'])
+            ->orderByRaw('COALESCE(opportunities.posted_at, opportunities.first_seen_at, opportunities.created_at) DESC')->orderByDesc('opportunities.id')
+            ->paginate(20);
+        // Unsaving the last role on a page sends people back to a page that is now empty.
+        if ($likes->currentPage() > $likes->lastPage()) {
+            return redirect()->route('likes.index', $likes->lastPage() > 1 ? ['page' => $likes->lastPage()] : []);
+        }
+
         return Inertia::render('Opportunities/Likes', [
-            'likes' => OpportunityResource::collection(
-                auth()->user()->userable->likes()->withCandidateState(auth()->user())->with('company', 'field', 'city', 'skills', 'translations')->get()
-            )
+            'likes' => OpportunityResource::collection($likes),
         ]);
     }
 

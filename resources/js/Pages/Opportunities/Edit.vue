@@ -2,6 +2,7 @@
 import { ArrowRight, ChevronRight } from '@lucide/vue';
 import { computed, h, ref, watch } from 'vue';
 import { Link, useForm } from '@inertiajs/vue3';
+import { sitePath } from '@/utils/url';
 import AppShell from '@/Layouts/AppShell.vue';
 
 defineOptions({ layout: (_h, page) => h(AppShell, { active: 'opportunities' }, () => page) });
@@ -126,7 +127,7 @@ const employmentTypes = { FULL_TIME: 'Full-time', PART_TIME: 'Part-time', CONTRA
 					<label class="text-sm font-semibold">Availability<select v-model="form.status" class="fld mt-2"><option value="open">Open</option><option value="closed">Closed</option></select></label>
 				</div>
 			</div>
-			<div class="px-8 max-[560px]:px-5 py-4 border-t border-line-2 flex justify-end gap-3"><Link class="cbtn border border-line" :href="editing && role.publication_status === 'published' ? role.public_url || route('internships.show', role.id) : route('dashboard')">Cancel</Link><button class="cbtn bg-blue-600 text-white" type="submit" :disabled="form.processing">{{ editing ? 'Save changes' : form.publication_status === 'draft' ? 'Save draft' : 'Publish opportunity' }} <ArrowRight :size="17" /></button></div>
+			<div class="px-8 max-[560px]:px-5 py-4 border-t border-line-2 flex justify-end gap-3"><Link class="cbtn border border-line" :href="editing && role.publication_status === 'published' ? sitePath(role.public_url) || route('internships.show', role.id) : route('dashboard')">Cancel</Link><button class="cbtn bg-blue-600 text-white" type="submit" :disabled="form.processing">{{ editing ? 'Save changes' : form.publication_status === 'draft' ? 'Save draft' : 'Publish opportunity' }} <ArrowRight :size="17" /></button></div>
 		</form>
 	</div>
 </template>
