@@ -8,6 +8,7 @@ use App\Models\Company;
 use App\Models\Field;
 use App\Models\SavedSearch;
 use App\Models\Student;
+use App\Support\ProfileHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -60,6 +61,9 @@ class ProfileController extends Controller
                 'languages' => $student->languages ?: [],
                 'website' => $student->website,
                 'resume_name' => $student->resume_name,
+                'experience' => $student->experience ?: [],
+                'education' => $student->education ?: [],
+                'projects' => $student->projects ?: [],
             ];
         }
 
@@ -110,6 +114,7 @@ class ProfileController extends Controller
             'preferences.seniority' => 'nullable|array|max:10',
             'preferences.seniority.*' => 'in:entry,graduate,mid,senior,lead,executive',
             'preferences.include_unknown_eligibility' => 'nullable|boolean',
+            ...ProfileHistory::rules(),
         ]);
 
         $user->fill(collect($data)->only('name', 'email', 'phone_number', 'linkedin_profile_url')->toArray());
@@ -130,7 +135,11 @@ class ProfileController extends Controller
         if ($user->isCompany()) {
             $user->userable->update(collect($data)->only('name', 'about', 'website', 'city_id', 'country_code', 'location')->toArray());
         } elseif ($user->isCandidate()) {
-            $user->userable->update(collect($data)->only('about', 'website', 'field_id', 'city_id', 'headline', 'experience_years', 'country_code', 'location', 'languages', 'preferences')->toArray());
+            $history = [];
+            foreach (array_keys(ProfileHistory::FIELDS) as $list) {
+                if ($request->has($list)) { $history[$list] = ProfileHistory::clean($list, $data[$list] ?? []); }
+            }
+            $user->userable->update([...collect($data)->only('about', 'website', 'field_id', 'city_id', 'headline', 'experience_years', 'country_code', 'location', 'languages', 'preferences')->toArray(), ...$history]);
         }
 
         return Redirect::route('profile.show')->with('toast', [
@@ -212,6 +221,9 @@ class ProfileController extends Controller
                 'languages' => $userable->languages ?? [],
                 'preferences' => $userable->preferences ?? [],
                 'resume_name' => $userable->resume_name ?? null,
+                'experience' => $userable->experience ?? [],
+                'education' => $userable->education ?? [],
+                'projects' => $userable->projects ?? [],
                 'email_verified' => $user->hasVerifiedEmail(),
                 'public_status' => $user->isCandidate() ? $userable->public_status : null,
                 'public_url' => $user->isCandidate() ? parse_url($userable->publicUrl(), PHP_URL_PATH) : null,

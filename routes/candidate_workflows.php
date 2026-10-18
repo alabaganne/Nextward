@@ -21,6 +21,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/resume', [ResumeController::class, 'show'])->name('profile.resume.show');
     Route::post('/profile/resume', [ResumeController::class, 'store'])->middleware('throttle:10,1')->name('profile.resume.store');
     Route::delete('/profile/resume', [ResumeController::class, 'destroy'])->name('profile.resume.destroy');
+    Route::post('/profile/resume/read', [ResumeController::class, 'read'])->middleware('throttle:5,60,resume-read')->name('profile.resume.read');
     Route::post('/opportunities/{internship}/cover-letter', [CoverLetterController::class, 'store'])
         ->whereNumber('internship')->middleware('throttle:10,60,cover-letter')->name('opportunities.cover-letter');
 });

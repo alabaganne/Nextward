@@ -18,6 +18,7 @@ const sections = computed(() => [
 		[
 			text('Account: your name, email address and password. The password is stored in a scrambled form that we cannot read. Phone number and LinkedIn link are optional.', 'Compte : votre nom, votre adresse e-mail et votre mot de passe. Le mot de passe est enregistré sous une forme chiffrée que nous ne pouvons pas lire. Le numéro de téléphone et le lien LinkedIn sont facultatifs.'),
 			text('Candidate profile: headline, field, city or country, short bio, skills and the kind of roles you want. It stays private unless you ask to make it public and we approve it.', 'Profil candidat : titre, domaine, ville ou pays, courte présentation, compétences et types de postes recherchés. Il reste privé sauf si vous demandez à le rendre public et que nous l’acceptons.'),
+			text('Resume and history: the resume PDF you upload, and the experience, education and projects on your profile. Only you can see them, unless you send them with an application.', 'CV et parcours : le CV en PDF que vous ajoutez, ainsi que les expériences, formations et projets de votre profil. Vous seul pouvez les voir, sauf si vous les envoyez avec une candidature.'),
 			text('Company profile: company name, logo, website, description and location. This profile is public.', 'Profil entreprise : nom, logo, site web, description et lieu. Ce profil est public.'),
 			text('Applications sent through Nextward: your message, cover letter, CV and other files you attach, and the status of the application.', 'Candidatures envoyées via Nextward : votre message, votre lettre de motivation, votre CV et les autres fichiers joints, ainsi que l’état de la candidature.'),
 			text('Saved roles and tracking: the opportunities you save, the ones you mark as applied elsewhere, and your private notes.', 'Offres enregistrées et suivi : les offres que vous enregistrez, celles où vous indiquez avoir postulé ailleurs et vos notes privées.'),
@@ -46,6 +47,15 @@ const sections = computed(() => [
 			text('Our service providers, who work for us under contract: hosting by [[hosting provider and server country]] and email sending by [[email provider]].', 'Nos prestataires, qui travaillent pour nous sous contrat : hébergement par [[hébergeur et pays des serveurs]] et envoi des e-mails par [[prestataire e-mail]].'),
 			text('Public authorities, only when the law requires it.', 'Les autorités publiques, uniquement quand la loi l’exige.'),
 		],
+	] },
+	{ id: 'ai', title: text('AI tools', 'Outils d’IA'), body: [
+		text('Some features use an AI service, [[AI provider: OpenAI or Anthropic]]. We only send it what the feature needs, and only when you ask:', 'Certaines fonctions utilisent un service d’IA, [[fournisseur d’IA : OpenAI ou Anthropic]]. Nous ne lui envoyons que ce dont la fonction a besoin, et seulement quand vous le demandez :'),
+		[
+			text('Fill my profile from my resume: your resume PDF. The answer is shown to you first; nothing is saved until you press Save.', 'Remplir mon profil depuis mon CV : votre CV en PDF. La réponse vous est d’abord montrée ; rien n’est enregistré avant que vous cliquiez sur Enregistrer.'),
+			text('Tailored CV and cover letter: your profile, your resume PDF and the role you chose.', 'CV et lettre sur mesure : votre profil, votre CV en PDF et l’offre choisie.'),
+			text('Translating listings: only the text of job listings, which holds no data about you.', 'Traduction des offres : uniquement le texte des offres, qui ne contient aucune donnée sur vous.'),
+		],
+		text('The AI service uses this data to answer and, under its business terms, does not use it to train its models.', 'Le service d’IA utilise ces données pour répondre et, selon ses conditions professionnelles, ne s’en sert pas pour entraîner ses modèles.'),
 	] },
 	{ id: 'sources', title: text('Listings from other sites', 'Offres venant d’autres sites'), body: [
 		text('Many listings are imported from public job sites and company career pages. They link to the original page. Opening that link does not send your CV or any data to the other site. If you apply there, that site’s own privacy policy applies.', 'Beaucoup d’offres sont importées depuis des sites d’emploi publics et des pages carrières d’entreprises. Elles renvoient vers l’annonce d’origine. Ouvrir ce lien n’envoie ni votre CV ni aucune donnée à l’autre site. Si vous y postulez, c’est la politique de confidentialité de ce site qui s’applique.'),

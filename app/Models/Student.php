@@ -23,6 +23,9 @@ class Student extends Model
         'website',
         'resume_path',
         'resume_name',
+        'experience',
+        'education',
+        'projects',
     ];
 
     protected $hidden = ['resume_path'];
@@ -30,6 +33,9 @@ class Student extends Model
     protected $casts = [
         'preferences' => 'array',
         'languages' => 'array',
+        'experience' => 'array',
+        'education' => 'array',
+        'projects' => 'array',
         'experience_years' => 'integer',
         'public_reviewed_at' => 'datetime',
     ];

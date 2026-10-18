@@ -4,6 +4,8 @@ import { computed, h, nextTick, ref } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
 import PageHeader from '@/Components/Ui/PageHeader.vue';
+import HistoryList from '@/Components/Candidate/HistoryList.vue';
+import axios from 'axios';
 
 defineOptions({
 	layout: (_h, page) => h(AppShell, { active: 'settings' }, () => page),
@@ -52,6 +54,9 @@ const accountForm = useForm({
 	country_code: props.settings.country_code || '',
 	location: props.settings.location || '',
 	languages: props.settings.languages || [],
+	experience: props.settings.experience || [],
+	education: props.settings.education || [],
+	projects: props.settings.projects || [],
 	preferences: {
 		kinds: props.settings.preferences?.kinds || [],
 		countries: props.settings.preferences?.countries || [],
@@ -86,6 +91,75 @@ const uploadResume = (event) => {
 	if (resumeForm.resume) resumeForm.post(route('profile.resume.store'), { preserveScroll: true, forceFormData: true });
 };
 const removeResume = () => router.delete(route('profile.resume.destroy'), { preserveScroll: true });
+
+const historyFields = {
+	experience: [
+		{ key: 'title', label: 'Job title' }, { key: 'company', label: 'Company' },
+		{ key: 'location', label: 'Location' }, { key: 'current', label: 'I work here now', type: 'checkbox' },
+		{ key: 'start', label: 'Start', placeholder: '2022-09' }, { key: 'end', label: 'End', placeholder: '2024-06' },
+		{ key: 'summary', label: 'What you did', type: 'textarea', wide: true },
+	],
+	education: [
+		{ key: 'school', label: 'School' }, { key: 'degree', label: 'Degree' },
+		{ key: 'field', label: 'Field of study', wide: true },
+		{ key: 'start', label: 'Start', placeholder: '2019' }, { key: 'end', label: 'End', placeholder: '2022' },
+	],
+	projects: [
+		{ key: 'name', label: 'Project name' }, { key: 'url', label: 'Link', type: 'url', placeholder: 'https://…' },
+		{ key: 'summary', label: 'What it is', type: 'textarea', wide: true },
+	],
+};
+
+// Resume reading: suggestions are shown for review and only fill the form; Save changes stores them.
+const reading = ref(false);
+const readError = ref('');
+const review = ref(null);
+const appliedNote = ref(false);
+const readResume = async () => {
+	reading.value = true;
+	readError.value = '';
+	appliedNote.value = false;
+	try {
+		const { data } = await axios.post(route('profile.resume.read'));
+		const s = data.suggestions;
+		const join = (list) => (list || []).join(', ');
+		const titles = (list, key) => (list || []).map((row) => row[key]).filter(Boolean).join('; ');
+		const rows = [
+			{ key: 'headline', label: 'Headline', now: accountForm.headline, next: s.headline },
+			{ key: 'about', label: 'About', now: accountForm.about, next: s.about },
+			{ key: 'experience_years', label: 'Years of experience', now: accountForm.experience_years ?? '', next: s.experience_years || '' },
+			{ key: 'location', label: 'City or location', now: accountForm.location, next: s.location },
+			{ key: 'country_code', label: 'Country code', now: accountForm.country_code, next: s.country_code },
+			{ key: 'phone_number', label: 'Phone', now: accountForm.phone_number, next: s.phone_number },
+			{ key: 'website', label: 'Website or portfolio', now: accountForm.website, next: s.website },
+			{ key: 'linkedin_profile_url', label: 'LinkedIn URL', now: accountForm.linkedin_profile_url, next: s.linkedin_profile_url },
+			{ key: 'languages', label: 'Languages', now: languagesText.value, next: join(s.languages), value: s.languages },
+			{ key: 'skills', label: 'Skills', now: skillsText.value, next: join(s.skills), value: s.skills },
+			{ key: 'experience', label: 'Experience', now: titles(accountForm.experience, 'title'), next: titles(s.experience, 'title'), value: s.experience },
+			{ key: 'education', label: 'Education', now: titles(accountForm.education, 'school'), next: titles(s.education, 'school'), value: s.education },
+			{ key: 'projects', label: 'Projects', now: titles(accountForm.projects, 'name'), next: titles(s.projects, 'name'), value: s.projects },
+		]
+			.map((row) => ({ ...row, now: String(row.now ?? ''), next: String(row.next ?? ''), value: row.value ?? s[row.key] }))
+			.filter((row) => row.next && row.next !== row.now)
+			.map((row) => ({ ...row, use: !row.now }));
+		review.value = rows;
+	} catch (error) {
+		readError.value = error.response?.data?.message || 'We could not read your resume right now. Please try again in a minute.';
+	} finally {
+		reading.value = false;
+	}
+};
+const applyReview = () => {
+	for (const row of review.value.filter((item) => item.use)) {
+		if (row.key === 'languages') languagesText.value = row.value.join(', ');
+		else if (row.key === 'skills') skillsText.value = [...new Set([...splitValues(skillsText.value), ...row.value])].join(', ');
+		else if (['experience', 'education', 'projects'].includes(row.key)) accountForm[row.key] = row.value.map((item) => ({ ...item }));
+		else accountForm[row.key] = row.value;
+	}
+	review.value = null;
+	appliedNote.value = true;
+	nextTick(() => document.getElementById('settings-details')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+};
 
 const publicBusy = ref(false);
 const setPublic = (value) =>
@@ -174,13 +248,66 @@ const deleteAccount = () =>
 						</div>
 					</div>
 
-					<form class="bg-white border border-line rounded-[18px] mb-[18px]" @submit.prevent="saveAccount">
+					<div v-if="isStudent" class="bg-white border border-line rounded-[18px] mb-[18px]">
+						<div class="px-[22px] py-[18px] border-b border-line-2">
+							<h3 class="font-display text-[16.5px] font-semibold">Resume</h3>
+							<p class="text-[13px] text-muted mt-[3px]">A PDF of your resume. Only you can see it. We can read it to fill in your profile, and we use it with your profile to tailor CVs and cover letters.</p>
+						</div>
+						<div class="px-[22px] py-[22px]">
+							<div class="flex items-center justify-between gap-4 flex-wrap">
+								<div class="flex items-center gap-3 min-w-0">
+									<FileText class="w-5 h-5 text-muted shrink-0" aria-hidden="true" />
+									<a v-if="settings.resume_name" :href="route('profile.resume.show')" class="text-[14px] font-semibold text-blue-700 hover:underline truncate">{{ settings.resume_name }}</a>
+									<span v-else class="text-[13.5px] text-muted">No resume yet.</span>
+								</div>
+								<div class="flex gap-2.5">
+									<label class="cbtn cbtn-secondary cursor-pointer" :class="{ 'opacity-60 pointer-events-none': resumeForm.processing }">
+										{{ resumeForm.processing ? 'Uploading…' : settings.resume_name ? 'Replace PDF' : 'Upload PDF' }}
+										<input type="file" accept="application/pdf" class="sr-only" @change="uploadResume">
+									</label>
+									<button v-if="settings.resume_name" class="cbtn cbtn-secondary" type="button" @click="removeResume">Remove</button>
+								</div>
+							</div>
+							<div v-if="resumeForm.errors.resume" class="text-xs text-[#dc2626] mt-[10px]" role="alert">{{ resumeForm.errors.resume }}</div>
+							<div v-if="settings.resume_name && !review" class="mt-4 rounded-[14px] bg-blue-50 px-4 py-3.5 flex items-center justify-between gap-3 flex-wrap">
+								<p class="text-[13.5px] text-ink-700">Save time: we read your resume and suggest profile details. You check them before anything is saved.</p>
+								<button class="cbtn bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60" type="button" :disabled="reading" @click="readResume">{{ reading ? 'Reading your resume…' : 'Fill my profile from this resume' }}</button>
+							</div>
+							<p v-if="readError" class="text-xs text-[#dc2626] mt-[10px]" role="alert">{{ readError }}</p>
+							<div v-if="review" class="mt-4">
+								<h4 class="font-display text-[15px] font-semibold">From your resume</h4>
+								<p v-if="!review.length" class="text-[13.5px] text-muted mt-1">Your profile already has everything we found.</p>
+								<template v-else>
+									<p class="text-[13px] text-muted mt-1 mb-3">Tick what you want to use. It fills the form below; nothing is saved until you press Save changes.</p>
+									<ul class="flex flex-col gap-2">
+										<li v-for="row in review" :key="row.key">
+											<label class="flex gap-3 items-start rounded-[12px] bg-paper-3 px-3.5 py-3 cursor-pointer">
+												<input v-model="row.use" type="checkbox" class="mt-1">
+												<span class="min-w-0 text-[13.5px]">
+													<b class="font-semibold block">{{ row.label }}</b>
+													<span class="block text-ink-700 whitespace-pre-line break-words">{{ row.next }}</span>
+													<span v-if="row.now" class="block text-muted mt-1 break-words">Now: {{ row.now }}</span>
+												</span>
+											</label>
+										</li>
+									</ul>
+								</template>
+								<div class="flex gap-2.5 mt-3">
+									<button v-if="review.length" class="cbtn bg-blue-600 text-white hover:bg-blue-700" type="button" @click="applyReview">Use selected</button>
+									<button class="cbtn cbtn-secondary" type="button" @click="review = null">Close</button>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<form id="settings-details" class="bg-white border border-line rounded-[18px] mb-[18px] scroll-mt-24" @submit.prevent="saveAccount">
 						<div class="px-[22px] py-[18px] border-b border-line-2">
 							<h3 class="font-display text-[16.5px] font-semibold">Personal details</h3>
 							<p class="text-[13px] text-muted mt-[3px]">Your basic information.</p>
 						</div>
 						<div class="px-[22px] py-[22px]">
 							<p v-if="hasAccountErrors" class="text-sm text-[#dc2626] font-semibold mb-4" role="alert">Please fix the fields below.</p>
+							<p v-else-if="appliedNote && accountForm.isDirty" class="text-sm text-blue-700 font-semibold mb-4 rounded-[12px] bg-blue-50 px-4 py-3" role="status">Details from your resume are filled in. Check them, then press Save changes.</p>
 							<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
 								<div class="mb-4">
 									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="settings-name">Full name</label>
@@ -246,6 +373,9 @@ const deleteAccount = () =>
 									<label class="text-sm font-semibold">Languages<input v-model="languagesText" class="fld mt-2" placeholder="Arabic, French, English"><span v-if="accountError('languages')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('languages') }}</span></label>
 									<label class="text-sm font-semibold">Website or portfolio<input v-model="accountForm.website" class="fld mt-2" type="url" placeholder="https://…"><span v-if="accountError('website')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('website') }}</span></label>
 								</div>
+								<HistoryList v-model="accountForm.experience" name="experience" title="Experience" add-label="Add a job" :fields="historyFields.experience" :errors="accountForm.errors" />
+								<HistoryList v-model="accountForm.education" name="education" title="Education" add-label="Add a school" :fields="historyFields.education" :errors="accountForm.errors" />
+								<HistoryList v-model="accountForm.projects" name="projects" title="Projects" add-label="Add a project" :fields="historyFields.projects" :errors="accountForm.errors" />
 								<h3 class="font-display text-lg font-semibold mt-7 mb-2">Opportunity preferences</h3>
 								<p class="text-sm text-muted mb-4">These preferences shape your dashboard. You can still browse every opportunity. Manage email alerts in Saved searches.</p>
 								<p v-if="accountForm.errors.preferences" class="text-xs text-[#dc2626] mb-4">{{ accountForm.errors.preferences }}</p>
@@ -266,30 +396,6 @@ const deleteAccount = () =>
 							<button class="cbtn bg-blue-600 text-white hover:bg-blue-700" type="submit" :disabled="accountForm.processing">Save changes</button>
 						</div>
 					</form>
-
-					<div v-if="isStudent" class="bg-white border border-line rounded-[18px] mb-[18px]">
-						<div class="px-[22px] py-[18px] border-b border-line-2">
-							<h3 class="font-display text-[16.5px] font-semibold">Resume</h3>
-							<p class="text-[13px] text-muted mt-[3px]">A PDF of your resume. Only you can see it. We use it with your profile to draft cover letters.</p>
-						</div>
-						<div class="px-[22px] py-[22px]">
-							<div class="flex items-center justify-between gap-4 flex-wrap">
-								<div class="flex items-center gap-3 min-w-0">
-									<FileText class="w-5 h-5 text-muted shrink-0" aria-hidden="true" />
-									<a v-if="settings.resume_name" :href="route('profile.resume.show')" class="text-[14px] font-semibold text-blue-700 hover:underline truncate">{{ settings.resume_name }}</a>
-									<span v-else class="text-[13.5px] text-muted">No resume yet.</span>
-								</div>
-								<div class="flex gap-2.5">
-									<label class="cbtn cbtn-secondary cursor-pointer" :class="{ 'opacity-60 pointer-events-none': resumeForm.processing }">
-										{{ resumeForm.processing ? 'Uploading…' : settings.resume_name ? 'Replace PDF' : 'Upload PDF' }}
-										<input type="file" accept="application/pdf" class="sr-only" @change="uploadResume">
-									</label>
-									<button v-if="settings.resume_name" class="cbtn cbtn-secondary" type="button" @click="removeResume">Remove</button>
-								</div>
-							</div>
-							<div v-if="resumeForm.errors.resume" class="text-xs text-[#dc2626] mt-[10px]" role="alert">{{ resumeForm.errors.resume }}</div>
-						</div>
-					</div>
 
 					<div v-if="isStudent" class="bg-white border border-line rounded-[18px] mb-[18px]">
 						<div class="px-[22px] py-[18px] border-b border-line-2">

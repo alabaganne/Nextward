@@ -2,13 +2,31 @@
 
 namespace App\Http\Controllers;
 
+use App\Ai\Resumes;
 use App\Models\Student;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
-// A candidate keeps one resume (PDF) on their profile; it feeds cover letter drafts.
+// A candidate keeps one resume (PDF) on their profile; it fills the profile and feeds tailored CVs and letters.
 class ResumeController extends Controller
 {
+    // Reads the resume with AI and returns suggestions; the candidate reviews them and saves from Settings.
+    public function read(Request $request, Resumes $resumes)
+    {
+        $student = $this->student($request);
+        abort_unless($student->resume_path && Storage::disk('local')->exists($student->resume_path), 404, 'Upload your resume first.');
+        abort_unless($resumes->enabled(), 503, 'Reading resumes is not available right now.');
+
+        try {
+            return response()->json(['suggestions' => $resumes->read($student)]);
+        } catch (\Throwable $e) {
+            Log::warning('Resume reading failed.', ['student_id' => $student->id, 'error' => Str::limit($e->getMessage(), 300)]);
+            return response()->json(['message' => 'We could not read your resume right now. Please try again in a minute.'], 502);
+        }
+    }
+
     public function store(Request $request)
     {
         $student = $this->student($request);

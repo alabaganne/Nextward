@@ -54,11 +54,18 @@ const checklist = computed(() => {
 	if (isStudent.value) {
 		items.splice(2, 0, { label: 'Pick your field', done: !!props.profile.field?.name });
 		items.push({ label: 'Add skills', done: (props.profile.skills || []).length > 0 });
+		items.push({ label: 'Add your experience or studies', done: (props.profile.experience || []).length + (props.profile.education || []).length > 0 });
 	} else if (isCompany.value) {
 		items.push({ label: 'Add a website', done: !!props.profile.website });
 	}
 	return items;
 });
+const dates = (row) => [row.start, row.current ? 'Now' : row.end].filter(Boolean).join(' – ');
+const history = computed(() => [
+	{ key: 'experience', title: 'Experience', rows: (props.profile.experience || []).map((row) => ({ title: row.title, sub: [row.company, row.location].filter(Boolean).join(' · '), dates: dates(row), body: row.summary })) },
+	{ key: 'education', title: 'Education', rows: (props.profile.education || []).map((row) => ({ title: row.school, sub: [row.degree, row.field].filter(Boolean).join(' · '), dates: dates(row) })) },
+	{ key: 'projects', title: 'Projects', rows: (props.profile.projects || []).map((row) => ({ title: row.name, body: row.summary, url: row.url })) },
+].filter((list) => list.rows.length));
 const strength = computed(() =>
 	Math.round((checklist.value.filter((item) => item.done).length / checklist.value.length) * 100)
 );
@@ -129,6 +136,27 @@ const strength = computed(() =>
 						<p v-else class="text-[14.5px] text-muted leading-[1.7]">No skills added yet.</p>
 					</div>
 				</section>
+
+				<!-- experience, education, projects -->
+				<template v-if="isStudent">
+					<section v-for="list in history" :key="list.key" class="bg-white border border-line rounded-[18px] mb-[18px]">
+						<div class="flex items-center justify-between px-[22px] py-[18px] border-b border-line-2">
+							<h3 class="font-display text-[16.5px] font-semibold">{{ list.title }}</h3>
+							<Link class="inline-flex items-center gap-[7px] text-[13px] font-semibold text-blue-700 bg-blue-50 border border-blue-100 px-3 py-[7px] rounded-[9px] cursor-pointer hover:bg-blue-100 transition-colors [&_svg]:w-3.5 [&_svg]:h-3.5" :href="route('settings')"><component :is="icons.pencil" aria-hidden="true" /> Edit</Link>
+						</div>
+						<ul class="px-[22px] py-2">
+							<li v-for="(row, index) in list.rows" :key="index" class="py-3.5 border-b border-line-2 last:border-b-0">
+								<div class="flex items-baseline justify-between gap-3 flex-wrap">
+									<b class="text-[14.5px] font-semibold">{{ row.title }}</b>
+									<span v-if="row.dates" class="text-[12.5px] text-muted">{{ row.dates }}</span>
+								</div>
+								<p v-if="row.sub" class="text-[13.5px] text-ink-700 mt-0.5">{{ row.sub }}</p>
+								<p v-if="row.body" class="text-[13.5px] text-muted mt-1.5 leading-[1.6] whitespace-pre-line">{{ row.body }}</p>
+								<a v-if="row.url" :href="row.url" target="_blank" rel="noopener" class="text-[13px] font-semibold text-blue-700 hover:underline mt-1 inline-block">{{ row.url }}</a>
+							</li>
+						</ul>
+					</section>
+				</template>
 
 				<!-- company details -->
 				<section v-if="isCompany" class="bg-white border border-line rounded-[18px] mb-[18px]">

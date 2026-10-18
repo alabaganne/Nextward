@@ -1,0 +1,95 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
+use Tests\TestCase;
+
+class ResumeProfileTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(\Tests\Fixtures\DemoSeeder::class);
+        Storage::fake('local');
+        config(['importer.ai.enabled' => true, 'importer.ai.provider' => 'openai', 'ai.providers.openai.key' => 'test-key']);
+    }
+
+    public function test_the_resume_is_read_into_suggestions_without_saving_anything(): void
+    {
+        $user = User::where('email', 'student@example.com')->firstOrFail();
+        $before = $user->userable->fresh()->toArray();
+        $this->actingAs($user)->post('/profile/resume', ['resume' => UploadedFile::fake()->create('cv.pdf', 40, 'application/pdf')]);
+        Http::fake(['api.openai.com/v1/responses' => Http::response($this->reply([
+            'headline' => 'Laravel developer', 'about' => 'I build web apps.', 'experience_years' => 2,
+            'location' => 'Tunis, Tunisia', 'country_code' => 'tn', 'phone_number' => '', 'website' => 'not a link',
+            'linkedin_profile_url' => 'https://linkedin.com/in/demo', 'languages' => ['French', 'English', 'french'],
+            'skills' => ['Laravel', 'Vue'],
+            'experience' => [['title' => 'Developer', 'company' => 'Acme', 'location' => '', 'start' => '2023-01', 'end' => '', 'current' => true, 'summary' => 'Built APIs.'], ['title' => '', 'company' => 'Empty', 'location' => '', 'start' => '', 'end' => '', 'current' => false, 'summary' => '']],
+            'education' => [['school' => 'ISSAT Sousse', 'degree' => 'Engineering', 'field' => 'Software', 'start' => '2018', 'end' => '2023']],
+            'projects' => [['name' => 'Nextward', 'summary' => 'Job board', 'url' => 'https://example.com']],
+        ]))]);
+
+        $this->actingAs($user)->postJson('/profile/resume/read')->assertOk()
+            ->assertJsonPath('suggestions.headline', 'Laravel developer')
+            ->assertJsonPath('suggestions.country_code', 'TN')
+            ->assertJsonPath('suggestions.website', '')
+            ->assertJsonPath('suggestions.languages', ['French', 'English'])
+            ->assertJsonCount(1, 'suggestions.experience')
+            ->assertJsonPath('suggestions.experience.0.current', true)
+            ->assertJsonPath('suggestions.education.0.school', 'ISSAT Sousse');
+
+        $after = $user->userable->fresh()->toArray();
+        $this->assertSame($before['headline'], $after['headline']);
+        $this->assertSame($before['about'], $after['about']);
+        $this->assertEmpty($after['experience']);
+        Http::assertSent(fn ($request) => $request['model'] === 'gpt-5.4-mini'
+            && collect($request['input'])->flatMap(fn ($message) => is_array($message['content'] ?? null) ? $message['content'] : [])->contains('type', 'input_file'));
+    }
+
+    public function test_reading_needs_a_resume_and_ai(): void
+    {
+        $user = User::where('email', 'student@example.com')->firstOrFail();
+        $this->actingAs($user)->postJson('/profile/resume/read')->assertNotFound();
+
+        $this->actingAs($user)->post('/profile/resume', ['resume' => UploadedFile::fake()->create('cv.pdf', 40, 'application/pdf')]);
+        config(['ai.providers.openai.key' => null]);
+        $this->actingAs($user)->postJson('/profile/resume/read')->assertStatus(503);
+    }
+
+    public function test_settings_saves_experience_education_and_projects(): void
+    {
+        $user = User::where('email', 'student@example.com')->firstOrFail();
+
+        $this->actingAs($user)->put('/profile', [
+            'name' => $user->name, 'email' => $user->email,
+            'experience' => [['title' => 'Developer', 'company' => 'Acme', 'start' => '2023-01', 'current' => true, 'junk' => 'x']],
+            'education' => [['school' => 'ISSAT Sousse', 'degree' => 'Engineering']],
+            'projects' => [['name' => 'Nextward', 'url' => 'https://example.com']],
+        ])->assertSessionHasNoErrors();
+
+        $student = $user->userable->fresh();
+        $this->assertSame('Developer', $student->experience[0]['title']);
+        $this->assertTrue($student->experience[0]['current']);
+        $this->assertArrayNotHasKey('junk', $student->experience[0]);
+        $this->assertSame('ISSAT Sousse', $student->education[0]['school']);
+        $this->assertSame('https://example.com', $student->projects[0]['url']);
+
+        $this->actingAs($user)->put('/profile', ['name' => $user->name, 'email' => $user->email, 'experience' => [['company' => 'No title']]])
+            ->assertSessionHasErrors('experience.0.title');
+    }
+
+    private function reply(array $data): array
+    {
+        return ['id' => 'resp_1', 'object' => 'response', 'status' => 'completed', 'model' => 'gpt-5.4-mini',
+            'output' => [['type' => 'message', 'id' => 'msg_1', 'role' => 'assistant', 'status' => 'completed',
+                'content' => [['type' => 'output_text', 'text' => json_encode($data), 'annotations' => []]]]],
+            'usage' => ['input_tokens' => 100, 'output_tokens' => 20, 'total_tokens' => 120]];
+    }
+}
