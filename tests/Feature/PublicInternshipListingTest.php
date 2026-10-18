@@ -50,6 +50,22 @@ class PublicInternshipListingTest extends TestCase
         );
     }
 
+    public function test_browse_can_filter_by_several_fields_at_once()
+    {
+        $company = $this->company('Atlas Cloud');
+        $design = Field::create(['name' => 'Design']);
+        $finance = Field::create(['name' => 'Finance']);
+        $this->internship($company, 'Web role', now()->addMonth());
+        $this->internship($company, 'Design role', now()->addMonth())->update(['field_id' => $design->id]);
+        $this->internship($company, 'Finance role', now()->addMonth())->update(['field_id' => $finance->id]);
+
+        $this->get("/opportunities?fields[]={$this->field->id}&fields[]={$design->id}")->assertInertia(fn (Assert $page) => $page
+            ->has('internships.data', 2)
+            ->where('filters.fields', [(string) $this->field->id, (string) $design->id])
+            ->where('internships.data', fn ($roles) => collect($roles)->pluck('title')->sort()->values()->all() === ['Design role', 'Web role'])
+        );
+    }
+
     public function test_the_board_is_empty_when_nothing_is_open()
     {
         $this->internship($this->company('Atlas Cloud'), 'Closed last month', now()->subMonth());
