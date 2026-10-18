@@ -1,554 +1,222 @@
-# Marketing Plan for Nextward
-## Internship Management Platform for Tunisia
-
----
-
-## Executive Summary
-
-Nextward is a comprehensive internship management platform designed specifically for the Tunisian market. This marketing plan outlines strategies to position Nextward as the leading platform connecting students, companies, and universities in Tunisia, streamlining the internship process for all stakeholders.
-
----
-
-## 1. Market Analysis
-
-### 1.1 Market Overview
-- **Target Market**: Tunisia's education and professional development sector
-- **Market Size**:
-  - 200+ universities and higher education institutions in Tunisia
-  - 300,000+ university students annually
-  - 50,000+ companies (potential internship hosts)
-  - Growing youth unemployment driving internship demand
-
-### 1.2 Market Trends
-- Digital transformation of education and recruitment
-- Increasing emphasis on practical work experience
-- Government initiatives supporting youth employment
-- Growing startup ecosystem in Tunisia
-- Remote/hybrid internship opportunities post-COVID
-
-### 1.3 Competitive Landscape
-- **Traditional Methods**: Email-based applications, university job boards, paper applications
-- **Global Platforms**: LinkedIn (limited Tunisia-specific features), Indeed
-- **Local Competitors**: Limited specialized internship platforms in Tunisia
-- **Competitive Advantage**: Only platform specifically designed for Tunisian internship ecosystem with multi-stakeholder support
-
----
-
-## 2. Target Audience
-
-### 2.1 Primary Segments
-
-#### Students (Main Users)
-- **Demographics**: 18-26 years old, university students
-- **Fields**: Engineering, business, IT, medicine, humanities
-- **Pain Points**:
-  - Difficulty finding relevant internships
-  - Complex application processes
-  - Lack of centralized platform
-  - Limited company connections
-- **Motivations**: Career development, graduation requirements, skill building
-
-#### Companies (Internship Hosts)
-- **Size**: SMEs to large corporations
-- **Sectors**: Tech, finance, manufacturing, services, NGOs
-- **Pain Points**:
-  - Time-consuming recruitment process
-  - Quality candidate screening
-  - Managing multiple applications
-  - Intern supervision coordination
-- **Motivations**: Talent pipeline, fresh perspectives, social responsibility
-
-#### Universities (Academic Partners)
-- **Type**: Public and private universities, technical schools
-- **Stakeholders**: Career services, academic supervisors, administration
-- **Pain Points**:
-  - Student placement tracking
-  - Supervisor coordination
-  - Quality assurance of internships
-  - Administrative overhead
-- **Motivations**: Student success, employer partnerships, accreditation requirements
-
----
-
-## 3. Value Proposition
-
-### For Students
-- **One-Stop Platform**: Browse hundreds of internships in one place
-- **Smart Matching**: Advanced filtering by field, location, and company
-- **Streamlined Applications**: Apply with one click, track all applications
-- **Direct Communication**: Message companies and supervisors in real-time
-- **Transparency**: Clear application status and feedback
-
-### For Companies
-- **Efficient Recruitment**: Post internships and manage applications in one dashboard
-- **Quality Candidates**: Access motivated students from top universities
-- **Time Savings**: Automated application management and supervisor coordination
-- **Brand Building**: Showcase company culture to future talent
-- **Compliance**: Built-in supervisor management and tracking
-
-### For Universities
-- **Student Success**: Help students find quality internships faster
-- **Monitoring Tools**: Track student applications and placements
-- **Supervisor Management**: Coordinate academic supervisors efficiently
-- **Data Insights**: Analytics on placement rates and trends
-- **Partnership Building**: Connect with leading employers
-
----
-
-## 4. Marketing Objectives
-
-### Year 1 Goals (6-12 months)
-
-#### User Acquisition
-- **Students**: 10,000 registered students
-- **Companies**: 500 registered companies
-- **Universities**: 25 university partnerships
-- **Internships**: 2,000+ active internship postings
-
-#### Engagement Metrics
-- 60% monthly active user rate
-- 30% application submission rate
-- 15% placement success rate
-- 4.5/5 average user satisfaction
-
-#### Brand Awareness
-- 40% awareness among target university students
-- Recognition as leading internship platform in Tunisia
-- Media coverage in 10+ major publications
-- 5,000+ social media followers
-
----
-
-## 5. Marketing Strategies
-
-### 5.1 Go-to-Market Strategy
-
-#### Phase 1: Foundation (Months 1-3)
-- Launch with 5-10 pilot universities
-- Onboard 50-100 companies
-- Build initial student base (1,000-2,000 students)
-- Gather feedback and iterate
-
-#### Phase 2: Growth (Months 4-8)
-- Expand to 20+ universities
-- Scale company partnerships to 300+
-- Implement referral programs
-- Launch PR and content marketing
-
-#### Phase 3: Scale (Months 9-12)
-- National expansion across Tunisia
-- Premium features for companies
-- Advanced matching algorithms
-- Regional partnerships
-
-### 5.2 Positioning Strategy
-
-**Tagline**: "Connecting Tunisia's Talent with Opportunity"
-
-**Brand Promise**: Simplify and democratize access to quality internships for every Tunisian student
-
-**Brand Personality**: Professional, trustworthy, innovative, student-focused, Tunisian-proud
-
----
-
-## 6. Marketing Tactics & Channels
-
-### 6.1 Digital Marketing
-
-#### Website & SEO
-- **Tactics**:
-  - SEO-optimized landing pages for each university and major
-  - Blog content: "Top 10 Internships for Engineers", "How to Write a Cover Letter"
-  - Student success stories and testimonials
-  - Company spotlights and culture features
-- **Budget**: $500/month
-- **KPIs**: 10,000 monthly visitors, 5% conversion rate
-
-#### Social Media Marketing
-- **Platforms**: Facebook, Instagram, LinkedIn, TikTok
-- **Content Strategy**:
-  - **Facebook**: Community building, event promotion, success stories
-  - **Instagram**: Student testimonials, company culture, tips & tricks (Reels/Stories)
-  - **LinkedIn**: Professional content, company partnerships, thought leadership
-  - **TikTok**: Viral internship tips, student life, quick wins
-- **Posting Frequency**: 4-5 posts/week per platform
-- **Paid Ads**: $1,000/month targeting university students and HR professionals
-- **KPIs**: 5,000 followers by month 6, 3% engagement rate
-
-#### Email Marketing
-- **Campaigns**:
-  - Weekly internship digest for students
-  - New candidate alerts for companies
-  - University partnership newsletters
-  - Onboarding sequences
-  - Re-engagement campaigns
-- **Tools**: Mailchimp or SendGrid
-- **Budget**: $200/month
-- **KPIs**: 25% open rate, 5% click-through rate
-
-#### Content Marketing
-- **Blog Topics**:
-  - Internship search guides
-  - Interview preparation tips
-  - Company culture spotlights
-  - Industry trend reports
-  - Student success stories
-- **Frequency**: 2-3 articles/week
-- **Guest Posts**: Contribute to university blogs and career sites
-- **KPIs**: 5,000 blog visitors/month, 100 newsletter subscribers
-
-#### Paid Advertising
-- **Google Ads**:
-  - Keywords: "stage en tunisie", "stage informatique", "stage ingénieur"
-  - Budget: $800/month
-- **Facebook/Instagram Ads**:
-  - Targeting: 18-26, university students in Tunisia
-  - Budget: $1,000/month
-- **LinkedIn Ads**:
-  - Targeting: HR managers, recruiters in Tunisia
-  - Budget: $500/month
-- **Total Paid Ads Budget**: $2,300/month
-
-### 6.2 University Partnerships
-
-#### Campus Ambassador Program
-- **Strategy**: Recruit 2-3 ambassadors per university
-- **Responsibilities**:
-  - Host info sessions
-  - Distribute marketing materials
-  - Organize workshops
-  - Gather student feedback
-- **Incentives**:
-  - Free premium features
-  - Certificate of participation
-  - Monthly stipend (50-100 TND)
-  - Leadership development training
-- **Budget**: $1,500/month for 50 ambassadors
-
-#### Career Center Partnerships
-- **Tactics**:
-  - Official partnerships with university career services
-  - Integration into career fairs and events
-  - Co-branded materials and workshops
-  - Featured listings in university career portals
-- **Benefits**:
-  - Direct access to students
-  - Institutional credibility
-  - Email list access
-  - Event participation
-
-#### Campus Events
-- **Types**:
-  - Career fairs and job expos
-  - Info sessions and demos
-  - Internship preparation workshops
-  - Networking events with companies
-- **Frequency**: 2-3 events/month
-- **Budget**: $1,000/month
-
-### 6.3 Company Outreach
-
-#### B2B Sales Strategy
-- **Direct Outreach**:
-  - Targeted email campaigns to HR departments
-  - LinkedIn outreach to HR managers and recruiters
-  - Cold calling to top 200 companies in Tunisia
-- **Sales Collateral**:
-  - Product demo videos
-  - Case studies and ROI calculators
-  - Comparison sheets vs. traditional methods
-  - Free trial offers (1-month premium)
-
-#### Industry Events
-- **Participation**:
-  - HR conferences and summits
-  - Startup events and tech meetups
-  - Chamber of Commerce events
-  - Industry association gatherings
-- **Activities**: Booth presence, speaking opportunities, networking
-
-#### Partnership Programs
-- **Strategic Partners**:
-  - HR software providers
-  - University management systems
-  - Professional associations
-  - Government employment agencies
-- **Co-Marketing**: Joint webinars, content, events
-
-### 6.4 Public Relations
-
-#### Media Relations
-- **Press Releases**:
-  - Platform launch announcement
-  - Major university partnerships
-  - Milestone achievements (10,000 users, 1,000 placements)
-  - New feature launches
-- **Media Targets**:
-  - Tech publications: Tekiano, SiliconMarhaba
-  - Business press: L'Economiste Maghrébin, Webdo
-  - Education media: University magazines, student publications
-  - National media: La Presse, Assabah
-
-#### Thought Leadership
-- **Activities**:
-  - Guest articles in major publications
-  - Speaking at education and HR conferences
-  - Podcast appearances
-  - Expert commentary on internship trends
-
-### 6.5 Referral & Growth Hacking
-
-#### Referral Program
-- **Student Referrals**:
-  - Refer a friend: Both get premium features for 1 month
-  - Leaderboard for top referrers
-  - Prizes for milestones (10 referrals = internship guide ebook)
-- **Company Referrals**:
-  - Refer another company: Get 20% off premium for 3 months
-  - Co-marketing opportunities
-
-#### Viral Mechanics
-- **Social Sharing**:
-  - "I just applied to [Company]!" auto-posts
-  - Achievement badges (100 applications, first placement)
-  - Profile completion gamification
-- **Contests**:
-  - "Best Cover Letter" competition
-  - "Most Creative Application" awards
-  - Company culture video contests
-
-### 6.6 Community Building
-
-#### Online Community
-- **Facebook Group**: "Nextward Internship Community"
-  - Student networking
-  - Q&A sessions with HR professionals
-  - Internship tips and resources
-  - Success story sharing
-
-#### Events & Workshops
-- **Webinars**:
-  - "How to Land Your Dream Internship"
-  - "Building a Winning Resume"
-  - "Interview Skills Masterclass"
-- **Networking Events**:
-  - Student-company mixers
-  - Alumni panels
-  - Industry showcases
-
----
-
-## 7. Budget Allocation
-
-### Monthly Marketing Budget: $8,500
-
-| Category | Monthly Budget | Percentage |
-|----------|---------------|------------|
-| Paid Advertising (Google, Facebook, LinkedIn) | $2,300 | 27% |
-| Campus Ambassador Program | $1,500 | 18% |
-| Campus Events & Activations | $1,000 | 12% |
-| Content Creation & SEO | $800 | 9% |
-| Social Media Management | $600 | 7% |
-| PR & Media Relations | $500 | 6% |
-| Email Marketing Tools | $200 | 2% |
-| Referral Program Incentives | $500 | 6% |
-| Event Sponsorships | $600 | 7% |
-| Marketing Tools & Software | $300 | 4% |
-| Contingency | $200 | 2% |
-
-### Annual Budget: $102,000
-
-### Budget Notes:
-- Budget assumes bootstrapped/lean startup approach
-- Can be scaled based on funding and growth
-- Focus on high-ROI, low-cost tactics initially
-- Increase paid ads as product-market fit improves
-
----
-
-## 8. Implementation Timeline
-
-### Month 1-2: Launch Preparation
-- [ ] Finalize brand identity and messaging
-- [ ] Build marketing website and landing pages
-- [ ] Create social media accounts and content calendar
-- [ ] Develop sales collateral and demo materials
-- [ ] Recruit initial campus ambassadors (5 universities)
-- [ ] Onboard 5-10 pilot companies
-
-### Month 3-4: Soft Launch
-- [ ] Launch at 5 pilot universities
-- [ ] Host launch events on each campus
-- [ ] Begin content marketing and SEO
-- [ ] Start social media campaigns
-- [ ] Initiate PR outreach
-- [ ] Gather user feedback and iterate
-
-### Month 5-6: Growth Acceleration
-- [ ] Expand to 15 universities
-- [ ] Scale campus ambassador program to 30 ambassadors
-- [ ] Launch paid advertising campaigns
-- [ ] Implement referral program
-- [ ] Host first major internship fair
-- [ ] Publish first success stories and case studies
-
-### Month 7-9: Market Expansion
-- [ ] Reach 25 university partnerships
-- [ ] Onboard 300+ companies
-- [ ] Launch premium features for companies
-- [ ] Host webinar series
-- [ ] Expand social media presence (TikTok)
-- [ ] Secure major media coverage
-
-### Month 10-12: Optimization & Scale
-- [ ] National coverage across Tunisia
-- [ ] Optimize marketing based on data
-- [ ] Launch advanced matching features
-- [ ] Host annual internship summit
-- [ ] Plan for Year 2 expansion
-- [ ] Evaluate international expansion (Algeria, Morocco)
-
----
-
-## 9. Key Performance Indicators (KPIs)
-
-### User Growth Metrics
-- **Student Registrations**: Target 10,000 in Year 1
-- **Company Registrations**: Target 500 in Year 1
-- **University Partnerships**: Target 25 in Year 1
-- **Monthly Active Users**: 60% of registered users
-- **User Retention Rate**: 70% month-over-month
-
-### Engagement Metrics
-- **Applications Submitted**: Average 3 per student
-- **Internship Postings**: 2,000+ active listings
-- **Placement Rate**: 15% of applications result in placements
-- **Time to Placement**: Average 30 days from registration
-- **Platform Usage**: 4 logins per user per month
-
-### Marketing Metrics
-- **Website Traffic**: 10,000 monthly visitors
-- **Conversion Rate**: 5% visitor-to-registration
-- **Cost Per Acquisition (CPA)**:
-  - Student: $5
-  - Company: $50
-  - University: $200
-- **Social Media Followers**: 5,000 across platforms
-- **Email List**: 8,000 subscribers
-- **PR Mentions**: 10+ major publications
-
-### Business Metrics
-- **Market Penetration**: 20% of university students in Tunisia aware
-- **Net Promoter Score (NPS)**: 50+
-- **Customer Satisfaction**: 4.5/5 stars
-- **Premium Conversion**: 10% of companies upgrade to premium
-
----
-
-## 10. Success Stories & Case Studies
-
-### Student Success Story Template
-**Title**: "How [Student Name] Landed Their Dream Internship at [Company]"
-
-**Content**:
-- Background and challenges
-- How they used Nextward
-- Application process
-- Results and impact
-- Quote and photo
-
-### Company Case Study Template
-**Title**: "[Company Name] Finds Top Talent in 2 Weeks with Nextward"
-
-**Content**:
-- Company background and hiring challenges
-- Previous internship recruitment process
-- Nextward implementation
-- Results: Time saved, quality of candidates, ROI
-- Testimonial from HR manager
-
----
-
-## 11. Risk Mitigation
-
-### Potential Risks & Solutions
-
-| Risk | Likelihood | Impact | Mitigation Strategy |
-|------|-----------|--------|---------------------|
-| Slow student adoption | Medium | High | Aggressive campus marketing, ambassador program, incentives |
-| Companies prefer traditional methods | Medium | High | Demonstrate ROI, offer free trials, provide white-glove onboarding |
-| University resistance to change | Low | Medium | Build relationships with career services, show student success data |
-| Competition from global platforms | High | Medium | Emphasize Tunisia-specific features, local partnerships, better support |
-| Chicken-and-egg problem (students need jobs, companies need students) | High | High | Launch with pilot universities and pre-recruited companies simultaneously |
-| Budget constraints | Medium | Medium | Focus on organic and low-cost tactics first, seek partnerships |
-| Technical issues affecting user experience | Low | High | Invest in quality assurance, user testing, responsive customer support |
-
----
-
-## 12. Long-Term Vision
-
-### Year 2-3 Goals
-- **Geographic Expansion**: Algeria, Morocco (North Africa)
-- **Product Expansion**: Full-time job placements, freelance opportunities
-- **Advanced Features**: AI-powered matching, video interviews, skill assessments
-- **Partnerships**: Government programs, international companies, NGOs
-- **Revenue Diversification**: Premium subscriptions, job ad promotions, recruitment services
-
-### Vision Statement
-To become the leading career platform in North Africa, empowering millions of students to launch successful careers while helping companies build exceptional teams.
-
----
-
-## 13. Measurement & Optimization
-
-### Monthly Review Process
-1. **Data Collection**: Gather metrics from all marketing channels
-2. **Performance Analysis**: Compare against KPIs and benchmarks
-3. **Channel Optimization**: Reallocate budget from low to high performers
-4. **A/B Testing**: Test messaging, creatives, landing pages
-5. **Reporting**: Share insights with team and stakeholders
-
-### Tools & Analytics
-- **Google Analytics**: Website traffic and conversion tracking
-- **Facebook Pixel**: Social media ad performance
-- **Mixpanel/Amplitude**: User behavior analytics
-- **HubSpot/Salesforce**: CRM and email marketing
-- **Hotjar**: User experience and heatmaps
-- **SEMrush/Ahrefs**: SEO and competitor analysis
-
-### Optimization Priorities
-1. Improve conversion rate on landing pages
-2. Reduce cost per acquisition through channel optimization
-3. Increase user engagement and retention
-4. Enhance content quality and SEO rankings
-5. Strengthen brand positioning and awareness
-
----
-
-## Conclusion
-
-This marketing plan provides a comprehensive roadmap for establishing Nextward as the leading internship platform in Tunisia. Success depends on:
-
-1. **Multi-sided approach**: Simultaneously acquiring students, companies, and university partners
-2. **Local focus**: Emphasizing Tunisia-specific features and relationships
-3. **Community building**: Creating a vibrant ecosystem around internships
-4. **Data-driven optimization**: Continuously measuring and improving performance
-5. **Long-term vision**: Building sustainable competitive advantages
-
-By executing this plan with discipline and agility, Nextward can capture significant market share and create meaningful value for the Tunisian education and employment ecosystem.
-
----
-
-**Next Steps:**
-1. Review and approve marketing plan
-2. Allocate budget and resources
-3. Hire/assign marketing team
-4. Begin implementation starting with Month 1-2 activities
-5. Set up analytics and tracking systems
-6. Launch pilot program with first 5 universities
-
----
-
-*Document Version: 1.0*
-*Last Updated: November 2025*
-*Contact: [Marketing Team]*
+# Marketing plan
+
+*Rewritten 18 October 2026.* The old version was written for an internships-only platform sold to universities, with a $8,500 a month budget and market numbers nobody checked. It is replaced by this plan: one person, little or no money, and the product as it is today.
+
+## Where Nextward stands
+
+- Free job board for **students and professionals**: internships, PFE projects, graduate roles and jobs, in **Tunisia and worldwide** (remote from Tunisia, relocation).
+- English and French. Listings are imported every day from Tunisian boards and company career pages, plus roles companies post themselves.
+- Free for candidates: search, saving, alerts, tracking applications, filling a profile from a resume. The tailored CV and cover letter is the paid feature to come; billing is off.
+- Free for companies: posting roles, reviewing applications, messaging candidates.
+- A career-guides blog: 16 articles, each in English and French, on PFE, SIVP, CVs and remote work from Tunisia.
+- One person runs everything. Time is the budget.
+
+**What this means:** we win by being genuinely useful in the places people already ask for help, not by buying reach. Every post must stand on its own even if nobody clicks the link.
+
+## Goal for the next 12 weeks (until mid-January 2027)
+
+PFE search season is happening now: most final-year students look for a PFE subject between October and January. That makes this window the best time to reach Tunisian students.
+
+| Goal | Target | How we count it |
+| --- | --- | --- |
+| Main: candidates who turn on an alert | 300 | Saved searches with alerts turned on |
+| New candidate accounts | 1,000 | Sign-ups per week |
+| Companies that post a role themselves | 20 | Native listings |
+| Feedback messages (bugs, ideas, help) | 50 | Contact form emails |
+
+These are goals, not results. Adjust them after week 4 with real numbers.
+
+Alerts matter more than sign-ups: someone with an alert comes back every week without us doing anything.
+
+## Who we are talking to
+
+1. **Tunisian students** looking for a PFE, a summer internship or a first job. They want real, open offers in one place, in French, without scrolling through dead Facebook posts.
+2. **Tunisian professionals and recent graduates** who want remote work from Tunisia or a move abroad, and don't know which foreign roles actually accept them.
+3. **Companies hiring in Tunisia**, mostly HR people and founders filling PFE and junior roles. They want applicants without paying for a pack.
+4. **People abroad** (diaspora, international students) who follow the Tunisian job market. A smaller group, and easier to reach on Reddit.
+
+## What we say
+
+**Core message:** Internships, PFE projects and jobs in Tunisia and remote roles open to Tunisia, in one place, checked every day, free.
+
+| For | Message | Proof |
+| --- | --- | --- |
+| Students | Every PFE and internship we can find, in one list, with alerts. | Daily imports, filters by field and city, alerts by email |
+| Professionals | Remote and relocation roles that really accept people in Tunisia. | The remote-from-Tunisia and relocation categories, the eligibility guide |
+| Companies | Post a role for free and get applications in one place. | Free posting, application review, messaging |
+| Everyone | No ads, no tracking, no paid tricks. | Privacy policy, no analytics cookies |
+
+Never invent numbers, testimonials or "X people found a job". Only share counts we can check in the database that day.
+
+## Channels, in order
+
+### 1. Reddit (founder-led, main channel)
+
+Reddit rewards people who help and punishes people who advertise. The plan is to show up as the person who built a free tool, answer questions, share real data and ask for feedback. Details in the Reddit playbook below.
+
+**Honest limit:** most Tunisian students are on Facebook, Instagram and LinkedIn, not Reddit. Reddit is strongest for professionals, people abroad, the tech crowd and honest product feedback. Use it as the main channel for those, and pair it with Facebook and LinkedIn for students.
+
+### 2. Facebook groups and LinkedIn (students and Tunisian HR)
+
+- Facebook: student groups per school, and the big "stage / PFE / emploi Tunisie" groups. Share one useful thing per post (for example "PFE in data science open this week, with links"), follow each group's rules, and ask admins before posting links.
+- LinkedIn: post from the founder profile 2 to 3 times a week: what was built, short data notes ("the fields with the most PFE offers this month"), and new features. HR people and founders read LinkedIn.
+
+### 3. Search (already running)
+
+- Keep publishing career guides, one a week, in both languages, around what people search in each season (PFE now, summer internships from February, first job from June).
+- Watch Google Search Console every week: which pages get shown, which get clicks.
+
+### 4. Schools and student clubs
+
+- Write to student clubs (IEEE, ACM, Enactus, junior enterprises) and offer a free talk or a short guide: "how to find a PFE that fits".
+- 4C career centres own the internship agreement step. A short, friendly email with the link is enough to start.
+
+### 5. Companies
+
+- During PFE season, contact companies that already post PFE offers elsewhere and invite them to post on Nextward for free. Keep it personal: one email or message per company, never a mass mailing.
+
+### 6. Email alerts (keeps people coming back)
+
+- Alerts are the loop: every alert email brings people back. Make turning on an alert the main call to action after a search.
+
+## Reddit playbook
+
+### Ground rules
+
+1. **One real account**, the founder's, with the same name everywhere. Say "I built this" every time a link to Nextward appears.
+2. **Help first.** For the first two weeks, only comment: answer questions about PFE, CVs, remote work from Tunisia, with no links.
+3. **Read each subreddit's rules** before posting. Many ban self-promotion or only allow it in a weekly thread.
+4. **Never** ask for upvotes, use a second account, or ask friends to vote. Reddit bans for vote manipulation, and the whole account is lost.
+5. **Reply to every comment** on your own posts, especially critical ones. Fix what people point out and say so.
+6. **Link only when it answers the question.** A link to a specific listing or guide beats a link to the home page.
+7. **Write posts yourself.** Reddit asks people to say when a post was written with AI, and readers spot it. Use the drafts below as notes, not as the post.
+8. **Use Reddit Pro** (free): it shows which communities talk about a topic and how your own posts do.
+
+A spam ban also blocks Reddit Ads on that account, so a careless post costs both routes.
+
+### Subreddits
+
+Members and rules checked on 18 October 2026. Rules change: read the sidebar again before each post.
+
+**Start here (Tunisia):**
+
+| Subreddit | Members | Self-promotion | How to use it |
+| --- | --- | --- | --- |
+| r/Tunisiajobs | 8.4k | Rules not checked | Best fit. Job, job-seeker and student-support flairs. Share listings, data posts and the feedback post here first. |
+| r/TunisiaTech | 12.5k | Rules not checked; launch posts appear | Build story and feedback post for Tunisian founders and developers. |
+| r/Tunisia | 148k | **Banned** (rule 5), in posts and comments, unless the mods agree | Ask the mods by modmail before any post with a link. Otherwise only help in comments, with no links. |
+
+**French-speaking:**
+
+| Subreddit | Members | Self-promotion | How to use it |
+| --- | --- | --- | --- |
+| r/developpeurs | 81.5k | Not for job hunting | Its wiki lists job sites: ask the mods by modmail to add Nextward. |
+| r/etudiants | 86.8k | Rules not checked | Answer PFE and internship questions; link guides when asked. |
+| r/emploi | 31.1k | Rules not checked | Same; Tunisian students post there. |
+
+**Students and remote work (English):**
+
+| Subreddit | Members | Self-promotion | How to use it |
+| --- | --- | --- | --- |
+| r/internships | 149k | Allowed in the pinned "Tools & Lists" megalist, if you say it's yours | Add Nextward to the megalist with disclosure. |
+| r/remotework | 639k | Not a job board; job posts go in the megathread | Comment in job-board threads when people ask for sites. |
+| r/IWantOut | 2.1m | No ads; links OK as comments on relevant posts | Answer "moving from Tunisia" questions; link the relocation category. |
+| r/cscareerquestions, r/csMajors | 2.4m, 465k | Strict; rules on promotion not checked | Comments only. |
+
+**Builders (feedback and links, not users):**
+
+| Subreddit | Members | Self-promotion | How to use it |
+| --- | --- | --- | --- |
+| r/SideProject | 873k | Made for it; title "[Name] - [Short description]" | Launch post. |
+| r/webdev | 3.3m | Only on Showoff Saturday | Build story. |
+| r/laravel, r/vuejs | 111k, 136k | "Built with" posts are common; r/vuejs allows tasteful self-promotion | Build story: bilingual listings, SSR, imports. |
+| r/startups | 2.1m | Only in pinned threads ("Share your startup", "Feedback Friday") | Use the pinned threads. |
+
+**Skip:** r/jobs (bans job boards, free or paid), r/careerguidance (no ads, no links in text posts), r/RemoteJobs and r/forhire (no self-promotion or job-board links), r/france (not a fit). Inactive: r/Tunis, r/TunisianDevelopers.
+
+### Post ideas that fit Reddit
+
+| Post | Where | Why it works |
+| --- | --- | --- |
+| "I built a free site that lists every PFE and internship I can find in Tunisia. What is missing?" | r/Tunisiajobs, r/TunisiaTech (r/Tunisia only with mod OK) | Asks for feedback, gives something free |
+| "I checked [N] remote jobs this month: here is which ones accept people in Tunisia" | Tunisia, remote work, career subs | Real data, useful without clicking |
+| "PFE season: what I learned reading [N] PFE offers" (fields, cities, skills asked) | Tunisia, student subs | Data post, no hard sell |
+| "Built with Laravel, Inertia and Vue: a bilingual job board that translates listings without rewriting them" | r/laravel, r/vuejs, r/webdev Showoff Saturday | Developers like build stories; brings links and feedback |
+| "Launched my side project: a job board for Tunisia and remote roles. Roast it." | r/SideProject and similar | Honest feedback, early users |
+
+Fill every `[N]` from the database on the day. Never round up.
+
+### Draft first post (rewrite it in your own words and with your real story before posting)
+
+> **Title:** I made a free site that collects PFE, internships and jobs in Tunisia every day. What should it do better?
+>
+> I'm a developer from Tunisia. Finding a PFE meant checking a dozen Facebook groups and job sites, half of them with offers that had already closed. So I built Nextward: it pulls open internships, PFE projects and jobs from Tunisian boards and company career pages every day, in French and English, and you can get an email when something new matches your search.
+>
+> It's free, there are no ads, and I don't track you. I'd really like to know what's missing or broken. There's a feedback page on the site, or just reply here.
+>
+> [link]
+
+A French version for French-speaking subs and Facebook groups:
+
+> **Titre :** J'ai créé un site gratuit qui regroupe chaque jour les PFE, stages et emplois en Tunisie. Qu'est-ce qui manque ?
+>
+> Je suis développeur en Tunisie. Pour trouver un PFE, il fallait fouiller une dizaine de groupes Facebook et de sites, souvent avec des offres déjà fermées. J'ai donc créé Nextward : il récupère chaque jour les stages, PFE et emplois ouverts sur les sites tunisiens et les pages carrières des entreprises, en français et en anglais, et vous pouvez recevoir un e-mail quand une nouvelle offre correspond à votre recherche.
+>
+> C'est gratuit, sans pub et sans pistage. J'aimerais savoir ce qui manque ou ce qui ne marche pas : il y a une page pour ça sur le site, ou répondez ici.
+>
+> [lien]
+
+## 12-week calendar
+
+| Week | Reddit | Other channels | Notes |
+| --- | --- | --- | --- |
+| 1 (20 Oct) | Set up the account, read rules, comment only | Add `?ref=` links (see below); list 20 Facebook groups and 20 student clubs | Contact page live for feedback |
+| 2 | Comment only, 3 to 5 helpful answers a day | First LinkedIn post: why Nextward exists | |
+| 3 | First feedback post on r/Tunisiajobs; modmail r/Tunisia and r/developpeurs; add to the r/internships megalist | Message 10 student clubs | Fix what people report within the week |
+| 4 | Build story on r/TunisiaTech; Showoff Saturday on r/webdev | First Facebook group posts (with admin OK) | Review numbers, adjust goals |
+| 5 | Data post: remote jobs open to Tunisia | Blog: the matching guide | |
+| 6 | r/SideProject launch post; r/laravel build post | Invite 10 companies to post for free | |
+| 7 | Answer career questions with links to guides | LinkedIn: what users asked for, what changed | |
+| 8 | Data post: PFE fields and skills this season | Blog: PFE subject guide update | Review numbers |
+| 9 | Second feedback post: "here's what I changed after your comments" | Message 10 more companies | |
+| 10 | Answer and link only | Student club talk if one said yes | |
+| 11 | Data post: first-job market for new graduates | Blog: first job after graduation update | |
+| 12 (mid-Jan) | Recap post: what worked, what's next | Plan the summer-internship season (Feb to May) | Full review |
+
+## What to build to support this
+
+- **Know where people come from** without trackers: links ending in `?ref=reddit-tunisia`, with the first `ref` saved on the account at sign-up. Counted in the admin view, no cookies beyond the session.
+- **Help and feedback page**: done (`/contact`, with bug reports, ideas and help).
+- **Share links that look good**: check that listing and guide pages show a clear title and image when pasted into Reddit, Facebook and LinkedIn.
+
+## Money
+
+Start with **zero**. If Reddit posts bring people who stay (they turn on alerts), test Reddit Ads later:
+
+- The minimum is $5 a day. Ads can target communities (people who joined or visited a subreddit in the last 28 days), interests such as career planning, and French as a language.
+- Job ads are a special category: no targeting by age or gender.
+- Not checked yet: whether Tunisia can be targeted, and whether a Tunisian card can pay. Sign-up is free, so check in Ads Manager before planning anything.
+- Reddit publishes no prices. Outside guides say roughly $0.30 to $4 a click; treat that as a guess.
+- Run one small test on the subreddits that worked for free, and stop if it brings fewer alerts per dinar than the free posts.
+
+## Risks
+
+| Risk | What we do |
+| --- | --- |
+| Posts removed or account banned for self-promotion | Help first, follow each sub's rules, ask mods before link posts, one honest account, no vote asks |
+| Reddit is too small for Tunisian students | Pair it with Facebook groups, LinkedIn and student clubs (already in the plan) |
+| People sign up but don't come back | Push alerts after every search; send only useful emails |
+| Not enough fresh listings to impress | Keep imports healthy before each post; post during PFE season |
+| Too much to do for one person | Two hours a day maximum on marketing; skip a week rather than post junk |
+
+## How we check progress
+
+Every Monday, write down: new accounts, new alerts, companies that posted, contact messages, and which `ref` brought people. Keep what brings alerts, drop what doesn't.
+
+## Sources (Reddit research, 18 October 2026)
+
+- Reddit spam rules: https://support.reddithelp.com/hc/en-us/articles/360043504051-Spam
+- Manipulated content: https://support.reddithelp.com/hc/en-us/articles/41180423371156-Manipulated-Content-and-Misleading-Behavior
+- Reddit Pro: https://business.reddithelp.com/s/article/Reddit-Pro
+- Reddit Ads costs and targeting: https://business.reddithelp.com/s/article/How-much-do-Reddit-Ads-cost, https://business.reddithelp.com/s/article/demographics
+- Subreddit sizes and rules were read from their sidebars and wikis (r/Tunisia rule 5, r/internships megalist, r/developpeurs wiki, r/jobs and r/remotework rules).
