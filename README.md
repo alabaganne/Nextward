@@ -230,7 +230,7 @@ Every email uses the same Nextward layout: `resources/views/vendor/mail` (theme 
 | Application update | A company changes the status of an application |
 | New message | Someone gets a message (at most one email per conversation every 30 minutes) |
 | New roles for a saved search | Daily or weekly digests, when turned on (below) |
-| Contact form | Someone sends the form at `/contact`; replying answers them directly |
+| Contact form | Someone sends the form at `/contact` (help, bug, feature idea, listing problem, hiring or partnership, other); bug reports add the browser, logged-in senders add their account, and an optional screenshot comes attached. Replying answers them directly |
 
 Email verification is required before applying, messaging, posting or editing roles, saving searches with alerts and claiming a company. Signed-in people can still browse and use their dashboard. Choosing a password from an emailed link also confirms the address.
 

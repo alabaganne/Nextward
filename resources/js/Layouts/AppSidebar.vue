@@ -112,7 +112,7 @@ const admin = computed(() => [
 
 		<div class="border-t border-white/[.07] pt-3 mt-4 flex flex-col gap-0.5">
 			<Link class="nav-item !text-[13.5px]" :href="route('blog.index')" @click="$emit('close')">Career guides</Link>
-			<Link class="nav-item !text-[13.5px]" :href="route('contact')" @click="$emit('close')">Help and contact</Link>
+			<Link class="nav-item !text-[13.5px]" :href="route('contact')" @click="$emit('close')">Help and feedback</Link>
 		</div>
 	</aside>
 </template>

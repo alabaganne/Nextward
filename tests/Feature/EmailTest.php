@@ -17,6 +17,7 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
@@ -222,11 +223,60 @@ class EmailTest extends TestCase
         });
     }
 
+    public function test_bug_reports_carry_the_account_browser_and_screenshot(): void
+    {
+        Mail::fake();
+        config(['mail.contact_address' => 'team@example.com']);
+        $user = $this->candidate();
+
+        $this->actingAs($user)->withHeader('User-Agent', 'TestBrowser/1.0')->post('/contact', [
+            'name' => 'Sara Ben Ali',
+            'email' => 'sara@example.com',
+            'topic' => 'bug',
+            'message' => 'The save button does nothing.',
+            'page_url' => 'https://nextward.test/saved',
+            'screenshot' => UploadedFile::fake()->image('shot.png'),
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        Mail::assertSent(ContactMessage::class, function (ContactMessage $mail) use ($user) {
+            $this->assertSame('Contact form: Bug report from Sara Ben Ali', $mail->envelope()->subject);
+            $this->assertCount(1, $mail->attachments());
+            $html = $mail->render();
+            $this->assertStringContainsString('TestBrowser/1.0', $html);
+            $this->assertStringContainsString('#'.$user->id, $html);
+            $this->assertStringContainsString('Screenshot attached.', $html);
+
+            return true;
+        });
+    }
+
+    public function test_contact_form_only_takes_images_as_screenshots(): void
+    {
+        Mail::fake();
+
+        $this->post('/contact', [
+            'name' => 'Sara',
+            'email' => 'sara@example.com',
+            'topic' => 'help',
+            'message' => 'I cannot find my applications.',
+            'screenshot' => UploadedFile::fake()->create('notes.pdf', 10, 'application/pdf'),
+        ])->assertSessionHasErrors('screenshot');
+
+        $this->post('/contact', [
+            'name' => 'Sara',
+            'email' => 'sara@example.com',
+            'topic' => 'feature',
+            'message' => 'Please add a dark mode.',
+        ])->assertSessionHasNoErrors();
+
+        Mail::assertSent(ContactMessage::class, fn (ContactMessage $mail) => $mail->attachments() === [] && ! str_contains($mail->render(), 'Browser:'));
+    }
+
     public function test_contact_form_checks_input_and_ignores_bots(): void
     {
         Mail::fake();
 
-        $this->post('/contact', ['name' => '', 'email' => 'not-an-email', 'topic' => 'other', 'message' => 'short'])
+        $this->post('/contact', ['name' => '', 'email' => 'not-an-email', 'topic' => 'nope', 'message' => 'short'])
             ->assertSessionHasErrors(['name', 'email', 'topic', 'message']);
         $this->post('/contact', ['name' => 'Bot', 'email' => 'bot@example.com', 'topic' => 'general', 'message' => str_repeat('spam ', 10), 'website' => 'http://spam.example'])
             ->assertRedirect();
