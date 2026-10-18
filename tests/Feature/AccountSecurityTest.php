@@ -7,7 +7,6 @@ use App\Models\Company;
 use App\Models\Opportunity;
 use App\Models\Candidate;
 use App\Models\User;
-use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Contracts\Notifications\Dispatcher;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -83,20 +82,13 @@ class AccountSecurityTest extends TestCase
         $this->assertNotNull(Candidate::find($user->userable_id));
     }
 
-    public function test_changing_email_resets_verification(): void
+    public function test_profile_form_cannot_change_the_email(): void
     {
-        Notification::fake();
         $user = User::where('email', 'student@example.com')->firstOrFail();
-        $user->forceFill(['email_verified_at' => now()])->save();
-
-        $this->actingAs($user)->put('/profile', ['name' => $user->name, 'email' => $user->email])->assertRedirect();
-        $this->assertNotNull($user->fresh()->email_verified_at);
-        Notification::assertNothingSent();
 
         $this->actingAs($user)->put('/profile', ['name' => $user->name, 'email' => 'new-address@example.com'])->assertRedirect();
-        $this->assertSame('new-address@example.com', $user->fresh()->email);
-        $this->assertNull($user->fresh()->email_verified_at);
-        Notification::assertSentTo($user, VerifyEmail::class);
+
+        $this->assertSame('student@example.com', $user->fresh()->email);
     }
 
     public function test_admin_and_profile_links_cannot_be_mass_assigned(): void

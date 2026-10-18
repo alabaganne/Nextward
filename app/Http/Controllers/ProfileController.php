@@ -12,7 +12,6 @@ use App\Support\ProfileHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
@@ -87,7 +86,6 @@ class ProfileController extends Controller
 
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => "required|email|unique:users,email,{$user->id}",
             'phone_number' => "nullable|unique:users,phone_number,{$user->id}",
             'linkedin_profile_url' => 'nullable|url',
             'city_id' => 'nullable|exists:cities,id',
@@ -115,22 +113,12 @@ class ProfileController extends Controller
             'preferences.seniority.*' => 'in:entry,graduate,mid,senior,lead,executive',
             'preferences.include_unknown_eligibility' => 'nullable|boolean',
             ...ProfileHistory::rules(),
+        ], [
+            'phone_number.unique' => 'Another account already uses this phone number.',
         ]);
 
-        $user->fill(collect($data)->only('name', 'email', 'phone_number', 'linkedin_profile_url')->toArray());
-        $emailChanged = $user->isDirty('email');
-        if ($emailChanged) {
-            $user->email_verified_at = null;
-        }
-        $user->save();
-
-        if ($emailChanged) {
-            try {
-                $user->sendEmailVerificationNotification();
-            } catch (\Throwable $exception) {
-                Log::warning('Verification email failed after an email change.', ['user_id' => $user->id, 'error' => $exception->getMessage()]);
-            }
-        }
+        // The email changes through EmailChangeController, never here.
+        $user->update(collect($data)->only('name', 'phone_number', 'linkedin_profile_url')->toArray());
 
         if ($user->isCompany()) {
             $user->userable->update(collect($data)->only('name', 'about', 'website', 'city_id', 'country_code', 'location')->toArray());
@@ -225,6 +213,7 @@ class ProfileController extends Controller
                 'education' => $userable->education ?? [],
                 'projects' => $userable->projects ?? [],
                 'email_verified' => $user->hasVerifiedEmail(),
+                'pending_email' => $user->pending_email,
                 'public_status' => $user->isCandidate() ? $userable->public_status : null,
                 'public_url' => $user->isCandidate() ? parse_url($userable->publicUrl(), PHP_URL_PATH) : null,
             ],

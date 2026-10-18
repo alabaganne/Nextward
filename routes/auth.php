@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
+use App\Http\Controllers\Auth\EmailChangeController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\NewPasswordController;
@@ -56,6 +57,19 @@ Route::get('/verify-email', [EmailVerificationPromptController::class, '__invoke
 Route::get('/verify-email/{id}/{hash}', [VerifyEmailController::class, '__invoke'])
                 ->middleware(['auth', 'signed', 'throttle:6,1,verify-email'])
                 ->name('verification.verify');
+
+Route::post('/settings/email', [EmailChangeController::class, 'store'])
+                ->middleware(['auth', 'throttle:6,1,email-change'])
+                ->name('email.change');
+
+Route::delete('/settings/email', [EmailChangeController::class, 'destroy'])
+                ->middleware('auth')
+                ->name('email.change.cancel');
+
+// Signed, and opened from the old inbox, so it works without being signed in.
+Route::get('/email/change/{user}/{hash}', [EmailChangeController::class, 'confirm'])
+                ->middleware(['signed', 'throttle:6,1,email-change-confirm'])
+                ->name('email.change.confirm');
 
 Route::post('/email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
                 ->middleware(['auth', 'throttle:6,1,verification-send'])

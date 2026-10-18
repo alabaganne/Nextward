@@ -42,7 +42,6 @@ const tab = ref('account');
 
 const accountForm = useForm({
 	name: props.settings.name,
-	email: props.settings.email,
 	phone_number: props.settings.phone_number,
 	linkedin_profile_url: props.settings.linkedin_profile_url,
 	city_id: props.settings.city_id,
@@ -77,8 +76,14 @@ const saveAccount = () => {
 	accountForm.preferences.countries = splitValues(targetCountries.value.toUpperCase());
 	accountForm.preferences.skills = splitValues(skillsText.value);
 	accountForm.languages = splitValues(languagesText.value);
-	accountForm.put(route('profile.update'), { preserveScroll: true });
+	accountForm.put(route('profile.update'), { preserveScroll: true, onError: showFirstError });
 };
+// Errors can sit far above the Save button, so bring the first one into view once Inertia has restored the scroll.
+const showFirstError = () => requestAnimationFrame(() => requestAnimationFrame(() => {
+	const error = document.querySelector('#settings-details [data-error]');
+	error?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+	error?.parentElement.closest('label, div')?.querySelector('input, select, textarea')?.focus({ preventScroll: true });
+}));
 // List fields come back as "languages.0" or "preferences.skills.2", so match on the prefix too.
 const accountError = (key) =>
 	Object.entries(accountForm.errors).find(([name]) => name === key || name.startsWith(`${key}.`))?.[1];
@@ -173,6 +178,25 @@ const publicText = computed(() => ({
 	approved: 'Your profile is public.',
 	declined: 'Not approved. Update your profile and ask again.',
 }[props.settings.public_status] || 'Your profile is private.'));
+
+const emailForm = useForm({ email: '', password: '' });
+const changeEmail = () =>
+	emailForm.post(route('email.change'), {
+		preserveScroll: true,
+		preserveState: true,
+		onSuccess: () => emailForm.reset(),
+	});
+const cancelEmailChange = () => router.delete(route('email.change.cancel'), { preserveScroll: true, preserveState: true });
+const verificationSent = ref(false);
+const resendVerification = () =>
+	router.post(route('verification.send'), {}, { preserveScroll: true, preserveState: true, onSuccess: () => (verificationSent.value = true) });
+const openEmailSettings = () => {
+	tab.value = 'security';
+	nextTick(() => {
+		document.getElementById('settings-email')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		document.getElementById('settings-new-email')?.focus({ preventScroll: true });
+	});
+};
 
 const passwordForm = useForm({
 	current_password: '',
@@ -312,24 +336,26 @@ const deleteAccount = () =>
 								<div class="mb-4">
 									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="settings-name">Full name</label>
 									<input id="settings-name" v-model="accountForm.name" class="fld" type="text" autocomplete="name">
-									<div v-if="accountForm.errors.name" class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.name }}</div>
+									<div v-if="accountForm.errors.name" data-error class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.name }}</div>
 								</div>
 								<div class="mb-4">
-									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="settings-email">Email</label>
-									<input id="settings-email" v-model="accountForm.email" class="fld" type="email" autocomplete="email">
-									<div v-if="accountForm.errors.email" class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.email }}</div>
+									<span class="block text-[13px] font-semibold mb-[7px] text-ink-700">Email</span>
+									<div class="fld flex items-center justify-between gap-3 bg-paper-3">
+										<span class="truncate">{{ settings.email }}</span>
+										<button type="button" class="text-[13px] font-semibold text-blue-700 hover:underline shrink-0" @click="openEmailSettings">Change</button>
+									</div>
 								</div>
 							</div>
 							<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
 								<div class="mb-4">
 									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="settings-phone">Phone</label>
 									<input id="settings-phone" v-model="accountForm.phone_number" class="fld" type="tel" autocomplete="tel">
-									<div v-if="accountForm.errors.phone_number" class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.phone_number }}</div>
+									<div v-if="accountForm.errors.phone_number" data-error class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.phone_number }}</div>
 								</div>
 								<div class="mb-4">
 									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="settings-linkedin">LinkedIn URL</label>
 									<input id="settings-linkedin" v-model="accountForm.linkedin_profile_url" class="fld" type="url" placeholder="https://linkedin.com/in/…">
-									<div v-if="accountForm.errors.linkedin_profile_url" class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.linkedin_profile_url }}</div>
+									<div v-if="accountForm.errors.linkedin_profile_url" data-error class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.linkedin_profile_url }}</div>
 								</div>
 							</div>
 							<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
@@ -339,7 +365,7 @@ const deleteAccount = () =>
 										<option :value="null">Not selected</option>
 										<option v-for="city in cities" :key="city.id" :value="city.id">{{ city.name }}</option>
 									</select>
-									<div v-if="accountForm.errors.city_id" class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.city_id }}</div>
+									<div v-if="accountForm.errors.city_id" data-error class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.city_id }}</div>
 								</div>
 								<div v-if="isCandidate" class="mb-4">
 									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="settings-field">Field of work or study</label>
@@ -347,52 +373,53 @@ const deleteAccount = () =>
 										<option :value="null">Not selected</option>
 										<option v-for="field in fields" :key="field.id" :value="field.id">{{ field.name }}</option>
 									</select>
-									<div v-if="accountForm.errors.field_id" class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.field_id }}</div>
+									<div v-if="accountForm.errors.field_id" data-error class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.field_id }}</div>
 								</div>
 								<div v-if="!isCandidate" class="mb-4">
 									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="settings-website">Website</label>
 									<input id="settings-website" v-model="accountForm.website" class="fld" type="url" placeholder="https://…">
-									<div v-if="accountForm.errors.website" class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.website }}</div>
+									<div v-if="accountForm.errors.website" data-error class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.website }}</div>
 								</div>
 							</div>
 							<div>
 								<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="settings-about">About</label>
 								<textarea id="settings-about" v-model="accountForm.about" class="fld" aria-describedby="settings-about-hint"></textarea>
-								<div v-if="accountForm.errors.about" class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.about }}</div>
+								<div v-if="accountForm.errors.about" data-error class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.about }}</div>
 								<div id="settings-about-hint" class="text-xs text-muted-2 mt-[7px]">Brief intro shown at the top of your profile.</div>
 							</div>
 							<div class="grid grid-cols-2 gap-4 mt-5 max-[560px]:grid-cols-1">
-								<label class="text-sm font-semibold">Country code<input v-model="accountForm.country_code" class="fld mt-2" maxlength="2" placeholder="TN, FR, US..."><span v-if="accountForm.errors.country_code" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountForm.errors.country_code }}</span></label>
-								<label class="text-sm font-semibold">City or location<input v-model="accountForm.location" class="fld mt-2" placeholder="Your location anywhere in the world"><span v-if="accountForm.errors.location" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountForm.errors.location }}</span></label>
+								<label class="text-sm font-semibold">Country code<input v-model="accountForm.country_code" class="fld mt-2" maxlength="2" placeholder="TN, FR, US..."><span v-if="accountForm.errors.country_code" data-error class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountForm.errors.country_code }}</span></label>
+								<label class="text-sm font-semibold">City or location<input v-model="accountForm.location" class="fld mt-2" placeholder="Your location anywhere in the world"><span v-if="accountForm.errors.location" data-error class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountForm.errors.location }}</span></label>
 							</div>
 							<template v-if="isCandidate">
 								<h3 class="font-display text-lg font-semibold mt-7 mb-4">Your experience</h3>
 								<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
-									<label class="text-sm font-semibold">Years of experience<input v-model.number="accountForm.experience_years" class="fld mt-2" type="number" min="0" max="80"><span v-if="accountError('experience_years')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('experience_years') }}</span></label>
-									<label class="text-sm font-semibold">Headline<input v-model="accountForm.headline" class="fld mt-2" maxlength="255" placeholder="Your role or area of interest"><span v-if="accountError('headline')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('headline') }}</span></label>
-									<label class="text-sm font-semibold">Languages<input v-model="languagesText" class="fld mt-2" placeholder="Arabic, French, English"><span v-if="accountError('languages')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('languages') }}</span></label>
-									<label class="text-sm font-semibold">Website or portfolio<input v-model="accountForm.website" class="fld mt-2" type="url" placeholder="https://…"><span v-if="accountError('website')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('website') }}</span></label>
+									<label class="text-sm font-semibold">Years of experience<input v-model.number="accountForm.experience_years" class="fld mt-2" type="number" min="0" max="80"><span v-if="accountError('experience_years')" data-error class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('experience_years') }}</span></label>
+									<label class="text-sm font-semibold">Headline<input v-model="accountForm.headline" class="fld mt-2" maxlength="255" placeholder="Your role or area of interest"><span v-if="accountError('headline')" data-error class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('headline') }}</span></label>
+									<label class="text-sm font-semibold">Languages<input v-model="languagesText" class="fld mt-2" placeholder="Arabic, French, English"><span v-if="accountError('languages')" data-error class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('languages') }}</span></label>
+									<label class="text-sm font-semibold">Website or portfolio<input v-model="accountForm.website" class="fld mt-2" type="url" placeholder="https://…"><span v-if="accountError('website')" data-error class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('website') }}</span></label>
 								</div>
 								<HistoryList v-model="accountForm.experience" name="experience" title="Experience" add-label="Add a job" :fields="historyFields.experience" :errors="accountForm.errors" />
 								<HistoryList v-model="accountForm.education" name="education" title="Education" add-label="Add a school" :fields="historyFields.education" :errors="accountForm.errors" />
 								<HistoryList v-model="accountForm.projects" name="projects" title="Projects" add-label="Add a project" :fields="historyFields.projects" :errors="accountForm.errors" />
 								<h3 class="font-display text-lg font-semibold mt-7 mb-2">Opportunity preferences</h3>
 								<p class="text-sm text-muted mb-4">These preferences shape your dashboard. You can still browse every opportunity. Manage email alerts in Saved searches.</p>
-								<p v-if="accountForm.errors.preferences" class="text-xs text-[#dc2626] mb-4">{{ accountForm.errors.preferences }}</p>
-								<fieldset class="mb-5"><legend class="text-sm font-semibold mb-2">Opportunity types</legend><div class="flex gap-5"><label class="flex gap-2 items-center"><input v-model="accountForm.preferences.kinds" type="checkbox" value="internship"> Internships</label><label class="flex gap-2 items-center"><input v-model="accountForm.preferences.kinds" type="checkbox" value="job"> Jobs</label></div><p v-if="accountError('preferences.kinds')" class="text-xs text-[#dc2626] mt-[7px]">{{ accountError('preferences.kinds') }}</p></fieldset>
-								<fieldset class="mb-5"><legend class="text-sm font-semibold mb-2">Work arrangements</legend><div class="flex flex-wrap gap-5"><label v-for="mode in ['onsite', 'hybrid', 'remote']" :key="mode" class="flex gap-2 items-center capitalize"><input v-model="accountForm.preferences.work_types" type="checkbox" :value="mode"> {{ mode }}</label></div><p v-if="accountError('preferences.work_types')" class="text-xs text-[#dc2626] mt-[7px]">{{ accountError('preferences.work_types') }}</p></fieldset>
+								<p v-if="accountForm.errors.preferences" data-error class="text-xs text-[#dc2626] mb-4">{{ accountForm.errors.preferences }}</p>
+								<fieldset class="mb-5"><legend class="text-sm font-semibold mb-2">Opportunity types</legend><div class="flex gap-5"><label class="flex gap-2 items-center"><input v-model="accountForm.preferences.kinds" type="checkbox" value="internship"> Internships</label><label class="flex gap-2 items-center"><input v-model="accountForm.preferences.kinds" type="checkbox" value="job"> Jobs</label></div><p v-if="accountError('preferences.kinds')" data-error class="text-xs text-[#dc2626] mt-[7px]">{{ accountError('preferences.kinds') }}</p></fieldset>
+								<fieldset class="mb-5"><legend class="text-sm font-semibold mb-2">Work arrangements</legend><div class="flex flex-wrap gap-5"><label v-for="mode in ['onsite', 'hybrid', 'remote']" :key="mode" class="flex gap-2 items-center capitalize"><input v-model="accountForm.preferences.work_types" type="checkbox" :value="mode"> {{ mode }}</label></div><p v-if="accountError('preferences.work_types')" data-error class="text-xs text-[#dc2626] mt-[7px]">{{ accountError('preferences.work_types') }}</p></fieldset>
 								<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
-									<label class="text-sm font-semibold">Target countries<input v-model="targetCountries" class="fld mt-2" placeholder="TN, FR, DE"><span class="text-xs font-normal text-muted">Comma-separated country codes. Leave empty to explore all locations.</span><span v-if="accountError('preferences.countries')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('preferences.countries') }}</span></label>
-									<label class="text-sm font-semibold">Skills to match<input v-model="skillsText" class="fld mt-2" placeholder="Python, sales, design"><span class="text-xs font-normal text-muted">Comma-separated skills.</span><span v-if="accountError('preferences.skills')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('preferences.skills') }}</span></label>
-									<label class="text-sm font-semibold">Fields of interest<select v-model="accountForm.preferences.fields" class="fld mt-2" multiple><option v-for="field in fields" :key="field.id" :value="field.id">{{ field.name }}</option></select><span v-if="accountError('preferences.fields')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('preferences.fields') }}</span></label>
-									<label class="text-sm font-semibold">Experience levels<select v-model="accountForm.preferences.seniority" class="fld mt-2" multiple><option v-for="level in ['entry','graduate','mid','senior','lead','executive']" :key="level" :value="level">{{ level }}</option></select><span v-if="accountError('preferences.seniority')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('preferences.seniority') }}</span></label>
+									<label class="text-sm font-semibold">Target countries<input v-model="targetCountries" class="fld mt-2" placeholder="TN, FR, DE"><span class="text-xs font-normal text-muted">Comma-separated country codes. Leave empty to explore all locations.</span><span v-if="accountError('preferences.countries')" data-error class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('preferences.countries') }}</span></label>
+									<label class="text-sm font-semibold">Skills to match<input v-model="skillsText" class="fld mt-2" placeholder="Python, sales, design"><span class="text-xs font-normal text-muted">Comma-separated skills.</span><span v-if="accountError('preferences.skills')" data-error class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('preferences.skills') }}</span></label>
+									<label class="text-sm font-semibold">Fields of interest<select v-model="accountForm.preferences.fields" class="fld mt-2" multiple><option v-for="field in fields" :key="field.id" :value="field.id">{{ field.name }}</option></select><span v-if="accountError('preferences.fields')" data-error class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('preferences.fields') }}</span></label>
+									<label class="text-sm font-semibold">Experience levels<select v-model="accountForm.preferences.seniority" class="fld mt-2" multiple><option v-for="level in ['entry','graduate','mid','senior','lead','executive']" :key="level" :value="level">{{ level }}</option></select><span v-if="accountError('preferences.seniority')" data-error class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('preferences.seniority') }}</span></label>
 								</div>
 								<label class="flex gap-2 items-start mt-5 text-sm"><input v-model="accountForm.preferences.include_unknown_eligibility" type="checkbox" class="mt-1"> Include remote roles whose eligibility from Tunisia is unknown. Check the employer's requirements before applying.</label>
-								<p v-if="accountError('preferences.include_unknown_eligibility')" class="text-xs text-[#dc2626] mt-[7px]">{{ accountError('preferences.include_unknown_eligibility') }}</p>
+								<p v-if="accountError('preferences.include_unknown_eligibility')" data-error class="text-xs text-[#dc2626] mt-[7px]">{{ accountError('preferences.include_unknown_eligibility') }}</p>
 							</template>
 						</div>
 						<div class="px-[22px] py-4 border-t border-line-2 flex justify-end gap-2.5 bg-white rounded-b-[18px]">
-							<span v-if="accountForm.recentlySuccessful" class="self-center text-[13.5px] font-semibold text-[#047857]">Saved.</span>
+							<span v-if="hasAccountErrors" class="self-center text-[13.5px] font-semibold text-[#dc2626]">Not saved. Fix the fields marked in red.</span>
+							<span v-else-if="accountForm.recentlySuccessful" class="self-center text-[13.5px] font-semibold text-[#047857]">Saved.</span>
 							<button class="cbtn bg-blue-600 text-white hover:bg-blue-700" type="submit" :disabled="accountForm.processing">Save changes</button>
 						</div>
 					</form>
@@ -416,6 +443,42 @@ const deleteAccount = () =>
 
 				<!-- SECURITY -->
 				<section v-if="tab === 'security'">
+					<form id="settings-email" class="bg-white border border-line rounded-[18px] mb-[18px] scroll-mt-24" @submit.prevent="changeEmail">
+						<div class="px-[22px] py-[18px] border-b border-line-2">
+							<h3 class="font-display text-[16.5px] font-semibold">Email address</h3>
+							<p class="text-[13px] text-muted mt-[3px]">You sign in with this email, and we send your alerts and messages to it.</p>
+						</div>
+						<div class="px-[22px] py-[22px]">
+							<div class="flex items-center gap-2.5 flex-wrap">
+								<b class="text-[14.5px] font-semibold break-all">{{ settings.email }}</b>
+								<span v-if="settings.email_verified" class="text-xs font-semibold px-[11px] py-[5px] rounded-full bg-[#dcfce7] text-[#047857]">Verified</span>
+								<span v-else class="text-xs font-semibold px-[11px] py-[5px] rounded-full bg-[#fef3c7] text-[#b45309]">Not verified</span>
+								<span v-if="!settings.email_verified && verificationSent" class="text-[13px] font-semibold text-[#047857]" role="status">Link sent. Check your inbox.</span>
+								<button v-else-if="!settings.email_verified" type="button" class="text-[13px] font-semibold text-blue-700 hover:underline" @click="resendVerification">Send the verification link again</button>
+							</div>
+							<div v-if="settings.pending_email" class="mt-4 rounded-[14px] bg-blue-50 px-4 py-3.5 flex items-center justify-between gap-3 flex-wrap" role="status">
+								<p class="text-[13.5px] text-ink-700 min-w-0">We sent a link to <b class="break-all">{{ settings.email }}</b> to confirm the change to <b class="break-all">{{ settings.pending_email }}</b>. Open it within 60 minutes. Nothing changes until you do.</p>
+								<button type="button" class="cbtn cbtn-secondary !px-3.5 !py-2 !text-[13.5px]" @click="cancelEmailChange">Cancel the change</button>
+							</div>
+							<p class="text-[13px] text-muted mt-5 mb-4">{{ settings.email_verified ? 'To change it, we first send a link to your current email so you can confirm. Then you verify the new address.' : 'Your email is not verified yet, so you can correct it here. We then send a verification link to the new address.' }}</p>
+							<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
+								<div>
+									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="settings-new-email">New email</label>
+									<input id="settings-new-email" v-model="emailForm.email" class="fld" type="email" autocomplete="email" required>
+									<div v-if="emailForm.errors.email" class="text-xs text-[#dc2626] mt-[7px]">{{ emailForm.errors.email }}</div>
+								</div>
+								<div>
+									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="settings-email-password">Current password</label>
+									<input id="settings-email-password" v-model="emailForm.password" class="fld" type="password" autocomplete="current-password" required>
+									<div v-if="emailForm.errors.password" class="text-xs text-[#dc2626] mt-[7px]">{{ emailForm.errors.password }}</div>
+								</div>
+							</div>
+						</div>
+						<div class="px-[22px] py-4 border-t border-line-2 flex justify-end gap-2.5 bg-white rounded-b-[18px]">
+							<button class="cbtn bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60" type="submit" :disabled="emailForm.processing">{{ emailForm.processing ? 'Sending…' : settings.email_verified ? 'Send confirmation link' : 'Change email' }}</button>
+						</div>
+					</form>
+
 					<form class="bg-white border border-line rounded-[18px] mb-[18px]" @submit.prevent="savePassword">
 						<div class="px-[22px] py-[18px] border-b border-line-2">
 							<h3 class="font-display text-[16.5px] font-semibold">Password</h3>

@@ -35,7 +35,7 @@ const error = (index, key) => props.errors[`${props.name}.${index}.${key}`];
 						{{ field.label }}
 						<textarea v-if="field.type === 'textarea'" class="fld mt-2 bg-white" rows="3" :value="row[field.key]" :placeholder="field.placeholder" @input="set(index, field.key, $event.target.value)"></textarea>
 						<input v-else class="fld mt-2 bg-white" :type="field.type || 'text'" :value="row[field.key]" :placeholder="field.placeholder" :disabled="field.key === 'end' && row.current" @input="set(index, field.key, $event.target.value)">
-						<span v-if="error(index, field.key)" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ error(index, field.key) }}</span>
+						<span v-if="error(index, field.key)" data-error class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ error(index, field.key) }}</span>
 					</label>
 				</template>
 			</div>

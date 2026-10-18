@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Ai\Resumes;
 use App\Models\Candidate;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -20,7 +21,12 @@ class ResumeController extends Controller
         abort_unless($resumes->enabled(), 503, 'Reading resumes is not available right now.');
 
         try {
-            return response()->json(['suggestions' => $resumes->read($candidate)]);
+            $suggestions = $resumes->read($candidate);
+            // A phone number on another account can't be saved, so don't suggest it.
+            if ($suggestions['phone_number'] !== '' && User::where('phone_number', $suggestions['phone_number'])->whereKeyNot($request->user()->id)->exists()) {
+                $suggestions['phone_number'] = '';
+            }
+            return response()->json(['suggestions' => $suggestions]);
         } catch (\Throwable $e) {
             Log::warning('Resume reading failed.', ['candidate_id' => $candidate->id, 'error' => Str::limit($e->getMessage(), 300)]);
             return response()->json(['message' => 'We could not read your resume right now. Please try again in a minute.'], 502);

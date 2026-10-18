@@ -63,6 +63,21 @@ class ResumeProfileTest extends TestCase
         $this->actingAs($user)->postJson('/profile/resume/read')->assertStatus(503);
     }
 
+    public function test_a_phone_number_used_by_another_account_is_not_suggested(): void
+    {
+        $user = User::where('email', 'student@example.com')->firstOrFail();
+        User::where('email', 'admin@example.com')->update(['phone_number' => '+216 50 101 959']);
+        $this->actingAs($user)->post('/profile/resume', ['resume' => UploadedFile::fake()->create('cv.pdf', 40, 'application/pdf')]);
+        Http::fake(['api.openai.com/v1/responses' => Http::response($this->reply([
+            'headline' => '', 'about' => '', 'experience_years' => 0, 'location' => '', 'country_code' => '', 'phone_number' => '+216 50 101 959',
+            'website' => '', 'linkedin_profile_url' => '', 'languages' => [], 'skills' => [], 'experience' => [], 'education' => [], 'projects' => [],
+        ]))]);
+
+        $this->actingAs($user)->postJson('/profile/resume/read')->assertOk()->assertJsonPath('suggestions.phone_number', '');
+        $this->actingAs($user)->put('/profile', ['name' => $user->name, 'phone_number' => '+216 50 101 959'])
+            ->assertSessionHasErrors(['phone_number' => 'Another account already uses this phone number.']);
+    }
+
     public function test_settings_saves_experience_education_and_projects(): void
     {
         $user = User::where('email', 'student@example.com')->firstOrFail();

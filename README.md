@@ -223,7 +223,8 @@ Every email uses the same Nextward layout: `resources/views/vendor/mail` (theme 
 
 | Email | Sent when |
 | --- | --- |
-| Confirm your email | Someone signs up, or changes their email |
+| Confirm your email | Someone signs up, or their email changes |
+| Confirm your new email | Someone with a verified email asks to change it; goes to the old address |
 | Reset your password | Someone asks on the sign-in page |
 | Your account is ready | An admin creates an account; the link lets the person choose a password |
 | New application | A candidate applies to a company's role |
@@ -232,7 +233,9 @@ Every email uses the same Nextward layout: `resources/views/vendor/mail` (theme 
 | New roles for a saved search | Daily or weekly digests, when turned on (below) |
 | Contact form | Someone sends the form at `/contact` (help, bug, feature idea, listing problem, hiring or partnership, other); bug reports add the browser, logged-in senders add their account, and an optional screenshot comes attached. Replying answers them directly |
 
-Email verification is required before applying, messaging, posting or editing roles, saving searches with alerts and claiming a company. Signed-in people can still browse and use their dashboard. Choosing a password from an emailed link also confirms the address.
+Email verification is required before applying, messaging, posting or editing roles, saving searches with alerts, claiming a company and asking for a public profile. Signed-in people can still browse and use their dashboard. Choosing a password from an emailed link also confirms the address.
+
+People change their email in Settings > Security with their password. A verified email only changes after the link sent to the old address is opened (it works for 60 minutes); the new address then gets the usual verification link. An unverified email changes right away and the new address gets the verification link.
 
 Application and message emails wait in the queue, so production needs the queue worker running (see below). The in-app notice still shows right away.
 
