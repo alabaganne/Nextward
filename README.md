@@ -92,7 +92,7 @@ Use a clean production database. The seed preserves existing data, including any
 
 ## Public pages and search visibility
 
-`/opportunities` is the main catalogue, with job/internship filters and Tunisia/worldwide coverage. `/for-students` and `/for-professionals` introduce the two audiences. Opportunity details have stable IDs and readable slugs. Legacy internship URLs redirect to their canonical opportunity URLs.
+`/opportunities` is the main catalogue, with job/internship filters and Tunisia/worldwide coverage. The home page speaks to everyone; the old `/for-students` and `/for-professionals` pages redirect to it. Opportunity details have stable IDs and readable slugs. Legacy internship URLs redirect to their canonical opportunity URLs.
 
 Public HTML includes the listing text, metadata and canonical links. Eligible detail pages include `JobPosting` structured data based on visible, supported facts. Missing application or location evidence can prevent rich-result markup without making an otherwise useful detail page private. Closed, suppressed, stale or duplicate listings have separate availability and indexing behavior. Search and arbitrary filter combinations are kept out of the index; curated landing pages provide crawlable entry points.
 

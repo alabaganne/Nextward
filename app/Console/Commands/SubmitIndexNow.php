@@ -43,7 +43,7 @@ class SubmitIndexNow extends Command
             }
         }
         if (!$since) {
-            foreach (['/', '/for-students', '/for-professionals', '/opportunities', '/about', '/contact', '/blog'] as $path) {
+            foreach (['/', '/opportunities', '/about', '/contact', '/blog'] as $path) {
                 $urls[] = $base.$path;
                 $urls[] = $base.($path === '/' ? '/fr' : '/fr'.$path);
             }

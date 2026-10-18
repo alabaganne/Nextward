@@ -45,12 +45,13 @@ Route::get('/sitemaps/companies.xml', [SitemapController::class, 'companies']);
 Route::get('/sitemaps/opportunities-{page}.xml', [SitemapController::class, 'opportunities'])->whereNumber('page');
 
 Route::get('/', [PublicPageController::class, 'home'])->name('home');
-Route::get('/for-students', [PublicPageController::class, 'audience'])->defaults('audience', 'students')->name('audience.students');
-Route::get('/for-professionals', [PublicPageController::class, 'audience'])->defaults('audience', 'professionals')->name('audience.professionals');
+// The student and professional pages were merged into the home page.
+Route::permanentRedirect('/for-students', '/');
+Route::permanentRedirect('/for-professionals', '/');
+Route::permanentRedirect('/fr/for-students', '/fr');
+Route::permanentRedirect('/fr/for-professionals', '/fr');
 Route::prefix('fr')->name('fr.')->group(function () {
     Route::get('/', [PublicPageController::class, 'home'])->name('home');
-    Route::get('/for-students', [PublicPageController::class, 'audience'])->defaults('audience', 'students')->name('students');
-    Route::get('/for-professionals', [PublicPageController::class, 'audience'])->defaults('audience', 'professionals')->name('professionals');
     Route::get('/opportunities', [InternshipController::class, 'index'])->name('opportunities');
     Route::get('/opportunities/{category}', [InternshipController::class, 'index'])->whereIn('category', ['internships', 'jobs', 'tunisia', 'remote-from-tunisia', 'relocation'])->name('category');
     Route::get('/opportunities/{opportunity}', [InternshipController::class, 'publicShow'])->where('opportunity', '[0-9]+(?:-[a-z0-9-]+)?')->name('opportunity');

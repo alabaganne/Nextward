@@ -218,7 +218,7 @@ curl --fail --silent --show-error https://nextward.example.com/opportunities
 
 Check the following manually before announcing the site:
 
-- `/`, `/for-students`, `/for-professionals`, `/opportunities`, the French pages and a published opportunity detail render correctly on desktop and mobile.
+- `/`, `/about`, `/opportunities`, the French pages and a published opportunity detail render correctly on desktop and mobile.
 - With JavaScript disabled, public page headings, opportunity text and links remain visible. Inspect canonical/hreflang metadata and eligible detail-page `JobPosting` data. Text present only in serialized page data is not proof of rendered HTML.
 - CSS, logos and illustrations load over HTTPS, with no localhost or Vite development URLs.
 - Candidate and employer registration/login, password resets, saving, native applications and external application tracking work. Private attachments reject unauthorized access.

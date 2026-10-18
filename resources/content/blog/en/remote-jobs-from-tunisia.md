@@ -108,7 +108,7 @@ Remote teams hire people who work well without someone next to them. Show it:
 - **Show proof of work.** A portfolio, public code, case studies or results with numbers.
 - **Prepare references** from managers or clients who can confirm you deliver on your own.
 
-When you get several offers, compare the full picture: pay after fees and taxes, contract type, benefits, hours and growth. Our guide on how to [compare job opportunities](/blog/compare-job-opportunities-as-a-professional) helps. For more resources for experienced profiles, see our page [for professionals](/for-professionals).
+When you get several offers, compare the full picture: pay after fees and taxes, contract type, benefits, hours and growth. Our guide on how to [compare job opportunities](/blog/compare-job-opportunities-as-a-professional) helps. You can also browse [remote jobs open to people in Tunisia](/opportunities/remote-from-tunisia).
 
 ## How do I avoid remote job scams?
 

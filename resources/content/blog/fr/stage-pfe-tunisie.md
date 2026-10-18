@@ -13,8 +13,8 @@ links:
     href: "/fr/opportunities/internships?program_type=pfe"
   - label: "Opportunités en Tunisie"
     href: "/fr/opportunities/tunisia"
-  - label: "Espace étudiants"
-    href: "/fr/for-students"
+  - label: "Tous les stages"
+    href: "/fr/opportunities/internships"
 faq:
   - q: "Peut-on faire son PFE à l'étranger ?"
     a: "Certaines écoles l'acceptent si elles valident l'entreprise et le sujet. Renseignez-vous tôt auprès du service des stages : la convention et le visa demandent plus de temps."

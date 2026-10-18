@@ -27,7 +27,7 @@ class SitemapController extends Controller
     public function pages()
     {
         $base = rtrim(config('app.url'), '/');
-        $paths = ['/', '/for-students', '/for-professionals', '/opportunities', '/about', '/contact', '/privacy', '/terms', '/blog'];
+        $paths = ['/', '/opportunities', '/about', '/contact', '/privacy', '/terms', '/blog'];
         $paths = [...$paths, ...array_map(fn ($path) => $path === '/' ? '/fr' : '/fr'.$path, $paths)];
         foreach (['internships', 'jobs', 'tunisia', 'remote-from-tunisia', 'relocation'] as $category) {
             $query = Internship::available()->searchFilters(['category' => $category]);

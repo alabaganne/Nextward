@@ -30,7 +30,7 @@ class PageSmokeTest extends TestCase
 
     public function test_public_pages_render(): void
     {
-        foreach (['/', '/for-students', '/for-professionals', '/about', '/contact', '/blog', '/fr/about', '/fr/contact', '/fr/blog', '/opportunities', '/opportunities/internships', '/opportunities/jobs', '/login', '/register'] as $uri) {
+        foreach (['/', '/fr', '/about', '/contact', '/blog', '/fr/about', '/fr/contact', '/fr/blog', '/opportunities', '/opportunities/internships', '/opportunities/jobs', '/login', '/register'] as $uri) {
             $this->get($uri)->assertOk();
         }
 
@@ -49,18 +49,23 @@ class PageSmokeTest extends TestCase
                 ->has('internship.company.name'));
     }
 
-    public function test_audience_pages_link_to_working_searches(): void
+    public function test_the_old_student_and_professional_pages_redirect_to_the_home_page(): void
     {
-        foreach (['/for-students' => ['Audience/Students', 6], '/fr/for-professionals' => ['Audience/Professionals', 8]] as $uri => [$component, $count]) {
-            $shortcuts = $this->get($uri)
-                ->assertOk()
-                ->assertInertia(fn (Assert $page) => $page->component($component)->has('shortcuts', $count))
-                ->viewData('page')['props']['shortcuts'];
-
-            foreach ($shortcuts as $shortcut) {
-                $this->get($shortcut['path'].($shortcut['query'] ? '?'.$shortcut['query'] : ''))->assertOk();
-            }
+        foreach (['/for-students' => '/', '/for-professionals' => '/', '/fr/for-students' => '/fr', '/fr/for-professionals' => '/fr'] as $uri => $home) {
+            $this->get($uri)->assertStatus(301)->assertRedirect($home);
         }
+    }
+
+    public function test_home_page_shortcuts_link_to_working_searches_and_carry_the_faq(): void
+    {
+        $response = $this->get('/fr')->assertOk()->assertInertia(fn (Assert $page) => $page->component('Welcome')->has('faqs', 7)->where('faqs.0.q', 'Faut-il un compte pour consulter les offres ?'));
+        $props = $response->viewData('page')['props'];
+        $this->assertNotEmpty($props['shortcuts']);
+        foreach ($props['shortcuts'] as $shortcut) {
+            $this->assertGreaterThan(0, $shortcut['count']);
+            $this->get($shortcut['path'].($shortcut['query'] ? '?'.$shortcut['query'] : ''))->assertOk();
+        }
+        $this->assertContains('FAQPage', array_column($props['seo']['structured_data'], '@type'));
     }
 
     public function test_workspace_pages_render_for_students(): void

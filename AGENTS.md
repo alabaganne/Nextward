@@ -20,6 +20,7 @@ Shared notes for anyone working on this repo, people or coding tools. `CLAUDE.md
 - **Privacy:** fonts are self-hosted in `resources/fonts/`. Don't add outside fonts, scripts or trackers without updating the privacy policy (`resources/js/Pages/Privacy.vue`).
 - **Company logos:** pages only show logos stored on Nextward. Outside logo URLs are downloaded by `companies:logos` and never sent to the browser (`README.md#local-setup`).
 - **Design:** flat surfaces, no shadows or glows, and no one-sided accent borders (top stripes, left bars); use tints or solid fills instead. This holds for emails too. Details in `design/DESIGN.md`.
+- **One home page:** the home page speaks to students and professionals alike; there are no separate audience pages (old links redirect home). About explains the mission, what is free and the paid features to come.
 - **Public pages:** one design for every public page: navy header, dark navy hero with the cartoon mascots and small sparkles, navy footer, and white, cool grey (`#F6F8FC`) or ice blue (`#EEF4FF`) sections in between. No cream, beige or ivory. Cobalt for actions, flat cobalt closing banners. Details in `LANDING_PAGE_DESIGN.md`.
 - **Public images:** cartoon mascots and the desk scene from `public/nextward-assets/mascots/`; generated photos from `landing-light-v1/` only as article images. Never present the photos as real users, staff, offices or partners.
 - **Writing:** plain, everyday words in copy, docs, commits and code comments. Comments are short and rare.

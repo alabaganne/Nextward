@@ -12,7 +12,7 @@ class PublicSeo
 {
     public static function isPublic(Request $request): bool
     {
-        return $request->routeIs('home', 'about', 'contact', 'privacy', 'terms', 'blog.*', 'audience.*', 'opportunities.index', 'opportunities.category', 'opportunities.show', 'companies.public', 'candidates.public.*', 'fr.*')
+        return $request->routeIs('home', 'about', 'contact', 'privacy', 'terms', 'blog.*', 'opportunities.index', 'opportunities.category', 'opportunities.show', 'companies.public', 'candidates.public.*', 'fr.*')
             && ! $request->routeIs('fr.login*', 'fr.register*', 'fr.password.*');
     }
 
@@ -22,7 +22,7 @@ class PublicSeo
         $path = '/'.ltrim(preg_replace('#^fr/?#', '', $request->path()), '/');
         $texts = self::copy($fr ? 'fr' : 'en');
         $key = match ($path) {
-            '/' => 'home', '/for-students' => 'students', '/for-professionals' => 'professionals',
+            '/' => 'home',
             '/about' => 'about', '/contact' => 'contact', '/privacy' => 'privacy', '/terms' => 'terms', '/blog' => 'blog', default => null,
         };
         $copy = $texts[$key] ?? ['title' => 'Nextward', 'description' => ''];
@@ -35,6 +35,9 @@ class PublicSeo
                 '@context' => 'https://schema.org', '@type' => 'WebSite', '@id' => self::url('/').'#website', 'name' => 'Nextward', 'url' => self::url('/'),
                 'inLanguage' => $fr ? 'fr' : 'en', 'publisher' => ['@id' => self::url('/').'#organization'],
                 'potentialAction' => ['@type' => 'SearchAction', 'target' => self::url('/opportunities').'?search={search_term_string}', 'query-input' => 'required name=search_term_string'],
+            ], [
+                '@context' => 'https://schema.org', '@type' => 'FAQPage', 'inLanguage' => $fr ? 'fr' : 'en',
+                'mainEntity' => array_map(fn ($item) => ['@type' => 'Question', 'name' => $item['q'], 'acceptedAnswer' => ['@type' => 'Answer', 'text' => $item['a']]], config('nextward_public.faq.'.($fr ? 'fr' : 'en'), [])),
             ]];
         }
         if ($key === 'about') {

@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
-import { ArrowRight } from '@lucide/vue';
+import { ArrowRight, Check, Sparkles } from '@lucide/vue';
 import PublicLayout from '@/Layouts/Public.vue';
 
 const page = usePage();
@@ -10,16 +10,28 @@ const prefix = computed(() => fr.value ? '/fr' : '');
 const text = (en, french) => fr.value ? french : en;
 const facts = computed(() => [
 	{ term: text('What', 'Quoi'), text: text('A job and internship platform: PFE and summer internships, graduate programmes, first jobs and experienced roles.', 'Une plateforme de stages et d’emplois : stages PFE et d’été, programmes jeunes diplômés, premiers emplois et postes expérimentés.') },
-	{ term: text('For whom', 'Pour qui'), text: text('Students, recent graduates and professionals in Tunisia, and the employers who hire them.', 'Les étudiants, les jeunes diplômés et les professionnels en Tunisie, et les employeurs qui recrutent.') },
+	{ term: text('For whom', 'Pour qui'), text: text('Everyone looking for work, from students to experienced people, and the employers who hire them.', 'Toutes les personnes qui cherchent un poste, des étudiants aux profils expérimentés, et les employeurs qui recrutent.') },
 	{ term: text('Where', 'Où'), text: text('Roles in Tunisia, remote roles that accept candidates in Tunisia, and roles abroad with relocation support.', 'Des offres en Tunisie, des postes à distance ouverts aux candidats en Tunisie et des postes à l’étranger avec aide à la mobilité.') },
 	{ term: text('Sources', 'Sources'), text: text('Employers post directly. Other listings come from approved public sources, are checked daily, and link to the original page.', 'Les employeurs publient directement. Les autres offres viennent de sources autorisées, sont vérifiées chaque jour et renvoient vers l’annonce d’origine.') },
-	{ term: text('Languages', 'Langues'), text: text('French and English.', 'Français et anglais.') },
+	{ term: text('Languages', 'Langues'), text: text('Every page and every listing in French and English, with the original text kept.', 'Chaque page et chaque offre en français et en anglais, avec le texte d’origine conservé.') },
 	{ term: text('Founder', 'Fondateur'), text: text('Ala Baganne, software engineer.', 'Ala Baganne, ingénieur logiciel.') },
 ]);
-const highlights = computed(() => [
-	{ art: '06-internship-listing-board', title: text('Public discovery', 'Offres accessibles à tous'), text: text('Internships and jobs are readable without an account, with clear sources and application destinations.', 'Les stages et les emplois se consultent sans compte, avec leur source et le lieu de candidature.') },
-	{ art: '02-student-prepare-cv', title: text('Candidate and employer workspaces', 'Espaces candidats et employeurs'), text: text('Students and professionals save and track opportunities; employers publish internships and jobs.', 'Les candidats enregistrent et suivent leurs offres ; les employeurs publient leurs stages et emplois.') },
-	{ art: '03-recruiter-clipboard', title: text('Company onboarding', 'Accueil des entreprises'), text: text('Employers introduce themselves before posting. Imported listings identify the source and do not imply an employer account.', 'Les employeurs se présentent avant de publier. Les offres importées indiquent leur source et n’impliquent pas de compte employeur.') },
+const mission = computed(() => [
+	{ art: '06-internship-listing-board', title: text('Every opportunity in one place', 'Toutes les offres au même endroit'), text: text('Internships and jobs from employers and approved sources, readable by anyone without an account.', 'Des stages et des emplois d’employeurs et de sources autorisées, lisibles par tous sans compte.') },
+	{ art: '12-wand-and-stars', title: text('No language barrier', 'Pas de barrière de langue'), text: text('Each listing in French and English, so you never skip a role because of the language it was posted in.', 'Chaque offre en français et en anglais, pour ne jamais passer à côté d’un poste à cause de sa langue.') },
+	{ art: '02-student-prepare-cv', title: text('Help to apply well', 'De l’aide pour bien candidater'), text: text('Clear requirements, honest unknowns, and a CV and cover letter tailored to each role.', 'Des critères clairs, des inconnues assumées, et un CV et une lettre adaptés à chaque offre.') },
+]);
+const free = computed(() => [
+	text('Search and read every internship and job', 'Rechercher et lire tous les stages et emplois'),
+	text('Read each listing in French or English', 'Lire chaque offre en français ou en anglais'),
+	text('Save roles and searches, with email alerts', 'Sauvegarder des offres et des recherches, avec alertes e-mail'),
+	text('Apply on Nextward and message companies', 'Candidater sur Nextward et écrire aux entreprises'),
+	text('Track applications made on other websites', 'Suivre les candidatures faites sur d’autres sites'),
+	text('Post internships and jobs as an employer', 'Publier des stages et des emplois en tant qu’employeur'),
+]);
+const tools = computed(() => [
+	{ title: text('Fill your profile from your resume', 'Remplir votre profil depuis votre CV'), text: text('Upload your resume and we suggest your headline, experience, education, skills and links. You tick what to keep and save it yourself.', 'Ajoutez votre CV et nous proposons votre titre, vos expériences, formations, compétences et liens. Vous cochez ce que vous gardez et enregistrez vous-même.') },
+	{ title: text('A CV and cover letter for each role', 'Un CV et une lettre pour chaque offre'), text: text('On any listing, get a CV that puts forward what fits the role, and a cover letter written for it, in English or French. Edit both, then download them or use them to apply.', 'Sur chaque offre, obtenez un CV qui met en avant ce qui correspond au poste, et une lettre écrite pour lui, en français ou en anglais. Modifiez-les, puis téléchargez-les ou utilisez-les pour candidater.') },
 ]);
 </script>
 
@@ -30,11 +42,11 @@ const highlights = computed(() => [
 				<div class="public-container hero-grid hero-pad">
 					<div>
 						<p class="landing-label">{{ text('About Nextward', 'À propos de Nextward') }}</p>
-						<h1 id="about-title" class="hero-title">{{ text('Your next opportunity, at every stage of your career.', 'Votre prochaine opportunité, à chaque étape de votre carrière.') }}</h1>
-						<p class="hero-lead">{{ text('Nextward helps students and professionals find internships and jobs in Tunisia and worldwide. Browse employer posts and approved public sources, understand the requirements, and apply through Nextward or the original application website.', 'Nextward aide les étudiants et les professionnels à trouver des stages et des emplois en Tunisie et à l’international. Consultez les offres des employeurs et des sources autorisées, comprenez les conditions et postulez sur Nextward ou sur le site d’origine.') }}</p>
+						<h1 id="about-title" class="hero-title">{{ text('Every opportunity,', 'Chaque opportunité,') }} <span class="accent">{{ text('open to everyone.', 'ouverte à tous.') }}</span></h1>
+						<p class="hero-lead">{{ text('Nextward helps people find internships and jobs in Tunisia and worldwide, read them in French or English, and apply with a CV and cover letter that fit the role.', 'Nextward aide chacun à trouver des stages et des emplois en Tunisie et dans le monde, à les lire en français ou en anglais, et à postuler avec un CV et une lettre adaptés au poste.') }}</p>
 						<div class="hero-buttons">
 							<Link :href="`${prefix}/opportunities`" class="cta cta-primary focus-ring">{{ text('Browse opportunities', 'Voir les offres') }}<ArrowRight class="action-icon" aria-hidden="true" /></Link>
-							<Link :href="`${prefix}/register`" class="cta cta-ghost focus-ring">{{ text('Create account', 'Créer un compte') }}</Link>
+							<Link :href="`${prefix}/register`" class="cta cta-ghost focus-ring">{{ text('Create a free account', 'Créer un compte gratuit') }}</Link>
 						</div>
 					</div>
 					<figure class="hero-stage is-flat about-stage">
@@ -43,20 +55,45 @@ const highlights = computed(() => [
 				</div>
 			</section>
 
-			<section class="public-container pt-20" aria-labelledby="facts-title">
+			<section class="public-container py-20" aria-labelledby="mission-title">
+				<p class="landing-label">{{ text('Our mission', 'Notre mission') }}</p>
+				<h2 id="mission-title" class="section-title">{{ text('Finding work should not depend on who you know.', 'Trouver un poste ne devrait pas dépendre de qui vous connaissez.') }}</h2>
+				<p class="section-description max-w-3xl">{{ text('Good roles are spread across company sites and job boards, in several languages, with key details left out. Nextward brings them together, says plainly what each one asks for, and helps every candidate apply well, whether it is their first internship or their next senior role.', 'Les bonnes offres sont dispersées entre sites d’entreprises et job boards, en plusieurs langues, souvent sans les détails importants. Nextward les réunit, dit clairement ce que chacune demande et aide chaque candidat à bien postuler, pour un premier stage comme pour un poste senior.') }}</p>
+				<ul class="highlights">
+					<li v-for="item in mission" :key="item.title"><img :src="`/nextward-assets/mascots/${item.art}.svg`" alt="" width="768" height="768" loading="lazy" class="section-art" /><h3>{{ item.title }}</h3><p>{{ item.text }}</p></li>
+				</ul>
+			</section>
+
+			<section class="band-pale" aria-labelledby="free-title">
+				<div class="public-container py-20 grid lg:grid-cols-2 gap-14">
+					<div>
+						<p class="landing-label">{{ text('Free for everyone', 'Gratuit pour tous') }}</p>
+						<h2 id="free-title" class="section-title">{{ text('Finding and applying is free, and stays free.', 'Chercher et candidater est gratuit, et le restera.') }}</h2>
+						<ul class="free-list">
+							<li v-for="item in free" :key="item"><Check class="free-icon" aria-hidden="true" />{{ item }}</li>
+						</ul>
+					</div>
+					<div id="ai-tools" class="scroll-mt-28">
+						<p class="landing-label inline-flex items-center gap-2"><Sparkles class="size-4" aria-hidden="true" />{{ text('AI tools', 'Outils d’IA') }}</p>
+						<h2 class="section-title">{{ text('Free while we launch.', 'Gratuits pendant le lancement.') }}</h2>
+						<div class="mt-8 grid gap-4">
+							<article v-for="tool in tools" :key="tool.title" class="panel p-6"><h3 class="font-display text-lg font-semibold">{{ tool.title }}</h3><p class="mt-2 text-slate-600 leading-7">{{ tool.text }}</p></article>
+						</div>
+						<div class="mt-4 rounded-2xl bg-[#eef4ff] p-6">
+							<h3 class="font-display text-lg font-semibold">{{ text('What will change later', 'Ce qui changera plus tard') }}</h3>
+							<p class="mt-2 text-slate-700 leading-7">{{ text('The tailored CV and cover letter will become a paid feature, sold as credit packs. One credit covers one role, with a few rewrites included, and every account gets one free credit. We will show prices before anything is charged. Filling your profile from your resume and everything above stay free.', 'Le CV et la lettre sur mesure deviendront payants, sous forme de packs de crédits. Un crédit couvre une offre, avec quelques réécritures incluses, et chaque compte reçoit un crédit gratuit. Les prix seront affichés avant tout paiement. Remplir votre profil depuis votre CV et tout ce qui est à gauche restent gratuits.') }}</p>
+							<p class="mt-3 text-sm text-slate-600 leading-6">{{ text('The AI only uses facts from your profile and resume, and you check everything before you use it.', 'L’IA n’utilise que les faits de votre profil et de votre CV, et vous vérifiez tout avant de l’utiliser.') }} <Link :href="`${prefix}/privacy#ai`" class="font-semibold text-brand underline underline-offset-4 focus-ring">{{ text('How we handle your data', 'Comment nous traitons vos données') }}</Link></p>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<section class="public-container py-20" aria-labelledby="facts-title">
 				<p class="landing-label">{{ text('Nextward at a glance', 'Nextward en bref') }}</p>
 				<h2 id="facts-title" class="section-title">{{ text('What Nextward is', 'Ce qu’est Nextward') }}</h2>
 				<dl class="facts mt-10">
 					<div v-for="fact in facts" :key="fact.term"><dt>{{ fact.term }}</dt><dd>{{ fact.text }}</dd></div>
 				</dl>
-			</section>
-
-			<section class="public-container py-20" aria-labelledby="solves-title">
-				<p class="landing-label">{{ text('What it solves', 'Ce que Nextward apporte') }}</p>
-				<h2 id="solves-title" class="section-title">{{ text('One place for internships, jobs and the people who post them.', 'Un seul endroit pour les stages, les emplois et ceux qui les publient.') }}</h2>
-				<ul class="highlights">
-					<li v-for="item in highlights" :key="item.title"><img :src="`/nextward-assets/mascots/${item.art}.svg`" alt="" width="768" height="768" loading="lazy" class="section-art" /><h3>{{ item.title }}</h3><p>{{ item.text }}</p></li>
-				</ul>
 			</section>
 
 			<section class="band-pale" :aria-label="text('Sources and privacy', 'Sources et confidentialité')">
@@ -108,6 +145,9 @@ const highlights = computed(() => [
 .about-stage { width: min(100%, 520px); }
 .highlights h3 { margin-top: 12px; font-size: 19px; font-weight: 600; letter-spacing: -.025em; }
 .highlights p { margin-top: 8px; font-size: 14px; line-height: 1.75; color: #586171; }
+.free-list { display: grid; gap: 14px; margin-top: 28px; }
+.free-list li { display: flex; gap: 12px; align-items: flex-start; color: #334155; font-size: 16px; line-height: 1.6; }
+.free-icon { flex-shrink: 0; width: 20px; height: 20px; margin-top: 2px; color: var(--color-brand); }
 .facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; overflow: hidden; border: 1px solid var(--color-line); border-radius: 16px; background: var(--color-line); }
 .facts > div { background: #fff; padding: 22px 24px; }
 .facts dt { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--color-brand); }

@@ -108,7 +108,7 @@ Les équipes à distance cherchent des personnes autonomes. Montrez que vous l'�
 - **Apportez des preuves.** Un portfolio, du code public, des études de cas ou des résultats chiffrés.
 - **Préparez des références** de managers ou de clients qui peuvent confirmer que vous livrez en autonomie.
 
-Si vous recevez plusieurs offres, comparez l'ensemble : rémunération après frais et impôts, type de contrat, avantages, horaires et perspectives. Notre guide pour [comparer des offres d'emploi](/fr/blog/comparer-des-offres-emploi) vous y aide. Pour d'autres ressources destinées aux profils expérimentés, consultez notre page [pour les professionnels](/fr/for-professionals).
+Si vous recevez plusieurs offres, comparez l'ensemble : rémunération après frais et impôts, type de contrat, avantages, horaires et perspectives. Notre guide pour [comparer des offres d'emploi](/fr/blog/comparer-des-offres-emploi) vous y aide. Vous pouvez aussi consulter les [offres à distance ouvertes depuis la Tunisie](/fr/opportunities/remote-from-tunisia).
 
 ## Comment éviter les arnaques au télétravail ?
 

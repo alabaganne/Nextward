@@ -10,8 +10,8 @@ translation: what-makes-a-good-internship-platform
 links:
   - label: "Offres de stage"
     href: "/fr/opportunities/internships"
-  - label: "Espace étudiants"
-    href: "/fr/for-students"
+  - label: "À propos de Nextward"
+    href: "/fr/about"
 faq:
   - q: "Faut-il un compte pour voir les offres de stage ?"
     a: "Sur une bonne plateforme, non. Les étudiants doivent pouvoir lire le détail des offres avant de créer un compte."

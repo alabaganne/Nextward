@@ -13,8 +13,8 @@ links:
     href: "/opportunities/internships?program_type=pfe"
   - label: "Opportunities in Tunisia"
     href: "/opportunities/tunisia"
-  - label: "For students"
-    href: "/for-students"
+  - label: "All internships"
+    href: "/opportunities/internships"
 faq:
   - q: "Can I do my PFE in a company abroad?"
     a: "Some schools allow it if they approve the host and the topic. Ask your internship office early, because the agreement and visa steps take more time."
