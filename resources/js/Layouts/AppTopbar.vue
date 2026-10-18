@@ -13,7 +13,7 @@ const unread = computed(() => user.value?.notifications?.unread_count || 0);
 const roleLabel = computed(() => {
 	if (user.value?.is_admin) return 'Admin';
 	if (isCompany.value) return 'Company';
-	return { professional: 'Professional', graduate: 'Graduate' }[user.value?.career_stage] || 'Student';
+	return 'Candidate';
 });
 const initials = computed(() =>
 	(user.value?.name || '')

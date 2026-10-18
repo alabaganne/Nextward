@@ -13,8 +13,6 @@ const page = usePage();
 const fr = computed(() => page.props.locale === 'fr');
 const prefix = computed(() => fr.value ? '/fr' : '');
 const text = (en, french) => fr.value ? french : en;
-const stages = { student: ['Student', 'Étudiant'], graduate: ['Graduate', 'Jeune diplômé'], professional: ['Professional', 'Professionnel'] };
-const stage = computed(() => text(...(stages[props.candidate.career_stage] || stages.student)));
 const initials = computed(() => (props.candidate.name || '').split(/\s+/).map((word) => word[0]).filter(Boolean).slice(0, 2).join('').toUpperCase());
 const experience = computed(() => {
 	const years = props.candidate.experience_years;
@@ -40,9 +38,9 @@ const preview = computed(() => ({
 					<span class="avatar" aria-hidden="true">{{ initials }}</span>
 					<div class="min-w-0">
 						<h1 class="font-display text-3xl sm:text-4xl font-semibold leading-tight">{{ candidate.name }}</h1>
-						<p class="mt-2 text-lg text-slate-700">{{ candidate.headline || [candidate.field, stage].filter(Boolean).join(' · ') }}</p>
+						<p class="mt-2 text-lg text-slate-700">{{ candidate.headline || candidate.field || text('Candidate', 'Candidat') }}</p>
 						<p class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-slate-600">
-							<span class="inline-flex items-center gap-1.5"><GraduationCap :size="16" aria-hidden="true" />{{ stage }}<template v-if="candidate.field"> · {{ candidate.field }}</template></span>
+							<span v-if="candidate.field" class="inline-flex items-center gap-1.5"><GraduationCap :size="16" aria-hidden="true" />{{ candidate.field }}</span>
 							<span v-if="candidate.location" class="inline-flex items-center gap-1.5"><MapPin :size="16" aria-hidden="true" />{{ candidate.location }}</span>
 							<span v-if="experience" class="inline-flex items-center gap-1.5"><Briefcase :size="16" aria-hidden="true" />{{ experience }}</span>
 						</p>

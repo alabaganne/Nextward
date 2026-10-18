@@ -26,7 +26,6 @@ const form = useForm({
 	city_id: props.student?.city_id ?? props.student?.city?.id ?? null,
 	field_id: props.student?.field_id ?? props.student?.field?.id ?? null,
 	about: props.student?.about || '',
-	career_stage: props.student?.career_stage || 'student',
 	headline: props.student?.headline || '',
 	experience_years: props.student?.experience_years ?? null,
 	country_code: props.student?.country_code || '',
@@ -59,7 +58,6 @@ const destroy = () => {
 			<div class="px-8 max-[560px]:px-5 py-[26px]">
 				<p v-if="Object.keys(form.errors).length" class="text-sm text-[#dc2626] font-semibold mb-4" role="alert">Please fix the fields below.</p>
 				<div class="grid grid-cols-2 gap-4 mb-5 max-[560px]:grid-cols-1">
-					<label class="text-sm font-semibold">Career stage<select v-model="form.career_stage" class="fld mt-2"><option value="student">Student</option><option value="graduate">Graduate</option><option value="professional">Professional</option></select><span v-if="form.errors.career_stage" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ form.errors.career_stage }}</span></label>
 					<label class="text-sm font-semibold">Headline<input v-model="form.headline" class="fld mt-2" maxlength="255"><span v-if="form.errors.headline" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ form.errors.headline }}</span></label>
 					<label class="text-sm font-semibold">Country code<input v-model="form.country_code" class="fld mt-2" maxlength="2" placeholder="TN, FR, US..."><span v-if="form.errors.country_code" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ form.errors.country_code }}</span></label>
 					<label class="text-sm font-semibold">City or location<input v-model="form.location" class="fld mt-2"><span v-if="form.errors.location" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ form.errors.location }}</span></label>

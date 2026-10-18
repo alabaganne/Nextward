@@ -42,7 +42,6 @@ class StudentRequest extends FormRequest
             'field_id' => 'nullable|exists:fields,id',
             'city_id' => 'nullable|exists:cities,id',
             'about' => 'nullable|string|max:20000',
-            'career_stage' => 'sometimes|required|in:student,graduate,professional',
             'headline' => 'nullable|string|max:255',
             'experience_years' => 'nullable|integer|min:0|max:80',
             'country_code' => 'nullable|string|size:2|regex:/^[A-Z]{2}$/',

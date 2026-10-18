@@ -41,7 +41,6 @@ class ResumeController extends Controller
 
     private function student(Request $request): Student
     {
-        abort_unless($request->user()->isCandidate(), 403);
-        return $request->user()->userable;
+        return $request->user()->ensureCandidateProfile() ?? abort(403);
     }
 }

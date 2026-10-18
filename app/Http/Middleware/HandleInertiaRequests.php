@@ -68,7 +68,6 @@ class HandleInertiaRequests extends Middleware
                     'image' => $user->image,
 					'is_admin' => $user->isAdmin(),
                     'is_candidate' => $user->isCandidate(),
-                    'career_stage' => $user->isCandidate() ? $user->userable->career_stage : null,
                     'userable_id' => $user->userable_id,
                     'userable_type' => $user->userable_type,
                     'likes_count' => $user->isCandidate() ? $user->userable->likes()->count() : null,

@@ -64,7 +64,7 @@ const meta = computed(() => props.students.meta ?? props.students);
 				<div class="px-6 py-8 flex flex-col items-center text-center">
 					<div class="w-[72px] h-[72px] rounded-[20px] bg-gradient-to-br from-blue-300 to-blue-700 grid place-items-center text-white font-bold font-display text-[26px]">{{ initialsFor(student.name) }}</div>
 					<h3 class="font-display text-[18px] font-semibold mt-4 leading-[1.2]">{{ student.name }}</h3>
-					<span class="text-[13px] text-muted mt-1">{{ [student.field?.name, student.career_stage || 'candidate'].filter(Boolean).join(' · ') }}</span>
+					<span class="text-[13px] text-muted mt-1">{{ student.headline || student.field?.name || 'Candidate' }}</span>
 				</div>
 				<div v-if="student.public_status" class="px-6 pb-4">
 					<PublicReview :student="student" compact />

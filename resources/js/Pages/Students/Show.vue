@@ -51,7 +51,7 @@ const initials = computed(() =>
 				<div class="w-[108px] h-[108px] rounded-[24px] bg-gradient-to-br from-blue-300 to-blue-700 grid place-items-center text-white font-bold font-display text-[40px] -mt-[46px] border-4 border-white shrink-0">{{ initials }}</div>
 				<div class="flex-1 min-w-0 pt-3.5">
 					<h2 class="font-display text-[25px] font-semibold">{{ student.name }}</h2>
-					<div class="text-[15px] text-ink-700 font-medium mt-[3px]">{{ [student.field?.name, student.career_stage || 'candidate'].filter(Boolean).join(' · ') }}</div>
+					<div class="text-[15px] text-ink-700 font-medium mt-[3px]">{{ student.headline || student.field?.name || 'Candidate' }}</div>
 					<div class="flex flex-wrap gap-4 mt-3 [&_span]:flex [&_span]:items-center [&_span]:gap-1.5 [&_span]:text-[13.5px] [&_span]:text-muted [&_span]:font-medium [&_svg]:w-[15px] [&_svg]:h-[15px] [&_svg]:text-muted-2">
 						<span v-if="student.city?.name"><component :is="icons.pin" aria-hidden="true" />{{ student.city.name }}</span>
 						<span v-if="student.field?.name"><component :is="icons.grad" aria-hidden="true" />{{ student.field.name }}</span>

@@ -14,7 +14,6 @@ class Student extends Model
         'about',
         'field_id',
         'city_id',
-        'career_stage',
         'headline',
         'experience_years',
         'country_code',

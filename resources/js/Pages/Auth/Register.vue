@@ -42,10 +42,6 @@
 				<p v-else class="auth-section-note">{{ text('You can skip optional details and update your preferences later.', 'Les champs facultatifs peuvent attendre. Vous pourrez changer vos préférences plus tard.') }}</p>
 				<div class="auth-fields">
 					<template v-if="!isCompany">
-						<div class="auth-field">
-							<label for="career_stage">{{ text('Career stage', 'Situation') }}</label>
-							<select id="career_stage" v-model="form.career_stage" class="auth-input"><option value="student">{{ text('Student', 'Étudiant') }}</option><option value="graduate">{{ text('Graduate', 'Jeune diplômé') }}</option><option value="professional">{{ text('Professional', 'Professionnel') }}</option></select>
-						</div>
 						<fieldset><legend class="auth-label">{{ text('I’m interested in', 'Je cherche') }}</legend><div class="flex gap-5 mt-2"><label class="flex gap-2 items-center"><input v-model="form.preferences.kinds" type="checkbox" value="internship"> {{ text('Internships', 'Des stages') }}</label><label class="flex gap-2 items-center"><input v-model="form.preferences.kinds" type="checkbox" value="job"> {{ text('Jobs', 'Des emplois') }}</label></div></fieldset>
 					</template>
 					<div class="auth-two-columns">
@@ -122,7 +118,6 @@ export default {
 		cities: Array,
 		fields: Array,
 		accountType: { type: String, default: 'student' },
-		careerStage: { type: String, default: 'student' },
 	},
 	data() {
 		return {
@@ -139,10 +134,9 @@ export default {
 				website: '',
 				about: '',
 				company_logo: null,
-				career_stage: this.careerStage,
 				country_code: '',
 				location: '',
-				preferences: { kinds: this.careerStage === 'professional' ? ['job'] : ['internship', 'job'] },
+				preferences: { kinds: ['internship', 'job'] },
 				terms: false,
 			}),
 		};

@@ -24,14 +24,21 @@ class MakeAdminCommandTest extends TestCase
         $this->assertNotNull($user->email_verified_at);
     }
 
-    public function test_it_refuses_accounts_with_a_profile(): void
+    public function test_it_keeps_the_candidate_profile_and_refuses_company_accounts(): void
     {
         $student = Student::create(['about' => 'Candidate profile']);
         $user = $student->user()->create(['name' => 'Candidate', 'email' => 'candidate@example.com', 'password' => Hash::make('password')]);
 
-        $this->artisan('nextward:make-admin', ['email' => 'candidate@example.com'])->assertFailed();
+        $this->artisan('nextward:make-admin', ['email' => 'candidate@example.com'])->assertSuccessful();
+        $user->refresh();
+        $this->assertTrue($user->isAdmin());
+        $this->assertTrue($user->isCandidate());
+        $this->assertSame($student->id, $user->userable_id);
 
-        $this->assertFalse((bool) $user->fresh()->is_admin);
+        $company = \App\Models\Company::create(['name' => 'Acme']);
+        $owner = $company->user()->create(['name' => 'Acme', 'email' => 'acme@example.com', 'password' => Hash::make('password')]);
+        $this->artisan('nextward:make-admin', ['email' => 'acme@example.com'])->assertFailed();
+        $this->assertFalse((bool) $owner->fresh()->is_admin);
     }
 
     public function test_it_creates_a_new_admin_after_asking_for_a_name_and_password(): void
@@ -47,7 +54,8 @@ class MakeAdminCommandTest extends TestCase
         $this->assertTrue($user->isAdmin());
         $this->assertTrue(Hash::check('a-long-secret', $user->password));
         $this->assertNotNull($user->email_verified_at);
-        $this->assertNull($user->userable_type);
+        $this->assertSame('student', $user->userable_type);
+        $this->assertTrue($user->isCandidate());
     }
 
     public function test_it_stops_when_the_input_is_not_valid(): void

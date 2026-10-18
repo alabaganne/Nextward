@@ -45,7 +45,6 @@ class CoverLetters
             'CANDIDATE',
             $line('Name', $user->name),
             $line('Headline', $student->headline),
-            $line('Career stage', $student->career_stage),
             $line('Years of experience', $student->experience_years),
             $line('Field', $student->field?->name),
             $line('Location', $student->location ?: $student->city?->name),

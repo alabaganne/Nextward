@@ -52,9 +52,10 @@ return new class extends Migration
             $table->dropIndex(['channel']);
             $table->dropColumn(['channel', 'applied_at', 'candidate_notes']);
         });
-        Schema::table('students', fn (Blueprint $table) => $table->dropColumn([
+        // career_stage was dropped later, so only drop the columns that still exist.
+        Schema::table('students', fn (Blueprint $table) => $table->dropColumn(array_values(array_filter([
             'career_stage', 'headline', 'experience_years', 'country_code', 'location', 'languages', 'preferences',
-        ]));
+        ], fn ($column) => Schema::hasColumn('students', $column)))));
         // Nullable taxonomy and cover letters remain compatible with existing data.
     }
 };

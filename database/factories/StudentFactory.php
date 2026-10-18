@@ -35,7 +35,6 @@ class StudentFactory extends Factory
             'about' => 'Fictional demo profile. '.$this->faker->randomElement($abouts),
             'field_id' => $field?->id,
             'city_id' => $city?->id,
-            'career_stage' => 'student',
             'headline' => 'Student seeking an internship',
             'experience_years' => 0,
             'country_code' => 'TN',
@@ -48,7 +47,6 @@ class StudentFactory extends Factory
     public function professional()
     {
         return $this->state(fn () => [
-            'career_stage' => 'professional',
             'headline' => 'Experienced specialist seeking a new role',
             'about' => 'Fictional demo professional with experience delivering projects, collaborating with teams and mentoring colleagues.',
             'experience_years' => $this->faker->numberBetween(3, 12),
@@ -59,7 +57,6 @@ class StudentFactory extends Factory
     public function graduate()
     {
         return $this->state(fn () => [
-            'career_stage' => 'graduate',
             'headline' => 'Recent graduate seeking a first role',
             'about' => 'Fictional demo graduate with practical academic projects and an interest in entry-level opportunities.',
             'experience_years' => 0,

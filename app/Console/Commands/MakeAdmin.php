@@ -24,12 +24,13 @@ class MakeAdmin extends Command
         $user = User::where('email', $email)->first();
 
         if ($user) {
-            if ($user->userable_type || $user->userable_id) {
-                $this->error('This account has a candidate or company profile. Use another email for the admin account.');
+            if ($user->isCompany()) {
+                $this->error('This account belongs to a company. Use another email for the admin account.');
                 return self::FAILURE;
             }
 
             $user->forceFill(['is_admin' => true, 'email_verified_at' => $user->email_verified_at ?? now()])->save();
+            $user->ensureCandidateProfile();
             $this->info("{$email} is now an admin.");
             return self::SUCCESS;
         }
@@ -58,7 +59,7 @@ class MakeAdmin extends Command
             'password' => Hash::make($data['password']),
             'is_admin' => true,
             'email_verified_at' => now(),
-        ]);
+        ])->ensureCandidateProfile();
 
         $this->info("Admin account created for {$email}.");
         return self::SUCCESS;

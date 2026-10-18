@@ -30,7 +30,8 @@ class ApplicationController extends Controller
     {
         $query = Application::with('internship', 'internship.company', 'internship.city', 'internship.field');
 
-        if (! Auth::user()->isAdmin()) {
+        // Admins with their own candidate profile see their own applications.
+        if (! Auth::user()->isAdmin() || Auth::user()->userable_id) {
             $field_name = Auth::user()->isCandidate() ? 'student_id' : 'company_id';
             $query->where($field_name, Auth::user()->userable->id);
             if (Auth::user()->isCompany()) {

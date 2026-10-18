@@ -24,7 +24,6 @@ class OwnerProfileSeeder extends Seeder
 
         $fields = Field::whereIn('name', ['Software Engineering', 'Web Development'])->pluck('id');
         $profile = [
-            'career_stage' => 'professional',
             'headline' => 'Full-Stack Software Engineer',
             'experience_years' => 5,
             'field_id' => $fields->first(),

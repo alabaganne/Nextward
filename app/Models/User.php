@@ -64,7 +64,19 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     public function isAdmin() {
-        return (bool) $this->is_admin && !$this->isCompany() && !$this->isStudent();
+        return (bool) $this->is_admin && !$this->isCompany();
+    }
+
+    // Admins are candidates too, so they get a candidate profile the first time they need one.
+    public function ensureCandidateProfile(): ?Student
+    {
+        if ($this->isAdmin() && ! $this->userable_id) {
+            $student = Student::create();
+            $this->forceFill(['userable_type' => 'student', 'userable_id' => $student->id])->save();
+            $this->setRelation('userable', $student);
+        }
+
+        return $this->isCandidate() ? $this->userable : null;
     }
 
     // Candidates can open a chat with a company; companies reply or write to their applicants.

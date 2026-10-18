@@ -21,6 +21,7 @@ class ProfileController extends Controller
     public function show()
     {
         $user = auth()->user();
+        $user->ensureCandidateProfile();
         $profile = [
             'id' => $user->id,
             'name' => $user->name,
@@ -52,7 +53,6 @@ class ProfileController extends Controller
                 'skills' => $student->skills->pluck('name')->merge($student->preferences['skills'] ?? [])->unique()->values(),
                 'applications_count' => $student->applications()->count(),
                 'likes_count' => $student->likes()->count(),
-                'career_stage' => $student->career_stage,
                 'headline' => $student->headline,
                 'experience_years' => $student->experience_years,
                 'country_code' => $student->country_code,
@@ -75,6 +75,7 @@ class ProfileController extends Controller
     public function update(Request $request)
     {
         $user = auth()->user();
+        $user->ensureCandidateProfile();
 
         if ($request->filled('country_code') && is_string($request->input('country_code'))) {
             $request->merge(['country_code' => strtoupper(trim($request->input('country_code')))]);
@@ -89,7 +90,6 @@ class ProfileController extends Controller
             'field_id' => 'nullable|exists:fields,id',
             'about' => 'nullable|string|max:20000',
             'website' => 'nullable|url',
-            'career_stage' => 'sometimes|required|in:student,graduate,professional',
             'headline' => 'nullable|string|max:255',
             'experience_years' => 'nullable|integer|min:0|max:80',
             'country_code' => 'nullable|string|size:2|regex:/^[A-Z]{2}$/',
@@ -130,7 +130,7 @@ class ProfileController extends Controller
         if ($user->isCompany()) {
             $user->userable->update(collect($data)->only('name', 'about', 'website', 'city_id', 'country_code', 'location')->toArray());
         } elseif ($user->isCandidate()) {
-            $user->userable->update(collect($data)->only('about', 'website', 'field_id', 'city_id', 'career_stage', 'headline', 'experience_years', 'country_code', 'location', 'languages', 'preferences')->toArray());
+            $user->userable->update(collect($data)->only('about', 'website', 'field_id', 'city_id', 'headline', 'experience_years', 'country_code', 'location', 'languages', 'preferences')->toArray());
         }
 
         return Redirect::route('profile.show')->with('toast', [
@@ -189,6 +189,7 @@ class ProfileController extends Controller
     public function settings()
     {
         $user = auth()->user();
+        $user->ensureCandidateProfile();
         $userable = $user->userable;
 
         return Inertia::render('Settings', [
@@ -204,7 +205,6 @@ class ProfileController extends Controller
                 'website' => $userable->website ?? null,
                 'city_id' => $userable->city_id ?? null,
                 'field_id' => $userable->field_id ?? null,
-                'career_stage' => $userable->career_stage ?? 'student',
                 'headline' => $userable->headline ?? null,
                 'experience_years' => $userable->experience_years ?? null,
                 'country_code' => $userable->country_code ?? null,

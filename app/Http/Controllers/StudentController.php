@@ -42,7 +42,6 @@ class StudentController extends Controller
 							'id' => $student->id,
 							'user_id' => $student->user->id,
 							'name' => $student->user->name,
-							'career_stage' => $student->career_stage,
 							'email' => $student->user->email,
 							'image' => $student->user->image,
 							'public_status' => $student->public_status,
@@ -77,7 +76,7 @@ class StudentController extends Controller
     public function store(StudentRequest $request)
     {
         $user = DB::transaction(function () use ($request) {
-            return Student::create($request->only('about', 'field_id', 'city_id', 'career_stage', 'headline', 'experience_years', 'country_code', 'location'))->user()->create([
+            return Student::create($request->only('about', 'field_id', 'city_id', 'headline', 'experience_years', 'country_code', 'location'))->user()->create([
                 ...$request->only('name', 'email', 'phone_number'),
                 'password' => Hash::make(Str::random(64)),
             ]);
@@ -103,7 +102,6 @@ class StudentController extends Controller
             'student' => [
 				'id' => $student->id,
 				'about' => $student->about,
-                'career_stage' => $student->career_stage,
                 'headline' => $student->headline,
                 'experience_years' => $student->experience_years,
                 'country_code' => $student->country_code,
@@ -142,7 +140,6 @@ class StudentController extends Controller
 				'email' => $student->user->email,
 				'phone_number' => $student->user->phone_number,
 				'about' => $student->about,
-                'career_stage' => $student->career_stage,
                 'headline' => $student->headline,
                 'experience_years' => $student->experience_years,
                 'country_code' => $student->country_code,
@@ -164,7 +161,7 @@ class StudentController extends Controller
      */
     public function update(StudentRequest $request, Student $student)
     {
-        $student->update($request->only('about', 'field_id', 'city_id', 'career_stage', 'headline', 'experience_years', 'country_code', 'location'));
+        $student->update($request->only('about', 'field_id', 'city_id', 'headline', 'experience_years', 'country_code', 'location'));
 
         $student->user()->update($request->only('name', 'email', 'phone_number'));
 

@@ -67,26 +67,20 @@ class AdminAccountCreationTest extends TestCase
     {
         $admin = User::factory()->create(['is_admin' => true]);
 
-        foreach (['professional', 'student'] as $stage) {
-            $country = $stage === 'professional' ? 'FR' : null;
-            $location = $stage === 'professional' ? 'Paris' : null;
-            $this->actingAs($admin)->post(route('students.store'), [
-                'name' => 'New '.$stage,
-                'email' => $stage.'@example.com',
-                'career_stage' => $stage,
-                'country_code' => $country,
-                'location' => $location,
-                'field_id' => null,
-                'city_id' => null,
-            ])->assertRedirect(route('students.index'))->assertSessionHasNoErrors();
+        $this->actingAs($admin)->post(route('students.store'), [
+            'name' => 'New candidate',
+            'email' => 'candidate@example.com',
+            'country_code' => 'FR',
+            'location' => 'Paris',
+            'field_id' => null,
+            'city_id' => null,
+        ])->assertRedirect(route('students.index'))->assertSessionHasNoErrors();
 
-            $profile = User::where('email', $stage.'@example.com')->firstOrFail()->userable;
-            $this->assertSame($stage, $profile->career_stage);
-            $this->assertSame($country, $profile->country_code);
-            $this->assertSame($location, $profile->location);
-            $this->assertNull($profile->field_id);
-            $this->assertNull($profile->city_id);
-        }
+        $profile = User::where('email', 'candidate@example.com')->firstOrFail()->userable;
+        $this->assertSame('FR', $profile->country_code);
+        $this->assertSame('Paris', $profile->location);
+        $this->assertNull($profile->field_id);
+        $this->assertNull($profile->city_id);
     }
 
     public function test_members_cannot_create_other_accounts_through_admin_routes(): void

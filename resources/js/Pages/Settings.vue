@@ -22,8 +22,6 @@ const icons = {
 
 const page = usePage();
 const isStudent = computed(() => props.settings.userable_type === 'student');
-// Admin accounts have no candidate or company profile, so only account fields apply.
-const hasProfile = computed(() => ['student', 'company'].includes(props.settings.userable_type));
 const initials = computed(() =>
 	(props.settings.name || '')
 		.split(/\s+/)
@@ -49,7 +47,6 @@ const accountForm = useForm({
 	field_id: props.settings.field_id,
 	about: props.settings.about,
 	website: props.settings.website,
-	career_stage: props.settings.career_stage || 'student',
 	headline: props.settings.headline || '',
 	experience_years: props.settings.experience_years,
 	country_code: props.settings.country_code || '',
@@ -208,7 +205,6 @@ const deleteAccount = () =>
 									<div v-if="accountForm.errors.linkedin_profile_url" class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.linkedin_profile_url }}</div>
 								</div>
 							</div>
-							<template v-if="hasProfile">
 							<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
 								<div class="mb-4">
 									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="settings-city">Location</label>
@@ -242,11 +238,9 @@ const deleteAccount = () =>
 								<label class="text-sm font-semibold">Country code<input v-model="accountForm.country_code" class="fld mt-2" maxlength="2" placeholder="TN, FR, US..."><span v-if="accountForm.errors.country_code" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountForm.errors.country_code }}</span></label>
 								<label class="text-sm font-semibold">City or location<input v-model="accountForm.location" class="fld mt-2" placeholder="Your location anywhere in the world"><span v-if="accountForm.errors.location" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountForm.errors.location }}</span></label>
 							</div>
-							</template>
 							<template v-if="isStudent">
 								<h3 class="font-display text-lg font-semibold mt-7 mb-4">Your experience</h3>
 								<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
-									<label class="text-sm font-semibold">Career stage<select v-model="accountForm.career_stage" class="fld mt-2"><option value="student">Student</option><option value="graduate">Graduate</option><option value="professional">Professional</option></select><span v-if="accountError('career_stage')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('career_stage') }}</span></label>
 									<label class="text-sm font-semibold">Years of experience<input v-model.number="accountForm.experience_years" class="fld mt-2" type="number" min="0" max="80"><span v-if="accountError('experience_years')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('experience_years') }}</span></label>
 									<label class="text-sm font-semibold">Headline<input v-model="accountForm.headline" class="fld mt-2" maxlength="255" placeholder="Your role or area of interest"><span v-if="accountError('headline')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('headline') }}</span></label>
 									<label class="text-sm font-semibold">Languages<input v-model="languagesText" class="fld mt-2" placeholder="Arabic, French, English"><span v-if="accountError('languages')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('languages') }}</span></label>

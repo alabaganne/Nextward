@@ -35,7 +35,7 @@ const initials = computed(() =>
 
 const headline = computed(() =>
 	isStudent.value
-		? props.profile.headline || [props.profile.field?.name, props.profile.career_stage === 'professional' ? 'Professional' : props.profile.career_stage === 'graduate' ? 'Graduate' : 'Student'].filter(Boolean).join(' · ')
+		? props.profile.headline || props.profile.field?.name || 'Candidate'
 		: isCompany.value ? 'Company' : 'Administrator'
 );
 

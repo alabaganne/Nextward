@@ -13,7 +13,8 @@ Shared notes for anyone working on this repo, people or coding tools. `CLAUDE.md
 
 - **Name:** the product is **Nextward**. It was called Internly before (and Stagi.tn before that). Don't use the old names in code, copy or docs. Some asset packs say "Nextwand"; that is a typo, not a new name.
 - **Scope:** Nextward is no longer students-and-internships only. Copy, features and docs must cover both students and professionals, and both internships and jobs.
-- **Old names in the code:** the `internships` table and `Internship` model hold every listing (`kind` is `internship` or `job`). The `students` table and `Student` model hold every candidate (`career_stage` is `student`, `graduate` or `professional`). Keep these names for compatibility; use "opportunity" and "candidate" in new copy.
+- **One candidate role:** everyone looking for work is a **Candidate** ("Candidat"). There is no student, graduate or professional choice anywhere; experience and preferences say the rest. Accounts are candidates, companies or admins.
+- **Old names in the code:** the `internships` table and `Internship` model hold every listing (`kind` is `internship` or `job`). The `students` table and `Student` model hold every candidate (`userable_type` stays `student`). Keep these names for compatibility; use "opportunity" and "candidate" in new copy.
 - **Honest content:** no made-up numbers, testimonials, live activity or company verification.
 - **Privacy:** fonts are self-hosted in `resources/fonts/`. Don't add outside fonts, scripts or trackers without updating the privacy policy (`resources/js/Pages/Privacy.vue`).
 - **Company logos:** pages only show logos stored on Nextward. Outside logo URLs are downloaded by `companies:logos` and never sent to the browser (`README.md#local-setup`).
@@ -23,8 +24,8 @@ Shared notes for anyone working on this repo, people or coding tools. `CLAUDE.md
 - **Writing:** plain, everyday words in copy, docs, commits and code comments. Comments are short and rare.
 - **Email:** sent through Resend from `nextward@alabaganne.com` until a Nextward domain is verified. Every email uses the shared layout in `resources/views/vendor/mail` (new logo, white card with no borders, solid blue card for quoted text, navy button). Text people type is shown as plain text. Details in `README.md#email`.
 - **Email verification:** required before applying, messaging, posting or editing roles, saving searches with alerts, claiming a company and asking for a public profile. Browsing and the dashboard work without it.
-- **Public candidate profiles:** private by default. A candidate asks from Settings, an admin approves under Candidates, and only then the profile shows at `/candidates`. It shows name, headline, stage, field, location, experience, bio, skills, languages, website and LinkedIn, never email, phone or resume. These pages are `noindex` and stay out of the sitemap. The candidate can go private at any time; editing an approved profile keeps it live.
-- **Admin accounts** have no candidate or company profile, so Settings only shows account fields for them.
+- **Public candidate profiles:** private by default. A candidate asks from Settings, an admin approves under Candidates, and only then the profile shows at `/candidates`. It shows name, headline, field, location, experience, bio, skills, languages, website and LinkedIn, never email, phone or resume. These pages are `noindex` and stay out of the sitemap. The candidate can go private at any time; editing an approved profile keeps it live.
+- **Admin accounts** are candidates too: each admin has a candidate profile (made by `nextward:make-admin`, or the first time they open Settings), so they fill in the same profile and resume as anyone else.
 - **Tunisian boards:** Tanitjobs and Keejob stay on automatic publishing by the owner's choice; checking their terms is the owner's call.
 - **Error monitoring:** none for now (Laravel logs only), by the owner's choice.
 

@@ -34,7 +34,7 @@ const badges = computed(() => page.props.badges || {});
 const main = computed(() => [
 	{ id: 'dashboard', label: 'Dashboard', route: 'dashboard', icon: LayoutDashboard },
 	{ id: 'internships', label: 'Opportunities', route: 'opportunities.index', icon: Compass },
-	...(isAdmin.value ? [] : [{ id: 'applications', label: 'Applications', route: 'applications.index', icon: FileText, badge: badges.value.applications }]),
+	...(isCandidate.value || isCompany.value ? [{ id: 'applications', label: 'Applications', route: 'applications.index', icon: FileText, badge: badges.value.applications }] : []),
 	...(isCompany.value ? [{ id: 'roles', label: 'My roles', href: `/companies/${user.value?.userable_id}#opportunities`, icon: Briefcase }] : []),
 	...(isCandidate.value ? [
 		{ id: 'saved', label: 'Saved roles', route: 'likes.index', icon: Bookmark, badge: user.value?.likes_count },

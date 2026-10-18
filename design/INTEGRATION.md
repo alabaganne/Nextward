@@ -178,8 +178,8 @@ feedback, keep controls stationary, and honour reduced motion for any new effect
 Use actual controller/resource props as the contract. These prototype suggestions
 are guidance only; do not invent profile fields, metrics, or timeline data.
 `Internship` covers every listing (`kind` is `internship` or `job`) and
-`Student` covers every candidate (`career_stage` is `student`, `graduate` or
-`professional`); the old names stay for compatibility.
+`Student` covers every candidate, admins included; the old names stay for
+compatibility.
 
 - **Internship**: `id, title, company{name,slug,logoGradient,initials}, location,
   workType (remote|hybrid|onsite), durationWeeks, term, pay{amount,unit}, tags[],

@@ -12,8 +12,6 @@ const fr = computed(() => page.props.locale === 'fr');
 const prefix = computed(() => fr.value ? '/fr' : '');
 const text = (en, french) => fr.value ? french : en;
 const user = computed(() => page.props.auth?.user);
-const stages = { student: ['Student', 'Étudiant'], graduate: ['Graduate', 'Jeune diplômé'], professional: ['Professional', 'Professionnel'] };
-const stage = (key) => text(...(stages[key] || stages.student));
 const initials = (name) => (name || '').split(/\s+/).map((word) => word[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
 const list = computed(() => props.candidates.data || []);
 </script>
@@ -25,7 +23,7 @@ const list = computed(() => props.candidates.data || []);
 				<div class="public-container hero-grid hero-pad">
 					<div>
 						<p class="landing-label">{{ text('Candidate profiles', 'Profils de candidats') }}</p>
-						<h1 id="candidates-title" class="hero-title">{{ text('Students and professionals', 'Des étudiants et des professionnels') }} <span class="accent">{{ text('ready for their next role.', 'prêts pour leur prochain poste.') }}</span></h1>
+						<h1 id="candidates-title" class="hero-title">{{ text('Candidates', 'Des candidats') }} <span class="accent">{{ text('ready for their next role.', 'prêts pour leur prochain poste.') }}</span></h1>
 						<p class="hero-lead">{{ text('Each candidate chose to share this profile, and the Nextward team checked it before it went live. Email addresses, phone numbers and resumes stay private.', 'Chaque candidat a choisi de partager ce profil, et l’équipe Nextward l’a vérifié avant sa mise en ligne. Les adresses e-mail, les numéros de téléphone et les CV restent privés.') }}</p>
 					</div>
 					<figure class="hero-stage candidates-stage">
@@ -44,7 +42,7 @@ const list = computed(() => props.candidates.data || []);
 							<span class="avatar" aria-hidden="true">{{ initials(candidate.name) }}</span>
 							<div class="min-w-0">
 								<h2 class="font-display text-lg font-semibold leading-tight truncate">{{ candidate.name }}</h2>
-								<p class="text-sm text-slate-600 mt-1 line-clamp-2">{{ candidate.headline || [candidate.field, stage(candidate.career_stage)].filter(Boolean).join(' · ') }}</p>
+								<p class="text-sm text-slate-600 mt-1 line-clamp-2">{{ candidate.headline || candidate.field || text('Candidate', 'Candidat') }}</p>
 							</div>
 						</div>
 						<p v-if="candidate.location" class="mt-4 inline-flex items-center gap-1.5 text-sm text-slate-600"><MapPin :size="15" aria-hidden="true" />{{ candidate.location }}</p>

@@ -96,7 +96,6 @@ class PublicCandidateController extends Controller
             'id' => $student->id,
             'name' => $student->user->name,
             'headline' => $student->headline,
-            'career_stage' => $student->career_stage,
             'field' => $student->field?->name,
             'location' => $student->location ?: (collect([$student->city?->name, $student->country_code])->filter()->implode(', ') ?: null),
             'skills' => $student->skills->pluck('name')->merge($student->preferences['skills'] ?? [])->unique()->values()->take(12),

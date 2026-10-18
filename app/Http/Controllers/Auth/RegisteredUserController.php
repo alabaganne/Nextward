@@ -27,9 +27,6 @@ class RegisteredUserController extends Controller
             'cities' => City::select('id', 'name')->orderBy('name')->get(),
             'fields' => Field::select('id', 'name')->orderBy('name')->get(),
             'accountType' => $request->query('account') === 'company' ? 'company' : 'student',
-            'careerStage' => in_array($request->query('career_stage'), ['student', 'graduate', 'professional'], true)
-                ? $request->query('career_stage')
-                : ($request->query('audience') === 'professional' ? 'professional' : 'student'),
         ]);
     }
 
@@ -59,7 +56,6 @@ class RegisteredUserController extends Controller
             'field_id' => 'nullable|exists:fields,id',
             'country_code' => 'nullable|string|size:2|regex:/^[A-Z]{2}$/',
             'location' => 'nullable|string|max:255',
-            'career_stage' => 'nullable|in:student,graduate,professional',
             'preferences' => 'nullable|array:kinds,countries,work_types,fields,skills,seniority,include_unknown_eligibility',
             'preferences.kinds' => 'nullable|array|max:2',
             'preferences.kinds.*' => 'in:internship,job',
@@ -101,7 +97,6 @@ class RegisteredUserController extends Controller
                     'about' => $data['about'] ?? null,
                     'field_id' => $data['field_id'] ?? null,
                     'city_id' => $data['city_id'] ?? null,
-                    'career_stage' => $data['career_stage'] ?? 'student',
                     'country_code' => $data['country_code'] ?? null,
                     'location' => $data['location'] ?? null,
                     'preferences' => $data['preferences'] ?? [],
