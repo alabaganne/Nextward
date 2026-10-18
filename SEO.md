@@ -18,6 +18,11 @@ The goal is for Nextward to show up on Google (most searches from Tunisia are in
 - **`/llms.txt`:** a plain-text summary of Nextward for AI tools, with links to every guide. Each guide also has a Markdown copy at `/blog/{slug}.md`.
 - **RSS feeds:** `/blog/feed.xml` and `/fr/blog/feed.xml`.
 - **IndexNow:** `php artisan seo:indexnow` runs every hour and tells Bing about new or changed pages. ChatGPT search and Copilot use Bing's index.
+- **Listings in English and French:** each listing keeps its original title and text, and AI writes the missing English or French version (`internship_translations`). The page in the original language always shows the original. The page in the other language shows the translation, with the original in an "Original listing" fold-out.
+  - Until a translation exists, that page shows the original text and is `noindex`. It is also left out of hreflang, the sitemap and IndexNow, so Google never sees two copies of the same text.
+  - The translated page has its own slug (`/fr/opportunities/12-developpeur-backend`). Old links redirect to it with a 301.
+  - Title, meta description, `JobPosting` and breadcrumb follow the page language. The sitemap lists each language version with `xhtml:link` hreflang alternates.
+  - The Google Indexing API gets the page in the listing's own language.
 - **Public company pages:** `/companies/{id}-{slug}`. Pages with no open roles and a short "about" text are kept out of Google (`noindex`).
 - **Public candidate profiles:** `/candidates` and `/candidates/{id}-{slug}` (also under `/fr`). They hold personal data, so they are always `noindex` and are not in the sitemap.
 

@@ -237,6 +237,8 @@ class OpportunityImporter
             $isPrimary = ! $opportunity->exists || ! $opportunity->sources()->where('id', '<', $item->id)->where('state', 'published')->exists();
             if (! $opportunity->exists || ($opportunity->origin === 'imported' && ((! $hasEmployerSource && $isPrimary) || ($source->settings['authoritative_employer'] ?? false)))) {
                 $fields = collect($data)->except(['employer', 'website', 'requisition_id'])->all();
+                // Sources often leave the language out; keep the one found earlier.
+                if (empty($fields['language']) && $opportunity->language) { unset($fields['language']); }
                 $fieldId = $this->classify($data);
                 $overrides = $opportunity->moderation_overrides ?? [];
                 foreach (array_keys($overrides) as $key) { unset($fields[$key]); }

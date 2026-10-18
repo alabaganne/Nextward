@@ -63,6 +63,8 @@ return [
     // OPPORTUNITY_AI_PROVIDER picks openai or anthropic; keys live in config/ai.php.
     'ai' => [
         'enabled' => (bool) env('OPPORTUNITY_AI_ENABLED', true),
+        // Writes an English and a French version of each published listing.
+        'translate' => (bool) env('OPPORTUNITY_AI_TRANSLATE', true),
         'provider' => env('OPPORTUNITY_AI_PROVIDER', 'openai'),
         'models' => [
             'openai' => [

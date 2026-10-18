@@ -55,16 +55,31 @@ class SitemapController extends Controller
     public function opportunities(int $page)
     {
         abort_if($page < 1, 404);
-        $rows = Internship::available()->select('id', 'slug', 'title', 'content_updated_at')->orderBy('id')->skip(($page - 1) * self::CHUNK_SIZE)->take(self::CHUNK_SIZE)->get();
+        $rows = Internship::available()->select('id', 'slug', 'title', 'language', 'content_updated_at')
+            ->with('translations:id,internship_id,locale,slug,updated_at')
+            ->orderBy('id')->skip(($page - 1) * self::CHUNK_SIZE)->take(self::CHUNK_SIZE)->get();
         abort_if($rows->isEmpty(), 404);
-        return $this->urlset($rows->flatMap(fn ($row) => array_map(fn ($locale) => ['url' => $row->publicUrl($locale), 'modified' => $row->content_updated_at?->toIso8601String()], ['en', 'fr'])));
+        // Only languages the listing really has, each pointing at the other with hreflang.
+        return $this->urlset($rows->flatMap(function ($row) {
+            $locales = $row->availableLocales();
+            $alternates = count($locales) > 1 ? array_map(fn ($locale) => ['lang' => $locale, 'url' => $row->publicUrl($locale)], $locales) : [];
+            return array_map(fn ($locale) => [
+                'url' => $row->publicUrl($locale),
+                'modified' => collect([$row->content_updated_at, $row->translation($locale)?->updated_at])->filter()->max()?->toIso8601String(),
+                'alternates' => $alternates,
+            ], $locales);
+        }));
     }
 
     private function urlset($rows)
     {
-        $xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+        $xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">';
         foreach ($rows as $row) {
-            $xml .= '<url><loc>'.e($row['url']).'</loc>'.(!empty($row['modified']) ? '<lastmod>'.e($row['modified']).'</lastmod>' : '').'</url>';
+            $xml .= '<url><loc>'.e($row['url']).'</loc>'.(!empty($row['modified']) ? '<lastmod>'.e($row['modified']).'</lastmod>' : '');
+            foreach ($row['alternates'] ?? [] as $alternate) {
+                $xml .= '<xhtml:link rel="alternate" hreflang="'.e($alternate['lang']).'" href="'.e($alternate['url']).'"/>';
+            }
+            $xml .= '</url>';
         }
         return response($xml.'</urlset>')->header('Content-Type', 'application/xml; charset=UTF-8');
     }

@@ -52,7 +52,7 @@ class DashboardController extends Controller
         if ($user->isCandidate()) {
             $props['saved_count'] = $user->userable->likes()->count();
             $preferences = $user->userable->preferences ?: [];
-            $query = Internship::open()->withCandidateState($user)->with('company.user', 'city', 'field', 'skills', 'sources.importSource')
+            $query = Internship::open()->withCandidateState($user)->with('company.user', 'city', 'field', 'skills', 'sources.importSource', 'translations')
                 ->whereNotIn('id', Application::where('student_id', $user->userable_id)->select('internship_id'));
             $reasons = [];
             foreach (['kinds' => 'kind', 'work_types' => 'work_type', 'fields' => 'field_id', 'seniority' => 'seniority'] as $key => $column) {

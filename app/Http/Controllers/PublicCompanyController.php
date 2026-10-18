@@ -23,7 +23,7 @@ class PublicCompanyController extends Controller
             return redirect($model->publicUrl($locale), 301);
         }
         $opportunities = $model->internships()->available()
-            ->with(['company.user', 'company.city', 'field', 'city', 'skills', 'sources.importSource'])
+            ->with(['company.user', 'company.city', 'field', 'city', 'skills', 'sources.importSource', 'translations'])
             ->withCandidateState($request->user())
             ->orderByRaw('COALESCE(posted_at, first_seen_at, created_at) DESC')->orderByDesc('id')->limit(50)->get();
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\LanguageGuess;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Str;
 
@@ -24,11 +25,24 @@ class InternshipResource extends JsonResource
         $minimum = $this->pay_min ?? $this->pay_amount;
         $maximum = $this->pay_max ?? $this->pay_amount;
         $hasPay = $minimum !== null || $maximum !== null;
+        $title = $this->titleFor($locale);
+        $description = $this->descriptionFor($locale);
+        $translated = $this->translation($locale) !== null;
+        $original = $this->originalLocale();
 
         return [
             'id' => $this->id,
-            'title' => $this->title,
-            'description' => $detail ? $this->description : Str::limit($this->description, 320),
+            'title' => $title,
+            'description' => $detail ? $description : Str::limit($description, 320),
+            'translated' => $translated,
+            'original' => $detail && $translated ? [
+                'language' => $original,
+                'label' => LanguageGuess::name($original, $locale),
+                'title' => $this->title,
+                'description' => $this->description,
+            ] : null,
+            'original_language' => $original,
+            'original_language_label' => LanguageGuess::name($original, $locale),
             'public_url' => $this->publicUrl($locale),
             'slug' => $this->slug,
             'kind' => $this->kind,

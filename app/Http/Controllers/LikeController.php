@@ -13,7 +13,7 @@ class LikeController extends Controller
         abort_unless(auth()->user()->isCandidate(), 403);
         return Inertia::render('Internships/Likes', [
             'likes' => InternshipResource::collection(
-                auth()->user()->userable->likes()->withCandidateState(auth()->user())->with('company', 'field', 'city', 'skills')->get()
+                auth()->user()->userable->likes()->withCandidateState(auth()->user())->with('company', 'field', 'city', 'skills', 'translations')->get()
             )
         ]);
     }

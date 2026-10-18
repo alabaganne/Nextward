@@ -28,6 +28,7 @@
         <env name="DB_URL" value=""/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="OPPORTUNITY_AI_TRANSLATE" value="false"/>
         <env name="ANTHROPIC_API_KEY" value=""/>
         <env name="OPENAI_API_KEY" value=""/>
         <env name="OPPORTUNITY_AI_ENABLED" value="false"/>

@@ -68,7 +68,7 @@ class GoogleIndexing
 
     public function eligible(Internship $opportunity): bool
     {
-        return collect(PublicSeo::opportunity($opportunity)['structured_data'] ?? [])
+        return collect(PublicSeo::opportunity($opportunity, $opportunity->primaryLocale())['structured_data'] ?? [])
             ->contains(fn ($entry) => ($entry['@type'] ?? null) === 'JobPosting');
     }
 
@@ -163,7 +163,8 @@ class GoogleIndexing
 
     private function canonical(Internship $opportunity): string
     {
-        return rtrim((string) config('app.url'), '/').'/opportunities/'.$opportunity->id.'-'.($opportunity->slug ?: \Illuminate\Support\Str::slug($opportunity->title) ?: 'opportunity');
+        // The page in the listing's own language always has its text, so it is the one sent to Google.
+        return $opportunity->publicUrl($opportunity->primaryLocale());
     }
 
     private function validateUrl(string $url): void

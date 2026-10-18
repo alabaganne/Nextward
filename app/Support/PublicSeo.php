@@ -191,15 +191,25 @@ class PublicSeo
         return $seo;
     }
 
-    public static function opportunity(Internship $opportunity): array
+    // A page in a language the listing has no text for yet is noindex, and hreflang only lists the real versions.
+    public static function opportunity(Internship $opportunity, ?string $locale = null): array
     {
-        $opportunity->loadMissing('company.user', 'city', 'field');
-        $fr = request()->is('fr/*');
+        $opportunity->loadMissing('company.user', 'city', 'field', 'translations');
+        $locale ??= request()->is('fr/*') ? 'fr' : 'en';
+        $fr = $locale === 'fr';
+        $readable = $opportunity->hasLocale($locale);
+        $title = $opportunity->titleFor($locale);
+        $text = $opportunity->descriptionFor($locale);
         $company = $opportunity->company?->user?->name ?: $opportunity->company?->name;
-        $description = Str::limit(trim(html_entity_decode(strip_tags($opportunity->description))), 155);
-        $seo = self::base(request(), $opportunity->title.($company ? ($fr ? ' chez ' : ' at ').$company : '').' | Nextward', $description, $opportunity->isOpen());
-        $seo['canonical'] = $opportunity->publicUrl($fr ? 'fr' : 'en');
-        $seo['alternates'] = self::pairs($opportunity->publicUrl('en'), $opportunity->publicUrl('fr'));
+        $description = Str::limit(trim(html_entity_decode(strip_tags($text))), 155);
+        $seo = self::base(request(), $title.($company ? ($fr ? ' chez ' : ' at ').$company : '').' | Nextward', $description, $opportunity->isOpen() && $readable);
+        $seo['canonical'] = $opportunity->publicUrl($locale);
+        $seo['locale'] = $fr ? 'fr_FR' : 'en_US';
+        $locales = $opportunity->availableLocales();
+        $seo['alternates'] = count($locales) > 1 ? [
+            ...array_map(fn ($code) => ['lang' => $code, 'url' => $opportunity->publicUrl($code)], $locales),
+            ['lang' => 'x-default', 'url' => $opportunity->publicUrl('en')],
+        ] : [];
         $seo['type'] = 'article';
         $eligibleCountries = array_values(array_diff(array_filter((array) $opportunity->eligible_countries,
             fn ($country) => is_string($country) && preg_match('/^[A-Z]{2}$/', $country)), (array) $opportunity->excluded_countries));
@@ -212,15 +222,16 @@ class PublicSeo
         $hasApplication = $opportunity->application_mode === 'external'
             ? filter_var($opportunity->application_url, FILTER_VALIDATE_URL) && in_array(parse_url($opportunity->application_url, PHP_URL_SCHEME), ['http', 'https'], true)
             : $opportunity->company?->user !== null;
-        if (!$opportunity->isOpen() || !$opportunity->posted_at || !$company || !$hasLocation || !$hasApplication || !$opportunity->description) {
+        if (!$readable || !$opportunity->isOpen() || !$opportunity->posted_at || !$company || !$hasLocation || !$hasApplication || !$text) {
             return $seo;
         }
         $job = [
-            '@context' => 'https://schema.org', '@type' => 'JobPosting', 'title' => $opportunity->title,
-            'description' => '<p>'.nl2br(e(trim(strip_tags($opportunity->description)))).'</p>',
+            '@context' => 'https://schema.org', '@type' => 'JobPosting', 'title' => $title,
+            'description' => '<p>'.nl2br(e(trim(strip_tags($text)))).'</p>',
             'datePosted' => $opportunity->posted_at->toIso8601String(), 'url' => $seo['canonical'],
-            'hiringOrganization' => array_filter(['@type' => 'Organization', 'name' => $company, 'sameAs' => $opportunity->company?->website]),
+            'hiringOrganization' => array_filter(['@type' => 'Organization', 'name' => $company, 'sameAs' => $opportunity->company?->website, 'logo' => $opportunity->company?->logo]),
             'identifier' => ['@type' => 'PropertyValue', 'name' => 'Nextward', 'value' => (string) $opportunity->id],
+            'directApply' => $opportunity->application_mode === 'internal',
         ];
         $employmentTypes = array_values(array_intersect((array) $opportunity->employment_types, ['FULL_TIME', 'PART_TIME', 'CONTRACTOR', 'TEMPORARY', 'INTERN', 'VOLUNTEER', 'PER_DIEM', 'OTHER']));
         if ($opportunity->kind === 'internship' && !in_array('INTERN', $employmentTypes, true)) $employmentTypes[] = 'INTERN';
@@ -259,7 +270,7 @@ class PublicSeo
         $seo['structured_data'] = [$job, [
             '@context' => 'https://schema.org', '@type' => 'BreadcrumbList', 'itemListElement' => [
                 ['@type' => 'ListItem', 'position' => 1, 'name' => $fr ? 'Opportunités' : 'Opportunities', 'item' => self::url($fr ? '/fr/opportunities' : '/opportunities')],
-                ['@type' => 'ListItem', 'position' => 2, 'name' => $opportunity->title, 'item' => $seo['canonical']],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => $title, 'item' => $seo['canonical']],
             ],
         ]];
         return $seo;

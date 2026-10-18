@@ -37,7 +37,7 @@ class FrenchPagesTest extends TestCase
         ]);
     }
 
-    public function test_french_opportunity_page_is_in_french_with_language_pairs()
+    public function test_an_untranslated_french_page_shows_the_original_and_stays_out_of_search()
     {
         $en = url('/opportunities/'.$this->internship->id.'-backend-intern');
         $fr = url('/fr/opportunities/'.$this->internship->id.'-backend-intern');
@@ -49,17 +49,51 @@ class FrenchPagesTest extends TestCase
             ->where('internship.public_url', $fr)
             ->where('internship.company.public_url', $this->company->publicUrl('fr'))
             ->where('internship.description', 'Internship used in tests.')
+            ->where('internship.translated', false)
+            ->where('internship.original', null)
             ->where('translation', '/opportunities/'.$this->internship->id.'-backend-intern')
             ->where('seo.title', 'Backend intern chez Atlas Cloud | Nextward')
             ->where('seo.canonical', $fr)
             ->where('seo.locale', 'fr_FR')
-            ->where('seo.alternates', [['lang' => 'en', 'url' => $en], ['lang' => 'fr', 'url' => $fr], ['lang' => 'x-default', 'url' => $en]]));
+            ->where('seo.robots', 'noindex, follow')
+            ->where('seo.alternates', []));
 
         $this->get($en)->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('locale', 'en')
             ->where('internship.public_url', $en)
             ->where('seo.canonical', $en)
+            ->where('seo.robots', 'index, follow, max-image-preview:large'));
+    }
+
+    public function test_a_translated_listing_has_a_french_page_with_the_original_below()
+    {
+        $this->internship->update(['language' => 'en', 'posted_at' => now()]);
+        $this->internship->translations()->create([
+            'locale' => 'fr', 'title' => 'Stagiaire backend', 'description' => 'Stage utilisé dans les tests, avec assez de texte pour une vraie page.',
+            'slug' => 'stagiaire-backend', 'source_hash' => $this->internship->sourceHash(),
+        ]);
+        $en = url('/opportunities/'.$this->internship->id.'-backend-intern');
+        $fr = url('/fr/opportunities/'.$this->internship->id.'-stagiaire-backend');
+
+        $this->get('/fr/opportunities/'.$this->internship->id.'-backend-intern')->assertStatus(301)->assertRedirect($fr);
+        $this->get($fr)->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('internship.title', 'Stagiaire backend')
+            ->where('internship.translated', true)
+            ->where('internship.original.title', 'Backend intern')
+            ->where('internship.original.description', 'Internship used in tests.')
+            ->where('internship.original.label', 'anglais')
+            ->where('seo.title', 'Stagiaire backend chez Atlas Cloud | Nextward')
+            ->where('seo.canonical', $fr)
+            ->where('seo.robots', 'index, follow, max-image-preview:large')
+            ->where('seo.alternates', [['lang' => 'en', 'url' => $en], ['lang' => 'fr', 'url' => $fr], ['lang' => 'x-default', 'url' => $en]]));
+
+        $this->get($en)->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('internship.title', 'Backend intern')
+            ->where('internship.translated', false)
             ->where('seo.alternates.1.url', $fr));
+
+        $this->get('/fr/opportunities?search=stagiaire')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('internships.data.0.title', 'Stagiaire backend'));
     }
 
     public function test_french_opportunity_with_wrong_slug_redirects_to_the_french_url()
@@ -96,7 +130,13 @@ class FrenchPagesTest extends TestCase
     {
         $xml = $this->get('/sitemaps/opportunities-1.xml')->assertOk()->getContent();
         $this->assertStringContainsString('<loc>'.$this->internship->public_url.'</loc>', $xml);
+        $this->assertStringNotContainsString('/fr/opportunities/', $xml);
+
+        $this->internship->translations()->create(['locale' => 'fr', 'title' => 'Stagiaire backend', 'description' => 'Stage utilisé dans les tests.', 'slug' => 'stagiaire-backend', 'source_hash' => 'x']);
+        $this->internship->unsetRelation('translations');
+        $xml = $this->get('/sitemaps/opportunities-1.xml')->assertOk()->getContent();
         $this->assertStringContainsString('<loc>'.$this->internship->publicUrl('fr').'</loc>', $xml);
+        $this->assertStringContainsString('<xhtml:link rel="alternate" hreflang="fr" href="'.$this->internship->publicUrl('fr').'"/>', $xml);
 
         $xml = $this->get('/sitemaps/companies.xml')->assertOk()->getContent();
         $this->assertStringContainsString('<loc>'.$this->company->publicUrl('fr').'</loc>', $xml);

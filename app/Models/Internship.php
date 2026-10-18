@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Support\LanguageGuess;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
@@ -56,6 +57,12 @@ class Internship extends Model
 
     protected static function booted(): void
     {
+        static::saving(function (Internship $internship) {
+            if (! $internship->language && $internship->description) {
+                $internship->language = LanguageGuess::guess($internship->title."\n".$internship->description);
+            }
+        });
+
         static::creating(function (Internship $internship) {
             $internship->slug = $internship->slug ?: (Str::limit(Str::slug($internship->title), 180, '') ?: 'opportunity');
             $internship->first_seen_at ??= now();
@@ -117,6 +124,59 @@ class Internship extends Model
         return $this->hasMany(OpportunitySource::class);
     }
 
+    public function translations()
+    {
+        return $this->hasMany(InternshipTranslation::class);
+    }
+
+    // The language the listing was written in, as a two-letter code.
+    public function originalLocale(): ?string
+    {
+        return LanguageGuess::normalize($this->language);
+    }
+
+    public function sourceHash(): string
+    {
+        return sha1($this->title."\n".$this->description);
+    }
+
+    public function translation(string $locale): ?InternshipTranslation
+    {
+        return $this->originalLocale() === $locale ? null : $this->translations->firstWhere('locale', $locale);
+    }
+
+    // The site language that shows the original text: French for French listings, English for everything else.
+    public function primaryLocale(): string
+    {
+        return $this->originalLocale() === 'fr' ? 'fr' : 'en';
+    }
+
+    // Site languages this listing can really be read in: its original one plus any translation.
+    public function availableLocales(): array
+    {
+        return array_values(array_filter(['en', 'fr'], fn ($locale) => $locale === $this->primaryLocale() || $this->translation($locale) !== null));
+    }
+
+    public function hasLocale(string $locale): bool
+    {
+        return in_array($locale, $this->availableLocales(), true);
+    }
+
+    public function titleFor(string $locale): string
+    {
+        return $this->translation($locale)?->title ?? (string) $this->title;
+    }
+
+    public function descriptionFor(string $locale): string
+    {
+        return $this->translation($locale)?->description ?? (string) $this->description;
+    }
+
+    public function slugFor(string $locale): string
+    {
+        return $this->translation($locale)?->slug ?: ($this->slug ?: (Str::slug($this->title) ?: 'opportunity'));
+    }
+
     public function candidateApplications()
     {
         return $this->hasMany(Application::class);
@@ -144,7 +204,7 @@ class Internship extends Model
 
     public function publicUrl(string $locale = 'en'): string
     {
-        return rtrim(config('app.url'), '/').($locale === 'fr' ? '/fr' : '').'/opportunities/'.$this->id.'-'.($this->slug ?: (Str::slug($this->title) ?: 'opportunity'));
+        return rtrim(config('app.url'), '/').($locale === 'fr' ? '/fr' : '').'/opportunities/'.$this->id.'-'.$this->slugFor($locale);
     }
 
     public function getLocationLabelAttribute(): string
@@ -253,6 +313,7 @@ class Internship extends Model
                 $query->where(function ($query) use ($term) {
                     $query->where('title', 'like', $term)
                         ->orWhere('description', 'like', $term)
+                        ->orWhereHas('translations', fn ($query) => $query->where('title', 'like', $term)->orWhere('description', 'like', $term))
                         ->orWhereHas('company', function ($query) use ($term) {
                             $query->where('name', 'like', $term)
                                 ->orWhereHas('user', fn ($query) => $query->where('name', 'like', $term));

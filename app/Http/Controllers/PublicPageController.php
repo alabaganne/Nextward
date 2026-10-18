@@ -73,6 +73,6 @@ class PublicPageController extends Controller
 
     private function recent()
     {
-        return Internship::available()->with('company.user', 'company.city', 'city', 'field', 'skills', 'sources.importSource')->withCandidateState(request()->user())->orderByRaw('COALESCE(posted_at, first_seen_at, created_at) DESC')->orderByDesc('id');
+        return Internship::available()->with('company.user', 'company.city', 'city', 'field', 'skills', 'sources.importSource', 'translations')->withCandidateState(request()->user())->orderByRaw('COALESCE(posted_at, first_seen_at, created_at) DESC')->orderByDesc('id');
     }
 }

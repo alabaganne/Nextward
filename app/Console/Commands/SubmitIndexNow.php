@@ -25,9 +25,13 @@ class SubmitIndexNow extends Command
         $base = rtrim(config('app.url'), '/');
 
         $urls = [];
-        $opportunities = $since ? Internship::published()->where('updated_at', '>=', $since) : Internship::available();
-        $opportunities->select('id', 'slug', 'title')->orderBy('id')->limit(10000)->get()->each(function ($row) use (&$urls) {
-            $urls[] = $row->public_url;
+        $opportunities = $since
+            ? Internship::published()->where(fn ($query) => $query->where('updated_at', '>=', $since)->orWhereHas('translations', fn ($query) => $query->where('updated_at', '>=', $since)))
+            : Internship::available();
+        $opportunities->select('id', 'slug', 'title', 'language')->with('translations:id,internship_id,locale,slug')->orderBy('id')->limit(10000)->get()->each(function ($row) use (&$urls) {
+            foreach ($row->availableLocales() as $locale) {
+                $urls[] = $row->publicUrl($locale);
+            }
         });
         // Posts only carry a date, so remember which version of each one was sent.
         $sentPosts = $since ? Cache::get('seo:indexnow:posts', []) : [];

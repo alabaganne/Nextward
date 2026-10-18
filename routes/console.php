@@ -16,5 +16,6 @@ Schedule::command('opportunities:indexing --limit=100')->hourly()->withoutOverla
 Schedule::command('companies:logos')->hourly()->withoutOverlapping();
 Schedule::command('opportunities:discover')->weeklyOn(1, '06:00')->timezone('Africa/Tunis')->withoutOverlapping();
 Schedule::command('seo:indexnow')->hourly()->withoutOverlapping();
+Schedule::command('opportunities:translate --limit=200')->hourly()->withoutOverlapping();
 Schedule::call(fn () => \Illuminate\Support\Facades\Cache::put('opportunities:scheduler:last_seen_at', now()->toIso8601String(), now()->addDay()))
     ->everyMinute()->name('opportunities.scheduler-heartbeat');

@@ -31,7 +31,7 @@ class InternshipController extends Controller
         $filters = $this->browseFilters($request);
         $request->query->replace($filters);
         $queryFilters = array_merge($filters, ['category' => $category]);
-        $results = Internship::with(['company.user', 'company.city', 'field', 'city', 'skills', 'sources.importSource'])
+        $results = Internship::with(['company.user', 'company.city', 'field', 'city', 'skills', 'sources.importSource', 'translations'])
             ->available()->searchFilters($queryFilters)->withCandidateState($request->user())
             ->withCount('applications')
             ->orderByRaw('COALESCE(posted_at, first_seen_at, created_at) DESC')->orderByDesc('id')
@@ -167,12 +167,12 @@ class InternshipController extends Controller
         if ($opportunity !== $canonicalSegment) {
             return redirect($internship->publicUrl($locale), 301);
         }
-        $internship->load(['company.user', 'company.city', 'field', 'city', 'skills', 'sources.importSource']);
+        $internship->load(['company.user', 'company.city', 'field', 'city', 'skills', 'sources.importSource', 'translations']);
         if ($request->user()?->isCandidate()) {
             $internship->load(['candidateApplications' => fn ($query) => $query->where('student_id', $request->user()->userable_id)]);
             $internship->loadExists(['likes as is_saved' => fn ($query) => $query->where('students.id', $request->user()->userable_id)]);
         }
-        $related = Internship::with(['company.user', 'company.city', 'field', 'city', 'skills', 'sources.importSource'])
+        $related = Internship::with(['company.user', 'company.city', 'field', 'city', 'skills', 'sources.importSource', 'translations'])
             ->available()->where('id', '!=', $internship->id)->where('kind', $internship->kind)
             ->when($internship->field_id, fn ($query) => $query->where('field_id', $internship->field_id))
             ->withCandidateState($request->user())

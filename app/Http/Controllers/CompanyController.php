@@ -131,7 +131,7 @@ class CompanyController extends Controller
 				],
 				'internships' => InternshipResource::collection($company->internships()
                     ->listedFor(auth()->user())
-                    ->with(['company.user', 'company.city', 'city', 'field', 'skills'])
+                    ->with(['company.user', 'company.city', 'city', 'field', 'skills', 'translations'])
                     ->withCandidateState(auth()->user())
                     ->latest()->orderByDesc('id')->paginate(10)->withQueryString())
 			]

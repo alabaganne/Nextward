@@ -41,6 +41,7 @@ class AppServiceProvider extends ServiceProvider
         ]);
 
         \App\Models\Internship::observe(\App\Observers\OpportunityIndexingObserver::class);
+        \App\Models\Internship::observe(\App\Observers\OpportunityTranslationObserver::class);
 
         \Illuminate\Support\Facades\Event::listen(\Inertia\Ssr\SsrRenderFailed::class, function ($event) {
             \Illuminate\Support\Facades\Log::error('Public server rendering failed.', [
