@@ -16,6 +16,7 @@ import {
 	SearchCheck,
 	Wallet,
 	Sparkles,
+	UserPlus,
 	X,
 } from '@lucide/vue';
 
@@ -50,6 +51,7 @@ const main = computed(() => [
 
 const admin = computed(() => [
 	{ id: 'imports', label: 'Sources and imports', route: 'imports.index', icon: Database },
+	{ id: 'signups', label: 'Sign-up sources', route: 'signups.index', icon: UserPlus },
 	{ id: 'candidates', label: 'Candidates', route: 'candidates.index', icon: GraduationCap, badge: badges.value.public_profiles },
 	{ id: 'fields', label: 'Fields', route: 'fields.index', icon: BookOpen },
 	{ id: 'skills', label: 'Skills', route: 'skills.index', icon: Sparkles },

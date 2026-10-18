@@ -259,6 +259,10 @@ php artisan opportunities:review-digest BATCH_UUID --retry-confirmed-unsent
 
 `--mark-sent` records confirmed delivery without sending. `--retry-confirmed-unsent` makes uncertain items eligible for a later job, which checks consent again. Do not use the retry option merely because a response was lost.
 
+## Sign-up sources
+
+Add `?ref=<slug>` to links you share, for example `/opportunities?ref=reddit-tunisia` (letters, digits and dashes, up to 60). The first ref someone opens is kept in their session and saved on their account (`users.signup_ref`) when they sign up. Admin > Sign-up sources (`/admin/signups`) counts sign-ups per ref and how many of those candidates turned on an alert. Nothing else is stored and no outside tool is used.
+
 ## Optional Google Indexing API
 
 Ordinary crawling and sitemaps work without this integration. To enable it, configure a Google Cloud project and service account, enable the Indexing API, verify the site in Search Console, and add the service account as a site owner according to [Google's prerequisites](https://developers.google.com/search/apis/indexing-api/v3/prereqs).

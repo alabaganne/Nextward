@@ -115,12 +115,14 @@ class RegisteredUserController extends Controller
                 'image' => $logoPath,
             ]);
             $user->terms_accepted_at = now();
+            $user->signup_ref = $request->session()->get('signup_ref');
             $user->save();
 
             return $user;
         });
 
         Auth::login($user);
+        $request->session()->forget('signup_ref');
 
         event(new Registered($user));
 

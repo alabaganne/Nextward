@@ -185,7 +185,7 @@ A French version for French-speaking subs and Facebook groups:
 
 ## What to build to support this
 
-- **Know where people come from** without trackers: links ending in `?ref=reddit-tunisia`, with the first `ref` saved on the account at sign-up. Counted in the admin view, no cookies beyond the session.
+- **Know where people come from**: done. Links ending in `?ref=reddit-tunisia` keep the first `ref` in the session and save it on the account at sign-up. Admin > Sign-up sources counts sign-ups per ref (7 days, 30 days, all time) and how many of those candidates turned on an alert. No trackers, no cookies beyond the session.
 - **Help and feedback page**: done (`/contact`, with bug reports, ideas and help).
 - **Share links that look good**: check that listing and guide pages show a clear title and image when pasted into Reddit, Facebook and LinkedIn.
 

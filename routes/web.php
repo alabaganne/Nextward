@@ -149,5 +149,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('/notifications/{notification}', [NotificationController::class, 'store'])->name('notifications.store');
 });
 
+Route::get('/admin/signups', \App\Http\Controllers\SignupSourceController::class)->middleware(['auth', 'admin'])->name('signups.index');
+
 require __DIR__.'/candidate_workflows.php';
 require __DIR__.'/opportunity_tools.php';
