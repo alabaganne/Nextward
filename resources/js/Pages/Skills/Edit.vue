@@ -17,7 +17,7 @@ const icons = {
 };
 
 const editing = computed(() => !!props.skill);
-const usage = computed(() => (props.skill?.internships_count || 0) + (props.skill?.students_count || 0));
+const usage = computed(() => (props.skill?.opportunities_count || 0) + (props.skill?.candidates_count || 0));
 
 const form = useForm({
 	name: props.skill?.name || '',
@@ -49,7 +49,7 @@ const destroy = () => {
 
 		<div class="mb-6">
 			<h1 class="font-display text-[28px] font-semibold tracking-[-.02em] leading-tight">{{ editing ? 'Edit skill' : 'Add a skill' }}</h1>
-			<p v-if="editing" class="text-muted text-[15px] mt-1.5">Used by {{ skill.internships_count }} {{ skill.internships_count === 1 ? 'role' : 'roles' }} and {{ skill.students_count }} {{ skill.students_count === 1 ? 'candidate' : 'candidates' }}.</p>
+			<p v-if="editing" class="text-muted text-[15px] mt-1.5">Used by {{ skill.opportunities_count }} {{ skill.opportunities_count === 1 ? 'role' : 'roles' }} and {{ skill.candidates_count }} {{ skill.candidates_count === 1 ? 'candidate' : 'candidates' }}.</p>
 		</div>
 
 		<form class="bg-white border border-line rounded-[18px]" @submit.prevent="submit">

@@ -35,13 +35,13 @@ class AppServiceProvider extends ServiceProvider
         JsonResource::withoutWrapping();
 
         Relation::morphMap([
-            'student' => \App\Models\Student::class,
+            'candidate' => \App\Models\Candidate::class,
             'company' => \App\Models\Company::class,
-            'internship' => \App\Models\Internship::class,
+            'opportunity' => \App\Models\Opportunity::class,
         ]);
 
-        \App\Models\Internship::observe(\App\Observers\OpportunityIndexingObserver::class);
-        \App\Models\Internship::observe(\App\Observers\OpportunityTranslationObserver::class);
+        \App\Models\Opportunity::observe(\App\Observers\OpportunityIndexingObserver::class);
+        \App\Models\Opportunity::observe(\App\Observers\OpportunityTranslationObserver::class);
 
         \Illuminate\Support\Facades\Event::listen(\Inertia\Ssr\SsrRenderFailed::class, function ($event) {
             \Illuminate\Support\Facades\Log::error('Public server rendering failed.', [

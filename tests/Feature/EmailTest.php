@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Mail\ContactMessage;
 use App\Mail\OpportunityDigest;
 use App\Models\Application;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use App\Models\Message;
 use App\Models\SavedSearch;
 use App\Models\User;
@@ -34,7 +34,7 @@ class EmailTest extends TestCase
         $this->seed(\Tests\Fixtures\DemoSeeder::class);
     }
 
-    private function student(): User
+    private function candidate(): User
     {
         return User::where('email', 'student@example.com')->firstOrFail();
     }
@@ -50,7 +50,7 @@ class EmailTest extends TestCase
     public function test_new_accounts_get_a_branded_verification_email(): void
     {
         Notification::fake();
-        $user = $this->student();
+        $user = $this->candidate();
         $user->forceFill(['email_verified_at' => null])->save();
 
         event(new Registered($user));
@@ -69,13 +69,13 @@ class EmailTest extends TestCase
 
     public function test_unverified_users_must_confirm_before_applying_messaging_or_saving_alerts(): void
     {
-        $user = $this->student();
+        $user = $this->candidate();
         $user->forceFill(['email_verified_at' => null])->save();
-        $internship = Internship::where('application_mode', 'internal')->firstOrFail();
+        $opportunity = Opportunity::where('application_mode', 'internal')->firstOrFail();
 
-        $this->actingAs($user)->get("/internships/{$internship->id}/apply")->assertRedirect(route('verification.notice'));
-        $this->actingAs($user)->post("/internship/{$internship->id}/apply", ['cover_letter' => 'Hello'])->assertRedirect(route('verification.notice'));
-        $this->actingAs($user)->post('/messages', ['to_id' => $internship->company->user->id, 'text' => 'Hello'])->assertRedirect(route('verification.notice'));
+        $this->actingAs($user)->get("/opportunities/{$opportunity->id}/apply")->assertRedirect(route('verification.notice'));
+        $this->actingAs($user)->post("/opportunities/{$opportunity->id}/apply", ['cover_letter' => 'Hello'])->assertRedirect(route('verification.notice'));
+        $this->actingAs($user)->post('/messages', ['to_id' => $opportunity->company->user->id, 'text' => 'Hello'])->assertRedirect(route('verification.notice'));
         $this->actingAs($user)->post('/saved-searches', ['name' => 'Laravel'])->assertRedirect(route('verification.notice'));
 
         $this->assertSame(0, Message::where('from_id', $user->id)->where('text', 'Hello')->count());
@@ -84,7 +84,7 @@ class EmailTest extends TestCase
 
     public function test_resetting_the_password_also_confirms_the_email(): void
     {
-        $user = $this->student();
+        $user = $this->candidate();
         $user->forceFill(['email_verified_at' => null])->save();
         $token = Password::broker()->createToken($user);
 
@@ -100,7 +100,7 @@ class EmailTest extends TestCase
 
     public function test_password_reset_email_is_branded(): void
     {
-        $user = $this->student();
+        $user = $this->candidate();
         $mail = (new ResetPassword('token-123'))->toMail($user);
 
         $this->assertSame('Reset your Nextward password', $mail->subject);
@@ -112,13 +112,13 @@ class EmailTest extends TestCase
 
     public function test_companies_get_an_email_for_each_new_application(): void
     {
-        $application = Application::with(['company.user', 'student.user', 'internship'])->where('status', 'submitted')->firstOrFail();
+        $application = Application::with(['company.user', 'candidate.user', 'opportunity'])->where('status', 'submitted')->firstOrFail();
         $companyUser = $application->company->user;
         $notification = new ApplicationSubmitted($application);
 
         $this->assertContains('mail', $notification->via($companyUser));
         $mail = $notification->toMail($companyUser);
-        $this->assertSame('New application for '.$application->internship->title, $mail->subject);
+        $this->assertSame('New application for '.$application->opportunity->title, $mail->subject);
         $html = (string) $mail->render();
         $this->assertBranded($html);
         $this->assertStringContainsString('Review the application', $html);
@@ -127,11 +127,11 @@ class EmailTest extends TestCase
 
     public function test_candidates_get_an_email_when_the_status_changes(): void
     {
-        $application = Application::with(['company.user', 'student.user', 'internship'])->where('status', 'submitted')->firstOrFail();
+        $application = Application::with(['company.user', 'candidate.user', 'opportunity'])->where('status', 'submitted')->firstOrFail();
         $application->status = 'interview';
-        $candidate = $application->student->user;
+        $candidateUser = $application->candidate->user;
 
-        $mail = (new ApplicationReviewed($application))->toMail($candidate);
+        $mail = (new ApplicationReviewed($application))->toMail($candidateUser);
 
         $this->assertSame($application->company->display_name.' would like to interview you', $mail->subject);
         $html = (string) $mail->render();
@@ -141,11 +141,11 @@ class EmailTest extends TestCase
 
     public function test_message_emails_show_text_people_typed_as_plain_text(): void
     {
-        $student = $this->student();
-        $company = Internship::firstOrFail()->company->user;
-        $message = Message::create(['from_id' => $company->id, 'to_id' => $student->id, 'text' => 'Click [here](https://evil.example) <b>now</b>']);
+        $candidate = $this->candidate();
+        $company = Opportunity::firstOrFail()->company->user;
+        $message = Message::create(['from_id' => $company->id, 'to_id' => $candidate->id, 'text' => 'Click [here](https://evil.example) <b>now</b>']);
 
-        $html = (string) (new MessageReceived($message))->toMail($student)->render();
+        $html = (string) (new MessageReceived($message))->toMail($candidate)->render();
 
         $this->assertBranded($html);
         $this->assertStringNotContainsString('href="https://evil.example"', $html);
@@ -156,9 +156,9 @@ class EmailTest extends TestCase
     public function test_message_emails_are_sent_at_most_once_per_conversation_in_a_while(): void
     {
         Cache::flush();
-        $student = $this->student();
-        $company = Internship::firstOrFail()->company->user;
-        $message = Message::create(['from_id' => $company->id, 'to_id' => $student->id, 'text' => 'Hello there']);
+        $candidate = $this->candidate();
+        $company = Opportunity::firstOrFail()->company->user;
+        $message = Message::create(['from_id' => $company->id, 'to_id' => $candidate->id, 'text' => 'Hello there']);
 
         $this->assertTrue(MessageReceived::shouldEmail($message));
         $this->assertFalse(MessageReceived::shouldEmail($message));
@@ -168,19 +168,19 @@ class EmailTest extends TestCase
     {
         Notification::fake();
         Cache::flush();
-        $application = Application::with(['company.user', 'student.user'])->firstOrFail();
+        $application = Application::with(['company.user', 'candidate.user'])->firstOrFail();
         $company = $application->company->user;
-        $candidate = $application->student->user;
+        $candidateUser = $application->candidate->user;
 
-        $this->actingAs($company)->post('/messages', ['to_id' => $candidate->id, 'text' => 'Are you free on Tuesday?'])->assertRedirect();
-        $this->actingAs($company)->post('/messages', ['to_id' => $candidate->id, 'text' => 'Or Wednesday?'])->assertRedirect();
+        $this->actingAs($company)->post('/messages', ['to_id' => $candidateUser->id, 'text' => 'Are you free on Tuesday?'])->assertRedirect();
+        $this->actingAs($company)->post('/messages', ['to_id' => $candidateUser->id, 'text' => 'Or Wednesday?'])->assertRedirect();
 
-        Notification::assertSentToTimes($candidate, MessageReceived::class, 1);
+        Notification::assertSentToTimes($candidateUser, MessageReceived::class, 1);
     }
 
     public function test_invite_email_lets_the_person_choose_a_password(): void
     {
-        $user = $this->student();
+        $user = $this->candidate();
         $html = (string) (new AccountCreated)->toMail($user)->render();
 
         $this->assertBranded($html);
@@ -191,7 +191,7 @@ class EmailTest extends TestCase
     public function test_saved_search_digest_is_branded(): void
     {
         $search = SavedSearch::firstOrFail();
-        $mail = new OpportunityDigest($search, Internship::query()->take(2)->get(), 'test-batch');
+        $mail = new OpportunityDigest($search, Opportunity::query()->take(2)->get(), 'test-batch');
 
         $html = $mail->render();
 

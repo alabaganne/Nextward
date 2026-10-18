@@ -44,6 +44,6 @@ class GenerateApplicationKit implements ShouldQueue
         if ($kit->status !== 'queued') { return; }
         $kit->update(['status' => $kit->cv ? 'ready' : 'failed', 'error' => 'We could not write your CV and letter right now. Please try again in a minute.']);
         if ($kit->generations > 0) { $kit->decrement('generations'); }
-        if ($user = $kit->student?->user) { $credits->refund($user, $kit->fresh()); }
+        if ($user = $kit->candidate?->user) { $credits->refund($user, $kit->fresh()); }
     }
 }

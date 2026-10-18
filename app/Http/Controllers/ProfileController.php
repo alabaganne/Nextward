@@ -7,7 +7,7 @@ use App\Models\City;
 use App\Models\Company;
 use App\Models\Field;
 use App\Models\SavedSearch;
-use App\Models\Student;
+use App\Models\Candidate;
 use App\Support\ProfileHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -41,29 +41,29 @@ class ProfileController extends Controller
                 'about' => $company->about,
                 'website' => $company->website,
                 'city' => $company->city ? ['name' => $company->city->name] : null,
-                'internships_count' => $company->internships()->count(),
+                'opportunities_count' => $company->opportunities()->count(),
                 'country_code' => $company->country_code,
                 'location' => $company->location,
             ];
         } elseif ($user->isCandidate()) {
-            $student = $user->userable;
+            $candidate = $user->userable;
             $profile += [
-                'about' => $student->about,
-                'field' => $student->field ? ['name' => $student->field->name] : null,
-                'city' => $student->city ? ['name' => $student->city->name] : null,
-                'skills' => $student->skills->pluck('name')->merge($student->preferences['skills'] ?? [])->unique()->values(),
-                'applications_count' => $student->applications()->count(),
-                'likes_count' => $student->likes()->count(),
-                'headline' => $student->headline,
-                'experience_years' => $student->experience_years,
-                'country_code' => $student->country_code,
-                'location' => $student->location,
-                'languages' => $student->languages ?: [],
-                'website' => $student->website,
-                'resume_name' => $student->resume_name,
-                'experience' => $student->experience ?: [],
-                'education' => $student->education ?: [],
-                'projects' => $student->projects ?: [],
+                'about' => $candidate->about,
+                'field' => $candidate->field ? ['name' => $candidate->field->name] : null,
+                'city' => $candidate->city ? ['name' => $candidate->city->name] : null,
+                'skills' => $candidate->skills->pluck('name')->merge($candidate->preferences['skills'] ?? [])->unique()->values(),
+                'applications_count' => $candidate->applications()->count(),
+                'likes_count' => $candidate->likes()->count(),
+                'headline' => $candidate->headline,
+                'experience_years' => $candidate->experience_years,
+                'country_code' => $candidate->country_code,
+                'location' => $candidate->location,
+                'languages' => $candidate->languages ?: [],
+                'website' => $candidate->website,
+                'resume_name' => $candidate->resume_name,
+                'experience' => $candidate->experience ?: [],
+                'education' => $candidate->education ?: [],
+                'projects' => $candidate->projects ?: [],
             ];
         }
 
@@ -160,8 +160,8 @@ class ProfileController extends Controller
         DB::transaction(function () use ($user, &$files) {
             $profile = $user->userable;
 
-            if ($profile instanceof Student) {
-                $applications = Application::where('student_id', $profile->id)->get();
+            if ($profile instanceof Candidate) {
+                $applications = Application::where('candidate_id', $profile->id)->get();
                 $files = $applications->flatMap(fn ($application) => $application->attachments ?: [])
                     ->map(fn ($attachment) => is_array($attachment) ? Application::attachmentStorage($attachment) : null)
                     ->filter()->all();
@@ -174,7 +174,7 @@ class ProfileController extends Controller
                 $profile->delete();
             } elseif ($profile instanceof Company) {
                 // Keep the company row so candidates still see who they applied to.
-                $profile->internships()->update(['status' => 'closed', 'publication_status' => 'suppressed']);
+                $profile->opportunities()->update(['status' => 'closed', 'publication_status' => 'suppressed']);
                 $profile->update(['name' => $profile->name ?: $user->name]);
             }
 

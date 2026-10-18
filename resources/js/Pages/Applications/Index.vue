@@ -23,8 +23,8 @@ const icons = {
 };
 
 const page = usePage();
-const isStudent = computed(() => page.props.auth?.user?.userable_type === 'student');
-const description = computed(() => isStudent.value
+const isCandidate = computed(() => page.props.auth?.user?.userable_type === 'candidate');
+const description = computed(() => isCandidate.value
 	? "Track every role you've applied to and see where you stand at a glance."
 	: 'Review every application to your open roles at a glance.');
 
@@ -43,7 +43,7 @@ const setFilter = (key) => {
 	router.get(route('applications.index'), key === 'all' ? {} : { status: key }, { preserveScroll: true, preserveState: true });
 };
 
-const partyName = (application) => (isStudent.value ? application.company?.name : application.student?.name) || '';
+const partyName = (application) => (isCandidate.value ? application.company?.name : application.candidate?.name) || '';
 </script>
 
 <template>
@@ -69,7 +69,7 @@ const partyName = (application) => (isStudent.value ? application.company?.name 
 		<!-- TABLE -->
 		<div class="bg-white border border-line rounded-[18px] overflow-hidden">
 			<div class="grid grid-cols-[1fr_150px_130px_40px] gap-4 px-[22px] py-3 border-b border-line-2 bg-paper-2 max-[760px]:hidden [&_span]:text-[11.5px] [&_span]:tracking-[.08em] [&_span]:uppercase [&_span]:text-muted-2 [&_span]:font-bold [&_span:last-child]:text-right">
-				<span>{{ isStudent ? 'Role' : 'Applicant · Role' }}</span><span>Applied</span><span>Status</span><span></span>
+				<span>{{ isCandidate ? 'Role' : 'Applicant · Role' }}</span><span>Applied</span><span>Status</span><span></span>
 			</div>
 			<div>
 				<Link
@@ -80,10 +80,10 @@ const partyName = (application) => (isStudent.value ? application.company?.name 
 					:href="route('applications.show', application.id)"
 				>
 					<div class="flex items-center gap-3.5 min-w-0">
-						<CompanyLogo class="w-[46px] h-[46px] rounded-[12px] text-[15px]" :name="partyName(application)" :src="isStudent ? application.company?.image : null" />
+						<CompanyLogo class="w-[46px] h-[46px] rounded-[12px] text-[15px]" :name="partyName(application)" :src="isCandidate ? application.company?.image : null" />
 						<div>
-							<b class="text-[15px] font-semibold block">{{ application.internship.title }}</b>
-							<span class="text-[13px] text-muted">{{ partyName(application) }} · {{ application.internship.city?.name }}</span>
+							<b class="text-[15px] font-semibold block">{{ application.opportunity.title }}</b>
+							<span class="text-[13px] text-muted">{{ partyName(application) }} · {{ application.opportunity.city?.name }}</span>
 						</div>
 					</div>
 					<div class="text-[13px] text-muted-2 max-[760px]:hidden">{{ application.created_at }}</div>
@@ -97,7 +97,7 @@ const partyName = (application) => (isStudent.value ? application.company?.name 
 				</div>
 				<div v-else-if="!rows.length" class="px-[22px] py-8 text-[14px] text-muted">
 					No applications here yet.
-					<Link v-if="isStudent" class="font-semibold text-blue-700" :href="route('opportunities.index')">Browse opportunities</Link>
+					<Link v-if="isCandidate" class="font-semibold text-blue-700" :href="route('opportunities.index')">Browse opportunities</Link>
 				</div>
 			</div>
 		</div>

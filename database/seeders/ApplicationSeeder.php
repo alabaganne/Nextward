@@ -18,11 +18,11 @@ class ApplicationSeeder extends Seeder
         }
 
         for ($index = 0; $index < 100; $index++) {
-            $opportunity = \App\Models\Internship::available()->inRandomOrder()->first();
+            $opportunity = \App\Models\Opportunity::available()->inRandomOrder()->first();
             if (! $opportunity) { break; }
-            $candidate = \App\Models\Student::whereDoesntHave('applications', fn ($query) => $query->where('internships.id', $opportunity->id))->inRandomOrder()->first();
+            $candidate = \App\Models\Candidate::whereDoesntHave('applications', fn ($query) => $query->where('opportunities.id', $opportunity->id))->inRandomOrder()->first();
             if (! $candidate) { continue; }
-            \App\Models\Application::factory()->create(['internship_id' => $opportunity->id, 'student_id' => $candidate->id]);
+            \App\Models\Application::factory()->create(['opportunity_id' => $opportunity->id, 'candidate_id' => $candidate->id]);
         }
     }
 }

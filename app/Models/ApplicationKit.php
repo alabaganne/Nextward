@@ -7,19 +7,19 @@ use Illuminate\Database\Eloquent\Model;
 class ApplicationKit extends Model
 {
     protected $fillable = [
-        'student_id', 'internship_id', 'locale', 'status', 'cv', 'cover_letter', 'error',
+        'candidate_id', 'opportunity_id', 'locale', 'status', 'cv', 'cover_letter', 'error',
         'model', 'input_tokens', 'output_tokens', 'generations', 'credits_used',
     ];
 
     protected $casts = ['cv' => 'array'];
 
-    public function student()
+    public function candidate()
     {
-        return $this->belongsTo(Student::class);
+        return $this->belongsTo(Candidate::class);
     }
 
-    public function internship()
+    public function opportunity()
     {
-        return $this->belongsTo(Internship::class);
+        return $this->belongsTo(Opportunity::class);
     }
 }

@@ -5,7 +5,7 @@ import { Sparkles } from '@lucide/vue';
 import axios from 'axios';
 
 const props = defineProps({
-    internship: { type: Object, required: true },
+    opportunity: { type: Object, required: true },
     kits: { type: Array, default: () => [] },
 });
 const page = usePage();
@@ -24,7 +24,7 @@ const start = async () => {
     error.value = '';
     billingUrl.value = '';
     try {
-        const { data } = await axios.post(`/opportunities/${props.internship.id}/kit`, { locale: locale.value });
+        const { data } = await axios.post(`/opportunities/${props.opportunity.id}/kit`, { locale: locale.value });
         router.visit(data.url);
     } catch (failure) {
         const status = failure.response?.status;

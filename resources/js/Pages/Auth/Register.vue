@@ -11,9 +11,9 @@
 			<fieldset>
 				<legend class="auth-label">{{ text('I’m joining as', 'Je m’inscris pour') }}</legend>
 				<div class="auth-role-options">
-					<button type="button" class="auth-role focus-ring" :aria-pressed="form.account_type === 'student'" @click="selectAccount('student')">
+					<button type="button" class="auth-role focus-ring" :aria-pressed="form.account_type === 'candidate'" @click="selectAccount('candidate')">
 						<span class="auth-role-name"><icon name="academic-cap" />{{ text('Find opportunities', 'Trouver une opportunité') }}</span>
-						<icon v-if="form.account_type === 'student'" name="check-circle" class="auth-role-check" />
+						<icon v-if="form.account_type === 'candidate'" name="check-circle" class="auth-role-check" />
 						<p>{{ text('For students, graduates, and professionals.', 'Pour les étudiants, jeunes diplômés et professionnels.') }}</p>
 					</button>
 					<button type="button" class="auth-role focus-ring" :aria-pressed="form.account_type === 'company'" @click="selectAccount('company')">
@@ -117,7 +117,7 @@ export default {
 	props: {
 		cities: Array,
 		fields: Array,
-		accountType: { type: String, default: 'student' },
+		accountType: { type: String, default: 'candidate' },
 	},
 	data() {
 		return {

@@ -6,7 +6,7 @@ use App\Importing\OpportunityImporter;
 use App\Importing\OpportunityNormalizer;
 use App\Importing\SourceHttp;
 use App\Importing\SourceReader;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use App\Models\OpportunitySource;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +23,7 @@ class CleanOpportunities extends Command
         $dryRun = (bool) $this->option('dry-run');
         $readers = [];
         $listings = 0;
-        $sources = OpportunitySource::with('importSource', 'internship')->whereNotNull('normalized_data')
+        $sources = OpportunitySource::with('importSource', 'opportunity')->whereNotNull('normalized_data')
             ->when($this->option('source'), fn ($query, $key) => $query->whereHas('importSource', fn ($query) => $query->where('key', $key)));
         foreach ($sources->lazyById(100) as $item) {
             $source = $item->importSource;
@@ -39,7 +39,7 @@ class CleanOpportunities extends Command
             if ($dryRun) { continue; }
             DB::transaction(function () use ($item, $old, $data, $changes) {
                 $item->update(['normalized_data' => $data]);
-                $role = $item->internship;
+                $role = $item->opportunity;
                 if (! $role || $role->origin !== 'imported') { return; }
                 $overrides = $role->moderation_overrides ?? [];
                 // A field still showing this source's old value is updated; other sources and moderators keep theirs.
@@ -51,7 +51,7 @@ class CleanOpportunities extends Command
         }
 
         $skillLists = 0;
-        $roles = Internship::where('origin', 'imported')->with('skills')
+        $roles = Opportunity::where('origin', 'imported')->with('skills')
             ->when($this->option('source'), fn ($query, $key) => $query->whereHas('sources.importSource', fn ($query) => $query->where('key', $key)));
         foreach ($roles->lazyById(100) as $role) {
             if (array_key_exists('skills', $role->moderation_overrides ?? [])) { continue; }

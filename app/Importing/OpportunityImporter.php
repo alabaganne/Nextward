@@ -7,7 +7,7 @@ use App\Models\Company;
 use App\Models\Field;
 use App\Models\ImportRun;
 use App\Models\ImportSource;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use App\Models\OpportunitySource;
 use App\Models\Skill;
 use Carbon\Carbon;
@@ -116,29 +116,29 @@ class OpportunityImporter
                     if ($this->expired($data)) {
                         $this->closeSource($item);
                         $stats['closed']++;
-                    } elseif (! $item->internship_id && ($reason = $this->skipReason($source, $item, $data))) {
+                    } elseif (! $item->opportunity_id && ($reason = $this->skipReason($source, $item, $data))) {
                         $item->update(['state' => 'rejected', 'error' => $reason]);
                         $stats['rejected']++;
                     } elseif ($this->olderThan($data, $item, config('importer.retention_days'))) {
                         $this->closeSource($item);
                         $item->update(['state' => 'rejected', 'error' => 'Posted more than '.config('importer.retention_days').' days ago.']);
                         $stats['closed']++;
-                    } elseif (! $item->internship_id && $item->content_hash) {
+                    } elseif (! $item->opportunity_id && $item->content_hash) {
                         // It was published before and its listing was deleted since, so it stays out.
                         $item->update(['state' => 'rejected', 'error' => 'Added before and removed later.']);
                         $stats['rejected']++;
                     } else {
                         // Claude reads each listing once, before it is first published; the answer is kept for later refreshes.
-                        if (! $item->ai_review && ! $item->internship_id && $classifier->enabled()) {
+                        if (! $item->ai_review && ! $item->opportunity_id && $classifier->enabled()) {
                             $item->ai_review = $classifier->classify($data, $this->fieldNames());
                         }
                         if ($item->ai_review) {
                             $data = $this->withReview($data, $item->ai_review);
                             $item->update(['ai_review' => $item->ai_review, 'normalized_data' => $data]);
                         }
-                        if ($focusFields && ! $item->internship_id && ! $this->inFocus($data, $focusFields)) {
+                        if ($focusFields && ! $item->opportunity_id && ! $this->inFocus($data, $focusFields)) {
                             $stats['rejected']++;
-                        } elseif ($source->publication_mode === 'automatic' || $item->internship_id) {
+                        } elseif ($source->publication_mode === 'automatic' || $item->opportunity_id) {
                             $role = $this->publish($item);
                             if ($role->wasRecentlyCreated) { $newIds[] = $role->id; }
                             $stats['published']++;
@@ -204,7 +204,7 @@ class OpportunityImporter
         }
     }
 
-    public function publish(OpportunitySource $item): Internship
+    public function publish(OpportunitySource $item): Opportunity
     {
         $source = $item->importSource;
         if (! $source->isApproved() || ! $item->normalized_data || ! $item->last_verified_at || $item->last_verified_at->lt(now()->subHours($source->freshnessHours()))) {
@@ -215,21 +215,21 @@ class OpportunityImporter
         return DB::transaction(function () use ($item, $source, $data) {
             $company = $source->company ?? $this->employer($source, $data);
             if ($company->claimed_by_company_id) { $company = Company::findOrFail($company->claimed_by_company_id); }
-            $opportunity = $item->internship;
+            $opportunity = $item->opportunity;
             if (! $opportunity) {
                 // A shared role-specific destination and exact employer/title are a strong duplicate signal.
-                $candidates = OpportunitySource::where('application_url', $data['application_url'])->whereNotNull('internship_id')->with('internship.company.user')->get();
+                $candidates = OpportunitySource::where('application_url', $data['application_url'])->whereNotNull('opportunity_id')->with('opportunity.company.user')->get();
                 foreach ($candidates as $candidate) {
-                    if ($candidate->internship && $candidate->internship->title === $data['title']
-                        && $candidate->internship->company->display_name === $data['employer']
-                        && $candidate->internship->location === $data['location']
-                        && $candidate->internship->country_code === $data['country_code']
+                    if ($candidate->opportunity && $candidate->opportunity->title === $data['title']
+                        && $candidate->opportunity->company->display_name === $data['employer']
+                        && $candidate->opportunity->location === $data['location']
+                        && $candidate->opportunity->country_code === $data['country_code']
                         && mb_strlen(parse_url($data['application_url'], PHP_URL_PATH) ?: '') > 8) {
-                        $opportunity = $candidate->internship; break;
+                        $opportunity = $candidate->opportunity; break;
                     }
                 }
             }
-            $opportunity ??= $this->sameRoleOnOtherBoard($company, $item, $data) ?? new Internship();
+            $opportunity ??= $this->sameRoleOnOtherBoard($company, $item, $data) ?? new Opportunity();
             $hash = hash('sha256', json_encode($data, JSON_THROW_ON_ERROR));
             $hasEmployerSource = $opportunity->exists && $opportunity->sources()->where('id', '!=', $item->id)
                 ->whereHas('importSource', fn ($q) => $q->where('settings->authoritative_employer', true))->exists();
@@ -255,7 +255,7 @@ class OpportunityImporter
                 $opportunity->fill($fields)->save();
                 if (! array_key_exists('skills', $overrides)) { $opportunity->skills()->sync($this->skillIds($data['title'], $data['description'])); }
             }
-            $item->update(['internship_id' => $opportunity->id, 'state' => 'published', 'content_hash' => $hash, 'error' => null]);
+            $item->update(['opportunity_id' => $opportunity->id, 'state' => 'published', 'content_hash' => $hash, 'error' => null]);
             return $opportunity;
         });
     }
@@ -263,7 +263,7 @@ class OpportunityImporter
     public function closeSource(OpportunitySource $item): void
     {
         $item->update(['state' => 'closed', 'last_verified_at' => now(), 'error' => null]);
-        $role = $item->internship;
+        $role = $item->opportunity;
         if (! $role || $role->origin !== 'imported') { return; }
         $authoritative = $item->importSource->settings['authoritative_employer'] ?? false;
         $otherOpen = $role->sources()->with('importSource')->where('id', '!=', $item->id)->where('state', 'published')->get()
@@ -276,12 +276,12 @@ class OpportunityImporter
     {
         $count = 0;
         $cutoff = now()->subDays(config('importer.retention_days'));
-        Internship::where('origin', 'imported')->where('status', 'open')->where(function ($q) use ($cutoff) {
+        Opportunity::where('origin', 'imported')->where('status', 'open')->where(function ($q) use ($cutoff) {
             $q->where('posted_at', '<', $cutoff)->orWhere(fn ($q) => $q->whereNull('posted_at')->where('first_seen_at', '<', $cutoff));
         })->chunkById(100, function ($roles) use (&$count) {
             foreach ($roles as $role) { $role->update(['status' => 'closed']); $count++; }
         });
-        Internship::where('status', 'open')->where(function ($q) {
+        Opportunity::where('status', 'open')->where(function ($q) {
             $q->where('expires_at', '<=', now())->orWhere(function ($q) {
                 $q->whereNull('expires_at')->whereDate('closing_at', '<', now('Africa/Tunis')->toDateString());
             });
@@ -289,7 +289,7 @@ class OpportunityImporter
             foreach ($roles as $role) { $role->update(['status' => 'closed', 'content_updated_at' => now()]); $count++; }
         });
         // Stale is distinct from confirmed closed; automatic rechecks can restore these drafts.
-        Internship::where('origin', 'imported')->where('publication_status', 'published')->where('status', 'open')
+        Opportunity::where('origin', 'imported')->where('publication_status', 'published')->where('status', 'open')
             ->with('sources.importSource')
             ->chunkById(100, function ($roles) use (&$count) {
                 foreach ($roles as $role) {
@@ -321,10 +321,10 @@ class OpportunityImporter
         return $company;
     }
 
-    private function sameRoleOnOtherBoard(Company $company, OpportunitySource $item, array $data): ?Internship
+    private function sameRoleOnOtherBoard(Company $company, OpportunitySource $item, array $data): ?Opportunity
     {
         $title = $this->normalizeTitle($data['title']);
-        return Internship::where('company_id', $company->id)->where('origin', 'imported')->where('kind', $data['kind'])
+        return Opportunity::where('company_id', $company->id)->where('origin', 'imported')->where('kind', $data['kind'])
             ->where('status', 'open')->whereNull('merged_into_id')
             ->where('first_seen_at', '>=', now()->subDays(config('importer.retention_days')))
             ->whereDoesntHave('sources', fn ($q) => $q->where('import_source_id', $item->import_source_id))

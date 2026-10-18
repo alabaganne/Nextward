@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Models\ApplicationKit;
 use App\Models\Company;
 use App\Models\CreditTransaction;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use App\Models\User;
 use Database\Seeders\OwnerProfileSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -29,45 +29,45 @@ class ApplicationKitTest extends TestCase
 
     public function test_a_candidate_gets_a_tailored_cv_and_letter_in_the_chosen_language(): void
     {
-        $student = $this->student();
+        $candidate = $this->candidate();
         $role = $this->role();
         Http::fake(['api.openai.com/v1/responses' => Http::response($this->reply())]);
 
-        $this->actingAs($student)->post('/profile/resume', ['resume' => UploadedFile::fake()->create('cv.pdf', 40, 'application/pdf')]);
-        $url = $this->actingAs($student)->postJson("/opportunities/{$role->id}/kit", ['locale' => 'fr'])->assertOk()->json('url');
+        $this->actingAs($candidate)->post('/profile/resume', ['resume' => UploadedFile::fake()->create('cv.pdf', 40, 'application/pdf')]);
+        $url = $this->actingAs($candidate)->postJson("/opportunities/{$role->id}/kit", ['locale' => 'fr'])->assertOk()->json('url');
 
         $kit = ApplicationKit::sole();
         $this->assertSame(route('kits.show', $kit), $url);
         $this->assertSame('ready', $kit->status);
         $this->assertSame('fr', $kit->locale);
-        $this->assertSame($student->name, $kit->cv['name']);
-        $this->assertContains($student->email, $kit->cv['contact']);
+        $this->assertSame($candidate->name, $kit->cv['name']);
+        $this->assertContains($candidate->email, $kit->cv['contact']);
         $this->assertSame('Développeur Laravel', $kit->cv['headline']);
         $this->assertSame(['Créer des API'], $kit->cv['experience'][0]['highlights']);
         $this->assertStringContainsString('Bonjour', $kit->cover_letter);
         $this->assertSame(100, $kit->input_tokens);
-        Http::assertSent(function ($request) use ($role, $student) {
+        Http::assertSent(function ($request) use ($role, $candidate) {
             $content = collect($request['input'])->flatMap(fn ($message) => is_array($message['content'] ?? null) ? $message['content'] : []);
             $prompt = $content->where('type', 'input_text')->pluck('text')->implode("\n");
-            return $request['model'] === 'gpt-5.5' && str_contains($prompt, 'in French') && str_contains($prompt, 'Name: '.$student->name)
+            return $request['model'] === 'gpt-5.5' && str_contains($prompt, 'in French') && str_contains($prompt, 'Name: '.$candidate->name)
                 && str_contains($prompt, 'Company: '.$role->company->display_name) && $content->contains('type', 'input_file');
         });
 
         // Asking again opens the same kit without a new call.
-        $this->actingAs($student)->postJson("/opportunities/{$role->id}/kit", ['locale' => 'fr'])->assertOk();
+        $this->actingAs($candidate)->postJson("/opportunities/{$role->id}/kit", ['locale' => 'fr'])->assertOk();
         Http::assertSentCount(1);
         $this->assertSame(0, CreditTransaction::where('reason', 'kit')->count());
     }
 
     public function test_the_candidate_can_edit_download_and_delete_their_kit(): void
     {
-        $student = $this->student();
+        $candidate = $this->candidate();
         Http::fake(['api.openai.com/v1/responses' => Http::response($this->reply())]);
-        $this->actingAs($student)->postJson("/opportunities/{$this->role()->id}/kit", ['locale' => 'en']);
+        $this->actingAs($candidate)->postJson("/opportunities/{$this->role()->id}/kit", ['locale' => 'en']);
         $kit = ApplicationKit::sole();
 
-        $this->actingAs($student)->getJson(route('kits.show', $kit))->assertOk()->assertJsonPath('kit.status', 'ready');
-        $this->actingAs($student)->put(route('kits.update', $kit), [
+        $this->actingAs($candidate)->getJson(route('kits.show', $kit))->assertOk()->assertJsonPath('kit.status', 'ready');
+        $this->actingAs($candidate)->put(route('kits.update', $kit), [
             'cover_letter' => 'Dear team, edited.',
             'cv' => ['name' => 'Sami', 'contact' => ['sami@example.com'], 'headline' => 'Backend developer', 'skills' => ['Laravel'], 'experience' => [['title' => 'Developer', 'highlights' => ['Built APIs']]]],
         ])->assertSessionHasNoErrors();
@@ -76,15 +76,15 @@ class ApplicationKitTest extends TestCase
         $this->assertSame('Backend developer', $kit->cv['headline']);
         $this->assertSame('Developer', $kit->cv['experience'][0]['title']);
 
-        $this->actingAs($student)->get(route('kits.cv', $kit))->assertOk()->assertHeader('content-type', 'application/pdf');
-        $this->actingAs($student)->get(route('kits.letter', $kit))->assertOk()->assertHeader('content-type', 'application/pdf');
-        $this->actingAs($student)->get('/kits')->assertOk();
+        $this->actingAs($candidate)->get(route('kits.cv', $kit))->assertOk()->assertHeader('content-type', 'application/pdf');
+        $this->actingAs($candidate)->get(route('kits.letter', $kit))->assertOk()->assertHeader('content-type', 'application/pdf');
+        $this->actingAs($candidate)->get('/kits')->assertOk();
 
-        $other = User::where('userable_type', 'student')->where('id', '!=', $student->id)->firstOrFail();
+        $other = User::where('userable_type', 'candidate')->where('id', '!=', $candidate->id)->firstOrFail();
         $this->actingAs($other)->getJson(route('kits.show', $kit))->assertNotFound();
         $this->actingAs($other)->get(route('kits.cv', $kit))->assertNotFound();
 
-        $this->actingAs($student)->delete(route('kits.destroy', $kit))->assertRedirect(route('kits.index'));
+        $this->actingAs($candidate)->delete(route('kits.destroy', $kit))->assertRedirect(route('kits.index'));
         $this->assertSame(0, ApplicationKit::count());
     }
 
@@ -94,40 +94,40 @@ class ApplicationKitTest extends TestCase
         $this->actingAs(Company::firstOrFail()->user)->postJson("/opportunities/{$role->id}/kit", ['locale' => 'en'])->assertForbidden();
 
         config(['ai.providers.openai.key' => null]);
-        $this->actingAs($this->student())->postJson("/opportunities/{$role->id}/kit", ['locale' => 'en'])->assertStatus(503);
+        $this->actingAs($this->candidate())->postJson("/opportunities/{$role->id}/kit", ['locale' => 'en'])->assertStatus(503);
     }
 
     public function test_a_failed_ai_call_marks_the_kit_failed_and_it_can_be_tried_again(): void
     {
-        $student = $this->student();
+        $candidate = $this->candidate();
         $role = $this->role();
         Http::fake(['api.openai.com/v1/responses' => Http::sequence()->push(['error' => ['message' => 'Server error']], 500)->push($this->reply())]);
 
-        $this->actingAs($student)->postJson("/opportunities/{$role->id}/kit", ['locale' => 'en'])->assertOk();
+        $this->actingAs($candidate)->postJson("/opportunities/{$role->id}/kit", ['locale' => 'en'])->assertOk();
         $kit = ApplicationKit::sole();
         $this->assertSame('failed', $kit->status);
         $this->assertSame(0, $kit->generations);
 
-        $this->actingAs($student)->postJson("/opportunities/{$role->id}/kit", ['locale' => 'en'])->assertOk();
+        $this->actingAs($candidate)->postJson("/opportunities/{$role->id}/kit", ['locale' => 'en'])->assertOk();
         $this->assertSame('ready', $kit->fresh()->status);
     }
 
     public function test_the_resume_must_be_a_pdf_and_can_be_replaced_or_removed(): void
     {
-        $student = $this->student();
+        $candidate = $this->candidate();
 
-        $this->actingAs($student)->post('/profile/resume', ['resume' => UploadedFile::fake()->create('cv.docx', 40)])->assertSessionHasErrors('resume');
-        $this->actingAs($student)->post('/profile/resume', ['resume' => UploadedFile::fake()->create('first.pdf', 40, 'application/pdf')]);
-        $first = $student->userable->fresh()->resume_path;
-        $this->actingAs($student)->post('/profile/resume', ['resume' => UploadedFile::fake()->create('second.pdf', 40, 'application/pdf')]);
+        $this->actingAs($candidate)->post('/profile/resume', ['resume' => UploadedFile::fake()->create('cv.docx', 40)])->assertSessionHasErrors('resume');
+        $this->actingAs($candidate)->post('/profile/resume', ['resume' => UploadedFile::fake()->create('first.pdf', 40, 'application/pdf')]);
+        $first = $candidate->userable->fresh()->resume_path;
+        $this->actingAs($candidate)->post('/profile/resume', ['resume' => UploadedFile::fake()->create('second.pdf', 40, 'application/pdf')]);
 
         Storage::disk('local')->assertMissing($first);
-        $this->assertSame('second.pdf', $student->userable->fresh()->resume_name);
-        $this->actingAs($student)->get('/profile/resume')->assertOk()->assertDownload('second.pdf');
+        $this->assertSame('second.pdf', $candidate->userable->fresh()->resume_name);
+        $this->actingAs($candidate)->get('/profile/resume')->assertOk()->assertDownload('second.pdf');
 
-        $this->actingAs($student)->delete('/profile/resume')->assertRedirect();
-        $this->assertNull($student->userable->fresh()->resume_path);
-        $this->actingAs($student)->get('/profile/resume')->assertNotFound();
+        $this->actingAs($candidate)->delete('/profile/resume')->assertRedirect();
+        $this->assertNull($candidate->userable->fresh()->resume_path);
+        $this->actingAs($candidate)->get('/profile/resume')->assertNotFound();
     }
 
     public function test_the_owner_profile_seeder_can_run_twice(): void
@@ -142,14 +142,14 @@ class ApplicationKitTest extends TestCase
         Storage::disk('local')->assertExists($owner->userable->resume_path);
     }
 
-    private function student(): User
+    private function candidate(): User
     {
         return User::where('email', 'student@example.com')->firstOrFail();
     }
 
-    private function role(): Internship
+    private function role(): Opportunity
     {
-        return Internship::available()->firstOrFail();
+        return Opportunity::available()->firstOrFail();
     }
 
     private function reply(): array

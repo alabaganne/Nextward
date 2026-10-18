@@ -19,7 +19,7 @@ class SkillController extends Controller
     public function index()
     {
         return Inertia::render('Skills/Index', [
-            'skills' => Skill::withCount(['internships', 'students'])->orderBy('name')->paginate(20),
+            'skills' => Skill::withCount(['opportunities', 'candidates'])->orderBy('name')->paginate(20),
         ]);
     }
 
@@ -46,7 +46,7 @@ class SkillController extends Controller
     public function edit(Skill $skill)
     {
         return Inertia::render('Skills/Edit', [
-            'skill' => $skill->loadCount(['internships', 'students']),
+            'skill' => $skill->loadCount(['opportunities', 'candidates']),
         ]);
     }
 

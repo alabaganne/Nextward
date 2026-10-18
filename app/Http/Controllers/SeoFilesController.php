@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Internship;
+use App\Models\Opportunity;
 use App\Support\Blog;
 use App\Support\PublicSeo;
 
@@ -25,7 +25,7 @@ class SeoFilesController extends Controller
         $base = rtrim(config('app.url'), '/');
         $brand = config('nextward_public.brand');
         $copy = PublicSeo::copy('en');
-        $open = Internship::available()->selectRaw('kind, count(*) as total')->groupBy('kind')->pluck('total', 'kind');
+        $open = Opportunity::available()->selectRaw('kind, count(*) as total')->groupBy('kind')->pluck('total', 'kind');
         $link = fn (string $title, string $path, string $note = '') => "- [{$title}]({$base}{$path})".($note ? ": {$note}" : '');
 
         $lines = [

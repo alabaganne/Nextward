@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Field;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use App\Models\Skill;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -33,8 +33,8 @@ class SkillAdminTest extends TestCase
 
         $this->get(route('skills.index'))->assertOk()
             ->assertInertia(fn (Assert $page) => $page->component('Skills/Index')
-                ->has('skills.data.0.internships_count')
-                ->has('skills.data.0.students_count'));
+                ->has('skills.data.0.opportunities_count')
+                ->has('skills.data.0.candidates_count'));
         $this->get(route('skills.create'))->assertOk()
             ->assertInertia(fn (Assert $page) => $page->component('Skills/Edit'));
 
@@ -61,7 +61,7 @@ class SkillAdminTest extends TestCase
 
         $this->assertNull(Skill::find($skill->id));
         $this->assertFalse(DB::table('skillables')->where('skill_id', $skill->id)->exists());
-        $this->assertGreaterThan(0, Internship::count());
+        $this->assertGreaterThan(0, Opportunity::count());
     }
 
     public function test_only_admins_can_manage_skills(): void

@@ -5,10 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Resources\ApplicationResource;
 use Illuminate\Support\Facades\Gate;
 use App\Models\Application;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use Inertia\Inertia;
 
-class InternshipApplicationController extends Controller
+class OpportunityApplicationController extends Controller
 {
     /**
      * Handle the incoming request.
@@ -16,18 +16,18 @@ class InternshipApplicationController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function __invoke(Internship $internship)
+    public function __invoke(Opportunity $opportunity)
     {
-        Gate::authorize('update', $internship);
+        Gate::authorize('update', $opportunity);
 
-        return Inertia::render('Internships/Applications', [
+        return Inertia::render('Opportunities/Applications', [
             'applications' => ApplicationResource::collection(
-                Application::where('internship_id', $internship->id)
+                Application::where('opportunity_id', $opportunity->id)
                     ->where('channel', 'internal')
                     ->latest()
                     ->paginate(8)
             ),
-            'internship' => $internship
+            'opportunity' => $opportunity
         ]);
     }
 }

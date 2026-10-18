@@ -152,7 +152,7 @@ php artisan db:seed --class=CitySeeder --force
 php artisan db:seed --class=FieldSeeder --force
 ```
 
-Do not use `migrate:fresh`, the test fixture seeder, or demo account/activity seeders on production. Existing internal table names, including `internships`, are intentional and must be preserved.
+Do not use `migrate:fresh`, the test fixture seeder, or demo account/activity seeders on production. Run `php artisan migrate --force` to apply the rename of `internships` to `opportunities` and `students` to `candidates`; it keeps every row. Take a database backup first.
 
 If upgrading an installation with public application attachments, follow [the private attachment migration](README.md#private-application-attachments) during maintenance. Preview `php artisan applications:privatize-attachments` before using `--execute`, and verify the backup and resulting authorized downloads.
 

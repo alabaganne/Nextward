@@ -3,21 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class OpportunityFeedbackController extends Controller
 {
-    public function report(Request $request, Internship $internship)
+    public function report(Request $request, Opportunity $opportunity)
     {
-        abort_unless($internship->publication_status === 'published' && ! $internship->merged_into_id, 404);
+        abort_unless($opportunity->publication_status === 'published' && ! $opportunity->merged_into_id, 404);
         $data = $request->validate([
             'reason' => 'required|in:closed,broken_link,incorrect,scam,duplicate,other',
             'details' => 'nullable|string|max:2000',
         ]);
         DB::table('opportunity_reports')->insert([
-            ...$data, 'internship_id' => $internship->id, 'user_id' => $request->user()?->id,
+            ...$data, 'opportunity_id' => $opportunity->id, 'user_id' => $request->user()?->id,
             'status' => 'open', 'created_at' => now(), 'updated_at' => now(),
         ]);
         return back()->with('toast', ['type' => 'store', 'message' => 'Thanks. We will review this opportunity.']);

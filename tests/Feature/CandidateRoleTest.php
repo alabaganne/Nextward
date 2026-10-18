@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\Student;
+use App\Models\Candidate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -34,7 +34,7 @@ class CandidateRoleTest extends TestCase
         $admin = User::factory()->create(['is_admin' => true]);
 
         $this->actingAs($admin)->get('/settings')->assertOk()
-            ->assertInertia(fn (Assert $page) => $page->where('settings.userable_type', 'student'));
+            ->assertInertia(fn (Assert $page) => $page->where('settings.userable_type', 'candidate'));
 
         $this->actingAs($admin)->put('/profile', [
             'name' => $admin->name,
@@ -49,7 +49,7 @@ class CandidateRoleTest extends TestCase
         $admin->refresh();
         $this->assertTrue($admin->isAdmin());
         $this->assertTrue($admin->isCandidate());
-        $this->assertSame(1, Student::count());
+        $this->assertSame(1, Candidate::count());
         $this->assertSame('Founder of Nextward and a software engineer.', $admin->userable->about);
         $this->assertSame('https://example.com', $admin->userable->website);
         $this->assertSame('TN', $admin->userable->country_code);

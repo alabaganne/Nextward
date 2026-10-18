@@ -8,7 +8,7 @@ const LIMIT = 500;
 const state = reactive({ ready: false, owner: null, views: {}, saves: [] });
 let currentUser = null;
 
-const isCandidate = (user) => !!user && (user.is_candidate || user.userable_type === 'student');
+const isCandidate = (user) => !!user && (user.is_candidate || user.userable_type === 'candidate');
 const asObject = (value) => (value && typeof value === 'object' && !Array.isArray(value) ? value : {});
 
 function load() {
@@ -69,21 +69,21 @@ export function startActivitySync(page) {
     }, { immediate: true });
 }
 
-export function markOpened(internship) {
+export function markOpened(opportunity) {
     if (typeof window === 'undefined') return;
-    state.views[internship.id] = new Date().toISOString();
+    state.views[opportunity.id] = new Date().toISOString();
     persist();
-    if (isCandidate(currentUser)) axios.post(`/opportunities/${internship.id}/opened`).catch(() => {});
+    if (isCandidate(currentUser)) axios.post(`/opportunities/${opportunity.id}/opened`).catch(() => {});
 }
 
-export function toggleSaved(internship) {
-    const id = Number(internship.id);
+export function toggleSaved(opportunity) {
+    const id = Number(opportunity.id);
     const setSaved = (saved) => {
         state.saves = saved ? [...state.saves.filter((item) => item !== id), id] : state.saves.filter((item) => item !== id);
         persist();
     };
     if (!currentUser) return setSaved(!state.saves.includes(id));
-    const wasSaved = !!internship.liked;
+    const wasSaved = !!opportunity.liked;
     router.post(`/like/${id}`, {}, { preserveScroll: true, onSuccess: () => setSaved(!wasSaved) });
 }
 

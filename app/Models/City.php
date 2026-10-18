@@ -19,7 +19,7 @@ class City extends Model
         return $this->hasMany(Company::class);
     }
 
-	public function internships() {
-		return $this->hasMany(Internship::class);
+	public function opportunities() {
+		return $this->hasMany(Opportunity::class);
 	}
 }

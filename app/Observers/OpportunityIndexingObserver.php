@@ -3,17 +3,17 @@
 namespace App\Observers;
 
 use App\Indexing\GoogleIndexing;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use Illuminate\Contracts\Events\ShouldHandleEventsAfterCommit;
 
 class OpportunityIndexingObserver implements ShouldHandleEventsAfterCommit
 {
-    public function created(Internship $opportunity): void
+    public function created(Opportunity $opportunity): void
     {
         app(GoogleIndexing::class)->queue($opportunity);
     }
 
-    public function updated(Internship $opportunity): void
+    public function updated(Opportunity $opportunity): void
     {
         $changed = array_diff(array_keys($opportunity->getChanges()), ['last_verified_at', 'first_seen_at', 'updated_at', 'moderation_overrides']);
         if ($changed) {
@@ -21,7 +21,7 @@ class OpportunityIndexingObserver implements ShouldHandleEventsAfterCommit
         }
     }
 
-    public function deleted(Internship $opportunity): void
+    public function deleted(Opportunity $opportunity): void
     {
         app(GoogleIndexing::class)->deleted($opportunity);
     }

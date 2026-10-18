@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use App\Support\Blog;
 
 class SitemapController extends Controller
@@ -12,7 +12,7 @@ class SitemapController extends Controller
 
     public function index()
     {
-        $pages = (int) ceil(Internship::available()->count() / self::CHUNK_SIZE);
+        $pages = (int) ceil(Opportunity::available()->count() / self::CHUNK_SIZE);
         $xml = '<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
         $xml .= '<sitemap><loc>'.e(rtrim(config('app.url'), '/').'/sitemaps/pages.xml').'</loc></sitemap>';
         if (Company::publicIndexable()->exists()) {
@@ -30,7 +30,7 @@ class SitemapController extends Controller
         $paths = ['/', '/opportunities', '/about', '/contact', '/privacy', '/terms', '/blog'];
         $paths = [...$paths, ...array_map(fn ($path) => $path === '/' ? '/fr' : '/fr'.$path, $paths)];
         foreach (['internships', 'jobs', 'tunisia', 'remote-from-tunisia', 'relocation'] as $category) {
-            $query = Internship::available()->searchFilters(['category' => $category]);
+            $query = Opportunity::available()->searchFilters(['category' => $category]);
             if ($query->exists()) {
                 $paths[] = '/opportunities/'.$category;
                 $paths[] = '/fr/opportunities/'.$category;
@@ -55,8 +55,8 @@ class SitemapController extends Controller
     public function opportunities(int $page)
     {
         abort_if($page < 1, 404);
-        $rows = Internship::available()->select('id', 'slug', 'title', 'language', 'content_updated_at')
-            ->with('translations:id,internship_id,locale,slug,updated_at')
+        $rows = Opportunity::available()->select('id', 'slug', 'title', 'language', 'content_updated_at')
+            ->with('translations:id,opportunity_id,locale,slug,updated_at')
             ->orderBy('id')->skip(($page - 1) * self::CHUNK_SIZE)->take(self::CHUNK_SIZE)->get();
         abort_if($rows->isEmpty(), 404);
         // Only languages the listing really has, each pointing at the other with hreflang.

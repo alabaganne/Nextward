@@ -55,7 +55,7 @@ class ApplicationReviewed extends Notification implements ShouldQueue
     {
         $application = $this->application;
         $company = $application->company->display_name;
-        $role = $application->internship->title;
+        $role = $application->opportunity->title;
 
         [$subject, $headline, $body, $tip] = match ($application->status) {
             'interview' => ["{$company} would like to interview you", 'You have an interview request', "{$company} wants to talk with you about {$role}.", 'Watch your inbox and your Nextward messages for the next steps.'],
@@ -88,11 +88,11 @@ class ApplicationReviewed extends Notification implements ShouldQueue
     public function toArray($notifiable)
     {
         $companyName = e($this->application->company->display_name);
-        $internshipTitle = e($this->application->internship->title);
+        $opportunityTitle = e($this->application->opportunity->title);
 
         return [
             'title' => "{$this->application->company->display_name}'s Reply",
-            'body' => "<span>{$companyName}</span> has reviewed your application for <span>{$internshipTitle}</span>.",
+            'body' => "<span>{$companyName}</span> has reviewed your application for <span>{$opportunityTitle}</span>.",
             'action' => "/applications/{$this->application->id}",
         ];
     }

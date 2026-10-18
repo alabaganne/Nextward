@@ -143,7 +143,7 @@ banner (`Components/Landing/ClosingBanner.vue`) are shared by the landing and bl
 
 For each `tailwind/*.html`:
 
-1. **Create the Inertia page** in `resources/js/Pages/` (e.g. `Internships/Index.vue`).
+1. **Create the Inertia page** in `resources/js/Pages/` (e.g. `Opportunities/Index.vue`).
 2. **Copy the inner content** — everything *inside* `<app-shell>` (or between
    `<site-header>` and `<site-footer>`). Leave the chrome to the layout.
 3. **Assign the layout** with the right `active` value (see table in `AppSidebar`).
@@ -177,11 +177,10 @@ feedback, keep controls stationary, and honour reduced motion for any new effect
 
 Use actual controller/resource props as the contract. These prototype suggestions
 are guidance only; do not invent profile fields, metrics, or timeline data.
-`Internship` covers every listing (`kind` is `internship` or `job`) and
-`Student` covers every candidate, admins included; the old names stay for
-compatibility.
+`Opportunity` covers every listing (`kind` is `internship` or `job`) and
+`Candidate` covers every person looking for work, admins included.
 
-- **Internship**: `id, title, company{name,slug,logoGradient,initials}, location,
+- **Opportunity**: `id, title, company{name,slug,logoGradient,initials}, location,
   workType (remote|hybrid|onsite), durationWeeks, term, pay{amount,unit}, tags[],
   postedAt, applicantCount, isNew, isSaved, status?`
 - **Application**: `id, internship, status (submitted|viewed|review|interview|offer|closed),

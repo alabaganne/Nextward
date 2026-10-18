@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\ImportSource;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -36,7 +36,7 @@ class OpportunityHealth extends Command
         $sourceErrors = ImportSource::whereNotNull('last_error')->count();
         if ($sourceErrors) { $issues[] = $sourceErrors.' sources have unresolved import errors.'; }
         $stale = 0;
-        Internship::available()->where('origin', 'imported')->with('sources.importSource')
+        Opportunity::available()->where('origin', 'imported')->with('sources.importSource')
             ->chunkById(200, function ($opportunities) use (&$stale) {
                 $stale += $opportunities->filter(fn ($opportunity) => ! $opportunity->hasFreshSource())->count();
             });

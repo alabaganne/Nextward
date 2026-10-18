@@ -2,7 +2,7 @@
 
 namespace App\Importing;
 
-use App\Models\Internship;
+use App\Models\Opportunity;
 use App\Models\OpportunitySource;
 use Generator;
 use RuntimeException;
@@ -59,7 +59,7 @@ class OpportunityCsv
         fclose($file);
     }
 
-    private static function row(Internship $role): ?array
+    private static function row(Opportunity $role): ?array
     {
         $item = $role->sources()->with('importSource')->whereNotNull('normalized_data')->orderBy('id')->first();
         if (! $item instanceof OpportunitySource || ! $item->importSource) { return null; }

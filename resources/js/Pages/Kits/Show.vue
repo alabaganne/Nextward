@@ -84,7 +84,7 @@ const role = computed(() => kit.value.role || {});
 const applyHere = computed(() => role.value.is_open && role.value.application_mode === 'internal');
 const useToApply = () => {
 	try { sessionStorage.setItem(`nextward.cover-letter.${role.value.id}`, letter.value); } catch (e) { /* storage may be off */ }
-	router.visit(`/internships/${role.value.id}/apply`);
+	router.visit(`/opportunities/${role.value.id}/apply`);
 };
 const addRow = (list, row) => cv.value[list].push(row);
 const removeRow = (list, index) => cv.value[list].splice(index, 1);

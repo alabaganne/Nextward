@@ -1,77 +1,93 @@
 <script setup>
-import { computed } from 'vue';
-import { usePage } from '@inertiajs/vue3';
-import { ArrowUpRight, Briefcase, GraduationCap, MapPin } from '@lucide/vue';
-import PublicLayout from '@/Layouts/Public.vue';
+import { ArrowUpRight, ChevronRight, GraduationCap, Mail, MapPin, Phone } from '@lucide/vue';
+import { computed, h } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
+import AppShell from '@/Layouts/AppShell.vue';
+import PublicReview from '@/Components/Candidate/PublicReview.vue';
+
+defineOptions({
+	layout: (_h, page) => h(AppShell, { active: 'candidates' }, () => page),
+});
 
 const props = defineProps({
 	candidate: { type: Object, required: true },
-	status: { type: String, default: null },
-	translation: { type: String, default: null },
 });
+
+const icons = {
+	chevron: ChevronRight,
+	pin: MapPin,
+	grad: GraduationCap,
+	mail: Mail,
+	phone: Phone,
+	external: ArrowUpRight,
+};
+
 const page = usePage();
-const fr = computed(() => page.props.locale === 'fr');
-const prefix = computed(() => fr.value ? '/fr' : '');
-const text = (en, french) => fr.value ? french : en;
-const initials = computed(() => (props.candidate.name || '').split(/\s+/).map((word) => word[0]).filter(Boolean).slice(0, 2).join('').toUpperCase());
-const experience = computed(() => {
-	const years = props.candidate.experience_years;
-	if (years === null || years === undefined) return null;
-	return fr.value ? `${years} ${years > 1 ? 'ans' : 'an'} d’expérience` : `${years} ${years === 1 ? 'year' : 'years'} of experience`;
-});
-const preview = computed(() => ({
-	pending: text('Preview. This profile is waiting for review and is not public yet.', 'Aperçu. Ce profil attend une validation et n’est pas encore public.'),
-	declined: text('Preview. This profile was not approved, so only you and the Nextward team can see it.', 'Aperçu. Ce profil n’a pas été validé : seuls vous et l’équipe Nextward pouvez le voir.'),
-	null: text('Preview. This profile is private.', 'Aperçu. Ce profil est privé.'),
-}[props.status] ?? null));
+const isAdmin = computed(() => !!page.props.auth?.user?.is_admin);
+
+const initials = computed(() =>
+	(props.candidate.name || '')
+		.split(/\s+/)
+		.map((word) => word[0])
+		.filter(Boolean)
+		.slice(0, 2)
+		.join('')
+		.toUpperCase()
+);
 </script>
 
 <template>
-	<PublicLayout>
-		<div class="public-container max-w-4xl! py-12">
-			<nav class="text-sm text-slate-600" :aria-label="text('Breadcrumb', 'Fil d’Ariane')"><Link :href="`${prefix}/candidates`" class="hover:text-brand">{{ text('Candidate profiles', 'Profils de candidats') }}</Link> <span aria-hidden="true">/</span> <span class="text-navy">{{ candidate.name }}</span></nav>
+	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-[1120px] mx-auto">
+		<div class="flex items-center gap-2 text-[13.5px] text-muted font-medium mb-[22px] [&_svg]:w-3.5 [&_svg]:h-3.5 [&_svg]:text-muted-2">
+			<Link class="hover:text-blue-700" :href="isAdmin ? route('candidates.index') : route('applications.index')">{{ isAdmin ? 'Candidates' : 'Applications' }}</Link>
+			<component :is="icons.chevron" aria-hidden="true" />
+			<span class="text-ink-700 font-semibold">{{ candidate.name }}</span>
+		</div>
 
-			<p v-if="status !== 'approved'" class="mt-6 rounded-xl bg-[#fef3c7] px-5 py-3.5 text-sm font-semibold text-[#92400e]" role="status">{{ preview }}</p>
-
-			<header class="mt-6 bg-white border border-line rounded-2xl p-6 sm:p-8">
-				<div class="flex items-start gap-5 max-sm:flex-col">
-					<span class="avatar" aria-hidden="true">{{ initials }}</span>
-					<div class="min-w-0">
-						<h1 class="font-display text-3xl sm:text-4xl font-semibold leading-tight">{{ candidate.name }}</h1>
-						<p class="mt-2 text-lg text-slate-700">{{ candidate.headline || candidate.field || text('Candidate', 'Candidat') }}</p>
-						<p class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-slate-600">
-							<span v-if="candidate.field" class="inline-flex items-center gap-1.5"><GraduationCap :size="16" aria-hidden="true" />{{ candidate.field }}</span>
-							<span v-if="candidate.location" class="inline-flex items-center gap-1.5"><MapPin :size="16" aria-hidden="true" />{{ candidate.location }}</span>
-							<span v-if="experience" class="inline-flex items-center gap-1.5"><Briefcase :size="16" aria-hidden="true" />{{ experience }}</span>
-						</p>
-						<p v-if="candidate.website || candidate.linkedin_profile_url" class="mt-4 flex flex-wrap gap-x-5 gap-y-2">
-							<a v-if="candidate.website" :href="candidate.website" target="_blank" rel="noopener noreferrer nofollow" class="inline-flex items-center gap-1.5 font-semibold text-blue-700">{{ text('Website or portfolio', 'Site ou portfolio') }}<ArrowUpRight :size="16" aria-hidden="true" /></a>
-							<a v-if="candidate.linkedin_profile_url" :href="candidate.linkedin_profile_url" target="_blank" rel="noopener noreferrer nofollow" class="inline-flex items-center gap-1.5 font-semibold text-blue-700">LinkedIn<ArrowUpRight :size="16" aria-hidden="true" /></a>
-						</p>
+		<!-- IDENTITY -->
+		<section class="bg-white border border-line rounded-[18px] overflow-hidden mb-[18px]">
+			<div class="h-[104px] relative bg-gradient-to-r from-navy-800 to-blue-700 after:content-[''] after:absolute after:inset-0 after:[background-image:linear-gradient(rgba(255,255,255,.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.06)_1px,transparent_1px)] after:[background-size:34px_34px] after:[mask-image:radial-gradient(420px_200px_at_78%_-30%,#000,transparent_75%)] after:[-webkit-mask-image:radial-gradient(420px_200px_at_78%_-30%,#000,transparent_75%)]"></div>
+			<div class="px-[26px] pb-6 flex gap-[22px] items-end max-[680px]:flex-col max-[680px]:items-start max-[680px]:gap-3.5">
+				<div class="w-[108px] h-[108px] rounded-[24px] bg-gradient-to-br from-blue-300 to-blue-700 grid place-items-center text-white font-bold font-display text-[40px] -mt-[46px] border-4 border-white shrink-0">{{ initials }}</div>
+				<div class="flex-1 min-w-0 pt-3.5">
+					<h2 class="font-display text-[25px] font-semibold">{{ candidate.name }}</h2>
+					<div class="text-[15px] text-ink-700 font-medium mt-[3px]">{{ candidate.headline || candidate.field?.name || 'Candidate' }}</div>
+					<div class="flex flex-wrap gap-4 mt-3 [&_span]:flex [&_span]:items-center [&_span]:gap-1.5 [&_span]:text-[13.5px] [&_span]:text-muted [&_span]:font-medium [&_svg]:w-[15px] [&_svg]:h-[15px] [&_svg]:text-muted-2">
+						<span v-if="candidate.city?.name"><component :is="icons.pin" aria-hidden="true" />{{ candidate.city.name }}</span>
+						<span v-if="candidate.field?.name"><component :is="icons.grad" aria-hidden="true" />{{ candidate.field.name }}</span>
 					</div>
 				</div>
-			</header>
+				<div class="flex gap-2.5 pt-3.5">
+					<Link v-if="isAdmin" class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[18px] h-10 rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all" :href="route('candidates.edit', candidate.id)">Edit</Link>
+				</div>
+			</div>
+		</section>
 
-			<section v-if="candidate.about" class="mt-6 bg-white border border-line rounded-2xl p-6 sm:p-8" aria-labelledby="about-title">
-				<h2 id="about-title" class="font-display text-xl font-semibold">{{ text('About', 'À propos') }}</h2>
-				<p class="mt-4 whitespace-pre-line text-slate-700 leading-8" dir="auto">{{ candidate.about }}</p>
+		<section v-if="isAdmin && candidate.public_status" class="bg-white border border-line rounded-[18px] mb-[18px] px-[22px] py-[18px]">
+			<h3 class="font-display text-[16.5px] font-semibold">Public profile</h3>
+			<p class="text-[13px] text-muted mt-[3px] mb-3.5">This candidate asked to show their profile on the public site. Their email, phone and resume are never shown there.</p>
+			<PublicReview :candidate="candidate" />
+		</section>
+
+		<div class="grid grid-cols-[1.65fr_1fr] gap-[18px] items-start max-[980px]:grid-cols-1">
+			<!-- about -->
+			<section class="bg-white border border-line rounded-[18px]">
+				<div class="px-[22px] py-[18px] border-b border-line-2"><h3 class="font-display text-[16.5px] font-semibold">About</h3></div>
+				<div class="px-[22px] py-5">
+					<p v-if="candidate.about" class="text-[14.5px] text-ink-700 leading-[1.7] whitespace-pre-line">{{ candidate.about }}</p>
+					<p v-else class="text-[14.5px] text-muted leading-[1.7]">This candidate hasn't written a bio yet.</p>
+				</div>
 			</section>
 
-			<div v-if="candidate.skills.length || candidate.languages.length" class="mt-6 grid gap-6 sm:grid-cols-2">
-				<section v-if="candidate.skills.length" class="bg-white border border-line rounded-2xl p-6" aria-labelledby="skills-title">
-					<h2 id="skills-title" class="font-display text-xl font-semibold">{{ text('Skills', 'Compétences') }}</h2>
-					<ul class="mt-4 flex flex-wrap gap-2"><li v-for="skill in candidate.skills" :key="skill" class="skill">{{ skill }}</li></ul>
-				</section>
-				<section v-if="candidate.languages.length" class="bg-white border border-line rounded-2xl p-6" aria-labelledby="languages-title">
-					<h2 id="languages-title" class="font-display text-xl font-semibold">{{ text('Languages', 'Langues') }}</h2>
-					<ul class="mt-4 flex flex-wrap gap-2"><li v-for="language in candidate.languages" :key="language" class="skill">{{ language }}</li></ul>
-				</section>
-			</div>
+			<!-- contact -->
+			<section class="bg-white border border-line rounded-[18px]">
+				<div class="px-[22px] py-[18px] border-b border-line-2"><h3 class="font-display text-[16.5px] font-semibold">Contact</h3></div>
+				<div class="px-[22px] py-3 [&_.ci]:flex [&_.ci]:items-center [&_.ci]:gap-3 [&_.ci]:py-2.5 [&_.ci]:text-sm [&_.ci]:text-ink-700 [&_svg]:w-[17px] [&_svg]:h-[17px] [&_svg]:text-muted-2 [&_svg]:shrink-0">
+					<div class="ci"><component :is="icons.mail" aria-hidden="true" />{{ candidate.email }}</div>
+					<div v-if="candidate.phone_number" class="ci"><component :is="icons.phone" aria-hidden="true" />{{ candidate.phone_number }}</div>
+					<a v-if="candidate.linkedin_profile_url" class="ci !text-blue-700 font-semibold" :href="candidate.linkedin_profile_url" target="_blank" rel="noopener"><component :is="icons.external" aria-hidden="true" />LinkedIn profile</a>
+				</div>
+			</section>
 		</div>
-	</PublicLayout>
+	</div>
 </template>
-
-<style scoped>
-.avatar { display: grid; place-items: center; flex-shrink: 0; width: 80px; height: 80px; border-radius: 22px; background: var(--color-brand); color: #fff; font-family: var(--font-display); font-size: 28px; font-weight: 700; }
-.skill { padding: 5px 12px; border-radius: 999px; background: #eef4ff; color: #1d4ed8; font-size: 13.5px; font-weight: 600; }
-</style>

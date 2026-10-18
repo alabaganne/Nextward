@@ -10,8 +10,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin/imports')->group(function ()
     Route::post('/sources/{source}/run', [ImportAdminController::class, 'runSource'])->middleware('throttle:10,1,import-run')->name('imports.sources.run');
     Route::post('/items/{item}/publish', [ImportAdminController::class, 'publish'])->name('imports.items.publish');
     Route::post('/items/{item}/reject', [ImportAdminController::class, 'reject'])->name('imports.items.reject');
-    Route::put('/opportunities/{internship}', [ImportAdminController::class, 'moderate'])->name('imports.opportunities.moderate');
-    Route::post('/opportunities/{internship}/merge', [ImportAdminController::class, 'merge'])->name('imports.opportunities.merge');
+    Route::put('/opportunities/{opportunity}', [ImportAdminController::class, 'moderate'])->name('imports.opportunities.moderate');
+    Route::post('/opportunities/{opportunity}/merge', [ImportAdminController::class, 'merge'])->name('imports.opportunities.merge');
     Route::put('/reports/{report}', [ImportAdminController::class, 'resolveReport'])->name('imports.reports.resolve');
     Route::put('/claims/{claim}', [ImportAdminController::class, 'reviewClaim'])->name('imports.claims.review');
 });

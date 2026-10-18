@@ -2,7 +2,7 @@
 
 namespace App\Indexing;
 
-use App\Models\Internship;
+use App\Models\Opportunity;
 use App\Support\PublicSeo;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -17,18 +17,18 @@ class GoogleIndexing
     private ?string $token = null;
     private int $tokenExpiresAt = 0;
 
-    public function queue(Internship $opportunity): void
+    public function queue(Opportunity $opportunity): void
     {
         if (!Schema::hasTable('indexing_notifications')) return;
         if ($opportunity->merged_into_id) {
-            DB::table('indexing_notifications')->where('internship_id', $opportunity->id)
+            DB::table('indexing_notifications')->where('opportunity_id', $opportunity->id)
                 ->whereIn('status', ['pending', 'queued'])->update(['status' => 'superseded', 'updated_at' => now()]);
             return;
         }
 
         $url = $this->canonical($opportunity);
         DB::transaction(function () use ($opportunity, $url) {
-            Internship::whereKey($opportunity->id)->lockForUpdate()->first();
+            Opportunity::whereKey($opportunity->id)->lockForUpdate()->first();
             $previous = DB::table('indexing_notifications')->where('url', $url)->latest('id')->first();
             $eligible = $this->eligible($opportunity);
             if (!$eligible && !$previous) return;
@@ -38,7 +38,7 @@ class GoogleIndexing
         });
     }
 
-    public function deleted(Internship $opportunity): void
+    public function deleted(Opportunity $opportunity): void
     {
         if (!Schema::hasTable('indexing_notifications')) return;
         $url = $this->canonical($opportunity);
@@ -56,7 +56,7 @@ class GoogleIndexing
             ->orderBy('id')->chunkById(100, function ($rows) {
             foreach ($rows as $row) {
                 if (DB::table('indexing_notifications')->where('url', $row->url)->where('id', '>', $row->id)->exists()) continue;
-                $opportunity = $row->internship_id ? Internship::find($row->internship_id) : null;
+                $opportunity = $row->opportunity_id ? Opportunity::find($row->opportunity_id) : null;
                 if (!$opportunity) {
                     $this->enqueue(null, $row->url, 'URL_DELETED');
                 } elseif (!$opportunity->isOpen() && !$opportunity->merged_into_id) {
@@ -66,7 +66,7 @@ class GoogleIndexing
         });
     }
 
-    public function eligible(Internship $opportunity): bool
+    public function eligible(Opportunity $opportunity): bool
     {
         return collect(PublicSeo::opportunity($opportunity, $opportunity->primaryLocale())['structured_data'] ?? [])
             ->contains(fn ($entry) => ($entry['@type'] ?? null) === 'JobPosting');
@@ -89,7 +89,7 @@ class GoogleIndexing
                 $this->update($id, ['status' => 'superseded']);
                 return;
             }
-            $opportunity = $row->internship_id ? Internship::find($row->internship_id) : null;
+            $opportunity = $row->opportunity_id ? Opportunity::find($row->opportunity_id) : null;
             if ($opportunity && ($opportunity->merged_into_id || $this->canonical($opportunity) !== $row->url)) {
                 $this->update($id, ['status' => 'superseded']);
                 if (!$opportunity->merged_into_id) $this->queue($opportunity);
@@ -145,12 +145,12 @@ class GoogleIndexing
         DB::transaction(function () use ($opportunityId, $url, $type) {
             $pending = DB::table('indexing_notifications')->where('url', $url)->where('status', 'pending')->lockForUpdate()->latest('id')->first();
             if ($pending) {
-                $this->update($pending->id, ['internship_id' => $opportunityId, 'type' => $type, 'attempts' => 0, 'available_at' => now(), 'error' => null]);
+                $this->update($pending->id, ['opportunity_id' => $opportunityId, 'type' => $type, 'attempts' => 0, 'available_at' => now(), 'error' => null]);
                 return;
             }
             DB::table('indexing_notifications')->where('url', $url)->where('status', 'queued')->update(['status' => 'superseded', 'updated_at' => now()]);
             DB::table('indexing_notifications')->insert([
-                'internship_id' => $opportunityId, 'url' => $url, 'type' => $type, 'status' => 'pending',
+                'opportunity_id' => $opportunityId, 'url' => $url, 'type' => $type, 'status' => 'pending',
                 'attempts' => 0, 'available_at' => now(), 'created_at' => now(), 'updated_at' => now(),
             ]);
         });
@@ -161,7 +161,7 @@ class GoogleIndexing
         DB::table('indexing_notifications')->where('id', $id)->update($data + ['updated_at' => now()]);
     }
 
-    private function canonical(Internship $opportunity): string
+    private function canonical(Opportunity $opportunity): string
     {
         // The page in the listing's own language always has its text, so it is the one sent to Google.
         return $opportunity->publicUrl($opportunity->primaryLocale());

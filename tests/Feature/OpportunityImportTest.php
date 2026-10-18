@@ -12,7 +12,7 @@ use App\Models\Company;
 use App\Models\Field;
 use App\Models\ImportRun;
 use App\Models\ImportSource;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use App\Models\OpportunitySource;
 use Database\Seeders\ImportSourceSeeder;
 use Database\Seeders\OpportunitySeeder;
@@ -46,16 +46,16 @@ class OpportunityImportTest extends TestCase
     {
         $this->travelTo(Carbon::parse('2026-10-15 15:00:00', 'UTC'));
         $this->seed(OpportunitySeeder::class);
-        $this->assertSame(6, Internship::available()->count());
-        $this->assertSame(0, Internship::where('posted_at', '<', now()->subDays(30))->count());
+        $this->assertSame(6, Opportunity::available()->count());
+        $this->assertSame(0, Opportunity::where('posted_at', '<', now()->subDays(30))->count());
 
         $this->travelTo(Carbon::parse('2026-10-20 12:00:00', 'UTC'));
         app(OpportunityImporter::class)->reconcile();
-        $this->assertSame(6, Internship::available()->count());
+        $this->assertSame(6, Opportunity::available()->count());
 
         $this->travelTo(Carbon::parse('2026-10-30 12:00:00', 'UTC'));
         app(OpportunityImporter::class)->reconcile();
-        $this->assertSame(0, Internship::available()->count());
+        $this->assertSame(0, Opportunity::available()->count());
     }
 
     public function test_daily_sources_are_seeded_enabled(): void
@@ -86,8 +86,8 @@ class OpportunityImportTest extends TestCase
 
         app(OpportunityImporter::class)->run($source, 100);
 
-        $this->assertEqualsCanonicalizing(['Software Engineering Intern', 'Platform Engineer'], Internship::pluck('title')->all());
-        $this->assertSame('remote', Internship::where('title', 'Platform Engineer')->value('work_type'));
+        $this->assertEqualsCanonicalizing(['Software Engineering Intern', 'Platform Engineer'], Opportunity::pluck('title')->all());
+        $this->assertSame('remote', Opportunity::where('title', 'Platform Engineer')->value('work_type'));
         $this->assertSame('Job is not open to candidates in Tunisia.', OpportunitySource::where('external_id', '2')->value('error'));
         $this->assertSame('Posted more than 30 days ago.', OpportunitySource::where('external_id', '4')->value('error'));
         Http::assertNotSent(fn ($request) => str_contains($request->url(), 'boards-api.greenhouse.io/v1/boards/acme/jobs/'));
@@ -96,7 +96,7 @@ class OpportunityImportTest extends TestCase
     public function test_old_imported_roles_are_closed_by_reconcile(): void
     {
         $company = Company::forceCreate(['name' => 'Acme']);
-        $role = Internship::create(['title' => 'Old role', 'description' => str_repeat('Old role details. ', 10),
+        $role = Opportunity::create(['title' => 'Old role', 'description' => str_repeat('Old role details. ', 10),
             'company_id' => $company->id, 'field_id' => Field::first()->id, 'origin' => 'imported',
             'application_mode' => 'external', 'posted_at' => now()->subDays(61)]);
 
@@ -105,7 +105,7 @@ class OpportunityImportTest extends TestCase
         $this->assertSame('closed', $role->fresh()->status);
     }
 
-    public function test_keejob_style_stage_titles_are_internships(): void
+    public function test_keejob_style_stage_titles_are_opportunities(): void
     {
         $normalizer = new OpportunityNormalizer();
         $kind = fn (string $title, array $types = ['OTHER']) => $normalizer->normalize([
@@ -167,8 +167,8 @@ class OpportunityImportTest extends TestCase
 
         $this->assertSame(1, Company::count());
         $this->assertNull(Company::first()->website);
-        $this->assertSame(2, Internship::count());
-        $stage = Internship::where('kind', 'internship')->sole();
+        $this->assertSame(2, Opportunity::count());
+        $stage = Opportunity::where('kind', 'internship')->sole();
         $this->assertSame(2, $stage->sources()->count());
         $this->assertSame('https://www.tanitjobs.com/job/11/stage-web/', $stage->application_url);
     }
@@ -190,8 +190,8 @@ class OpportunityImportTest extends TestCase
 
         app(OpportunityImporter::class)->run($source, 100);
 
-        $this->assertSame(1, Internship::where('title', $title)->count());
-        $this->assertSame(2, Internship::where('title', $title)->sole()->sources()->count());
+        $this->assertSame(1, Opportunity::where('title', $title)->count());
+        $this->assertSame(2, Opportunity::where('title', $title)->sole()->sources()->count());
         $this->assertSame(1, Company::where('name', 'Canonical')->count());
     }
 
@@ -210,17 +210,17 @@ class OpportunityImportTest extends TestCase
             'allowed_domains' => ['boards-api.greenhouse.io', 'job-boards.greenhouse.io'], 'settings' => ['scope' => 'reachable']]);
 
         $this->artisan('opportunities:fetch --count=2')->expectsOutputToContain('2 new opportunities added.')->assertSuccessful();
-        $this->assertSame(2, Internship::count());
+        $this->assertSame(2, Opportunity::count());
 
         $this->artisan('opportunities:fetch --count=2')->expectsOutputToContain('1 new opportunity added.')->assertSuccessful();
         $this->artisan('opportunities:fetch --count=2')->expectsOutputToContain('No new opportunities found.')->assertSuccessful();
-        $this->assertSame(3, Internship::count());
+        $this->assertSame(3, Opportunity::count());
 
-        Internship::where('title', 'Design Intern')->delete();
+        Opportunity::where('title', 'Design Intern')->delete();
         $this->travel(1)->days();
         app(OpportunityImporter::class)->run(ImportSource::sole(), 100);
-        $this->assertSame(0, Internship::where('title', 'Design Intern')->count());
-        $this->assertSame(2, Internship::count());
+        $this->assertSame(0, Opportunity::where('title', 'Design Intern')->count());
+        $this->assertSame(2, Opportunity::count());
     }
 
     public function test_fetch_with_a_focus_only_adds_matching_titles_and_leaves_the_rest_for_later(): void
@@ -241,8 +241,8 @@ class OpportunityImportTest extends TestCase
 
         $this->artisan('opportunities:fetch --focus=tech --count=5')->expectsOutputToContain('1 new opportunity added.')->assertSuccessful();
 
-        $this->assertSame(['Mobile Developer Intern (Flutter)'], Internship::pluck('title')->all());
-        $this->assertSame('Mobile Development', Internship::sole()->field->name);
+        $this->assertSame(['Mobile Developer Intern (Flutter)'], Opportunity::pluck('title')->all());
+        $this->assertSame('Mobile Development', Opportunity::sole()->field->name);
         $this->assertNull(OpportunitySource::where('external_id', '1')->value('last_verified_at'));
     }
 
@@ -273,7 +273,7 @@ class OpportunityImportTest extends TestCase
 
         $this->artisan('opportunities:fetch --focus=tech --count=5 --no-csv')->expectsOutputToContain('1 new opportunity added.')->assertSuccessful();
 
-        $role = Internship::sole();
+        $role = Opportunity::sole();
         $this->assertSame(['Flutter Developer', 'Mobile Development', 'senior', 'eligible'], [$role->title, $role->field->name, $role->seniority, $role->remote_eligibility]);
         $this->assertSame('pending', OpportunitySource::where('external_id', '1')->value('state'));
         $this->assertSame('test', OpportunitySource::where('external_id', '2')->first()->ai_review['model']);
@@ -297,7 +297,7 @@ class OpportunityImportTest extends TestCase
         $this->artisan('opportunities:fetch --focus=tech --count=5 --no-csv')
             ->expectsOutputToContain('OpenAI reads each new listing')->expectsOutputToContain('1 new opportunity added.')->assertSuccessful();
 
-        $role = Internship::sole();
+        $role = Opportunity::sole();
         $this->assertSame(['Mobile Development', 'internship', 'eligible'], [$role->field->name, $role->kind, $role->remote_eligibility]);
         $this->assertSame('gpt-5.4-mini-2026-03-17', OpportunitySource::sole()->ai_review['model']);
         Http::assertSent(fn ($request) => str_ends_with($request->url(), '/responses') && $request['model'] === 'gpt-5.4-mini'
@@ -342,12 +342,12 @@ class OpportunityImportTest extends TestCase
 
         // The server starts without these listings but with the same sources.
         OpportunitySource::query()->delete();
-        Internship::query()->delete();
+        Opportunity::query()->delete();
         Company::query()->delete();
 
         $this->artisan('opportunities:import-csv')->expectsOutputToContain('2 added, 0 already here, 0 skipped.')->assertSuccessful();
         $this->artisan('opportunities:import-csv')->expectsOutputToContain('0 added, 2 already here, 0 skipped.')->assertSuccessful();
-        $this->assertSame(2, Internship::available()->count());
+        $this->assertSame(2, Opportunity::available()->count());
         $this->assertSame(1, Company::count());
     }
 
@@ -362,7 +362,7 @@ class OpportunityImportTest extends TestCase
             'allowed_domains' => ['boards-api.greenhouse.io', 'job-boards.greenhouse.io'], 'settings' => ['scope' => 'reachable']]);
         $this->artisan('opportunities:fetch --count=1')->assertSuccessful();
         OpportunitySource::query()->delete();
-        Internship::query()->delete();
+        Opportunity::query()->delete();
 
         $this->travel(3)->days();
         $this->artisan('opportunities:import-csv')->expectsOutputToContain('0 added, 0 already here, 1 skipped.')->assertSuccessful();
@@ -431,7 +431,7 @@ class OpportunityImportTest extends TestCase
             app(OpportunityImporter::class)->run($source->fresh(), 1);
         }
 
-        $this->assertSame(3, Internship::count());
+        $this->assertSame(3, Opportunity::count());
         Http::assertSentCount(1 + 1 + 3);
         $this->assertCount(1, Http::recorded(fn ($request) => str_ends_with($request->url(), '/sitemap.xml')));
     }
@@ -452,7 +452,7 @@ class OpportunityImportTest extends TestCase
 
         app(OpportunityImporter::class)->run($source, 100);
 
-        $role = Internship::sole();
+        $role = Opportunity::sole();
         $this->assertSame('hybrid', $role->work_type);
         $this->assertSame('internship', $role->kind);
     }

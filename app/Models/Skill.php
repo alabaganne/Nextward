@@ -15,11 +15,11 @@ class Skill extends Model
         'name'
     ];
 
-    public function internships() {
-        return $this->morphedByMany(Internship::class, 'skillable');
+    public function opportunities() {
+        return $this->morphedByMany(Opportunity::class, 'skillable');
     }
 
-    public function students() {
-        return $this->morphedByMany(Student::class, 'skillable');
+    public function candidates() {
+        return $this->morphedByMany(Candidate::class, 'skillable');
     }
 }

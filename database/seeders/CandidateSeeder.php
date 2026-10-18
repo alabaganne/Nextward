@@ -3,10 +3,10 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Student;
+use App\Models\Candidate;
 use App\Models\User;
 
-class StudentSeeder extends Seeder
+class CandidateSeeder extends Seeder
 {
     public function run()
     {
@@ -14,7 +14,7 @@ class StudentSeeder extends Seeder
             throw new \RuntimeException('Demo data can only be seeded in local or testing environments.');
         }
 
-        $students = [
+        $candidates = [
             ['name' => 'Ahmed Demo', 'email' => 'ahmed.demo@example.com', 'stage' => 'student'],
             ['name' => 'Salma Demo', 'email' => 'salma.demo@example.com', 'stage' => 'professional'],
             ['name' => 'Nour Demo', 'email' => 'nour.demo@example.com', 'stage' => 'graduate'],
@@ -22,13 +22,13 @@ class StudentSeeder extends Seeder
 
         $password = bcrypt('password');
 
-        foreach ($students as $data) {
+        foreach ($candidates as $data) {
             if (User::where('email', $data['email'])->exists()) { continue; }
-            $factory = Student::factory();
+            $factory = Candidate::factory();
             if ($data['stage'] === 'professional') { $factory = $factory->professional(); }
             if ($data['stage'] === 'graduate') { $factory = $factory->graduate(); }
-            $student = $factory->create();
-            $student->user()->save(User::create([
+            $candidate = $factory->create();
+            $candidate->user()->save(User::create([
                 'name'              => $data['name'],
                 'email'             => $data['email'],
                 'password'          => $password,

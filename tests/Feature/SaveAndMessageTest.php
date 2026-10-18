@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Company;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -19,34 +19,34 @@ class SaveAndMessageTest extends TestCase
         $this->seed(\Tests\Fixtures\DemoSeeder::class);
     }
 
-    public function test_student_can_toggle_a_saved_role(): void
+    public function test_candidate_can_toggle_a_saved_role(): void
     {
-        $student = User::where('email', 'student@example.com')->firstOrFail();
-        $internship = Internship::whereDoesntHave('likes', function ($query) use ($student) {
-            $query->where('student_id', $student->userable->id);
+        $candidate = User::where('email', 'student@example.com')->firstOrFail();
+        $opportunity = Opportunity::whereDoesntHave('likes', function ($query) use ($candidate) {
+            $query->where('candidate_id', $candidate->userable->id);
         })->firstOrFail();
 
-        $this->actingAs($student)->post("/like/{$internship->id}")->assertRedirect();
-        $this->assertTrue($student->userable->fresh()->likes->contains($internship->id));
+        $this->actingAs($candidate)->post("/like/{$opportunity->id}")->assertRedirect();
+        $this->assertTrue($candidate->userable->fresh()->likes->contains($opportunity->id));
 
-        $this->actingAs($student)->post("/like/{$internship->id}")->assertRedirect();
-        $this->assertFalse($student->userable->fresh()->likes->contains($internship->id));
+        $this->actingAs($candidate)->post("/like/{$opportunity->id}")->assertRedirect();
+        $this->assertFalse($candidate->userable->fresh()->likes->contains($opportunity->id));
     }
 
     public function test_companies_cannot_save_roles(): void
     {
         $companyUser = Company::firstOrFail()->user;
-        $internship = Internship::firstOrFail();
+        $opportunity = Opportunity::firstOrFail();
 
-        $this->actingAs($companyUser)->post("/like/{$internship->id}")->assertForbidden();
+        $this->actingAs($companyUser)->post("/like/{$opportunity->id}")->assertForbidden();
     }
 
-    public function test_student_can_message_a_company(): void
+    public function test_candidate_can_message_a_company(): void
     {
-        $student = User::where('email', 'student@example.com')->firstOrFail();
+        $candidate = User::where('email', 'student@example.com')->firstOrFail();
         $companyUser = Company::firstOrFail()->user;
 
-        $this->actingAs($student)
+        $this->actingAs($candidate)
             ->post('/messages', [
                 'to_id' => $companyUser->id,
                 'text' => 'Hello! I would love to learn more about your open roles.',
@@ -54,7 +54,7 @@ class SaveAndMessageTest extends TestCase
             ->assertRedirect();
 
         $this->assertDatabaseHas('messages', [
-            'from_id' => $student->id,
+            'from_id' => $candidate->id,
             'to_id' => $companyUser->id,
             'text' => 'Hello! I would love to learn more about your open roles.',
         ]);
@@ -62,10 +62,10 @@ class SaveAndMessageTest extends TestCase
 
     public function test_messages_show_deep_links_into_the_inbox(): void
     {
-        $student = User::where('email', 'student@example.com')->firstOrFail();
+        $candidate = User::where('email', 'student@example.com')->firstOrFail();
         $companyUser = Company::firstOrFail()->user;
 
-        $this->actingAs($student)
+        $this->actingAs($candidate)
             ->get("/messages/{$companyUser->id}")
             ->assertRedirect(route('messages.index', ['user_id' => $companyUser->id]));
     }

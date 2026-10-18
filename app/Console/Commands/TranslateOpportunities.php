@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use App\Ai\ListingTranslations;
 use App\Jobs\TranslateOpportunity;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use Illuminate\Console\Command;
 
 class TranslateOpportunities extends Command
@@ -20,7 +20,7 @@ class TranslateOpportunities extends Command
         }
         $limit = max(1, (int) $this->option('limit'));
         $count = 0;
-        Internship::available()->with('translations')->chunkByIdDesc(200, function ($rows) use ($translations, $limit, &$count) {
+        Opportunity::available()->with('translations')->chunkByIdDesc(200, function ($rows) use ($translations, $limit, &$count) {
             foreach ($rows as $opportunity) {
                 if ($count >= $limit) { return false; }
                 if (! $translations->needsWork($opportunity)) { continue; }

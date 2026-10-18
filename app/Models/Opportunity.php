@@ -7,7 +7,7 @@ use App\Support\LanguageGuess;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
-class Internship extends Model
+class Opportunity extends Model
 {
     use HasFactory;
 
@@ -57,31 +57,31 @@ class Internship extends Model
 
     protected static function booted(): void
     {
-        static::saving(function (Internship $internship) {
-            if (! $internship->language && $internship->description) {
-                $internship->language = LanguageGuess::guess($internship->title."\n".$internship->description);
+        static::saving(function (Opportunity $opportunity) {
+            if (! $opportunity->language && $opportunity->description) {
+                $opportunity->language = LanguageGuess::guess($opportunity->title."\n".$opportunity->description);
             }
         });
 
-        static::creating(function (Internship $internship) {
-            $internship->slug = $internship->slug ?: (Str::limit(Str::slug($internship->title), 180, '') ?: 'opportunity');
-            $internship->first_seen_at ??= now();
-            $internship->content_updated_at ??= now();
+        static::creating(function (Opportunity $opportunity) {
+            $opportunity->slug = $opportunity->slug ?: (Str::limit(Str::slug($opportunity->title), 180, '') ?: 'opportunity');
+            $opportunity->first_seen_at ??= now();
+            $opportunity->content_updated_at ??= now();
 
-            if ($internship->origin === 'native' && $internship->publication_status === 'published') {
-                $internship->posted_at ??= now();
+            if ($opportunity->origin === 'native' && $opportunity->publication_status === 'published') {
+                $opportunity->posted_at ??= now();
             }
         });
 
-        static::updating(function (Internship $internship) {
-            $contentChanges = array_diff(array_keys($internship->getDirty()), [
+        static::updating(function (Opportunity $opportunity) {
+            $contentChanges = array_diff(array_keys($opportunity->getDirty()), [
                 'last_verified_at', 'first_seen_at', 'updated_at', 'moderation_overrides',
             ]);
             if ($contentChanges) {
-                $internship->content_updated_at = now();
+                $opportunity->content_updated_at = now();
             }
-            if ($internship->origin === 'native' && $internship->publication_status === 'published' && ! $internship->posted_at) {
-                $internship->posted_at = now();
+            if ($opportunity->origin === 'native' && $opportunity->publication_status === 'published' && ! $opportunity->posted_at) {
+                $opportunity->posted_at = now();
             }
         });
     }
@@ -108,12 +108,12 @@ class Internship extends Model
 
     public function likes()
     {
-        return $this->belongsToMany(Student::class, 'likes');
+        return $this->belongsToMany(Candidate::class, 'likes');
     }
 
     public function applications()
     {
-        return $this->belongsToMany(Student::class, 'applications')
+        return $this->belongsToMany(Candidate::class, 'applications')
             ->wherePivot('channel', 'internal')
             ->withPivot(['cover_letter', 'message', 'attachments', 'created_at'])
             ->withTimestamps();
@@ -126,7 +126,7 @@ class Internship extends Model
 
     public function translations()
     {
-        return $this->hasMany(InternshipTranslation::class);
+        return $this->hasMany(OpportunityTranslation::class);
     }
 
     // The language the listing was written in, as a two-letter code.
@@ -140,7 +140,7 @@ class Internship extends Model
         return sha1($this->title."\n".$this->description);
     }
 
-    public function translation(string $locale): ?InternshipTranslation
+    public function translation(string $locale): ?OpportunityTranslation
     {
         return $this->originalLocale() === $locale ? null : $this->translations->firstWhere('locale', $locale);
     }
@@ -188,8 +188,8 @@ class Internship extends Model
             return $query;
         }
 
-        return $query->with(['candidateApplications' => fn ($query) => $query->where('student_id', $user->userable_id)])
-            ->withExists(['likes as is_saved' => fn ($query) => $query->where('students.id', $user->userable_id)]);
+        return $query->with(['candidateApplications' => fn ($query) => $query->where('candidate_id', $user->userable_id)])
+            ->withExists(['likes as is_saved' => fn ($query) => $query->where('candidates.id', $user->userable_id)]);
     }
 
     public function mergedInto()

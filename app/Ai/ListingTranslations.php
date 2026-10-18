@@ -3,7 +3,7 @@
 namespace App\Ai;
 
 use App\Ai\Agents\ListingTranslator;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use App\Support\LanguageGuess;
 use Illuminate\Support\Str;
 
@@ -19,7 +19,7 @@ class ListingTranslations
         return (bool) config('importer.ai.translate') && $this->ai->enabled();
     }
 
-    public function needsWork(Internship $opportunity): bool
+    public function needsWork(Opportunity $opportunity): bool
     {
         $opportunity->loadMissing('translations');
         $hash = $opportunity->sourceHash();
@@ -32,7 +32,7 @@ class ListingTranslations
     }
 
     // Returns how many translations were written.
-    public function translate(Internship $opportunity): int
+    public function translate(Opportunity $opportunity): int
     {
         if (! $this->enabled() || mb_strlen((string) $opportunity->description) > 40000) {
             return 0;

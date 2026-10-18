@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\Student;
+use App\Models\Candidate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -26,14 +26,14 @@ class MakeAdminCommandTest extends TestCase
 
     public function test_it_keeps_the_candidate_profile_and_refuses_company_accounts(): void
     {
-        $student = Student::create(['about' => 'Candidate profile']);
-        $user = $student->user()->create(['name' => 'Candidate', 'email' => 'candidate@example.com', 'password' => Hash::make('password')]);
+        $candidate = Candidate::create(['about' => 'Candidate profile']);
+        $user = $candidate->user()->create(['name' => 'Candidate', 'email' => 'candidate@example.com', 'password' => Hash::make('password')]);
 
         $this->artisan('nextward:make-admin', ['email' => 'candidate@example.com'])->assertSuccessful();
         $user->refresh();
         $this->assertTrue($user->isAdmin());
         $this->assertTrue($user->isCandidate());
-        $this->assertSame($student->id, $user->userable_id);
+        $this->assertSame($candidate->id, $user->userable_id);
 
         $company = \App\Models\Company::create(['name' => 'Acme']);
         $owner = $company->user()->create(['name' => 'Acme', 'email' => 'acme@example.com', 'password' => Hash::make('password')]);
@@ -54,7 +54,7 @@ class MakeAdminCommandTest extends TestCase
         $this->assertTrue($user->isAdmin());
         $this->assertTrue(Hash::check('a-long-secret', $user->password));
         $this->assertNotNull($user->email_verified_at);
-        $this->assertSame('student', $user->userable_type);
+        $this->assertSame('candidate', $user->userable_type);
         $this->assertTrue($user->isCandidate());
     }
 

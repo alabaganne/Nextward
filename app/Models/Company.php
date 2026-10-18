@@ -43,8 +43,8 @@ class Company extends Model
         return $this->morphOne(User::class, 'userable');
     }
 
-    public function internships() {
-        return $this->hasMany(Internship::class);
+    public function opportunities() {
+        return $this->hasMany(Opportunity::class);
     }
 
     public function city() {
@@ -96,6 +96,6 @@ class Company extends Model
     {
         return $query->whereNull('claimed_by_company_id')->with('user')
             ->where(fn ($query) => $query->whereNotNull('name')->where('name', '!=', '')->orWhereHas('user'))
-            ->where(fn ($query) => $query->whereHas('internships', fn ($query) => $query->available())->orWhereRaw('LENGTH(about) >= 300'));
+            ->where(fn ($query) => $query->whereHas('opportunities', fn ($query) => $query->available())->orWhereRaw('LENGTH(about) >= 300'));
     }
 }

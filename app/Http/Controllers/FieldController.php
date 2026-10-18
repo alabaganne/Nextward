@@ -23,7 +23,7 @@ class FieldController extends Controller
     public function index()
     {
         return Inertia::render('Fields/Index', [
-            'fields' => Field::withCount(['internships', 'students'])->latest()->paginate(12),
+            'fields' => Field::withCount(['opportunities', 'candidates'])->latest()->paginate(12),
         ]);
     }
 

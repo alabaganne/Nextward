@@ -8,7 +8,7 @@ use App\Jobs\ImportOpportunitySource;
 use App\Models\Company;
 use App\Models\ImportRun;
 use App\Models\ImportSource;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use App\Models\OpportunitySource;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -26,7 +26,7 @@ class ImportAdminController extends Controller
             'state' => 'nullable|in:pending,review,published,closed,rejected',
             'page' => 'nullable|integer|min:1|max:10000',
         ]);
-        $items = OpportunitySource::with(['importSource', 'internship.company.user'])
+        $items = OpportunitySource::with(['importSource', 'opportunity.company.user'])
             ->when($filters['source_id'] ?? null, fn ($query, $source) => $query->where('import_source_id', $source))
             ->when($filters['state'] ?? null, fn ($query, $state) => $query->where('state', $state))
             ->latest()->paginate(15)->withQueryString();
@@ -38,17 +38,17 @@ class ImportAdminController extends Controller
                 'source_url' => $item->source_url, 'state' => $item->state, 'error' => $item->error,
                 'last_verified_at' => $item->last_verified_at?->toIso8601String(),
                 'normalized_data' => $item->normalized_data,
-                'internship' => $item->internship ? [
-                    'id' => $item->internship_id, 'title' => $item->internship->title,
-                    'public_url' => $item->internship->public_url, 'publication_status' => $item->internship->publication_status,
-                    'company' => $item->internship->company->display_name,
-                    'remote_eligibility' => $item->internship->remote_eligibility,
-                    'relocation' => $item->internship->relocation, 'visa_sponsorship' => $item->internship->visa_sponsorship,
+                'opportunity' => $item->opportunity ? [
+                    'id' => $item->opportunity_id, 'title' => $item->opportunity->title,
+                    'public_url' => $item->opportunity->public_url, 'publication_status' => $item->opportunity->publication_status,
+                    'company' => $item->opportunity->company->display_name,
+                    'remote_eligibility' => $item->opportunity->remote_eligibility,
+                    'relocation' => $item->opportunity->relocation, 'visa_sponsorship' => $item->opportunity->visa_sponsorship,
                 ] : null,
             ]),
             'filters' => $filters,
-            'reports' => DB::table('opportunity_reports')->join('internships', 'internships.id', '=', 'opportunity_reports.internship_id')
-                ->where('opportunity_reports.status', 'open')->select('opportunity_reports.*', 'internships.title')->orderBy('opportunity_reports.id')->limit(50)->get(),
+            'reports' => DB::table('opportunity_reports')->join('opportunities', 'opportunities.id', '=', 'opportunity_reports.opportunity_id')
+                ->where('opportunity_reports.status', 'open')->select('opportunity_reports.*', 'opportunities.title')->orderBy('opportunity_reports.id')->limit(50)->get(),
             'claims' => DB::table('company_claims')->join('users', 'users.id', '=', 'company_claims.user_id')->leftJoin('companies', 'companies.id', '=', 'company_claims.company_id')
                 ->where('company_claims.status', 'pending')->select('company_claims.*', 'users.name as claimant_name', 'users.email as claimant_email', 'companies.name as company_name')->limit(30)->get(),
             'deliveryHealth' => DB::table('opportunity_deliveries')->selectRaw('status, count(*) as total')->groupBy('status')->get(),
@@ -69,7 +69,7 @@ class ImportAdminController extends Controller
         DB::transaction(function () use ($source, $data, $request) {
             $source->update($data);
             if ($source->permission_status !== 'approved') {
-                $roles = Internship::where('origin', 'imported')->whereHas('sources', fn ($query) => $query->where('import_source_id', $source->id))->get();
+                $roles = Opportunity::where('origin', 'imported')->whereHas('sources', fn ($query) => $query->where('import_source_id', $source->id))->get();
                 foreach ($roles as $role) {
                     $hasApprovedSource = $role->sources()->where('state', 'published')->whereHas('importSource', fn ($query) => $query->where('permission_status', 'approved'))->exists();
                     if (! $hasApprovedSource) {
@@ -134,11 +134,11 @@ class ImportAdminController extends Controller
     public function publish(Request $request, OpportunitySource $item, OpportunityImporter $importer)
     {
         try {
-            $opportunity = $importer->publish($item);
+            $published = $importer->publish($item);
         } catch (\RuntimeException $exception) {
             throw ValidationException::withMessages(['publication' => $exception->getMessage()]);
         }
-        $this->audit($request, 'opportunity.published', $opportunity->id, $item->import_source_id, ['item_id' => $item->id]);
+        $this->audit($request, 'opportunity.published', $published->id, $item->import_source_id, ['item_id' => $item->id]);
         return back()->with('toast', ['type' => 'update', 'message' => 'Opportunity reviewed. Suppressed listings stay hidden until explicitly restored.']);
     }
 
@@ -147,15 +147,15 @@ class ImportAdminController extends Controller
         $data = $request->validate(['reason' => 'required|string|min:5|max:1000']);
         DB::transaction(function () use ($item, $data, $request) {
             $item->update(['state' => 'rejected', 'error' => $data['reason']]);
-            if ($item->internship && ! $item->internship->sources()->where('id', '!=', $item->id)->where('state', 'published')->exists()) {
-                $item->internship->update(['publication_status' => 'suppressed']);
+            if ($item->opportunity && ! $item->opportunity->sources()->where('id', '!=', $item->id)->where('state', 'published')->exists()) {
+                $item->opportunity->update(['publication_status' => 'suppressed']);
             }
-            $this->audit($request, 'source-item.rejected', $item->internship_id, $item->import_source_id, ['item_id' => $item->id, 'reason' => $data['reason']]);
+            $this->audit($request, 'source-item.rejected', $item->opportunity_id, $item->import_source_id, ['item_id' => $item->id, 'reason' => $data['reason']]);
         });
         return back();
     }
 
-    public function moderate(Request $request, Internship $internship)
+    public function moderate(Request $request, Opportunity $opportunity)
     {
         $data = $request->validate([
             'action' => 'required|in:suppress,close,restore,correct',
@@ -170,28 +170,28 @@ class ImportAdminController extends Controller
             'corrections.relocation' => 'sometimes|required|in:yes,no,unknown',
             'corrections.visa_sponsorship' => 'sometimes|required|in:yes,no,unknown',
         ]);
-        DB::transaction(function () use ($internship, $data, $request) {
-            $internship = Internship::lockForUpdate()->findOrFail($internship->id);
-            $overrides = $internship->moderation_overrides ?: [];
+        DB::transaction(function () use ($opportunity, $data, $request) {
+            $opportunity = Opportunity::lockForUpdate()->findOrFail($opportunity->id);
+            $overrides = $opportunity->moderation_overrides ?: [];
             if ($data['action'] === 'restore') {
-                abort_if($internship->merged_into_id, 422, 'A merged duplicate cannot be restored.');
-                if ($internship->origin === 'imported') {
-                    abort_unless($internship->hasFreshSource(), 422, 'Restore requires a current approved source.');
+                abort_if($opportunity->merged_into_id, 422, 'A merged duplicate cannot be restored.');
+                if ($opportunity->origin === 'imported') {
+                    abort_unless($opportunity->hasFreshSource(), 422, 'Restore requires a current approved source.');
                 }
                 unset($overrides['publication_status']);
-                $internship->update(['publication_status' => 'published', 'moderation_overrides' => $overrides]);
+                $opportunity->update(['publication_status' => 'published', 'moderation_overrides' => $overrides]);
             } elseif ($data['action'] === 'suppress') {
                 $overrides['publication_status'] = 'suppressed';
-                $internship->update(['publication_status' => 'suppressed', 'moderation_overrides' => $overrides]);
+                $opportunity->update(['publication_status' => 'suppressed', 'moderation_overrides' => $overrides]);
             } elseif ($data['action'] === 'close') {
                 $overrides['status'] = 'closed';
-                $internship->update(['status' => 'closed', 'moderation_overrides' => $overrides]);
+                $opportunity->update(['status' => 'closed', 'moderation_overrides' => $overrides]);
             } else {
                 $corrections = collect($data['corrections'] ?? [])->only(['title', 'description', 'kind', 'country_code', 'location', 'remote_eligibility', 'relocation', 'visa_sponsorship'])->all();
                 abort_unless($corrections, 422, 'Choose a fact to correct.');
-                $internship->update([...$corrections, 'moderation_overrides' => array_merge($overrides, $corrections)]);
+                $opportunity->update([...$corrections, 'moderation_overrides' => array_merge($overrides, $corrections)]);
             }
-            $this->audit($request, 'opportunity.'.$data['action'], $internship->id, null, ['reason' => $data['reason'], 'corrections' => $data['corrections'] ?? []]);
+            $this->audit($request, 'opportunity.'.$data['action'], $opportunity->id, null, ['reason' => $data['reason'], 'corrections' => $data['corrections'] ?? []]);
         });
         return back()->with('toast', ['type' => 'update', 'message' => 'Moderation saved. Import refreshes retain reviewed corrections.']);
     }
@@ -203,34 +203,34 @@ class ImportAdminController extends Controller
         abort_unless($record, 404);
         DB::transaction(function () use ($request, $report, $record, $data) {
             DB::table('opportunity_reports')->where('id', $report)->update(['status' => $data['status'], 'updated_at' => now()]);
-            $this->audit($request, 'report.'.$data['status'], $record->internship_id, null, ['report_id' => $report, 'notes' => $data['notes']]);
+            $this->audit($request, 'report.'.$data['status'], $record->opportunity_id, null, ['report_id' => $report, 'notes' => $data['notes']]);
         });
         return back();
     }
 
-    public function merge(Request $request, Internship $internship)
+    public function merge(Request $request, Opportunity $opportunity)
     {
-        $data = $request->validate(['survivor_id' => 'required|integer|exists:internships,id', 'reason' => 'required|string|min:10|max:2000']);
-        DB::transaction(function () use ($internship, $data, $request) {
-            $ids = [$internship->id, (int) $data['survivor_id']];
-            $roles = Internship::whereIn('id', $ids)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
-            $duplicate = $roles->get($internship->id);
+        $data = $request->validate(['survivor_id' => 'required|integer|exists:opportunities,id', 'reason' => 'required|string|min:10|max:2000']);
+        DB::transaction(function () use ($opportunity, $data, $request) {
+            $ids = [$opportunity->id, (int) $data['survivor_id']];
+            $roles = Opportunity::whereIn('id', $ids)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+            $duplicate = $roles->get($opportunity->id);
             $survivor = $roles->get((int) $data['survivor_id']);
             abort_if($duplicate->id === $survivor->id || $duplicate->merged_into_id || $survivor->merged_into_id, 422, 'Select two distinct, unmerged opportunities.');
             abort_unless($duplicate->company_id === $survivor->company_id, 422, 'Verify and consolidate the employer identity before merging different companies.');
             abort_if($duplicate->origin === 'native' && $survivor->origin !== 'native', 422, 'Keep the employer-managed opportunity as the survivor.');
-            foreach (DB::table('likes')->where('internship_id', $duplicate->id)->get() as $like) {
-                DB::table('likes')->insertOrIgnore(['student_id' => $like->student_id, 'internship_id' => $survivor->id]);
+            foreach (DB::table('likes')->where('opportunity_id', $duplicate->id)->get() as $like) {
+                DB::table('likes')->insertOrIgnore(['candidate_id' => $like->candidate_id, 'opportunity_id' => $survivor->id]);
             }
-            DB::table('likes')->where('internship_id', $duplicate->id)->delete();
-            DB::table('applications')->where('internship_id', $duplicate->id)->update(['internship_id' => $survivor->id, 'company_id' => $survivor->company_id]);
-            OpportunitySource::where('internship_id', $duplicate->id)->update(['internship_id' => $survivor->id]);
-            DB::table('opportunity_reports')->where('internship_id', $duplicate->id)->update(['internship_id' => $survivor->id]);
+            DB::table('likes')->where('opportunity_id', $duplicate->id)->delete();
+            DB::table('applications')->where('opportunity_id', $duplicate->id)->update(['opportunity_id' => $survivor->id, 'company_id' => $survivor->company_id]);
+            OpportunitySource::where('opportunity_id', $duplicate->id)->update(['opportunity_id' => $survivor->id]);
+            DB::table('opportunity_reports')->where('opportunity_id', $duplicate->id)->update(['opportunity_id' => $survivor->id]);
             $deliveryHistory = [];
-            foreach (DB::table('opportunity_deliveries')->where('internship_id', $duplicate->id)->lockForUpdate()->get() as $delivery) {
-                $existing = DB::table('opportunity_deliveries')->where('internship_id', $survivor->id)->where('user_id', $delivery->user_id)->lockForUpdate()->first();
+            foreach (DB::table('opportunity_deliveries')->where('opportunity_id', $duplicate->id)->lockForUpdate()->get() as $delivery) {
+                $existing = DB::table('opportunity_deliveries')->where('opportunity_id', $survivor->id)->where('user_id', $delivery->user_id)->lockForUpdate()->first();
                 if (! $existing) {
-                    DB::table('opportunity_deliveries')->where('id', $delivery->id)->update(['internship_id' => $survivor->id]);
+                    DB::table('opportunity_deliveries')->where('id', $delivery->id)->update(['opportunity_id' => $survivor->id]);
                     continue;
                 }
                 $priority = ['sent' => 5, 'uncertain' => 4, 'sending' => 3, 'pending' => 2, 'cancelled' => 1];
@@ -262,7 +262,7 @@ class ImportAdminController extends Controller
                 $company = Company::with('user')->lockForUpdate()->findOrFail($record->company_id);
                 abort_if($company->user || $company->claimed_by_company_id || $company->id === $claimant->userable_id, 422, 'This company already has an account or a verified claim.');
                 $target = $claimant->userable;
-                DB::table('internships')->where('company_id', $company->id)->update(['company_id' => $target->id]);
+                DB::table('opportunities')->where('company_id', $company->id)->update(['company_id' => $target->id]);
                 DB::table('applications')->where('company_id', $company->id)->update(['company_id' => $target->id]);
                 ImportSource::where('company_id', $company->id)->update(['company_id' => $target->id]);
                 $company->forceFill(['claimed_by_company_id' => $target->id])->save();
@@ -273,10 +273,10 @@ class ImportAdminController extends Controller
         return back()->with('toast', ['type' => 'update', 'message' => 'Claim review saved. Imported applications remain external.']);
     }
 
-    private function audit(Request $request, string $action, ?int $opportunity, ?int $source, array $details): void
+    private function audit(Request $request, string $action, ?int $opportunityId, ?int $source, array $details): void
     {
         DB::table('opportunity_audits')->insert([
-            'user_id' => $request->user()->id, 'internship_id' => $opportunity, 'import_source_id' => $source,
+            'user_id' => $request->user()->id, 'opportunity_id' => $opportunityId, 'import_source_id' => $source,
             'action' => $action, 'details' => json_encode($details, JSON_THROW_ON_ERROR), 'created_at' => now(), 'updated_at' => now(),
         ]);
     }

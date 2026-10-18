@@ -2,20 +2,20 @@
 
 namespace Database\Factories;
 
-use App\Models\Internship;
+use App\Models\Opportunity;
 use App\Models\Company;
 use App\Models\Field;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class InternshipFactory extends Factory
+class OpportunityFactory extends Factory
 {
-    protected $model = Internship::class;
+    protected $model = Opportunity::class;
 
     public function definition()
     {
-        $internships = [
+        $opportunities = [
             ['title' => 'Full-Stack Web Developer Intern', 'field' => 'Web Development', 'description' => "Join our engineering team to build modern, scalable web applications using Laravel and Vue.js.\n\nResponsibilities:\n- Develop and maintain RESTful APIs\n- Build responsive front-end interfaces with Vue.js and Tailwind CSS\n- Collaborate with the product team on new feature development\n- Write unit and integration tests\n- Participate in code reviews\n\nRequirements:\n- Currently pursuing a degree in Computer Science or related field\n- Familiarity with PHP, JavaScript, HTML/CSS\n- Basic knowledge of Git\n- Strong problem-solving skills\n\nWhat you'll gain:\n- Real-world experience on a production SaaS product\n- Mentorship from senior engineers\n- Agile/Scrum workflow experience"],
             ['title' => 'Data Science Intern', 'field' => 'Data Science & AI', 'description' => "Work alongside our data team to extract insights from large datasets and build machine learning models.\n\nResponsibilities:\n- Clean and preprocess datasets\n- Explore and visualize data using Pandas and Matplotlib\n- Train and evaluate ML models using scikit-learn\n- Document findings and present results to stakeholders\n\nRequirements:\n- Studying Computer Science, Statistics, or Mathematics\n- Knowledge of Python, Pandas, NumPy\n- Familiarity with machine learning concepts\n- Strong analytical mindset\n\nBenefits:\n- Hands-on ML project experience\n- Access to real business data\n- Collaborative and learning-focused environment"],
             ['title' => 'Mobile Developer Intern (React Native)', 'field' => 'Mobile Development', 'description' => "Help us build our cross-platform mobile application serving thousands of users.\n\nResponsibilities:\n- Develop new features in React Native\n- Debug and fix issues across iOS and Android\n- Integrate REST APIs into the mobile app\n- Collaborate with UI/UX designers\n\nRequirements:\n- Knowledge of JavaScript/TypeScript\n- Experience with React or React Native (personal projects count)\n- Understanding of mobile UX principles\n\nBenefits:\n- Published app experience\n- AppStore/PlayStore deployment process\n- Modern mobile development stack"],
@@ -30,18 +30,18 @@ class InternshipFactory extends Factory
             ['title' => 'Digital Marketing Intern', 'field' => 'Digital Marketing', 'description' => "Join our marketing team and help grow our online presence across digital channels.\n\nResponsibilities:\n- Create and schedule content for LinkedIn, Instagram, and Twitter\n- Manage Google Ads and Meta Ads campaigns\n- Analyze campaign performance using Google Analytics\n- Assist in SEO optimization and blog content creation\n\nRequirements:\n- Studying Marketing, Communications, or Business\n- Familiarity with social media platforms and tools\n- Good writing skills in French and/or English\n- Creative mindset\n\nBenefits:\n- Hands-on digital marketing experience\n- Access to premium marketing tools\n- Real budget to manage"],
         ];
 
-        $internship = $this->faker->randomElement($internships);
+        $opportunity = $this->faker->randomElement($opportunities);
         $company = Company::whereHas('user')->inRandomOrder()->first();
         if (! $company) {
             $company = Company::factory()->create();
             $company->user()->save(User::factory()->make());
         }
-        $field = Field::firstOrCreate(['name' => $internship['field']]);
+        $field = Field::firstOrCreate(['name' => $opportunity['field']]);
 
         return [
-            'title' => $internship['title'],
-            'slug' => Str::slug($internship['title']),
-            'description' => "Fictional demo opportunity. This is not an active vacancy.\n\n".$internship['description'],
+            'title' => $opportunity['title'],
+            'slug' => Str::slug($opportunity['title']),
+            'description' => "Fictional demo opportunity. This is not an active vacancy.\n\n".$opportunity['description'],
             'field_id' => $field->id,
             'company_id' => $company->id,
             'city_id' => $company->city_id,

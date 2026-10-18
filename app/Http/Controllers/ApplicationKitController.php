@@ -6,7 +6,7 @@ use App\Ai\ApplicationKits;
 use App\Billing\Credits;
 use App\Jobs\GenerateApplicationKit;
 use App\Models\ApplicationKit;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -17,32 +17,32 @@ class ApplicationKitController extends Controller
 {
     public function index(Request $request)
     {
-        $student = $request->user()->ensureCandidateProfile() ?? abort(403);
-        $kits = ApplicationKit::where('student_id', $student->id)->with('internship.company.user', 'internship.translations')->latest('updated_at')->get();
+        $candidate = $request->user()->ensureCandidateProfile() ?? abort(403);
+        $kits = ApplicationKit::where('candidate_id', $candidate->id)->with('opportunity.company.user', 'opportunity.translations')->latest('updated_at')->get();
 
         return Inertia::render('Kits/Index', ['kits' => $kits->map(fn ($kit) => $this->summary($kit))]);
     }
 
-    public function store(Request $request, Internship $internship, ApplicationKits $writer, Credits $credits)
+    public function store(Request $request, Opportunity $opportunity, ApplicationKits $writer, Credits $credits)
     {
         $user = $request->user();
-        $student = $user->ensureCandidateProfile() ?? abort(403);
-        abort_unless($internship->publication_status === 'published' && $internship->isOpen(), 404);
+        $candidate = $user->ensureCandidateProfile() ?? abort(403);
+        abort_unless($opportunity->publication_status === 'published' && $opportunity->isOpen(), 404);
         $data = $request->validate(['locale' => 'required|in:en,fr']);
         abort_unless($writer->enabled(), 503, 'Tailored CVs and letters are not available right now.');
 
-        $kit = ApplicationKit::firstOrCreate(['student_id' => $student->id, 'internship_id' => $internship->id, 'locale' => $data['locale']]);
+        $kit = ApplicationKit::firstOrCreate(['candidate_id' => $candidate->id, 'opportunity_id' => $opportunity->id, 'locale' => $data['locale']]);
         if ($kit->wasRecentlyCreated || $kit->status === 'failed') {
             if ($response = $this->start($user, $kit, $credits)) { return $response; }
         }
 
-        return response()->json(['kit' => $this->summary($kit->fresh('internship')), 'url' => route('kits.show', $kit)]);
+        return response()->json(['kit' => $this->summary($kit->fresh('opportunity')), 'url' => route('kits.show', $kit)]);
     }
 
     public function show(Request $request, ApplicationKit $kit)
     {
         $this->authorizeKit($request, $kit);
-        $kit->load('internship.company.user', 'internship.translations');
+        $kit->load('opportunity.company.user', 'opportunity.translations');
         if ($request->wantsJson()) {
             return response()->json(['kit' => $this->detail($kit)]);
         }
@@ -77,7 +77,7 @@ class ApplicationKitController extends Controller
             return $response;
         }
 
-        return response()->json(['kit' => $this->summary($kit->fresh('internship')), 'url' => route('kits.show', $kit)]);
+        return response()->json(['kit' => $this->summary($kit->fresh('opportunity')), 'url' => route('kits.show', $kit)]);
     }
 
     public function destroy(Request $request, ApplicationKit $kit)
@@ -119,17 +119,17 @@ class ApplicationKitController extends Controller
 
     private function authorizeKit(Request $request, ApplicationKit $kit): void
     {
-        abort_unless($request->user()->isCandidate() && $kit->student_id === $request->user()->userable_id, 404);
+        abort_unless($request->user()->isCandidate() && $kit->candidate_id === $request->user()->userable_id, 404);
     }
 
     private function fileName(ApplicationKit $kit, string $kind): string
     {
-        return Str::slug(($kit->cv['name'] ?? 'nextward').' '.$kind.' '.$kit->internship?->company?->display_name).'.pdf';
+        return Str::slug(($kit->cv['name'] ?? 'nextward').' '.$kind.' '.$kit->opportunity?->company?->display_name).'.pdf';
     }
 
     private function summary(ApplicationKit $kit): array
     {
-        $role = $kit->internship;
+        $role = $kit->opportunity;
         return [
             'id' => $kit->id,
             'locale' => $kit->locale,

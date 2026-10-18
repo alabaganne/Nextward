@@ -30,7 +30,7 @@ const icons = {
 
 const page = usePage();
 const user = computed(() => page.props.auth?.user);
-const isStudent = computed(() => user.value?.userable_type === 'student');
+const isCandidate = computed(() => user.value?.userable_type === 'candidate');
 const isExternal = computed(() => props.application.channel === 'external');
 // Legacy boolean statuses map onto the enum introduced with the redesign.
 const normalizedStatus = computed(() => {
@@ -69,9 +69,9 @@ const stage = computed(() => {
 });
 
 const counterpart = computed(() =>
-	isStudent.value
+	isCandidate.value
 		? { ...props.application.company, role: 'Company' }
-		: { ...props.application.student, role: 'Applicant' }
+		: { ...props.application.candidate, role: 'Applicant' }
 );
 
 const reviewForm = useForm({
@@ -101,7 +101,7 @@ const saveTracking = () => trackingForm.patch(route('applications.tracking.updat
 		<div class="flex items-center gap-2 text-[13.5px] text-muted font-medium mb-[22px] [&_svg]:w-3.5 [&_svg]:h-3.5 [&_svg]:text-muted-2">
 			<Link class="hover:text-blue-700" :href="route('applications.index')">Applications</Link>
 			<component :is="icons.chevron" aria-hidden="true" />
-			<span class="text-ink-700 font-semibold">{{ application.internship.title }}</span>
+			<span class="text-ink-700 font-semibold">{{ application.opportunity.title }}</span>
 		</div>
 
 		<!-- STATUS BANNER -->
@@ -124,14 +124,14 @@ const saveTracking = () => trackingForm.patch(route('applications.tracking.updat
 					<div class="flex items-start gap-[18px]">
 						<CompanyLogo class="w-[62px] h-[62px] rounded-[16px] text-[22px]" :name="application.company.name" :src="application.company.image" />
 						<div>
-							<h1 class="font-display text-[26px] font-semibold leading-[1.12]">{{ application.internship.title }}</h1>
-							<p class="text-[15px] text-muted mt-1.5"><b class="text-ink-700 font-semibold">{{ application.company.name }}</b> · {{ application.internship.field.name }}</p>
+							<h1 class="font-display text-[26px] font-semibold leading-[1.12]">{{ application.opportunity.title }}</h1>
+							<p class="text-[15px] text-muted mt-1.5"><b class="text-ink-700 font-semibold">{{ application.company.name }}</b> · {{ application.opportunity.field.name }}</p>
 						</div>
 					</div>
 					<div class="flex flex-wrap gap-2.5 mt-[22px] [&_.m]:flex [&_.m]:items-center [&_.m]:gap-[7px] [&_.m]:text-[13.5px] [&_.m]:text-ink-700 [&_.m]:font-medium [&_.m]:bg-paper-2 [&_.m]:border [&_.m]:border-line-2 [&_.m]:px-[13px] [&_.m]:py-2 [&_.m]:rounded-[9px] [&_svg]:w-[15px] [&_svg]:h-[15px] [&_svg]:text-blue-600">
-						<span class="m"><component :is="icons.pin" aria-hidden="true" />{{ application.internship.city.name }}</span>
-						<span class="m"><component :is="icons.clock" aria-hidden="true" />{{ application.internship.closing_at ? `Closes ${application.internship.closing_at}` : 'No deadline listed' }}</span>
-						<Link class="m no-underline" :href="application.internship.public_url || route('internships.show', application.internship.id)"><component :is="icons.external" aria-hidden="true" />View opportunity</Link>
+						<span class="m"><component :is="icons.pin" aria-hidden="true" />{{ application.opportunity.city.name }}</span>
+						<span class="m"><component :is="icons.clock" aria-hidden="true" />{{ application.opportunity.closing_at ? `Closes ${application.opportunity.closing_at}` : 'No deadline listed' }}</span>
+						<Link class="m no-underline" :href="application.opportunity.public_url || route('internships.show', application.opportunity.id)"><component :is="icons.external" aria-hidden="true" />View opportunity</Link>
 					</div>
 				</section>
 
@@ -160,7 +160,7 @@ const saveTracking = () => trackingForm.patch(route('applications.tracking.updat
 
 				<!-- SUBMITTED APPLICATION -->
 				<section v-if="!isExternal" class="bg-white border border-line rounded-[18px] px-8 max-[560px]:px-5 py-[30px]">
-					<h2 class="font-display text-[18px] font-semibold mb-1.5">{{ isStudent ? 'Your submitted application' : 'Submitted application' }}</h2>
+					<h2 class="font-display text-[18px] font-semibold mb-1.5">{{ isCandidate ? 'Your submitted application' : 'Submitted application' }}</h2>
 					<p class="text-[13.5px] text-muted mb-[18px]">The current application details shared with {{ application.company.name }}.</p>
 
 					<div v-if="application.cover_letter" class="py-4">
@@ -191,7 +191,7 @@ const saveTracking = () => trackingForm.patch(route('applications.tracking.updat
 						</div>
 					</div>
 				</section>
-				<form v-if="isExternal && isStudent" class="bg-white border border-line rounded-[18px] p-8" @submit.prevent="saveTracking">
+				<form v-if="isExternal && isCandidate" class="bg-white border border-line rounded-[18px] p-8" @submit.prevent="saveTracking">
 					<h2 class="font-display text-lg font-semibold mb-2">Your private application tracker</h2>
 					<p class="text-sm text-muted mb-5">Record what happened on the employer's website. Notes and updates here are never sent to the employer.</p>
 					<p v-for="(error, key) in trackingForm.errors" :key="key" class="text-sm text-red-600 mb-2" role="alert">{{ error }}</p>
@@ -244,7 +244,7 @@ const saveTracking = () => trackingForm.patch(route('applications.tracking.updat
 				</section>
 
 				<section class="bg-white border border-line rounded-[18px] px-6 py-[22px]">
-					<h3 class="text-sm tracking-[.04em] text-muted font-bold font-display mb-4">{{ isStudent ? 'COMPANY' : 'APPLICANT' }}</h3>
+					<h3 class="text-sm tracking-[.04em] text-muted font-bold font-display mb-4">{{ isCandidate ? 'COMPANY' : 'APPLICANT' }}</h3>
 					<div class="flex items-center gap-[13px] mb-4">
 						<CompanyLogo class="w-[46px] h-[46px] rounded-[12px] text-base" :name="counterpart.name" :src="counterpart.role === 'Company' ? counterpart.image : null" />
 						<div><b class="font-display text-base block">{{ counterpart.name }}</b><span class="text-[13px] text-muted">{{ counterpart.role }}</span></div>
@@ -252,13 +252,13 @@ const saveTracking = () => trackingForm.patch(route('applications.tracking.updat
 					<div v-if="counterpart.email" class="flex items-center gap-3 py-[9px] text-sm text-ink-700 [&_svg]:w-[17px] [&_svg]:h-[17px] [&_svg]:text-muted-2 [&_svg]:shrink-0"><component :is="icons.mail" aria-hidden="true" />{{ counterpart.email }}</div>
 					<div v-if="counterpart.phone_number" class="flex items-center gap-3 py-[9px] text-sm text-ink-700 [&_svg]:w-[17px] [&_svg]:h-[17px] [&_svg]:text-muted-2 [&_svg]:shrink-0"><component :is="icons.phone" aria-hidden="true" />{{ counterpart.phone_number }}</div>
 					<div v-if="counterpart.city?.name" class="flex items-center gap-3 py-[9px] text-sm text-ink-700 [&_svg]:w-[17px] [&_svg]:h-[17px] [&_svg]:text-muted-2 [&_svg]:shrink-0"><component :is="icons.pin" aria-hidden="true" />{{ counterpart.city.name }}</div>
-					<Link v-if="!isStudent && !isExternal" class="w-full justify-center mt-[14px] inline-flex items-center font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all" :href="route('students.show', application.student.id)">View profile</Link>
+					<Link v-if="!isCandidate && !isExternal" class="w-full justify-center mt-[14px] inline-flex items-center font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all" :href="route('candidates.show', application.candidate.id)">View profile</Link>
 					<Link v-if="!isExternal && counterpart.user_id" class="w-full justify-center mt-[14px] inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors [&_svg]:w-[17px] [&_svg]:h-[17px]" :href="route('messages.show', counterpart.user_id)">
-						{{ isStudent ? 'Message recruiter' : 'Message applicant' }} <component :is="icons.arrow" aria-hidden="true" />
+						{{ isCandidate ? 'Message recruiter' : 'Message applicant' }} <component :is="icons.arrow" aria-hidden="true" />
 					</Link>
 				</section>
 
-				<template v-if="isStudent && open && !isExternal">
+				<template v-if="isCandidate && open && !isExternal">
 					<Link class="w-full justify-center inline-flex items-center font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all" :href="route('applications.edit', application.id)">Edit application</Link>
 					<button class="w-full justify-center inline-flex items-center font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-[#dc2626] border border-[#fecaca] hover:bg-[#fef2f2] transition-colors" type="button" @click="withdraw">Withdraw application</button>
 				</template>

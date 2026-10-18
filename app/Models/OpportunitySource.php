@@ -12,5 +12,5 @@ class OpportunitySource extends Model
         'last_verified_at' => 'datetime', 'missing_since' => 'datetime',
     ];
     public function importSource() { return $this->belongsTo(ImportSource::class); }
-    public function internship() { return $this->belongsTo(Internship::class); }
+    public function opportunity() { return $this->belongsTo(Opportunity::class); }
 }

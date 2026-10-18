@@ -22,12 +22,12 @@ class OpportunityNormalizer
         }
         $types = $this->employmentTypes($input['employment_types'] ?? []);
         // Some boards tick every contract type, so INTERN only counts when no regular contract type is listed with it.
-        $internship = (in_array('INTERN', $types, true) && ! array_diff($types, ['INTERN', 'OTHER', 'VOLUNTEER']))
+        $opportunity = (in_array('INTERN', $types, true) && ! array_diff($types, ['INTERN', 'OTHER', 'VOLUNTEER']))
             || preg_match('/\b(intern(?:ship)?s?|stagiaire|stage (?:pfe|de fin|d.été|en |dans )|pfe|apprentice(?:ship)?|alternance|co-op|working student|werkstudent|praktikum)\b/iu', $title)
             || preg_match('/(?:^|\s[-–—|:\/]|[(,])\s*stages?\b(?!\s+manager)/iu', $title);
         $program = preg_match('/\bpfe\b|fin d[’\x27]études/iu', $title) ? 'pfe'
             : (preg_match('/summer|été/iu', $title) ? 'summer' : null);
-        $seniority = $internship ? 'entry' : null;
+        $seniority = $opportunity ? 'entry' : null;
         foreach (['executive' => '\b(chief|c[tefo]o|vp|vice president)\b', 'lead' => '\b(lead|principal|head of)\b',
             'senior' => '\b(senior|sr\.?|confirmé)\b', 'entry' => '\b(junior|entry.level|débutant)\b', 'graduate' => '\b(graduate|jeune diplômé)\b'] as $level => $pattern) {
             if (preg_match('/'.$pattern.'/iu', $title)) { $seniority = $level; break; }
@@ -108,7 +108,7 @@ class OpportunityNormalizer
         return [
             'title' => $title, 'description' => $description, 'employer' => $employer,
             'website' => $this->publicUrl($website = $this->encodeUrl($input['website'] ?? '')) ? $website : null,
-            'kind' => $internship ? 'internship' : 'job', 'program_type' => $program, 'seniority' => $seniority,
+            'kind' => $opportunity ? 'internship' : 'job', 'program_type' => $program, 'seniority' => $seniority,
             'employment_types' => $types, 'work_type' => $workType ?? 'unknown',
             'country_code' => $country, 'location' => $location, 'locations' => $locations,
             'remote_scope' => $input['remote_scope'] ?? ($workType === 'remote' ? $location : null),

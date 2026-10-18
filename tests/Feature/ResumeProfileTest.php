@@ -74,12 +74,12 @@ class ResumeProfileTest extends TestCase
             'projects' => [['name' => 'Nextward', 'url' => 'https://example.com']],
         ])->assertSessionHasNoErrors();
 
-        $student = $user->userable->fresh();
-        $this->assertSame('Developer', $student->experience[0]['title']);
-        $this->assertTrue($student->experience[0]['current']);
-        $this->assertArrayNotHasKey('junk', $student->experience[0]);
-        $this->assertSame('ISSAT Sousse', $student->education[0]['school']);
-        $this->assertSame('https://example.com', $student->projects[0]['url']);
+        $candidate = $user->userable->fresh();
+        $this->assertSame('Developer', $candidate->experience[0]['title']);
+        $this->assertTrue($candidate->experience[0]['current']);
+        $this->assertArrayNotHasKey('junk', $candidate->experience[0]);
+        $this->assertSame('ISSAT Sousse', $candidate->education[0]['school']);
+        $this->assertSame('https://example.com', $candidate->projects[0]['url']);
 
         $this->actingAs($user)->put('/profile', ['name' => $user->name, 'email' => $user->email, 'experience' => [['company' => 'No title']]])
             ->assertSessionHasErrors('experience.0.title');

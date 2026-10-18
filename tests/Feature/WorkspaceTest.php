@@ -20,7 +20,7 @@ class WorkspaceTest extends TestCase
         $this->seed(\Tests\Fixtures\DemoSeeder::class);
     }
 
-    private function student(): User
+    private function candidate(): User
     {
         return User::where('email', 'student@example.com')->firstOrFail();
     }
@@ -29,7 +29,7 @@ class WorkspaceTest extends TestCase
     {
         $imported = Company::doesntHave('user')->firstOrFail();
 
-        $this->actingAs($this->student())->get('/companies')
+        $this->actingAs($this->candidate())->get('/companies')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Companies/Index')
@@ -40,7 +40,7 @@ class WorkspaceTest extends TestCase
     {
         $company = Company::has('user')->firstOrFail();
 
-        $this->actingAs($this->student())->get('/companies?search='.urlencode($company->display_name))
+        $this->actingAs($this->candidate())->get('/companies?search='.urlencode($company->display_name))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('filters.search', $company->display_name)
@@ -49,21 +49,21 @@ class WorkspaceTest extends TestCase
 
     public function test_opening_a_conversation_marks_its_messages_read(): void
     {
-        $student = $this->student();
+        $candidate = $this->candidate();
         $sender = Company::has('user')->firstOrFail()->user;
-        Message::create(['from_id' => $sender->id, 'to_id' => $student->id, 'text' => 'Hello']);
+        Message::create(['from_id' => $sender->id, 'to_id' => $candidate->id, 'text' => 'Hello']);
 
-        $this->actingAs($student)->get('/dashboard')
+        $this->actingAs($candidate)->get('/dashboard')
             ->assertInertia(fn (Assert $page) => $page->where('badges.messages', fn ($count) => $count > 0));
 
-        $this->actingAs($student)->get('/messages?user_id='.$sender->id)->assertOk();
+        $this->actingAs($candidate)->get('/messages?user_id='.$sender->id)->assertOk();
 
-        $this->assertSame(0, Message::where('from_id', $sender->id)->where('to_id', $student->id)->whereNull('read_at')->count());
+        $this->assertSame(0, Message::where('from_id', $sender->id)->where('to_id', $candidate->id)->whereNull('read_at')->count());
     }
 
     public function test_signed_in_users_get_the_dashboard_counts(): void
     {
-        $this->actingAs($this->student())->get('/dashboard')
+        $this->actingAs($this->candidate())->get('/dashboard')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Dashboard')

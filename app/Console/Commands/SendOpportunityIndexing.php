@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use App\Indexing\GoogleIndexing;
 use App\Jobs\SendIndexingNotification;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -16,7 +16,7 @@ class SendOpportunityIndexing extends Command
     public function handle(GoogleIndexing $indexing): int
     {
         if ($this->option('all')) {
-            Internship::available()->chunkById(100, function ($opportunities) use ($indexing) {
+            Opportunity::available()->chunkById(100, function ($opportunities) use ($indexing) {
                 foreach ($opportunities as $opportunity) {
                     if ($indexing->eligible($opportunity)) $indexing->queue($opportunity);
                 }

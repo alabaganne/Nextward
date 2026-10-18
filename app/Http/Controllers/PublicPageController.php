@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\InternshipResource;
-use App\Models\Internship;
+use App\Http\Resources\OpportunityResource;
+use App\Models\Opportunity;
 use App\Support\Blog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -16,7 +16,7 @@ class PublicPageController extends Controller
         $locale = $request->is('fr', 'fr/*') ? 'fr' : 'en';
         return Inertia::render('Welcome', [
             'locale' => $locale,
-            'opportunities' => InternshipResource::collection($this->recent()->limit(6)->get()),
+            'opportunities' => OpportunityResource::collection($this->recent()->limit(6)->get()),
             'posts' => $this->posts($request, ['students', 'professionals', 'all']),
             'shortcuts' => $this->shortcuts(),
             'faqs' => config('nextward_public.faq.'.$locale),
@@ -40,7 +40,7 @@ class PublicPageController extends Controller
             'key' => $key,
             'path' => '/opportunities'.(isset($filters['category']) ? '/'.$filters['category'] : ''),
             'query' => Arr::query(Arr::except($filters, 'category')),
-            'count' => Internship::available()->searchFilters($filters)->count(),
+            'count' => Opportunity::available()->searchFilters($filters)->count(),
         ])->filter(fn ($shortcut) => $shortcut['count'] > 0)->values()->all();
     }
 
@@ -52,6 +52,6 @@ class PublicPageController extends Controller
 
     private function recent()
     {
-        return Internship::available()->with('company.user', 'company.city', 'city', 'field', 'skills', 'sources.importSource', 'translations')->withCandidateState(request()->user())->orderByRaw('COALESCE(posted_at, first_seen_at, created_at) DESC')->orderByDesc('id');
+        return Opportunity::available()->with('company.user', 'company.city', 'city', 'field', 'skills', 'sources.importSource', 'translations')->withCandidateState(request()->user())->orderByRaw('COALESCE(posted_at, first_seen_at, created_at) DESC')->orderByDesc('id');
     }
 }

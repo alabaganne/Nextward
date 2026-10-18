@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\ApplicationResource;
 use App\Models\Application;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use App\Models\User;
-use App\Http\Resources\InternshipResource;
+use App\Http\Resources\OpportunityResource;
 
 class DashboardController extends Controller
 {
@@ -21,17 +21,17 @@ class DashboardController extends Controller
         $user = auth()->user();
 
         $props = [
-            'internships_count' => \App\Models\Internship::open()->count(),
-            'students_count' => \App\Models\Student::count(),
+            'opportunities_count' => \App\Models\Opportunity::open()->count(),
+            'candidates_count' => \App\Models\Candidate::count(),
             'companies_count' => \App\Models\Company::count(),
         ]; 
 
         if($user->isCandidate() || $user->isCompany()) {
-            $query_field = $user->isCandidate() ? 'student_id' : 'company_id';
+            $query_field = $user->isCandidate() ? 'candidate_id' : 'company_id';
             $applications = Application::where($query_field, $user->userable_id)
                 ->when($user->isCompany(), fn ($query) => $query->where('channel', 'internal'));
             $props['applications'] = ApplicationResource::collection(
-                (clone $applications)->with('internship', 'internship.company', 'internship.company.user', 'internship.company.city', 'internship.field')
+                (clone $applications)->with('opportunity', 'opportunity.company', 'opportunity.company.user', 'opportunity.company.city', 'opportunity.field')
                     ->latest()
                     ->take(4)
                     ->get()
@@ -46,14 +46,14 @@ class DashboardController extends Controller
         }
 
         if ($user->isCompany()) {
-            $props['roles_count'] = Internship::where('company_id', $user->userable_id)->open()->count();
+            $props['roles_count'] = Opportunity::where('company_id', $user->userable_id)->open()->count();
         }
 
         if ($user->isCandidate()) {
             $props['saved_count'] = $user->userable->likes()->count();
             $preferences = $user->userable->preferences ?: [];
-            $query = Internship::open()->withCandidateState($user)->with('company.user', 'city', 'field', 'skills', 'sources.importSource', 'translations')
-                ->whereNotIn('id', Application::where('student_id', $user->userable_id)->select('internship_id'));
+            $query = Opportunity::open()->withCandidateState($user)->with('company.user', 'city', 'field', 'skills', 'sources.importSource', 'translations')
+                ->whereNotIn('id', Application::where('candidate_id', $user->userable_id)->select('opportunity_id'));
             $reasons = [];
             foreach (['kinds' => 'kind', 'work_types' => 'work_type', 'fields' => 'field_id', 'seniority' => 'seniority'] as $key => $column) {
                 if (!empty($preferences[$key])) {
@@ -95,7 +95,7 @@ class DashboardController extends Controller
                 }
                 return false;
             })->take(6)->values();
-            $props['recommended'] = InternshipResource::collection($recommended);
+            $props['recommended'] = OpportunityResource::collection($recommended);
             $props['recommendation_reasons'] = $reasons ?: ['Recent opportunities to explore. Add preferences in Settings for a closer match.'];
         }
 
@@ -119,6 +119,6 @@ class DashboardController extends Controller
         return ! (($applications && (clone $applications)->exists())
             || $user->sentMessages()->exists()
             || ($user->isCandidate() && ($user->userable->likes()->exists() || $user->userable->openedOpportunities()->exists()))
-            || ($user->isCompany() && Internship::where('company_id', $user->userable_id)->exists()));
+            || ($user->isCompany() && Opportunity::where('company_id', $user->userable_id)->exists()));
     }
 }

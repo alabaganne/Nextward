@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\City;
 use App\Models\Field;
-use App\Models\Student;
+use App\Models\Candidate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -23,8 +23,8 @@ class AdminAccountCreationTest extends TestCase
         $field = Field::create(['name' => 'Engineering']);
         $passwords = [];
 
-        foreach (['student', 'company'] as $role) {
-            $resource = $role === 'company' ? 'companies' : 'students';
+        foreach (['candidate', 'company'] as $role) {
+            $resource = $role === 'company' ? 'companies' : 'candidates';
             $this->actingAs($admin)->post(route("{$resource}.store"), [
                 'name' => "New {$role}",
                 'email' => "{$role}@example.com",
@@ -48,18 +48,18 @@ class AdminAccountCreationTest extends TestCase
         Notification::assertSentTimes(\App\Notifications\AccountCreated::class, 2);
     }
 
-    public function test_admin_student_creation_validates_supplied_profile_references(): void
+    public function test_admin_candidate_creation_validates_supplied_profile_references(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
 
-        $this->actingAs($admin)->post(route('students.store'), [
+        $this->actingAs($admin)->post(route('candidates.store'), [
             'name' => 'New student',
             'email' => 'student@example.com',
             'field_id' => 9999,
             'city_id' => 9999,
         ])->assertSessionHasErrors(['field_id', 'city_id']);
 
-        $this->assertDatabaseCount('students', 0);
+        $this->assertDatabaseCount('candidates', 0);
         $this->assertDatabaseCount('users', 1);
     }
 
@@ -67,14 +67,14 @@ class AdminAccountCreationTest extends TestCase
     {
         $admin = User::factory()->create(['is_admin' => true]);
 
-        $this->actingAs($admin)->post(route('students.store'), [
+        $this->actingAs($admin)->post(route('candidates.store'), [
             'name' => 'New candidate',
             'email' => 'candidate@example.com',
             'country_code' => 'FR',
             'location' => 'Paris',
             'field_id' => null,
             'city_id' => null,
-        ])->assertRedirect(route('students.index'))->assertSessionHasNoErrors();
+        ])->assertRedirect(route('candidates.index'))->assertSessionHasNoErrors();
 
         $profile = User::where('email', 'candidate@example.com')->firstOrFail()->userable;
         $this->assertSame('FR', $profile->country_code);
@@ -87,14 +87,14 @@ class AdminAccountCreationTest extends TestCase
     {
         $city = City::create(['name' => 'Tunis']);
         $field = Field::create(['name' => 'Engineering']);
-        $student = Student::create(['city_id' => $city->id, 'field_id' => $field->id]);
-        $user = $student->user()->create([
+        $candidate = Candidate::create(['city_id' => $city->id, 'field_id' => $field->id]);
+        $user = $candidate->user()->create([
             'name' => 'Existing student',
             'email' => 'existing@example.com',
             'password' => Hash::make('existing-password'),
         ]);
 
-        foreach (['students.store', 'companies.store'] as $route) {
+        foreach (['candidates.store', 'companies.store'] as $route) {
             $this->actingAs($user)->post(route($route), [
                 'name' => 'New account',
                 'email' => 'new@example.com',

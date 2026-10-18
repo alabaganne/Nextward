@@ -40,7 +40,7 @@ class ImportOpportunitiesCsv extends Command
         if (! is_array($data) || ! $row['external_id'] || ! $row['last_verified_at']) { return ['skipped', 'the row is incomplete']; }
 
         $item = OpportunitySource::firstOrNew(['import_source_id' => $source->id, 'external_id' => $row['external_id']]);
-        if ($item->internship_id) { return ['already here', null]; }
+        if ($item->opportunity_id) { return ['already here', null]; }
         if ($item->content_hash) { return ['skipped', 'it was added here before and removed later']; }
 
         $checked = Carbon::parse($row['last_verified_at']);

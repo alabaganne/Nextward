@@ -6,7 +6,7 @@ use App\Support\LanguageGuess;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Str;
 
-class InternshipResource extends JsonResource
+class OpportunityResource extends JsonResource
 {
     public function toArray($request)
     {
@@ -15,7 +15,7 @@ class InternshipResource extends JsonResource
         $locale = $request->is('fr', 'fr/*') ? 'fr' : 'en';
         $candidate = $user && $user->isCandidate() ? $user->userable : null;
         $application = $candidate && $this->relationLoaded('candidateApplications')
-            ? $this->candidateApplications->firstWhere('student_id', $candidate->id)
+            ? $this->candidateApplications->firstWhere('candidate_id', $candidate->id)
             : null;
         $source = $this->relationLoaded('sources')
             ? ($this->sources->where('state', 'published')->sortByDesc('last_verified_at')->first() ?? $this->sources->sortByDesc('last_verified_at')->first())
@@ -118,7 +118,7 @@ class InternshipResource extends JsonResource
             'is_new' => $this->posted_at && $this->posted_at->gt(now()->subWeek()),
             'application' => $application ? [
                 'id' => $application->id,
-                'student_id' => $application->student_id,
+                'candidate_id' => $application->candidate_id,
                 'channel' => $application->channel,
                 'status' => $application->status,
                 'created_at' => $application->created_at?->format('F d, Y'),

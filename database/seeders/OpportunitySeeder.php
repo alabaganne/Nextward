@@ -6,7 +6,7 @@ use App\Models\City;
 use App\Models\Company;
 use App\Models\Field;
 use App\Models\ImportSource;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use App\Models\OpportunitySource;
 use App\Models\Skill;
 use Carbon\CarbonImmutable;
@@ -31,7 +31,7 @@ class OpportunitySeeder extends Seeder
         DB::transaction(function () use ($catalogue, $verifiedAt, $fresh) {
             foreach ($catalogue['opportunities'] as $record) {
                 // Existing moderation decisions and verification dates must survive repeat seeding.
-                if (Internship::where('application_url', $record['url'])->exists()) { continue; }
+                if (Opportunity::where('application_url', $record['url'])->exists()) { continue; }
 
                 $company = Company::firstOrCreate(['domain' => $record['company']['domain']], [
                     'name' => $record['company']['name'], 'website' => $record['company']['website'],
@@ -68,11 +68,11 @@ class OpportunitySeeder extends Seeder
                     'first_seen_at' => $verifiedAt, 'last_verified_at' => $verifiedAt,
                     'content_updated_at' => $verifiedAt, 'attachments' => [],
                 ], $record['details']);
-                $opportunity = Internship::create($data);
+                $opportunity = Opportunity::create($data);
                 $opportunity->skills()->sync(collect($record['skills'])
                     ->map(fn ($name) => Skill::firstOrCreate(['name' => $name])->id));
                 $item->update([
-                    'internship_id' => $opportunity->id, 'state' => $data['publication_status'] === 'published' ? 'published' : 'review',
+                    'opportunity_id' => $opportunity->id, 'state' => $data['publication_status'] === 'published' ? 'published' : 'review',
                     'normalized_data' => array_merge($data, [
                         'employer' => $company->name, 'website' => $company->website,
                     ]),

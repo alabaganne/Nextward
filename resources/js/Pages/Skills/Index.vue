@@ -36,8 +36,8 @@ const meta = computed(() => props.skills.meta ?? props.skills);
 				:class="{ 'border-b border-line-2': index !== skills.data.length - 1 }"
 			>
 				<b class="text-[15px] font-semibold">{{ skill.name }}</b>
-				<span class="text-[13.5px] text-muted max-[760px]:hidden">{{ skill.internships_count }}</span>
-				<span class="text-[13.5px] text-muted max-[760px]:hidden">{{ skill.students_count }}</span>
+				<span class="text-[13.5px] text-muted max-[760px]:hidden">{{ skill.opportunities_count }}</span>
+				<span class="text-[13.5px] text-muted max-[760px]:hidden">{{ skill.candidates_count }}</span>
 				<Link class="justify-self-end text-[13px] font-semibold text-blue-700 bg-blue-50 border border-blue-100 px-3 py-[7px] rounded-[9px] hover:bg-blue-100 transition-colors" :href="route('skills.edit', skill.id)">Edit</Link>
 			</div>
 			<div v-if="!skills.data.length" class="px-[22px] py-8 text-[14px] text-muted">No skills yet.</div>

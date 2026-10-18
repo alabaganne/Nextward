@@ -8,7 +8,7 @@ use App\Importing\SourceHttp;
 use App\Models\Company;
 use App\Models\Field;
 use App\Models\ImportSource;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use App\Models\OpportunitySource;
 use App\Models\Skill;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -116,11 +116,11 @@ class OpportunityCleanupTest extends TestCase
 
         app(OpportunityImporter::class)->run($this->source(), 100);
 
-        $developer = Internship::where('title', 'Senior AI Full-Stack Developer')->sole();
+        $developer = Opportunity::where('title', 'Senior AI Full-Stack Developer')->sole();
         $this->assertSame(['Ariana, Tunisia', 'TN', 'hybrid', ['CONTRACTOR']], [$developer->location, $developer->country_code, $developer->work_type, $developer->employment_types]);
         $this->assertStringContainsString("AI integrations.\n\nKey Responsibilities :\n\n• Integrate LLMs and AI APIs.\n• Collaborate", $developer->description);
         $this->assertEqualsCanonicalizing(['React', 'Node.js', 'LLM'], $developer->skills()->pluck('name')->all());
-        $stage = Internship::where('title', 'Stage Développeur Web')->sole();
+        $stage = Opportunity::where('title', 'Stage Développeur Web')->sole();
         $this->assertSame(['remote', 'Tunis, Tunisia'], [$stage->work_type, $stage->location]);
     }
 
@@ -132,7 +132,7 @@ class OpportunityCleanupTest extends TestCase
                 'address' => ['addressLocality' => 'Tunis', 'addressRegion' => 'Tunis', 'addressCountry' => 'TN']]],
             'description' => "We build web apps and AI integrations.Key Responsibilities :\nIntegrate LLMs.\nCollaborate with product teams.\nLe poste est 100% en télétravail.",
         ]);
-        $role = $old->internship;
+        $role = $old->opportunity;
         $role->skills()->attach(Skill::create(['name' => 'Product']));
 
         $this->artisan('opportunities:clean --dry-run')
@@ -166,11 +166,11 @@ class OpportunityCleanupTest extends TestCase
             'id' => 7, 'title' => 'Backend Engineer', 'company_name' => 'Acme', 'location' => ['name' => 'Tunis, Tunis, Tunisia'],
             'content' => htmlspecialchars($content), 'absolute_url' => 'https://job-boards.greenhouse.io/acme/jobs/7', 'first_published' => now()->subDay()->toIso8601String(),
         ]);
-        $item->internship->update(['location' => 'Lac II, Tunis', 'moderation_overrides' => ['location' => ['value' => 'Lac II, Tunis']]]);
+        $item->opportunity->update(['location' => 'Lac II, Tunis', 'moderation_overrides' => ['location' => ['value' => 'Lac II, Tunis']]]);
 
         $this->artisan('opportunities:clean')->assertSuccessful();
 
-        $role = $item->internship->fresh();
+        $role = $item->opportunity->fresh();
         $this->assertSame('Lac II, Tunis', $role->location);
         $this->assertSame("You will build and ship product features with the team every single week.\n\nWhat you will do\n\n• Ship features\n• Review code", $role->description);
         $this->assertSame('Tunis, Tunisia', $item->fresh()->normalized_data['location']);
@@ -191,7 +191,7 @@ class OpportunityCleanupTest extends TestCase
 
         $this->artisan('opportunities:clean')->expectsOutputToContain('remote_eligibility: unknown → restricted')->assertSuccessful();
 
-        $role = $item->internship->fresh();
+        $role = $item->opportunity->fresh();
         $this->assertSame(['remote', 'restricted'], [$role->work_type, $role->remote_eligibility]);
         $this->assertSame(['relocation' => 'Relocation support is offered.', 'remote' => 'Source location: San Francisco, CA'], $item->fresh()->normalized_data['eligibility_evidence']);
     }
@@ -209,11 +209,11 @@ class OpportunityCleanupTest extends TestCase
         $source = $this->source($source);
         $data += ['employer' => 'Acme', 'kind' => 'job', 'country_code' => 'TN', 'work_type' => 'unknown', 'employment_types' => ['FULL_TIME'],
             'application_url' => 'https://www.tanitjobs.com/job/9/x/', 'posted_at' => now()->subDay()->toIso8601String()];
-        $role = Internship::create(collect($data)->only(['title', 'description', 'kind', 'location', 'locations', 'country_code', 'work_type', 'employment_types', 'application_url', 'remote_eligibility', 'eligibility_evidence'])->all() + [
+        $role = Opportunity::create(collect($data)->only(['title', 'description', 'kind', 'location', 'locations', 'country_code', 'work_type', 'employment_types', 'application_url', 'remote_eligibility', 'eligibility_evidence'])->all() + [
             'company_id' => Company::forceCreate(['name' => 'Acme'])->id, 'field_id' => Field::firstOrCreate(['name' => 'Other'])->id,
             'origin' => 'imported', 'application_mode' => 'external',
         ]);
-        return OpportunitySource::create(['import_source_id' => $source->id, 'internship_id' => $role->id, 'external_id' => (string) ($payload['id'] ?? 'x1'),
+        return OpportunitySource::create(['import_source_id' => $source->id, 'opportunity_id' => $role->id, 'external_id' => (string) ($payload['id'] ?? 'x1'),
             'source_url' => $data['application_url'], 'payload' => $payload, 'normalized_data' => $data, 'state' => 'published',
             'first_seen_at' => now()->subDay(), 'last_discovered_at' => now()->subDay(), 'last_verified_at' => now()->subDay()]);
     }

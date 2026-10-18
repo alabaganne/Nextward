@@ -35,7 +35,7 @@ const badges = computed(() => page.props.badges || {});
 
 const main = computed(() => [
 	{ id: 'dashboard', label: 'Dashboard', route: 'dashboard', icon: LayoutDashboard },
-	{ id: 'internships', label: 'Opportunities', route: 'opportunities.index', icon: Compass },
+	{ id: 'opportunities', label: 'Opportunities', route: 'opportunities.index', icon: Compass },
 	...(isCandidate.value || isCompany.value ? [{ id: 'applications', label: 'Applications', route: 'applications.index', icon: FileText, badge: badges.value.applications }] : []),
 	...(isCompany.value ? [{ id: 'roles', label: 'My roles', href: `/companies/${user.value?.userable_id}#opportunities`, icon: Briefcase }] : []),
 	...(isCandidate.value ? [
@@ -50,7 +50,7 @@ const main = computed(() => [
 
 const admin = computed(() => [
 	{ id: 'imports', label: 'Sources and imports', route: 'imports.index', icon: Database },
-	{ id: 'students', label: 'Candidates', route: 'students.index', icon: GraduationCap, badge: badges.value.public_profiles },
+	{ id: 'candidates', label: 'Candidates', route: 'candidates.index', icon: GraduationCap, badge: badges.value.public_profiles },
 	{ id: 'fields', label: 'Fields', route: 'fields.index', icon: BookOpen },
 	{ id: 'skills', label: 'Skills', route: 'skills.index', icon: Sparkles },
 ]);

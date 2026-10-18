@@ -5,9 +5,9 @@ namespace Tests\Feature;
 use App\Billing\Credits;
 use App\Models\ApplicationKit;
 use App\Models\CreditTransaction;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use App\Models\Payment;
-use App\Models\Student;
+use App\Models\Candidate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -38,7 +38,7 @@ class BillingTest extends TestCase
     {
         config(['billing.enabled' => true, 'billing.rewrites_per_kit' => 1]);
         $user = $this->candidate();
-        $role = Internship::available()->firstOrFail();
+        $role = Opportunity::available()->firstOrFail();
         Http::fake(['api.openai.com/v1/responses' => Http::response($this->kitReply())]);
 
         $this->actingAs($user)->postJson("/opportunities/{$role->id}/kit", ['locale' => 'en'])->assertOk();
@@ -50,7 +50,7 @@ class BillingTest extends TestCase
         $this->actingAs($user)->postJson(route('kits.regenerate', $kit))->assertStatus(402)->assertJsonPath('billing_url', route('billing.index'));
         $this->assertSame(2, $kit->fresh()->generations);
 
-        $other = Internship::available()->where('id', '!=', $role->id)->firstOrFail();
+        $other = Opportunity::available()->where('id', '!=', $role->id)->firstOrFail();
         $this->actingAs($user)->postJson("/opportunities/{$other->id}/kit", ['locale' => 'en'])->assertStatus(402);
     }
 
@@ -60,7 +60,7 @@ class BillingTest extends TestCase
         $user = $this->candidate();
         Http::fake(['api.openai.com/v1/responses' => Http::response(['error' => ['message' => 'Server error']], 500)]);
 
-        $this->actingAs($user)->postJson('/opportunities/'.Internship::available()->firstOrFail()->id.'/kit', ['locale' => 'en'])->assertOk();
+        $this->actingAs($user)->postJson('/opportunities/'.Opportunity::available()->firstOrFail()->id.'/kit', ['locale' => 'en'])->assertOk();
 
         $this->assertSame('failed', ApplicationKit::sole()->status);
         $this->assertSame(1, app(Credits::class)->balance($user));
@@ -138,7 +138,7 @@ class BillingTest extends TestCase
 
     private function candidate(): User
     {
-        $user = Student::create()->user()->create(['name' => 'Buyer Name', 'email' => 'buyer@example.com', 'password' => Hash::make('password')]);
+        $user = Candidate::create()->user()->create(['name' => 'Buyer Name', 'email' => 'buyer@example.com', 'password' => Hash::make('password')]);
         $user->forceFill(['email_verified_at' => now()])->save();
         return $user;
     }

@@ -2,12 +2,12 @@
 
 namespace App\Policies;
 
-use App\Models\Internship;
+use App\Models\Opportunity;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class InternshipPolicy
+class OpportunityPolicy
 {
     use HandlesAuthorization;
 
@@ -29,10 +29,10 @@ class InternshipPolicy
      * @param  \App\Models\Internship  $internship
      * @return mixed
      */
-    public function view(?User $user, Internship $internship)
+    public function view(?User $user, Opportunity $opportunity)
     {
-        return $internship->publication_status === 'published'
-            || ($user && $this->isOwner($user, $internship));
+        return $opportunity->publication_status === 'published'
+            || ($user && $this->isOwner($user, $opportunity));
     }
 
     /**
@@ -62,9 +62,9 @@ class InternshipPolicy
      * @param  \App\Models\Internship  $internship
      * @return mixed
      */
-    public function isOwner(User $user, Internship $internship)
+    public function isOwner(User $user, Opportunity $opportunity)
     {
-        return $user->isAdmin() || ($user->isCompany() && $user->userable?->id === $internship->company_id);
+        return $user->isAdmin() || ($user->isCompany() && $user->userable?->id === $opportunity->company_id);
     }
 
     /**
@@ -74,9 +74,9 @@ class InternshipPolicy
      * @param  \App\Models\Internship  $internship
      * @return mixed
      */
-    public function update(User $user, Internship $internship)
+    public function update(User $user, Opportunity $opportunity)
     {
-        return $this->isOwner($user, $internship) && ($user->isAdmin() || $internship->origin === 'native');
+        return $this->isOwner($user, $opportunity) && ($user->isAdmin() || $opportunity->origin === 'native');
     }
 
     /**
@@ -86,8 +86,8 @@ class InternshipPolicy
      * @param  \App\Models\Internship  $internship
      * @return mixed
      */
-    public function delete(User $user, Internship $internship)
+    public function delete(User $user, Opportunity $opportunity)
     {
-        return $this->isOwner($user, $internship) && ($user->isAdmin() || $internship->origin === 'native');
+        return $this->isOwner($user, $opportunity) && ($user->isAdmin() || $opportunity->origin === 'native');
     }
 }

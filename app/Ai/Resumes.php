@@ -3,7 +3,7 @@
 namespace App\Ai;
 
 use App\Ai\Agents\ResumeReader;
-use App\Models\Student;
+use App\Models\Candidate;
 use App\Support\ProfileHistory;
 use Illuminate\Support\Str;
 use Laravel\Ai\Files\Document;
@@ -18,11 +18,11 @@ class Resumes
         return $this->ai->enabled();
     }
 
-    public function read(Student $student): array
+    public function read(Candidate $candidate): array
     {
         $response = (new ResumeReader)->prompt(
             'Fill in the profile from the attached resume.',
-            attachments: [Document::fromStorage($student->resume_path, 'local')],
+            attachments: [Document::fromStorage($candidate->resume_path, 'local')],
             provider: $this->ai->provider(),
             model: $this->ai->model('review'),
         );

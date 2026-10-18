@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
-class Student extends Model
+class Candidate extends Model
 {
     use HasFactory;
 
@@ -72,16 +72,16 @@ class Student extends Model
     }
 
     public function applications() { // internships that the user has applied to
-        return $this->belongsToMany(Internship::class, 'applications')
+        return $this->belongsToMany(Opportunity::class, 'applications')
             ->withPivot(['cover_letter', 'message', 'attachments', 'status', 'channel', 'applied_at'])
             ->withTimestamps();
     }
 
     public function likes() {
-        return $this->belongsToMany(Internship::class, 'likes');
+        return $this->belongsToMany(Opportunity::class, 'likes');
     }
 
     public function openedOpportunities() { // external links the candidate clicked
-        return $this->belongsToMany(Internship::class, 'opportunity_views')->withPivot('viewed_at');
+        return $this->belongsToMany(Opportunity::class, 'opportunity_views')->withPivot('viewed_at');
     }
 }

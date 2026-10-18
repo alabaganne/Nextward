@@ -17,8 +17,8 @@ class FieldResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'internships_count' => $this->internships->count(),
-            'students_count' => $this->students->count(),
+            'opportunities_count' => $this->opportunities->count(),
+            'candidates_count' => $this->candidates->count(),
         ];
     }
 }

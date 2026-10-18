@@ -25,16 +25,16 @@ const icons = {
 	arrow: ArrowRight,
 };
 
-const internships = computed(() => props.company.internships?.data ?? props.company.internships ?? []);
-const pagination = computed(() => props.company.internships?.meta);
-const totalRoles = computed(() => pagination.value?.total ?? internships.value.length);
+const opportunities = computed(() => props.company.opportunities?.data ?? props.company.opportunities ?? []);
+const pagination = computed(() => props.company.opportunities?.meta);
+const totalRoles = computed(() => pagination.value?.total ?? opportunities.value.length);
 const page = usePage();
 const logoFailed = ref(false);
 const ownsCompany = computed(() => page.props.auth?.user?.id === props.company.user_id);
 const canEdit = computed(() => ownsCompany.value || page.props.auth?.user?.is_admin);
 const canManageRole = (role) => canEdit.value && (page.props.auth?.user?.is_admin || role.origin === 'native');
 const roleHref = (role) => canManageRole(role)
-	? route('internships.edit', role.id)
+	? route('opportunities.edit', role.id)
 	: role.publication_status === 'published' ? role.public_url : null;
 const roleStatus = (role) => role.publication_status === 'draft' ? 'Draft'
 	: role.publication_status === 'suppressed' ? 'Suppressed'
@@ -97,25 +97,25 @@ const roleInitials = (title) =>
 					</div>
 					<div class="px-3.5 pt-2.5 pb-3.5">
 						<component
-							:is="roleHref(internship) ? Link : 'div'"
-							v-for="(internship, index) in internships"
-							:key="internship.id"
+							:is="roleHref(opportunity) ? Link : 'div'"
+							v-for="(opportunity, index) in opportunities"
+							:key="opportunity.id"
 							class="flex items-center gap-4 px-3 py-[18px] rounded-[14px] transition-colors no-underline"
-							:class="{ 'border-t border-line-2': index !== 0, 'hover:bg-paper-2': roleHref(internship) }"
-							:href="roleHref(internship) || undefined"
+							:class="{ 'border-t border-line-2': index !== 0, 'hover:bg-paper-2': roleHref(opportunity) }"
+							:href="roleHref(opportunity) || undefined"
 						>
-							<span class="w-[46px] h-[46px] rounded-[12px] grid place-items-center text-white font-bold font-display text-base shrink-0" :style="{ background: gradientFor(company.name) }">{{ roleInitials(internship.title) }}</span>
+							<span class="w-[46px] h-[46px] rounded-[12px] grid place-items-center text-white font-bold font-display text-base shrink-0" :style="{ background: gradientFor(company.name) }">{{ roleInitials(opportunity.title) }}</span>
 							<span class="flex-1 min-w-0">
-								<b class="text-base font-semibold block">{{ internship.title }}</b>
+								<b class="text-base font-semibold block">{{ opportunity.title }}</b>
 								<span class="flex flex-wrap gap-3.5 mt-[7px] text-muted text-[13px] [&_span]:inline-flex [&_span]:items-center [&_span]:gap-[5px] [&_svg]:w-[13px] [&_svg]:h-[13px] [&_svg]:text-muted-2">
-									<span><component :is="icons.pin" aria-hidden="true" />{{ internship.location_label }}</span>
-									<span><component :is="icons.clock" aria-hidden="true" />{{ internship.closing_at ? `Closes ${internship.closing_at}` : 'No deadline listed' }}</span>
-									<span class="font-semibold">{{ roleStatus(internship) }}</span>
+									<span><component :is="icons.pin" aria-hidden="true" />{{ opportunity.location_label }}</span>
+									<span><component :is="icons.clock" aria-hidden="true" />{{ opportunity.closing_at ? `Closes ${opportunity.closing_at}` : 'No deadline listed' }}</span>
+									<span class="font-semibold">{{ roleStatus(opportunity) }}</span>
 								</span>
-								<span v-if="canManageRole(internship)" class="block mt-2 text-[13px] text-blue-700 font-semibold">Edit opportunity</span>
+								<span v-if="canManageRole(opportunity)" class="block mt-2 text-[13px] text-blue-700 font-semibold">Edit opportunity</span>
 							</span>
 						</component>
-						<div v-if="!internships.length" class="px-3 py-6 text-[14px] text-muted">No opportunities posted yet.</div>
+						<div v-if="!opportunities.length" class="px-3 py-6 text-[14px] text-muted">No opportunities posted yet.</div>
 						<Pagination v-if="pagination" :meta="pagination" />
 					</div>
 				</section>

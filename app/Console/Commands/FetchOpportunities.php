@@ -6,7 +6,7 @@ use App\Ai\OpportunityClassifier;
 use App\Importing\OpportunityCsv;
 use App\Importing\OpportunityImporter;
 use App\Models\ImportSource;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
@@ -76,12 +76,12 @@ class FetchOpportunities extends Command
             $this->info('No new opportunities found. Everything the sources list right now is already added, too old or out of scope.');
             return self::SUCCESS;
         }
-        $this->table(['Title', 'Company', 'Kind', 'Location', 'Link'], Internship::with('company.user')->whereIn('id', $added)->get()
+        $this->table(['Title', 'Company', 'Kind', 'Location', 'Link'], Opportunity::with('company.user')->whereIn('id', $added)->get()
             ->map(fn ($role) => [str($role->title)->limit(50), str($role->company->display_name)->limit(30), $role->kind, str($role->location_label)->limit(30), $role->public_url]));
         $this->info(count($added).' new '.str('opportunity')->plural(count($added)).' added.');
         if (! $this->option('no-csv')) {
             $path = OpportunityCsv::path();
-            $written = OpportunityCsv::append($path, Internship::whereIn('id', $added)->get());
+            $written = OpportunityCsv::append($path, Opportunity::whereIn('id', $added)->get());
             $this->line("Saved {$written} to ".str($path)->after(base_path().'/').'. On the server run: php artisan opportunities:import-csv');
         }
         return self::SUCCESS;

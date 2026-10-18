@@ -17,10 +17,10 @@ class AccountInviteTest extends TestCase
         Notification::fake();
         $admin = User::factory()->create(['is_admin' => true]);
 
-        $this->actingAs($admin)->post(route('students.store'), [
+        $this->actingAs($admin)->post(route('candidates.store'), [
             'name' => 'Invited Candidate',
             'email' => 'invited-candidate@example.com',
-        ])->assertRedirect(route('students.index'));
+        ])->assertRedirect(route('candidates.index'));
         $this->actingAs($admin)->post(route('companies.store'), [
             'name' => 'Invited Company',
             'email' => 'invited-company@example.com',
@@ -40,7 +40,7 @@ class AccountInviteTest extends TestCase
         Notification::fake();
         $admin = User::factory()->create(['is_admin' => true]);
 
-        $this->actingAs($admin)->post(route('students.store'), ['name' => 'No Email'])->assertSessionHasErrors('email');
+        $this->actingAs($admin)->post(route('candidates.store'), ['name' => 'No Email'])->assertSessionHasErrors('email');
 
         Notification::assertNothingSent();
     }

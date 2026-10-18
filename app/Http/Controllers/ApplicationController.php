@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ApplicationRequest;
 use App\Http\Resources\ApplicationResource;
-use App\Http\Resources\InternshipResource;
+use App\Http\Resources\OpportunityResource;
 use App\Models\Application;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use App\Models\User;
 use App\Notifications\ApplicationReviewed;
 use App\Notifications\ApplicationSubmitted;
@@ -28,11 +28,11 @@ class ApplicationController extends Controller
 
     public function index(Request $request) // TODO: only students are authorized to access this route
     {
-        $query = Application::with('internship', 'internship.company', 'internship.city', 'internship.field');
+        $query = Application::with('opportunity', 'opportunity.company', 'opportunity.city', 'opportunity.field');
 
         // Admins with their own candidate profile see their own applications.
         if (! Auth::user()->isAdmin() || Auth::user()->userable_id) {
-            $field_name = Auth::user()->isCandidate() ? 'student_id' : 'company_id';
+            $field_name = Auth::user()->isCandidate() ? 'candidate_id' : 'company_id';
             $query->where($field_name, Auth::user()->userable->id);
             if (Auth::user()->isCompany()) {
                 $query->where('channel', 'internal');
@@ -67,27 +67,27 @@ class ApplicationController extends Controller
         ]);
     }
 
-    public function create(Internship $internship)
+    public function create(Opportunity $opportunity)
     {
         return Inertia::render('Applications/Edit', [
-            'internship' => new InternshipResource($internship)
+            'opportunity' => new OpportunityResource($opportunity)
         ]);
     }
 
-    public function store(Internship $internship, ApplicationRequest $request)
+    public function store(Opportunity $opportunity, ApplicationRequest $request)
     {
-        $application = DB::transaction(function () use ($request, $internship) {
+        $application = DB::transaction(function () use ($request, $opportunity) {
             $request->user()->userable()->lockForUpdate()->first();
-            abort_if(Application::where('student_id', $request->user()->userable_id)->where('internship_id', $internship->id)->exists(), 409, 'You already have an application for this opportunity.');
+            abort_if(Application::where('candidate_id', $request->user()->userable_id)->where('opportunity_id', $opportunity->id)->exists(), 409, 'You already have an application for this opportunity.');
             return Application::create([
-            'student_id' => $request->user()->userable->id,
-            'internship_id' => $internship->id,
+            'candidate_id' => $request->user()->userable->id,
+            'opportunity_id' => $opportunity->id,
             'cover_letter' => $request->cover_letter,
             'message' => $request->message,
             'attachments' => $request->hasFile('attachment_files')
                 ? $this->storeAttachments($request, 'applications')
                 : [],
-            'company_id' => $internship->company_id,
+            'company_id' => $opportunity->company_id,
             'channel' => 'internal',
             'applied_at' => today(),
             ]);
@@ -117,8 +117,8 @@ class ApplicationController extends Controller
     public function edit(Application $application)
     {
         return Inertia::render('Applications/Edit', [
-            'internship' => new InternshipResource(
-                Internship::findOrFail($application->internship_id)
+            'opportunity' => new OpportunityResource(
+                Opportunity::findOrFail($application->opportunity_id)
             ),
             'application' => (new ApplicationResource($application))->resolve(),
         ]);
@@ -164,7 +164,7 @@ class ApplicationController extends Controller
             ])
         );
 
-        $this->notifySafely($application->student->user, new ApplicationReviewed($application));
+        $this->notifySafely($application->candidate->user, new ApplicationReviewed($application));
 
         return Redirect::back()->with('toast', [
             'type' => 'notification',
@@ -202,21 +202,21 @@ class ApplicationController extends Controller
         })->values()->all();
     }
 
-    public function track(Internship $internship, Request $request)
+    public function track(Opportunity $opportunity, Request $request)
     {
-        abort_unless($request->user()->isCandidate() && $internship->application_mode === 'external' && $internship->isOpen(), 403);
+        abort_unless($request->user()->isCandidate() && $opportunity->application_mode === 'external' && $opportunity->isOpen(), 403);
         $data = $request->validate([
             'applied_at' => 'nullable|date|before_or_equal:today',
             'candidate_notes' => 'nullable|string|max:10000',
         ]);
 
-        $application = DB::transaction(function () use ($request, $internship, $data) {
+        $application = DB::transaction(function () use ($request, $opportunity, $data) {
             $request->user()->userable()->lockForUpdate()->first();
             return Application::firstOrCreate([
-                'student_id' => $request->user()->userable_id,
-                'internship_id' => $internship->id,
+                'candidate_id' => $request->user()->userable_id,
+                'opportunity_id' => $opportunity->id,
             ], [
-                'company_id' => $internship->company_id,
+                'company_id' => $opportunity->company_id,
                 'channel' => 'external',
                 'status' => 'submitted',
                 'applied_at' => $data['applied_at'] ?? today(),
@@ -231,7 +231,7 @@ class ApplicationController extends Controller
 
     public function updateTracking(Application $application, Request $request)
     {
-        abort_unless($request->user()->isCandidate() && $request->user()->userable_id === $application->student_id && $application->channel === 'external', 403);
+        abort_unless($request->user()->isCandidate() && $request->user()->userable_id === $application->candidate_id && $application->channel === 'external', 403);
         $application->update($request->validate([
             'status' => 'required|in:submitted,review,interview,offer,closed',
             'applied_at' => 'required|date|before_or_equal:today',
@@ -244,7 +244,7 @@ class ApplicationController extends Controller
     public function downloadAttachment(Application $application, int $attachment, Request $request)
     {
         $user = $request->user();
-        abort_unless(($user->isCandidate() && $user->userable_id === $application->student_id)
+        abort_unless(($user->isCandidate() && $user->userable_id === $application->candidate_id)
             || ($application->channel === 'internal' && $user->isCompany() && $user->userable_id === $application->company_id), 403);
         $file = ($application->attachments ?: [])[$attachment] ?? null;
         $storage = $file ? Application::attachmentStorage($file) : null;

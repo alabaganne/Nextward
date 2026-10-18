@@ -2,14 +2,14 @@
 
 namespace Database\Factories;
 
-use App\Models\Student;
+use App\Models\Candidate;
 use App\Models\City;
 use App\Models\Field;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class StudentFactory extends Factory
+class CandidateFactory extends Factory
 {
-    protected $model = Student::class;
+    protected $model = Candidate::class;
 
     public function definition()
     {

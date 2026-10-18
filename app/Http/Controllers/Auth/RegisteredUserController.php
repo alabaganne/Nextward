@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\City;
 use App\Models\Company;
 use App\Models\Field;
-use App\Models\Student;
+use App\Models\Candidate;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,7 +26,7 @@ class RegisteredUserController extends Controller
         return Inertia::render('Auth/Register', [
             'cities' => City::select('id', 'name')->orderBy('name')->get(),
             'fields' => Field::select('id', 'name')->orderBy('name')->get(),
-            'accountType' => $request->query('account') === 'company' ? 'company' : 'student',
+            'accountType' => $request->query('account') === 'company' ? 'company' : 'candidate',
         ]);
     }
 
@@ -41,7 +41,7 @@ class RegisteredUserController extends Controller
     public function store(Request $request)
     {
         $request->merge([
-            'account_type' => $request->input('account_type', 'student'),
+            'account_type' => $request->input('account_type', 'candidate'),
             'country_code' => is_string($request->input('country_code')) ? strtoupper(trim($request->input('country_code'))) : $request->input('country_code'),
         ]);
 
@@ -93,7 +93,7 @@ class RegisteredUserController extends Controller
                     'country_code' => $data['country_code'] ?? null,
                     'location' => $data['location'] ?? null,
                 ])
-                : Student::create([
+                : Candidate::create([
                     'about' => $data['about'] ?? null,
                     'field_id' => $data['field_id'] ?? null,
                     'city_id' => $data['city_id'] ?? null,

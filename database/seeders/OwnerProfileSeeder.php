@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\City;
 use App\Models\Field;
-use App\Models\Student;
+use App\Models\Candidate;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -51,8 +51,8 @@ class OwnerProfileSeeder extends Seeder
         ];
 
         $user = User::where('email', 'alabaganne9@gmail.com')->first();
-        $student = $user?->userable instanceof Student ? $user->userable : new Student();
-        $student->fill($profile)->save();
+        $candidate = $user?->userable instanceof Candidate ? $user->userable : new Candidate();
+        $candidate->fill($profile)->save();
 
         $user ??= new User(['email' => 'alabaganne9@gmail.com']);
         $user->fill([
@@ -64,8 +64,8 @@ class OwnerProfileSeeder extends Seeder
         $user->forceFill([
             'email_verified_at' => $user->email_verified_at ?? now(),
             'terms_accepted_at' => $user->terms_accepted_at ?? now(),
-            'userable_type' => 'student',
-            'userable_id' => $student->id,
+            'userable_type' => 'candidate',
+            'userable_id' => $candidate->id,
         ])->save();
     }
 

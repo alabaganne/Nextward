@@ -4,7 +4,7 @@ import { h } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
 import PageHeader from '@/Components/Ui/PageHeader.vue';
-import RoleCard from '@/Components/Internship/RoleCard.vue';
+import RoleCard from '@/Components/Opportunity/RoleCard.vue';
 
 defineOptions({
 	layout: (_h, page) => h(AppShell, { active: 'saved' }, () => page),
@@ -31,7 +31,7 @@ const icons = {
 		</PageHeader>
 
 		<div v-if="likes.length" class="flex flex-col gap-3.5">
-			<RoleCard v-for="internship in likes" :key="internship.id" :internship="{ ...internship, liked: true }" />
+			<RoleCard v-for="opportunity in likes" :key="opportunity.id" :opportunity="{ ...opportunity, liked: true }" />
 		</div>
 
 		<!-- empty state -->

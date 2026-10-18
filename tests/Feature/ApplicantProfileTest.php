@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Application;
-use App\Models\Student;
+use App\Models\Candidate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -29,46 +29,46 @@ class ApplicantProfileTest extends TestCase
     {
         $company = $this->user('company@example.com');
         $candidate = $this->user('student@example.com');
-        $this->assertTrue(Application::where('student_id', $candidate->userable_id)->where('company_id', $company->userable_id)->where('channel', 'internal')->exists());
+        $this->assertTrue(Application::where('candidate_id', $candidate->userable_id)->where('company_id', $company->userable_id)->where('channel', 'internal')->exists());
 
-        $this->actingAs($company)->get(route('students.show', $candidate->userable_id))
+        $this->actingAs($company)->get(route('candidates.show', $candidate->userable_id))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Students/Show')
-                ->where('student.id', $candidate->userable_id)
-                ->where('student.name', $candidate->name));
+                ->component('Candidates/Show')
+                ->where('candidate.id', $candidate->userable_id)
+                ->where('candidate.name', $candidate->name));
     }
 
     public function test_company_cannot_view_a_candidate_who_did_not_apply(): void
     {
         $company = $this->user('company@example.com');
-        $applicants = Application::where('company_id', $company->userable_id)->where('channel', 'internal')->pluck('student_id');
-        $other = Student::has('user')->whereNotIn('id', $applicants)->firstOrFail();
+        $applicants = Application::where('company_id', $company->userable_id)->where('channel', 'internal')->pluck('candidate_id');
+        $other = Candidate::has('user')->whereNotIn('id', $applicants)->firstOrFail();
 
-        $this->actingAs($company)->get(route('students.show', $other))->assertForbidden();
-        $this->actingAs($company)->get(route('students.edit', $this->user('student@example.com')->userable_id))->assertForbidden();
-        $this->actingAs($company)->get(route('students.index'))->assertForbidden();
+        $this->actingAs($company)->get(route('candidates.show', $other))->assertForbidden();
+        $this->actingAs($company)->get(route('candidates.edit', $this->user('student@example.com')->userable_id))->assertForbidden();
+        $this->actingAs($company)->get(route('candidates.index'))->assertForbidden();
     }
 
     public function test_external_applications_do_not_open_the_profile(): void
     {
         $company = $this->user('stridelabs@example.com');
         $candidate = $this->user('professional@example.com');
-        $internship = $company->userable->internships()->firstOrFail();
+        $opportunity = $company->userable->opportunities()->firstOrFail();
 
-        $this->actingAs($company)->get(route('students.show', $candidate->userable_id))->assertForbidden();
+        $this->actingAs($company)->get(route('candidates.show', $candidate->userable_id))->assertForbidden();
 
-        $application = Application::create(['student_id' => $candidate->userable_id, 'internship_id' => $internship->id, 'company_id' => $company->userable_id, 'channel' => 'external']);
-        $this->actingAs($company)->get(route('students.show', $candidate->userable_id))->assertForbidden();
+        $application = Application::create(['candidate_id' => $candidate->userable_id, 'opportunity_id' => $opportunity->id, 'company_id' => $company->userable_id, 'channel' => 'external']);
+        $this->actingAs($company)->get(route('candidates.show', $candidate->userable_id))->assertForbidden();
 
         $application->update(['channel' => 'internal']);
-        $this->actingAs($company)->get(route('students.show', $candidate->userable_id))->assertOk();
+        $this->actingAs($company)->get(route('candidates.show', $candidate->userable_id))->assertOk();
     }
 
     public function test_candidates_cannot_view_each_other(): void
     {
         $this->actingAs($this->user('professional@example.com'))
-            ->get(route('students.show', $this->user('student@example.com')->userable_id))
+            ->get(route('candidates.show', $this->user('student@example.com')->userable_id))
             ->assertForbidden();
     }
 }

@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { ArrowRight, ArrowUpRight, Briefcase, CircleQuestionMark, FileText, Search, ShieldCheck, Sparkles, SquareArrowOutUpRight } from '@lucide/vue';
 import PublicLayout from '@/Layouts/Public.vue';
-import RoleCard from '@/Components/Internship/RoleCard.vue';
+import RoleCard from '@/Components/Opportunity/RoleCard.vue';
 import GuideCard from '@/Components/Blog/GuideCard.vue';
 import LandingHero from '@/Components/Landing/LandingHero.vue';
 import ClosingBanner from '@/Components/Landing/ClosingBanner.vue';
@@ -77,7 +77,7 @@ const aiPoints = computed(() => [
 
             <section class="public-container section" aria-labelledby="latest-title">
                 <div class="section-head"><div><p class="landing-label">{{ text('Open now', 'Ouvertes maintenant') }}</p><h2 id="latest-title" class="section-title">{{ text('Recent opportunities', 'Les dernières opportunités') }}</h2></div><Link :href="`${prefix}/opportunities`" class="landing-link focus-ring">{{ text('Browse all opportunities', 'Voir toutes les opportunités') }}<ArrowRight class="action-icon" aria-hidden="true" /></Link></div>
-                <div v-if="listings.length" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5"><RoleCard v-for="opportunity in listings" :key="opportunity.id" :internship="opportunity" /></div>
+                <div v-if="listings.length" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5"><RoleCard v-for="opportunity in listings" :key="opportunity.id" :opportunity="opportunity" /></div>
                 <p v-if="listings.length" class="mt-6 flex items-start gap-2.5 text-[14.5px] leading-6 text-slate-600"><ShieldCheck class="mt-0.5 size-[18px] shrink-0 text-brand" aria-hidden="true" />{{ text('Every listing shows its source, where to apply and whether you can work from Tunisia. Details the source doesn’t give are marked as unknown.', 'Chaque offre indique sa source, où candidater et si vous pouvez travailler depuis la Tunisie. Les détails que la source ne donne pas sont indiqués comme inconnus.') }}</p>
                 <p v-else class="panel p-8 text-slate-600">{{ text('There are no active opportunities to show right now. Employer posts and approved source listings appear here when available.', 'Aucune opportunité active à afficher pour le moment. Les offres des employeurs et des sources autorisées apparaissent ici lorsqu’elles sont disponibles.') }}</p>
             </section>
@@ -144,7 +144,7 @@ const aiPoints = computed(() => [
                         <p class="landing-label">{{ text('For employers', 'Pour les employeurs') }}</p>
                         <h2 id="employers-title" class="section-title">{{ text('Hire students and professionals.', 'Recrutez des étudiants et des professionnels.') }}</h2>
                         <p class="section-description">{{ text('Publish an internship or a job. Introduce your company, review applications, and keep candidate conversations in one place.', 'Publiez un stage ou un emploi. Présentez votre entreprise, examinez les candidatures et centralisez les échanges avec les candidats.') }}</p>
-                        <Link :href="currentUser?.userable_type === 'company' ? '/internships/create' : `${prefix}/register?account=company`" class="cta cta-primary focus-ring mt-8">{{ text('Post an opportunity', 'Publier une opportunité') }}<ArrowRight class="action-icon" aria-hidden="true" /></Link>
+                        <Link :href="currentUser?.userable_type === 'company' ? '/opportunities/create' : `${prefix}/register?account=company`" class="cta cta-primary focus-ring mt-8">{{ text('Post an opportunity', 'Publier une opportunité') }}<ArrowRight class="action-icon" aria-hidden="true" /></Link>
                     </div>
                 </div>
             </section>

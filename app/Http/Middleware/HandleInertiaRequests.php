@@ -4,7 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Http\Resources\NotificationResource;
 use App\Models\Message;
-use App\Models\Student;
+use App\Models\Candidate;
 use App\Models\User;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Http\Request;
@@ -80,7 +80,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'badges' => fn () => [
                 'messages' => $user->receivedMessages()->whereNull('read_at')->count(),
-                'public_profiles' => $user->isAdmin() ? Student::where('public_status', 'pending')->count() : null,
+                'public_profiles' => $user->isAdmin() ? Candidate::where('public_status', 'pending')->count() : null,
             ],
 
             'toast' => Session::has('toast') ? Session::get('toast') : null,

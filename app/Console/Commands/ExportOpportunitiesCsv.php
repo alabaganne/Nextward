@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Importing\OpportunityCsv;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use Illuminate\Console\Command;
 
 class ExportOpportunitiesCsv extends Command
@@ -14,7 +14,7 @@ class ExportOpportunitiesCsv extends Command
     public function handle(): int
     {
         $path = OpportunityCsv::path($this->argument('path'));
-        $roles = Internship::available()->where('origin', 'imported')
+        $roles = Opportunity::available()->where('origin', 'imported')
             ->when($this->option('since'), fn ($q, $since) => $q->where('first_seen_at', '>=', $since))->orderBy('id')->get();
         $written = OpportunityCsv::append($path, $roles);
         $this->info("Saved {$written} new rows to {$path}.");

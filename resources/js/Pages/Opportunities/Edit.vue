@@ -4,11 +4,11 @@ import { computed, h, ref, watch } from 'vue';
 import { Link, useForm } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
 
-defineOptions({ layout: (_h, page) => h(AppShell, { active: 'internships' }, () => page) });
-const props = defineProps({ fields: Array, cities: { type: Array, default: () => [] }, skills: { type: Array, default: () => [] }, internship: { type: Object, default: null } });
+defineOptions({ layout: (_h, page) => h(AppShell, { active: 'opportunities' }, () => page) });
+const props = defineProps({ fields: Array, cities: { type: Array, default: () => [] }, skills: { type: Array, default: () => [] }, opportunity: { type: Object, default: null } });
 const MAX_SKILLS = 12;
-const editing = computed(() => !!props.internship);
-const role = computed(() => props.internship || {});
+const editing = computed(() => !!props.opportunity);
+const role = computed(() => props.opportunity || {});
 const formData = (role) => ({
 	title: role.title || '', description: role.description || '', kind: role.kind || 'internship',
 	field_id: role.field_id || null, city_id: role.city_id || null, country_code: role.country_code || '', location: role.location || '',
@@ -45,8 +45,8 @@ const submit = () => {
 	form.excluded_countries = countries(excludedCountries.value);
 	if (form.kind === 'job') { form.duration_weeks = null; form.term = ''; form.program_type = ''; }
 	const options = { onSuccess: () => form.reset('remove_attachments') };
-	if (editing.value) form.transform((data) => ({ ...payload(data), _method: 'put' })).post(route('internships.update', role.value.id), options);
-	else form.transform(payload).post(route('internships.store'), options);
+	if (editing.value) form.transform((data) => ({ ...payload(data), _method: 'put' })).post(route('opportunities.update', role.value.id), options);
+	else form.transform(payload).post(route('opportunities.store'), options);
 };
 const employmentTypes = { FULL_TIME: 'Full-time', PART_TIME: 'Part-time', CONTRACTOR: 'Contract / freelance', TEMPORARY: 'Temporary', INTERN: 'Internship', VOLUNTEER: 'Volunteer', OTHER: 'Other' };
 </script>

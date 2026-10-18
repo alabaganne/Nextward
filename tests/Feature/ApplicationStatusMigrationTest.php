@@ -17,6 +17,7 @@ class ApplicationStatusMigrationTest extends TestCase
 
         // Test the July upgrade against its historical schema, without later dependent indexes.
         foreach ([
+            '2026_10_18_170000_rename_internships_and_students.php',
             '2026_10_13_000300_create_opportunity_imports_and_alerts.php',
             '2026_10_13_000200_extend_candidate_profiles_and_application_tracking.php',
             '2026_10_13_000100_expand_opportunity_catalogue.php',
@@ -28,15 +29,15 @@ class ApplicationStatusMigrationTest extends TestCase
         $cityId = DB::table('cities')->insertGetId(['name' => 'Tunis']);
         $fieldId = DB::table('fields')->insertGetId(['name' => 'Engineering']);
         $companyId = DB::table('companies')->insertGetId(['city_id' => $cityId]);
-        $internshipId = DB::table('internships')->insertGetId([
+        $opportunityId = DB::table('internships')->insertGetId([
             'title' => 'Historical internship', 'description' => 'Migration fixture.',
             'company_id' => $companyId, 'field_id' => $fieldId, 'city_id' => $cityId,
             'closing_at' => now()->addMonth()->toDateString(),
         ]);
         foreach (range(1, 3) as $index) {
-            $studentId = DB::table('students')->insertGetId(['field_id' => $fieldId, 'city_id' => $cityId]);
+            $candidateId = DB::table('students')->insertGetId(['field_id' => $fieldId, 'city_id' => $cityId]);
             DB::table('applications')->insert([
-                'student_id' => $studentId, 'internship_id' => $internshipId, 'company_id' => $companyId,
+                'student_id' => $candidateId, 'internship_id' => $opportunityId, 'company_id' => $companyId,
                 'cover_letter' => 'Historical cover letter '.$index, 'message' => 'Historical message '.$index,
                 'status' => 'submitted',
             ]);

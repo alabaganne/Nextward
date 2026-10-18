@@ -11,11 +11,11 @@ class Field extends Model
 
     protected $fillable = ['name'];
 
-    public function students() {
-        return $this->hasMany(Student::class);
+    public function candidates() {
+        return $this->hasMany(Candidate::class);
     }
 
-    public function internships() {
-        return $this->hasMany(Internship::class);
+    public function opportunities() {
+        return $this->hasMany(Opportunity::class);
     }
 }

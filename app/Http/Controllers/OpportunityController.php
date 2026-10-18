@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\InternshipRequest;
-use App\Http\Resources\InternshipResource;
+use App\Http\Requests\OpportunityRequest;
+use App\Http\Resources\OpportunityResource;
 use App\Models\City;
 use App\Models\Company;
 use App\Models\Field;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use App\Models\Skill;
 use App\Support\PublicSeo;
 use Illuminate\Http\Request;
@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 
-class InternshipController extends Controller
+class OpportunityController extends Controller
 {
     public function index(Request $request, ?string $category = null)
     {
@@ -31,7 +31,7 @@ class InternshipController extends Controller
         $filters = $this->browseFilters($request);
         $request->query->replace($filters);
         $queryFilters = array_merge($filters, ['category' => $category]);
-        $results = Internship::with(['company.user', 'company.city', 'field', 'city', 'skills', 'sources.importSource', 'translations'])
+        $results = Opportunity::with(['company.user', 'company.city', 'field', 'city', 'skills', 'sources.importSource', 'translations'])
             ->available()->searchFilters($queryFilters)->withCandidateState($request->user())
             ->withCount('applications')
             ->orderByRaw('COALESCE(posted_at, first_seen_at, created_at) DESC')->orderByDesc('id')
@@ -40,29 +40,29 @@ class InternshipController extends Controller
 
         $companyFilters = array_diff_key($queryFilters, ['companies' => true]);
         $companies = Company::with('user')
-            ->whereHas('internships', fn ($query) => $query->available()->searchFilters($companyFilters))
-            ->withCount(['internships' => fn ($query) => $query->available()->searchFilters($companyFilters)])
+            ->whereHas('opportunities', fn ($query) => $query->available()->searchFilters($companyFilters))
+            ->withCount(['opportunities' => fn ($query) => $query->available()->searchFilters($companyFilters)])
             ->orderBy('name')->limit(50)->get()->map(fn ($company) => [
                 'id' => $company->id,
                 'name' => $company->display_name,
-                'internships_count' => $company->internships_count,
+                'opportunities_count' => $company->opportunities_count,
             ]);
-        $countries = Internship::available()->whereNotNull('country_code')->distinct()->orderBy('country_code')
+        $countries = Opportunity::available()->whereNotNull('country_code')->distinct()->orderBy('country_code')
             ->pluck('country_code')->map(fn ($code) => [
                 'code' => $code,
                 'name' => class_exists(\Locale::class) ? (\Locale::getDisplayRegion('und_'.$code, $request->is('fr/*') ? 'fr' : 'en') ?: $code) : $code,
             ])->values();
 
-        return Inertia::render('Internships/Index', [
+        return Inertia::render('Opportunities/Index', [
             'filters' => $filters,
-            'internships' => InternshipResource::collection($results),
+            'opportunities' => OpportunityResource::collection($results),
             'category' => $category,
             'categoryLabel' => $categories[$category] ?? 'Explore opportunities',
             'countries' => $countries,
             'companies' => $companies,
-            'fields' => Field::withCount(['internships' => fn ($query) => $query->available()->searchFilters(array_diff_key($queryFilters, ['fields' => true, 'field' => true]))])->orderBy('name')->get(),
-            'cities' => City::withCount(['internships' => fn ($query) => $query->available()->searchFilters(array_diff_key($queryFilters, ['cities' => true]))])
-                ->orderByDesc('internships_count')->orderBy('name')->limit(60)->get(),
+            'fields' => Field::withCount(['opportunities' => fn ($query) => $query->available()->searchFilters(array_diff_key($queryFilters, ['fields' => true, 'field' => true]))])->orderBy('name')->get(),
+            'cities' => City::withCount(['opportunities' => fn ($query) => $query->available()->searchFilters(array_diff_key($queryFilters, ['cities' => true]))])
+                ->orderByDesc('opportunities_count')->orderBy('name')->limit(60)->get(),
             'seo' => PublicSeo::browse($request, $category, $results->total()),
         ]);
     }
@@ -124,131 +124,131 @@ class InternshipController extends Controller
 
     public function create()
     {
-        $this->authorize('create', Internship::class);
-        return Inertia::render('Internships/Edit', [
+        $this->authorize('create', Opportunity::class);
+        return Inertia::render('Opportunities/Edit', [
             'fields' => $this->getFields(),
             'cities' => City::select('id', 'name')->orderBy('name')->get(),
             'skills' => Skill::select('id', 'name')->orderBy('name')->get(),
         ]);
     }
 
-    public function store(InternshipRequest $request)
+    public function store(OpportunityRequest $request)
     {
-        $this->authorize('create', Internship::class);
+        $this->authorize('create', Opportunity::class);
         $company = $request->user()->userable;
         $data = $this->nativeData($request);
         $data['company_id'] = $company->id;
         $data['origin'] = 'native';
         $data['application_mode'] = 'internal';
         $data['attachments'] = $this->storeAttachments($request, 'internships');
-        $internship = Internship::create($data);
-        $internship->skills()->sync($request->validated('skills') ?? []);
+        $opportunity = Opportunity::create($data);
+        $opportunity->skills()->sync($request->validated('skills') ?? []);
 
-        return redirect($internship->publication_status === 'published'
-            ? route('opportunities.show', ['opportunity' => $internship->id.'-'.$internship->slug])
-            : route('internships.edit', $internship))
+        return redirect($opportunity->publication_status === 'published'
+            ? route('opportunities.show', ['opportunity' => $opportunity->id.'-'.$opportunity->slug])
+            : route('opportunities.edit', $opportunity))
             ->with('toast', ['type' => 'store', 'message' => 'Your opportunity has been saved.']);
     }
 
-    public function show(Internship $internship)
+    public function show(Opportunity $opportunity)
     {
-        $internship = $this->canonicalOpportunity($internship);
-        abort_unless($internship->publication_status === 'published', 404);
-        return redirect($internship->public_url, 301);
+        $opportunity = $this->canonicalOpportunity($opportunity);
+        abort_unless($opportunity->publication_status === 'published', 404);
+        return redirect($opportunity->public_url, 301);
     }
 
-    public function publicShow(Request $request, string $opportunity)
+    public function publicShow(Request $request, string $segment)
     {
-        abort_unless(preg_match('/^([1-9][0-9]*)(?:-.+)?$/u', $opportunity, $matches), 404);
-        $internship = $this->canonicalOpportunity(Internship::findOrFail($matches[1]));
-        abort_unless($internship->publication_status === 'published', 404);
+        abort_unless(preg_match('/^([1-9][0-9]*)(?:-.+)?$/u', $segment, $matches), 404);
+        $opportunity = $this->canonicalOpportunity(Opportunity::findOrFail($matches[1]));
+        abort_unless($opportunity->publication_status === 'published', 404);
         $locale = $request->is('fr/*') ? 'fr' : 'en';
-        $canonicalSegment = basename(parse_url($internship->publicUrl($locale), PHP_URL_PATH));
-        if ($opportunity !== $canonicalSegment) {
-            return redirect($internship->publicUrl($locale), 301);
+        $canonicalSegment = basename(parse_url($opportunity->publicUrl($locale), PHP_URL_PATH));
+        if ($segment !== $canonicalSegment) {
+            return redirect($opportunity->publicUrl($locale), 301);
         }
-        $internship->load(['company.user', 'company.city', 'field', 'city', 'skills', 'sources.importSource', 'translations']);
+        $opportunity->load(['company.user', 'company.city', 'field', 'city', 'skills', 'sources.importSource', 'translations']);
         if ($request->user()?->isCandidate()) {
-            $internship->load(['candidateApplications' => fn ($query) => $query->where('student_id', $request->user()->userable_id)]);
-            $internship->loadExists(['likes as is_saved' => fn ($query) => $query->where('students.id', $request->user()->userable_id)]);
+            $opportunity->load(['candidateApplications' => fn ($query) => $query->where('candidate_id', $request->user()->userable_id)]);
+            $opportunity->loadExists(['likes as is_saved' => fn ($query) => $query->where('candidates.id', $request->user()->userable_id)]);
         }
-        $related = Internship::with(['company.user', 'company.city', 'field', 'city', 'skills', 'sources.importSource', 'translations'])
-            ->available()->where('id', '!=', $internship->id)->where('kind', $internship->kind)
-            ->when($internship->field_id, fn ($query) => $query->where('field_id', $internship->field_id))
+        $related = Opportunity::with(['company.user', 'company.city', 'field', 'city', 'skills', 'sources.importSource', 'translations'])
+            ->available()->where('id', '!=', $opportunity->id)->where('kind', $opportunity->kind)
+            ->when($opportunity->field_id, fn ($query) => $query->where('field_id', $opportunity->field_id))
             ->withCandidateState($request->user())
             ->orderByRaw('COALESCE(posted_at, first_seen_at, created_at) DESC')->orderByDesc('id')->limit(4)->get();
 
-        return Inertia::render('Internships/Show', [
-            'internship' => (new InternshipResource($internship))->resolve($request),
-            'related' => InternshipResource::collection($related),
-            'seo' => PublicSeo::opportunity($internship),
-            'translation' => parse_url($internship->publicUrl($locale === 'fr' ? 'en' : 'fr'), PHP_URL_PATH),
+        return Inertia::render('Opportunities/Show', [
+            'opportunity' => (new OpportunityResource($opportunity))->resolve($request),
+            'related' => OpportunityResource::collection($related),
+            'seo' => PublicSeo::opportunity($opportunity),
+            'translation' => parse_url($opportunity->publicUrl($locale === 'fr' ? 'en' : 'fr'), PHP_URL_PATH),
             'kits' => $request->user()?->isCandidate()
-                ? \App\Models\ApplicationKit::where('student_id', $request->user()->userable_id)->where('internship_id', $internship->id)->get(['id', 'locale', 'status'])
+                ? \App\Models\ApplicationKit::where('candidate_id', $request->user()->userable_id)->where('opportunity_id', $opportunity->id)->get(['id', 'locale', 'status'])
                 : [],
         ]);
     }
 
-    private function canonicalOpportunity(Internship $internship): Internship
+    private function canonicalOpportunity(Opportunity $opportunity): Opportunity
     {
         $seen = [];
-        while ($internship->merged_into_id) {
-            abort_if(isset($seen[$internship->id]) || count($seen) >= 10, 404);
-            $seen[$internship->id] = true;
-            $internship = Internship::findOrFail($internship->merged_into_id);
+        while ($opportunity->merged_into_id) {
+            abort_if(isset($seen[$opportunity->id]) || count($seen) >= 10, 404);
+            $seen[$opportunity->id] = true;
+            $opportunity = Opportunity::findOrFail($opportunity->merged_into_id);
         }
-        return $internship;
+        return $opportunity;
     }
 
-    public function edit(Internship $internship)
+    public function edit(Opportunity $opportunity)
     {
-        $this->authorize('update', $internship);
-        return Inertia::render('Internships/Edit', [
-            'internship' => $internship->load('skills:id,name'),
+        $this->authorize('update', $opportunity);
+        return Inertia::render('Opportunities/Edit', [
+            'opportunity' => $opportunity->load('skills:id,name'),
             'fields' => $this->getFields(),
             'cities' => City::select('id', 'name')->orderBy('name')->get(),
             'skills' => Skill::select('id', 'name')->orderBy('name')->get(),
         ]);
     }
 
-    public function update(InternshipRequest $request, Internship $internship)
+    public function update(OpportunityRequest $request, Opportunity $opportunity)
     {
-        $this->authorize('update', $internship);
+        $this->authorize('update', $opportunity);
         $data = $this->nativeData($request);
-        $oldAttachments = $internship->attachments ?: [];
+        $oldAttachments = $opportunity->attachments ?: [];
         $replaceFiles = $request->hasFile('attachment_files') || $request->boolean('remove_attachments');
         if ($replaceFiles) {
             $data['attachments'] = $this->storeAttachments($request, 'internships');
         }
         $skills = $request->has('skills') ? ($request->validated('skills') ?? []) : null;
-        if ($internship->origin === 'imported') {
-            $data['moderation_overrides'] = array_replace($internship->moderation_overrides ?: [], $data, $skills === null ? [] : ['skills' => $skills]);
+        if ($opportunity->origin === 'imported') {
+            $data['moderation_overrides'] = array_replace($opportunity->moderation_overrides ?: [], $data, $skills === null ? [] : ['skills' => $skills]);
         }
-        $internship->update($data);
+        $opportunity->update($data);
         if ($skills !== null) {
-            $internship->skills()->sync($skills);
+            $opportunity->skills()->sync($skills);
         }
         if ($replaceFiles) {
             $this->deleteAttachments($oldAttachments);
         }
 
-        return redirect($internship->publication_status === 'published'
-            ? route('opportunities.show', ['opportunity' => $internship->id.'-'.$internship->slug])
-            : route('internships.edit', $internship))
+        return redirect($opportunity->publication_status === 'published'
+            ? route('opportunities.show', ['opportunity' => $opportunity->id.'-'.$opportunity->slug])
+            : route('opportunities.edit', $opportunity))
             ->with('toast', ['type' => 'update', 'message' => 'Opportunity updated successfully.']);
     }
 
-    public function destroy(Internship $internship)
+    public function destroy(Opportunity $opportunity)
     {
-        $this->authorize('delete', $internship);
-        $internship->update(['status' => 'closed', 'publication_status' => 'suppressed']);
+        $this->authorize('delete', $opportunity);
+        $opportunity->update(['status' => 'closed', 'publication_status' => 'suppressed']);
         return Redirect::route('dashboard')->with('toast', [
             'type' => 'destroy',
             'message' => 'Opportunity removed from public discovery. Application history is retained.',
         ]);
     }
 
-    private function nativeData(InternshipRequest $request): array
+    private function nativeData(OpportunityRequest $request): array
     {
         $data = $request->safe()->except(['attachment_files', 'remove_attachments', 'skills']);
         if (array_key_exists('pay_amount', $data) && ! array_key_exists('pay_min', $data)) {

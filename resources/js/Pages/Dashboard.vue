@@ -12,8 +12,8 @@ defineOptions({
 });
 
 const props = defineProps({
-	internships_count: Number,
-	students_count: Number,
+	opportunities_count: Number,
+	candidates_count: Number,
 	companies_count: Number,
 	applications_count: Number,
 	interviews_count: { type: Number, default: 0 },
@@ -31,7 +31,7 @@ const firstName = computed(() => (user.value?.name || '').split(' ')[0]);
 const isAdmin = computed(() => !!user.value?.is_admin);
 const isCompany = computed(() => user.value?.userable_type === 'company');
 const managedRolesHref = computed(() => `${route('companies.show', user.value?.userable_id)}#opportunities`);
-const partyName = (application) => (isCompany.value ? application.student?.name : application.company?.name) || '';
+const partyName = (application) => (isCompany.value ? application.candidate?.name : application.company?.name) || '';
 
 const description = computed(() => {
 	if (isAdmin.value) return 'Keep opportunities, companies, and candidates up to date.';
@@ -42,9 +42,9 @@ const description = computed(() => {
 const cards = computed(() => {
 	if (isAdmin.value) {
 		return [
-			{ label: 'Open opportunities', value: props.internships_count, icon: Briefcase, href: route('opportunities.index') },
+			{ label: 'Open opportunities', value: props.opportunities_count, icon: Briefcase, href: route('opportunities.index') },
 			{ label: 'Companies', value: props.companies_count, icon: Building2, href: route('companies.index') },
-			{ label: 'Candidates', value: props.students_count, icon: GraduationCap, href: route('students.index') },
+			{ label: 'Candidates', value: props.candidates_count, icon: GraduationCap, href: route('candidates.index') },
 		];
 	}
 	if (isCompany.value) {
@@ -102,8 +102,8 @@ const cards = computed(() => {
 				>
 					<CompanyLogo class="size-10 rounded-[10px] text-[14px]" :name="partyName(application)" :src="isCompany ? null : application.company?.image" />
 					<div class="flex-1 min-w-0">
-						<b class="text-[15px] font-semibold block truncate">{{ application.internship.title }}</b>
-						<span class="text-[13px] text-muted block truncate">{{ [partyName(application), application.internship.city?.name].filter(Boolean).join(', ') }}</span>
+						<b class="text-[15px] font-semibold block truncate">{{ application.opportunity.title }}</b>
+						<span class="text-[13px] text-muted block truncate">{{ [partyName(application), application.opportunity.city?.name].filter(Boolean).join(', ') }}</span>
 					</div>
 					<StatusPill :status="application.status" />
 					<span class="text-[13px] text-muted-2 whitespace-nowrap max-[760px]:hidden">{{ application.created_at }}</span>
@@ -114,7 +114,7 @@ const cards = computed(() => {
 					<div v-if="isAdmin" class="flex flex-wrap gap-x-6 gap-y-3">
 						<Link class="font-semibold text-blue-700 hover:underline" :href="route('imports.index')">Sources and imports</Link>
 						<Link class="font-semibold text-blue-700 hover:underline" :href="route('companies.index')">Companies</Link>
-						<Link class="font-semibold text-blue-700 hover:underline" :href="route('students.index')">Candidates</Link>
+						<Link class="font-semibold text-blue-700 hover:underline" :href="route('candidates.index')">Candidates</Link>
 						<Link class="font-semibold text-blue-700 hover:underline" :href="route('fields.index')">Fields</Link>
 					</div>
 					<p v-else-if="isCompany">No applications yet. Keep your <Link class="font-semibold text-blue-700 hover:underline" :href="managedRolesHref">role details</Link> up to date to attract candidates.</p>

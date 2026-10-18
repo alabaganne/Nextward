@@ -8,12 +8,12 @@ import StatusPill from '@/Components/Ui/StatusPill.vue';
 import Pagination from '@/Components/Ui/Pagination.vue';
 
 defineOptions({
-	layout: (_h, page) => h(AppShell, { active: 'internships' }, () => page),
+	layout: (_h, page) => h(AppShell, { active: 'opportunities' }, () => page),
 });
 
 defineProps({
 	applications: { type: Object, required: true },
-	internship: { type: Object, required: true },
+	opportunity: { type: Object, required: true },
 });
 
 const icons = {
@@ -26,14 +26,14 @@ const icons = {
 		<div class="flex items-center gap-2 text-[13.5px] text-muted font-medium mb-[22px] [&_svg]:w-3.5 [&_svg]:h-3.5 [&_svg]:text-muted-2">
 			<Link class="hover:text-blue-700" :href="route('opportunities.index')">Opportunities</Link>
 			<component :is="icons.chevron" aria-hidden="true" />
-			<Link class="hover:text-blue-700" :href="route('internships.show', internship.id)">{{ internship.title }}</Link>
+			<Link class="hover:text-blue-700" :href="route('internships.show', opportunity.id)">{{ opportunity.title }}</Link>
 			<component :is="icons.chevron" aria-hidden="true" />
 			<span class="text-ink-700 font-semibold">Applicants</span>
 		</div>
 
 		<div class="mb-[22px]">
 			<h1 class="font-display text-[28px] font-semibold tracking-[-.02em] leading-tight">Applicants</h1>
-			<p class="text-muted text-[15px] mt-1.5">Everyone who applied to <b class="text-ink-700 font-semibold">{{ internship.title }}</b>.</p>
+			<p class="text-muted text-[15px] mt-1.5">Everyone who applied to <b class="text-ink-700 font-semibold">{{ opportunity.title }}</b>.</p>
 		</div>
 
 		<div class="bg-white border border-line rounded-[18px] overflow-hidden">
@@ -48,10 +48,10 @@ const icons = {
 				:href="route('applications.show', application.id)"
 			>
 				<div class="flex items-center gap-3.5 min-w-0">
-					<CompanyLogo class="w-[46px] h-[46px] rounded-[12px] text-[15px]" :name="application.student?.name" />
+					<CompanyLogo class="w-[46px] h-[46px] rounded-[12px] text-[15px]" :name="application.candidate?.name" />
 					<div>
-						<b class="text-[15px] font-semibold block">{{ application.student?.name }}</b>
-						<span class="text-[13px] text-muted">{{ application.student?.email }}</span>
+						<b class="text-[15px] font-semibold block">{{ application.candidate?.name }}</b>
+						<span class="text-[13px] text-muted">{{ application.candidate?.email }}</span>
 					</div>
 				</div>
 				<div class="text-[13px] text-muted-2 max-[760px]:hidden">{{ application.created_at }}</div>

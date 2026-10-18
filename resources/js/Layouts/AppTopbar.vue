@@ -61,7 +61,7 @@ const logout = () => router.post(route('logout'));
 		</form>
 
 		<div class="ml-auto flex items-center gap-1.5 shrink-0">
-			<Link v-if="isCompany" class="cbtn cbtn-primary !py-0 h-10 !px-4 !text-sm max-[680px]:!px-0 max-[680px]:w-10" :href="route('internships.create')" aria-label="Post opportunity">
+			<Link v-if="isCompany" class="cbtn cbtn-primary !py-0 h-10 !px-4 !text-sm max-[680px]:!px-0 max-[680px]:w-10" :href="route('opportunities.create')" aria-label="Post opportunity">
 				<Plus class="size-4" aria-hidden="true" /><span class="max-[680px]:hidden">Post opportunity</span>
 			</Link>
 

@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class InternshipRequest extends FormRequest
+class OpportunityRequest extends FormRequest
 {
     public function authorize()
     {

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\InternshipResource;
+use App\Http\Resources\OpportunityResource;
 use App\Models\Company;
 use App\Support\PublicSeo;
 use Illuminate\Http\Request;
@@ -22,7 +22,7 @@ class PublicCompanyController extends Controller
         if ($companySlug !== basename(parse_url($model->publicUrl($locale), PHP_URL_PATH))) {
             return redirect($model->publicUrl($locale), 301);
         }
-        $opportunities = $model->internships()->available()
+        $opportunities = $model->opportunities()->available()
             ->with(['company.user', 'company.city', 'field', 'city', 'skills', 'sources.importSource', 'translations'])
             ->withCandidateState($request->user())
             ->orderByRaw('COALESCE(posted_at, first_seen_at, created_at) DESC')->orderByDesc('id')->limit(50)->get();
@@ -37,7 +37,7 @@ class PublicCompanyController extends Controller
                 'location' => $model->city?->name ?: $model->location,
                 'managed' => (bool) $model->user,
             ],
-            'opportunities' => InternshipResource::collection($opportunities),
+            'opportunities' => OpportunityResource::collection($opportunities),
             'seo' => PublicSeo::company($model, $opportunities->count()),
             'translation' => parse_url($model->publicUrl($locale === 'fr' ? 'en' : 'fr'), PHP_URL_PATH),
         ]);

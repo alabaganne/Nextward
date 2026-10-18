@@ -5,8 +5,8 @@ namespace Tests\Feature;
 use App\Models\Application;
 use App\Models\Company;
 use App\Models\Field;
-use App\Models\Internship;
-use App\Models\Student;
+use App\Models\Opportunity;
+use App\Models\Candidate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -23,7 +23,7 @@ class PageSmokeTest extends TestCase
         $this->seed(\Tests\Fixtures\DemoSeeder::class);
     }
 
-    private function student(): User
+    private function candidate(): User
     {
         return User::where('email', 'student@example.com')->firstOrFail();
     }
@@ -36,20 +36,20 @@ class PageSmokeTest extends TestCase
 
         $this->get(\App\Support\Blog::all('en')[0]['path'])->assertOk();
 
-        $internship = Internship::firstOrFail();
+        $opportunity = Opportunity::firstOrFail();
         $this->get('/internships')->assertStatus(301)->assertRedirect('/opportunities/internships');
-        $this->get("/internships/{$internship->id}")
+        $this->get("/internships/{$opportunity->id}")
             ->assertStatus(301)
-            ->assertRedirect($internship->public_url);
-        $this->get($internship->public_url)
+            ->assertRedirect($opportunity->public_url);
+        $this->get($opportunity->public_url)
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Internships/Show')
-                ->has('internship.title')
-                ->has('internship.company.name'));
+                ->component('Opportunities/Show')
+                ->has('opportunity.title')
+                ->has('opportunity.company.name'));
     }
 
-    public function test_the_old_student_and_professional_pages_redirect_to_the_home_page(): void
+    public function test_the_old_candidate_and_professional_pages_redirect_to_the_home_page(): void
     {
         foreach (['/for-students' => '/', '/for-professionals' => '/', '/fr/for-students' => '/fr', '/fr/for-professionals' => '/fr'] as $uri => $home) {
             $this->get($uri)->assertStatus(301)->assertRedirect($home);
@@ -68,82 +68,82 @@ class PageSmokeTest extends TestCase
         $this->assertContains('FAQPage', array_column($props['seo']['structured_data'], '@type'));
     }
 
-    public function test_workspace_pages_render_for_students(): void
+    public function test_workspace_pages_render_for_candidates(): void
     {
-        $student = $this->student();
+        $candidate = $this->candidate();
 
         foreach (['/dashboard', '/applications', '/likes', '/messages', '/companies', '/profile', '/settings'] as $uri) {
-            $this->actingAs($student)->get($uri)->assertOk();
+            $this->actingAs($candidate)->get($uri)->assertOk();
         }
 
-        $application = Application::where('student_id', $student->userable->id)->firstOrFail();
-        $this->actingAs($student)
+        $application = Application::where('candidate_id', $candidate->userable->id)->firstOrFail();
+        $this->actingAs($candidate)
             ->get("/applications/{$application->id}")
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Applications/Show')
-                ->has('application.internship.title')
+                ->has('application.opportunity.title')
                 ->has('application.company.name'));
 
         $company = Company::firstOrFail();
-        $this->actingAs($student)->get("/companies/{$company->id}")->assertOk();
+        $this->actingAs($candidate)->get("/companies/{$company->id}")->assertOk();
     }
 
     public function test_dashboard_receives_real_props(): void
     {
-        $this->actingAs($this->student())
+        $this->actingAs($this->candidate())
             ->get('/dashboard')
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Dashboard')
-                ->where('internships_count', Internship::open()->count())
+                ->where('opportunities_count', Opportunity::open()->count())
                 ->has('applications'));
     }
 
     public function test_dashboard_count_and_application_parties_match_workspace_data(): void
     {
         $application = Application::firstOrFail();
-        Internship::firstOrFail()->update(['status' => 'closed']);
+        Opportunity::firstOrFail()->update(['status' => 'closed']);
 
-        foreach ([$application->student->user, $application->company->user, User::where('email', 'admin@example.com')->firstOrFail()] as $user) {
+        foreach ([$application->candidate->user, $application->company->user, User::where('email', 'admin@example.com')->firstOrFail()] as $user) {
             $this->actingAs($user)->get('/applications')
                 ->assertInertia(fn (Assert $page) => $page
                     ->has('applications.data.0.company.id')
                     ->has('applications.data.0.company.name')
-                    ->has('applications.data.0.student.id')
-                    ->has('applications.data.0.student.name'));
+                    ->has('applications.data.0.candidate.id')
+                    ->has('applications.data.0.candidate.name'));
 
             $this->get('/dashboard')
                 ->assertInertia(fn (Assert $page) => $page
-                    ->where('internships_count', Internship::open()->count()));
+                    ->where('opportunities_count', Opportunity::open()->count()));
         }
     }
 
     public function test_dashboard_interview_counts_include_older_applications_and_exclude_other_accounts(): void
     {
-        $student = $this->student();
-        $internship = Internship::firstOrFail();
-        $otherInternship = Internship::where('company_id', '<>', $internship->company_id)->firstOrFail();
-        $otherStudent = Student::where('id', '<>', $student->userable_id)->firstOrFail();
+        $candidate = $this->candidate();
+        $opportunity = Opportunity::firstOrFail();
+        $otherOpportunity = Opportunity::where('company_id', '<>', $opportunity->company_id)->firstOrFail();
+        $otherCandidate = Candidate::where('id', '<>', $candidate->userable_id)->firstOrFail();
         Application::query()->delete();
 
         foreach (['interview', 'interview', 'submitted', 'submitted', 'submitted', 'submitted'] as $index => $status) {
             Application::create([
-                'student_id' => $student->userable_id,
-                'company_id' => $internship->company_id,
-                'internship_id' => $internship->id,
+                'candidate_id' => $candidate->userable_id,
+                'company_id' => $opportunity->company_id,
+                'opportunity_id' => $opportunity->id,
                 'cover_letter' => 'Application used to verify dashboard totals.',
                 'status' => $status,
             ])->forceFill(['created_at' => now()->subDays(6 - $index)])->save();
         }
         Application::create([
-            'student_id' => $otherStudent->id,
-            'company_id' => $otherInternship->company_id,
-            'internship_id' => $otherInternship->id,
+            'candidate_id' => $otherCandidate->id,
+            'company_id' => $otherOpportunity->company_id,
+            'opportunity_id' => $otherOpportunity->id,
             'cover_letter' => 'Application belonging to other accounts.',
             'status' => 'interview',
         ]);
 
-        foreach ([$student, $internship->company->user] as $user) {
+        foreach ([$candidate, $opportunity->company->user] as $user) {
             $this->actingAs($user)->get('/dashboard')
                 ->assertInertia(fn (Assert $page) => $page
                     ->has('applications', 4)
@@ -156,11 +156,11 @@ class PageSmokeTest extends TestCase
 
     public function test_opportunities_index_receives_filters_and_results(): void
     {
-        $this->actingAs($this->student())
+        $this->actingAs($this->candidate())
             ->get('/opportunities')
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Internships/Index')
-                ->has('internships.data')
+                ->component('Opportunities/Index')
+                ->has('opportunities.data')
                 ->has('fields')
                 ->has('cities'));
     }
@@ -182,7 +182,7 @@ class PageSmokeTest extends TestCase
         $company = User::where('email', 'company@example.com')->firstOrFail();
         $admin = User::where('email', 'admin@example.com')->firstOrFail();
 
-        $this->actingAs($admin)->get('/students')->assertOk();
+        $this->actingAs($admin)->get('/candidates/manage')->assertOk();
 
         foreach ([$company, $admin] as $user) {
             foreach (['/dashboard', '/opportunities', '/applications', '/messages', '/companies', '/profile', '/settings'] as $uri) {
@@ -194,26 +194,26 @@ class PageSmokeTest extends TestCase
     public function test_company_role_management_pages_receive_their_form_data(): void
     {
         $user = User::where('email', 'company@example.com')->firstOrFail();
-        $internship = Internship::where('company_id', $user->userable_id)->firstOrFail();
+        $opportunity = Opportunity::where('company_id', $user->userable_id)->firstOrFail();
 
-        $this->actingAs($user)->get(route('internships.edit', $internship))
+        $this->actingAs($user)->get(route('opportunities.edit', $opportunity))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Internships/Edit')
-                ->where('internship.id', $internship->id)
-                ->has('internship.work_type')
+                ->component('Opportunities/Edit')
+                ->where('opportunity.id', $opportunity->id)
+                ->has('opportunity.work_type')
                 ->has('fields.0.id'));
-        $this->get(route('internships.create'))
+        $this->get(route('opportunities.create'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Internships/Edit')
+                ->component('Opportunities/Edit')
                 ->has('fields.0.name'));
-        $this->get(route('internships.applications.index', $internship))
+        $this->get(route('opportunities.applications.index', $opportunity))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Internships/Applications')
-                ->where('internship.id', $internship->id)
-                ->has('applications.data.0.student.name'));
+                ->component('Opportunities/Applications')
+                ->where('opportunity.id', $opportunity->id)
+                ->has('applications.data.0.candidate.name'));
         $this->get(route('settings'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
@@ -227,14 +227,14 @@ class PageSmokeTest extends TestCase
     {
         $admin = User::where('email', 'admin@example.com')->firstOrFail();
         $company = Company::firstOrFail();
-        $student = Student::firstOrFail();
-        $internship = Internship::firstOrFail();
+        $candidate = Candidate::firstOrFail();
+        $opportunity = Opportunity::firstOrFail();
         $field = Field::firstOrFail();
         $this->actingAs($admin);
 
         foreach ([
             'companies.index' => 'Companies/Index',
-            'students.index' => 'Students/Index',
+            'candidates.index' => 'Candidates/Index',
             'skills.index' => 'Skills/Index',
             'fields.index' => 'Fields/Index',
             'fields.create' => 'Fields/Edit',
@@ -245,8 +245,8 @@ class PageSmokeTest extends TestCase
 
         foreach ([
             ['companies.edit', $company, 'Companies/Edit', 'company'],
-            ['students.edit', $student, 'Students/Edit', 'student'],
-            ['internships.edit', $internship, 'Internships/Edit', 'internship'],
+            ['candidates.edit', $candidate, 'Candidates/Edit', 'candidate'],
+            ['opportunities.edit', $opportunity, 'Opportunities/Edit', 'opportunity'],
             ['fields.edit', $field, 'Fields/Edit', 'field'],
         ] as [$route, $model, $component, $prop]) {
             $this->get(route($route, $model))->assertOk()
@@ -259,14 +259,14 @@ class PageSmokeTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Companies/Edit')
                 ->has('cities.0.id'));
-        $this->get(route('students.create'))->assertOk()
+        $this->get(route('candidates.create'))->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Students/Edit')
+                ->component('Candidates/Edit')
                 ->has('fields.0.id')
                 ->has('cities.0.id'));
 
         // Posting requires a company profile so that ownership and city are known.
-        $this->get(route('internships.create'))->assertForbidden();
+        $this->get(route('opportunities.create'))->assertForbidden();
     }
 
     public function test_application_detail_contact_data_is_available_to_both_parties_and_admins(): void
@@ -274,7 +274,7 @@ class PageSmokeTest extends TestCase
         $application = Application::firstOrFail();
         $admin = User::where('email', 'admin@example.com')->firstOrFail();
 
-        foreach ([$application->student->user, $application->company->user, $admin] as $user) {
+        foreach ([$application->candidate->user, $application->company->user, $admin] as $user) {
             $this->actingAs($user)->get(route('applications.show', $application))
                 ->assertOk()
                 ->assertInertia(fn (Assert $page) => $page
@@ -282,11 +282,11 @@ class PageSmokeTest extends TestCase
                     ->where('application.company.id', $application->company_id)
                     ->where('application.company.user_id', $application->company->user->id)
                     ->where('application.company.name', $application->company->user->name)
-                    ->where('application.student.id', $application->student_id)
-                    ->where('application.student.user_id', $application->student->user->id)
-                    ->where('application.student.name', $application->student->user->name)
-                    ->has('application.internship.field.name')
-                    ->has('application.internship.city.name')
+                    ->where('application.candidate.id', $application->candidate_id)
+                    ->where('application.candidate.user_id', $application->candidate->user->id)
+                    ->where('application.candidate.name', $application->candidate->user->name)
+                    ->has('application.opportunity.field.name')
+                    ->has('application.opportunity.city.name')
                     ->has('application.attachments'));
         }
     }

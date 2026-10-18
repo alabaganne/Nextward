@@ -10,7 +10,7 @@ defineOptions({
 });
 
 const props = defineProps({
-	internship: { type: Object, required: true },
+	opportunity: { type: Object, required: true },
 	application: { type: Object, default: null },
 });
 
@@ -33,7 +33,7 @@ const form = useForm({
 // A draft from the cover letter button on the opportunity page.
 onMounted(() => {
 	try {
-		const key = `nextward.cover-letter.${props.internship.id}`;
+		const key = `nextward.cover-letter.${props.opportunity.id}`;
 		const draft = sessionStorage.getItem(key);
 		sessionStorage.removeItem(key);
 		if (draft && !form.cover_letter) form.cover_letter = draft;
@@ -44,7 +44,7 @@ const submit = () => {
 	if (editing.value) {
 		form.transform((data) => ({ ...data, _method: 'put' })).post(route('applications.update', props.application.id));
 	} else {
-		form.post(route('applications.store', props.internship.id));
+		form.post(route('applications.store', props.opportunity.id));
 	}
 };
 
@@ -68,7 +68,7 @@ const tips = [
 		<div class="flex items-center gap-2 text-[13.5px] text-muted font-medium mb-[22px] [&_svg]:w-3.5 [&_svg]:h-3.5 [&_svg]:text-muted-2">
 			<Link class="hover:text-blue-700" :href="route('opportunities.index')">Opportunities</Link>
 			<component :is="icons.chevron" aria-hidden="true" />
-			<Link class="hover:text-blue-700" :href="internship.public_url || route('internships.show', internship.id)">{{ internship.title }}</Link>
+			<Link class="hover:text-blue-700" :href="opportunity.public_url || route('internships.show', opportunity.id)">{{ opportunity.title }}</Link>
 			<component :is="icons.chevron" aria-hidden="true" />
 			<span class="text-ink-700 font-semibold">{{ editing ? 'Edit application' : 'Apply' }}</span>
 		</div>
@@ -113,7 +113,7 @@ const tips = [
 					</div>
 				</div>
 				<div class="px-8 max-[560px]:px-5 py-4 border-t border-line-2 flex justify-end gap-2.5 bg-white rounded-b-[18px]">
-					<Link class="cbtn bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700" :href="editing ? route('applications.show', application.id) : internship.public_url || route('internships.show', internship.id)">Cancel</Link>
+					<Link class="cbtn bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700" :href="editing ? route('applications.show', application.id) : opportunity.public_url || route('internships.show', opportunity.id)">Cancel</Link>
 					<button class="cbtn bg-blue-600 text-white hover:bg-blue-700 [&_svg]:w-[17px] [&_svg]:h-[17px]" type="submit" :disabled="form.processing">
 						{{ editing ? 'Save changes' : 'Submit application' }} <component :is="icons.arrow" aria-hidden="true" />
 					</button>
@@ -125,15 +125,15 @@ const tips = [
 				<section class="bg-white border border-line rounded-[18px] p-6">
 					<h3 class="text-sm tracking-[.04em] text-muted font-bold font-display mb-4">YOU'RE APPLYING TO</h3>
 					<div class="flex items-center gap-[13px] mb-4">
-						<CompanyLogo class="w-[46px] h-[46px] rounded-[12px] text-base" :name="internship.company.name" :src="internship.company.image" />
+						<CompanyLogo class="w-[46px] h-[46px] rounded-[12px] text-base" :name="opportunity.company.name" :src="opportunity.company.image" />
 						<div>
-							<b class="font-display text-base block">{{ internship.title }}</b>
-							<span class="text-[13px] text-muted">{{ internship.company.name }} · {{ internship.location_label || internship.city?.name }}</span>
+							<b class="font-display text-base block">{{ opportunity.title }}</b>
+							<span class="text-[13px] text-muted">{{ opportunity.company.name }} · {{ opportunity.location_label || opportunity.city?.name }}</span>
 						</div>
 					</div>
 					<div class="flex flex-col gap-0.5 [&_.ci]:flex [&_.ci]:items-center [&_.ci]:gap-3 [&_.ci]:py-2.5 [&_.ci]:text-sm [&_.ci]:text-ink-700 [&_svg]:w-[17px] [&_svg]:h-[17px] [&_svg]:text-muted-2 [&_svg]:shrink-0">
-						<div class="ci"><component :is="icons.clock" aria-hidden="true" />{{ internship.closing_at ? `Closes ${internship.closing_at}` : 'No deadline listed' }}</div>
-						<div v-if="internship.duration_weeks" class="ci"><component :is="icons.pin" aria-hidden="true" />{{ internship.duration_weeks }} weeks<template v-if="internship.term"> · {{ internship.term }}</template></div>
+						<div class="ci"><component :is="icons.clock" aria-hidden="true" />{{ opportunity.closing_at ? `Closes ${opportunity.closing_at}` : 'No deadline listed' }}</div>
+						<div v-if="opportunity.duration_weeks" class="ci"><component :is="icons.pin" aria-hidden="true" />{{ opportunity.duration_weeks }} weeks<template v-if="opportunity.term"> · {{ opportunity.term }}</template></div>
 					</div>
 				</section>
 

@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Indexing\IndexNow;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use App\Support\Blog;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -26,9 +26,9 @@ class SubmitIndexNow extends Command
 
         $urls = [];
         $opportunities = $since
-            ? Internship::published()->where(fn ($query) => $query->where('updated_at', '>=', $since)->orWhereHas('translations', fn ($query) => $query->where('updated_at', '>=', $since)))
-            : Internship::available();
-        $opportunities->select('id', 'slug', 'title', 'language')->with('translations:id,internship_id,locale,slug')->orderBy('id')->limit(10000)->get()->each(function ($row) use (&$urls) {
+            ? Opportunity::published()->where(fn ($query) => $query->where('updated_at', '>=', $since)->orWhereHas('translations', fn ($query) => $query->where('updated_at', '>=', $since)))
+            : Opportunity::available();
+        $opportunities->select('id', 'slug', 'title', 'language')->with('translations:id,opportunity_id,locale,slug')->orderBy('id')->limit(10000)->get()->each(function ($row) use (&$urls) {
             foreach ($row->availableLocales() as $locale) {
                 $urls[] = $row->publicUrl($locale);
             }

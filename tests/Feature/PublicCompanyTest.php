@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Models\City;
 use App\Models\Company;
 use App\Models\Field;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -31,7 +31,7 @@ class PublicCompanyTest extends TestCase
     public function test_guests_can_view_a_company_with_open_roles()
     {
         $company = Company::create(['name' => 'Atlas Cloud', 'website' => 'https://atlas.example', 'city_id' => $this->city->id]);
-        $this->internship($company, 'Backend intern');
+        $this->opportunity($company, 'Backend intern');
 
         $this->assertSame(url('/companies/'.$company->id.'-atlas-cloud'), $company->public_url);
         $this->get($company->public_url)->assertOk()->assertInertia(fn (Assert $page) => $page
@@ -67,7 +67,7 @@ class PublicCompanyTest extends TestCase
     public function test_company_sitemap_only_lists_indexable_companies()
     {
         $hiring = Company::create(['name' => 'Atlas Cloud']);
-        $this->internship($hiring, 'Backend intern');
+        $this->opportunity($hiring, 'Backend intern');
         $profile = Company::create(['name' => 'Long Story', 'about' => str_repeat('We build software for schools. ', 12)]);
         $thin = Company::create(['name' => 'Quiet Studio']);
 
@@ -78,9 +78,9 @@ class PublicCompanyTest extends TestCase
         $this->assertStringNotContainsString($thin->public_url, $xml);
     }
 
-    private function internship(Company $company, string $title): Internship
+    private function opportunity(Company $company, string $title): Opportunity
     {
-        return Internship::create([
+        return Opportunity::create([
             'title' => $title,
             'description' => 'Internship used in tests.',
             'company_id' => $company->id,

@@ -6,13 +6,13 @@ use App\Http\Controllers\BlogController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FieldController;
-use App\Http\Controllers\InternshipApplicationController;
-use App\Http\Controllers\InternshipController;
+use App\Http\Controllers\OpportunityApplicationController;
+use App\Http\Controllers\OpportunityController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SkillController;
-use App\Http\Controllers\StudentController;
+use App\Http\Controllers\CandidateController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\PublicCandidateController;
@@ -60,9 +60,9 @@ Route::permanentRedirect('/fr/for-students', '/fr');
 Route::permanentRedirect('/fr/for-professionals', '/fr');
 Route::prefix('fr')->name('fr.')->group(function () {
     Route::get('/', [PublicPageController::class, 'home'])->name('home');
-    Route::get('/opportunities', [InternshipController::class, 'index'])->name('opportunities');
-    Route::get('/opportunities/{category}', [InternshipController::class, 'index'])->whereIn('category', ['internships', 'jobs', 'tunisia', 'remote-from-tunisia', 'relocation'])->name('category');
-    Route::get('/opportunities/{opportunity}', [InternshipController::class, 'publicShow'])->where('opportunity', '[0-9]+(?:-[a-z0-9-]+)?')->name('opportunity');
+    Route::get('/opportunities', [OpportunityController::class, 'index'])->name('opportunities');
+    Route::get('/opportunities/{category}', [OpportunityController::class, 'index'])->whereIn('category', ['internships', 'jobs', 'tunisia', 'remote-from-tunisia', 'relocation'])->name('category');
+    Route::get('/opportunities/{opportunity}', [OpportunityController::class, 'publicShow'])->where('opportunity', '[0-9]+(?:-[a-z0-9-]+)?')->name('opportunity');
     Route::get('/companies/{companySlug}', [PublicCompanyController::class, 'show'])->where('companySlug', '[0-9]+-[a-z0-9-]+')->name('company');
     Route::get('/candidates', [PublicCandidateController::class, 'index'])->name('candidates');
     Route::get('/candidates/{candidateSlug}', [PublicCandidateController::class, 'show'])->where('candidateSlug', '[0-9]+-[a-z0-9-]+')->name('candidate');
@@ -86,10 +86,10 @@ foreach (['' => '', 'fr' => 'fr.'] as $prefix => $name) {
     });
 }
 
-Route::get('/opportunities', [InternshipController::class, 'index'])->name('opportunities.index');
-Route::get('/opportunities/{category}', [InternshipController::class, 'index'])
+Route::get('/opportunities', [OpportunityController::class, 'index'])->name('opportunities.index');
+Route::get('/opportunities/{category}', [OpportunityController::class, 'index'])
     ->whereIn('category', ['internships', 'jobs', 'tunisia', 'remote-from-tunisia', 'relocation'])->name('opportunities.category');
-Route::get('/opportunities/{opportunity}', [InternshipController::class, 'publicShow'])
+Route::get('/opportunities/{opportunity}', [OpportunityController::class, 'publicShow'])
     ->where('opportunity', '[0-9]+(?:-[a-z0-9-]+)?')->name('opportunities.show');
 Route::get('/companies/{companySlug}', [PublicCompanyController::class, 'show'])
     ->where('companySlug', '[0-9]+-[a-z0-9-]+')->name('companies.public');
@@ -100,8 +100,12 @@ Route::get('/internships', function (\Illuminate\Http\Request $request) {
     $query = $request->only('search', 'fields', 'cities', 'companies', 'page', 'work_type', 'country');
     return redirect('/opportunities/internships'.($query ? '?'.http_build_query($query) : ''), 301);
 })->name('internships.index');
-Route::get('/internships/{internship}', [InternshipController::class, 'show'])
-    ->whereNumber('internship')->name('internships.show');
+Route::get('/internships/{opportunity}', [OpportunityController::class, 'show'])
+    ->whereNumber('opportunity')->name('internships.show');
+// Old workspace links from before the rename.
+Route::get('/internships/{id}/{page}', fn (string $id, string $page) => redirect("/opportunities/{$id}/{$page}", 301))->whereNumber('id')->whereIn('page', ['edit', 'apply', 'applications']);
+Route::get('/students', fn () => redirect('/candidates/manage', 301));
+Route::get('/students/{path}', fn (string $path) => redirect('/candidates/'.$path, 301))->where('path', '[0-9]+(?:/edit)?');
 
 Route::group(['middleware' => 'auth'], function() {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
@@ -113,28 +117,29 @@ Route::group(['middleware' => 'auth'], function() {
 
     Route::get('/settings', [ProfileController::class, 'settings'])->name('settings');
     Route::put('/profile/public', [PublicCandidateController::class, 'update'])->middleware('verified')->name('profile.public.update');
-    Route::post('/students/{student}/public-profile', [PublicCandidateController::class, 'review'])->middleware('admin')->name('students.public.review');
+    Route::post('/candidates/{candidate}/public-profile', [PublicCandidateController::class, 'review'])->middleware('admin')->name('candidates.public.review');
     Route::put('/password', [\App\Http\Controllers\Auth\PasswordController::class, 'update'])->name('password.change');
     // Resources
-    Route::resource('internships', InternshipController::class)->except(['index', 'show'])->middleware('verified');
+    Route::resource('opportunities', OpportunityController::class)->except(['index', 'show'])->middleware('verified');
     Route::resource('companies', CompanyController::class);
-    Route::resource('students', StudentController::class);
+    Route::get('/candidates/manage', [CandidateController::class, 'index'])->name('candidates.index');
+    Route::resource('candidates', CandidateController::class)->except('index')->whereNumber('candidate');
     Route::resource('fields', FieldController::class);
     Route::resource('skills', SkillController::class);
     // Applications
     Route::post('/applications/{application}', [ApplicationController::class, 'reply'])->middleware('verified')->name('applications.reply');
     Route::get('/applications', [ApplicationController::class, 'index'])->name('applications.index');
-    Route::get('/internships/{internship}/apply', [ApplicationController::class, 'create'])->middleware('verified')->name('applications.create');
-    Route::post('/internship/{internship}/apply', [ApplicationController::class, 'store'])->middleware(['verified', 'throttle:10,1,apply'])->name('applications.store');
+    Route::get('/opportunities/{opportunity}/apply', [ApplicationController::class, 'create'])->middleware('verified')->name('applications.create');
+    Route::post('/opportunities/{opportunity}/apply', [ApplicationController::class, 'store'])->middleware(['verified', 'throttle:10,1,apply'])->name('applications.store');
     Route::get('/applications/{application}/edit', [ApplicationController::class, 'edit'])->name('applications.edit');
     Route::get('/applications/{application}', [ApplicationController::class, 'show'])->name('applications.show');
     Route::put('/applications/{application}', [ApplicationController::class, 'update'])->name('applications.update');
     Route::delete('/applications/{application}', [ApplicationController::class, 'destroy'])->name('applications.destroy');
-    Route::get('/internships/{internship}/applications', InternshipApplicationController::class)->name('internships.applications.index');
+    Route::get('/opportunities/{opportunity}/applications', OpportunityApplicationController::class)->name('opportunities.applications.index');
 	// Likes
     Route::get('/likes', [LikeController::class, 'index'])->name('likes.index');
     Route::redirect('/saved', '/likes');
-    Route::post('/like/{internship}', [LikeController::class, 'store'])->name('likes.store');
+    Route::post('/like/{opportunity}', [LikeController::class, 'store'])->name('likes.store');
 	// Messages
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
     Route::get('/messages/{user}', [MessageController::class, 'show'])->name('messages.show');

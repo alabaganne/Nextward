@@ -12,7 +12,7 @@ Candidates can save opportunities, set interests, receive optional search digest
 - MySQL or PostgreSQL for application data; SQLite for isolated checks
 - Database queues for imports, digests and indexing notifications
 
-PHP needs the appropriate PDO driver, cURL, DOM/XML, Mbstring, OpenSSL and Tokenizer. SQLite support is needed for the existing test configuration. Public pages are server rendered through Inertia; private account pages are excluded from SSR and search indexing. Existing database names such as `internships`, `students` and `likes` remain for compatibility.
+PHP needs the appropriate PDO driver, cURL, DOM/XML, Mbstring, OpenSSL and Tokenizer. SQLite support is needed for the existing test configuration. Public pages are server rendered through Inertia; private account pages are excluded from SSR and search indexing. Listings live in the `opportunities` table and candidates in `candidates` (renamed from `internships` and `students` in October 2026).
 
 ## Local setup
 

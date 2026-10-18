@@ -8,7 +8,7 @@ class ApplicationResource extends JsonResource
 {
     public function toArray($request)
     {
-        $candidate = $request->user()?->isCandidate() && $request->user()->userable_id === $this->student_id;
+        $candidate = $request->user()?->isCandidate() && $request->user()->userable_id === $this->candidate_id;
 
         return [
             'id' => $this->id,
@@ -19,22 +19,22 @@ class ApplicationResource extends JsonResource
             'attachments' => $this->resource->attachmentLinks(),
             'candidate_notes' => $candidate ? $this->candidate_notes : null,
             'applied_at' => $this->applied_at?->format('Y-m-d'),
-            'internship' => [
-                'id' => $this->internship->id,
-                'title' => $this->internship->title,
-                'kind' => $this->internship->kind,
-                'public_url' => $this->internship->public_url,
-                'field' => ['name' => $this->internship->field?->name],
-                'city' => ['name' => $this->internship->location ?: $this->internship->city?->name ?: $this->internship->country_code],
-                'closing_at' => $this->internship->closing_at?->format('F d, Y'),
+            'opportunity' => [
+                'id' => $this->opportunity->id,
+                'title' => $this->opportunity->title,
+                'kind' => $this->opportunity->kind,
+                'public_url' => $this->opportunity->public_url,
+                'field' => ['name' => $this->opportunity->field?->name],
+                'city' => ['name' => $this->opportunity->location ?: $this->opportunity->city?->name ?: $this->opportunity->country_code],
+                'closing_at' => $this->opportunity->closing_at?->format('F d, Y'),
             ],
-            'student' => [
-                'id' => $this->student->id,
-                'user_id' => $this->student->user?->id,
-                'name' => $this->student->user?->name,
-                'email' => $this->student->user?->email,
-                'phone_number' => $this->student->user?->phone_number,
-                'image' => $this->student->user?->image,
+            'candidate' => [
+                'id' => $this->candidate->id,
+                'user_id' => $this->candidate->user?->id,
+                'name' => $this->candidate->user?->name,
+                'email' => $this->candidate->user?->email,
+                'phone_number' => $this->candidate->user?->phone_number,
+                'image' => $this->candidate->user?->image,
             ],
             'company' => [
                 'id' => $this->company->id,

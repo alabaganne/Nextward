@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CompanyRequest;
-use App\Http\Resources\InternshipResource;
+use App\Http\Resources\OpportunityResource;
 use App\Models\City;
 use App\Models\Company;
 use App\Notifications\AccountCreated;
@@ -35,7 +35,7 @@ class CompanyController extends Controller
         return Inertia::render('Companies/Index', [
             'filters' => ['search' => $search, 'hiring' => (bool) ($filters['hiring'] ?? false)],
             'companies' => Company::whereNull('claimed_by_company_id')
-				->withCount(['internships as open_roles_count' => fn ($query) => $query->available()])
+				->withCount(['opportunities as open_roles_count' => fn ($query) => $query->available()])
 				->with('city', 'user')
 				->when($search !== '', function ($query) use ($search) {
 					$term = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search).'%';
@@ -43,7 +43,7 @@ class CompanyController extends Controller
 						->orWhereHas('user', fn ($query) => $query->where('name', 'like', $term))
 						->orWhereHas('city', fn ($query) => $query->where('name', 'like', $term)));
 				})
-				->when($filters['hiring'] ?? false, fn ($query) => $query->whereHas('internships', fn ($query) => $query->available()))
+				->when($filters['hiring'] ?? false, fn ($query) => $query->whereHas('opportunities', fn ($query) => $query->available()))
 				->orderByDesc('open_roles_count')
 				->orderBy('name')
 				->paginate(12)
@@ -129,7 +129,7 @@ class CompanyController extends Controller
 				'city' => [
 					'name' => $company->city?->name,
 				],
-				'internships' => InternshipResource::collection($company->internships()
+				'opportunities' => OpportunityResource::collection($company->opportunities()
                     ->listedFor(auth()->user())
                     ->with(['company.user', 'company.city', 'city', 'field', 'skills', 'translations'])
                     ->withCandidateState(auth()->user())

@@ -3,8 +3,8 @@
 namespace App\Support;
 
 use App\Models\Company;
-use App\Models\Internship;
-use App\Models\Student;
+use App\Models\Opportunity;
+use App\Models\Candidate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -147,14 +147,14 @@ class PublicSeo
         return $seo;
     }
 
-    public static function candidate(Student $student): array
+    public static function candidate(Candidate $candidate): array
     {
         $fr = request()->is('fr/*');
-        $name = $student->user->name;
-        $about = trim(preg_replace('/\s+/u', ' ', strip_tags((string) $student->about)));
-        $seo = self::base(request(), $name.' | Nextward', Str::limit($student->headline ?: ($about ?: ($fr ? "Profil de {$name} sur Nextward." : "{$name}'s profile on Nextward.")), 155), false);
-        $seo['canonical'] = $student->publicUrl($fr ? 'fr' : 'en');
-        $seo['alternates'] = self::pairs($student->publicUrl('en'), $student->publicUrl('fr'));
+        $name = $candidate->user->name;
+        $about = trim(preg_replace('/\s+/u', ' ', strip_tags((string) $candidate->about)));
+        $seo = self::base(request(), $name.' | Nextward', Str::limit($candidate->headline ?: ($about ?: ($fr ? "Profil de {$name} sur Nextward." : "{$name}'s profile on Nextward.")), 155), false);
+        $seo['canonical'] = $candidate->publicUrl($fr ? 'fr' : 'en');
+        $seo['alternates'] = self::pairs($candidate->publicUrl('en'), $candidate->publicUrl('fr'));
         return $seo;
     }
 
@@ -195,7 +195,7 @@ class PublicSeo
     }
 
     // A page in a language the listing has no text for yet is noindex, and hreflang only lists the real versions.
-    public static function opportunity(Internship $opportunity, ?string $locale = null): array
+    public static function opportunity(Opportunity $opportunity, ?string $locale = null): array
     {
         $opportunity->loadMissing('company.user', 'city', 'field', 'translations');
         $locale ??= request()->is('fr/*') ? 'fr' : 'en';

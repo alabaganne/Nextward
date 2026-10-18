@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Mail\OpportunityDigest;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use App\Models\SavedSearch;
 use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -94,16 +94,16 @@ class SendOpportunityDigests implements ShouldQueue, ShouldBeUnique
         $batchId = $pending?->batch_id;
         if (! $batchId) {
             $batchId = (string) Str::uuid();
-            $matches = Internship::with('sources.importSource')->available()->searchFilters($search->filters)
+            $matches = Opportunity::with('sources.importSource')->available()->searchFilters($search->filters)
                 ->whereNotExists(function ($query) use ($user) {
                     $query->selectRaw('1')->from('opportunity_deliveries')
-                        ->whereColumn('opportunity_deliveries.internship_id', 'internships.id')->where('opportunity_deliveries.user_id', $user->id);
+                        ->whereColumn('opportunity_deliveries.opportunity_id', 'opportunities.id')->where('opportunity_deliveries.user_id', $user->id);
                 })->orderByRaw('COALESCE(posted_at, first_seen_at, created_at) DESC')->orderByDesc('id')
                 ->limit(100)->get()->filter(fn ($opportunity) => $this->eligibleForUser($opportunity, $user, $search))->take(20);
             foreach ($matches as $opportunity) {
                 DB::table('opportunity_deliveries')->insertOrIgnore([
                     'user_id' => $user->id,
-                    'internship_id' => $opportunity->id,
+                    'opportunity_id' => $opportunity->id,
                     'saved_search_id' => $search->id,
                     'batch_id' => $batchId,
                     'status' => 'pending',
@@ -122,15 +122,15 @@ class SendOpportunityDigests implements ShouldQueue, ShouldBeUnique
         if (! $search->subscribed_at || $search->frequency === 'off' || ! config('importer.digests_enabled')) {
             return;
         }
-        $opportunities = Internship::with(['company.user', 'city', 'sources.importSource'])->available()->searchFilters($search->filters)
-            ->whereIn('id', $records->pluck('internship_id'))->get()
+        $opportunities = Opportunity::with(['company.user', 'city', 'sources.importSource'])->available()->searchFilters($search->filters)
+            ->whereIn('id', $records->pluck('opportunity_id'))->get()
             ->filter(fn ($opportunity) => $this->eligibleForUser($opportunity, $user, $search))->values();
-        $cancelled = $records->whereNotIn('internship_id', $opportunities->pluck('id'))->pluck('id');
+        $cancelled = $records->whereNotIn('opportunity_id', $opportunities->pluck('id'))->pluck('id');
         DB::table('opportunity_deliveries')->whereIn('id', $cancelled)->update(['status' => 'cancelled', 'updated_at' => now()]);
         if ($opportunities->isEmpty()) {
             return;
         }
-        $deliveryIds = $records->whereIn('internship_id', $opportunities->pluck('id'))->pluck('id');
+        $deliveryIds = $records->whereIn('opportunity_id', $opportunities->pluck('id'))->pluck('id');
         $mail = new OpportunityDigest($search, $opportunities, $batchId);
         // Render before claiming send intent. Template failures are safe to retry without contacting a provider.
         $mail->render();
@@ -155,7 +155,7 @@ class SendOpportunityDigests implements ShouldQueue, ShouldBeUnique
         });
     }
 
-    private function eligibleForUser(Internship $opportunity, User $user, SavedSearch $search): bool
+    private function eligibleForUser(Opportunity $opportunity, User $user, SavedSearch $search): bool
     {
         if (! $opportunity->isOpen()) {
             return false;

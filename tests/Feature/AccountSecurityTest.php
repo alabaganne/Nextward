@@ -4,8 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Application;
 use App\Models\Company;
-use App\Models\Internship;
-use App\Models\Student;
+use App\Models\Opportunity;
+use App\Models\Candidate;
 use App\Models\User;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Contracts\Notifications\Dispatcher;
@@ -30,26 +30,26 @@ class AccountSecurityTest extends TestCase
     public function test_deleting_a_candidate_account_removes_their_data_and_files(): void
     {
         $user = User::where('email', 'student@example.com')->firstOrFail();
-        $studentId = $user->userable_id;
-        $withFile = Application::where('student_id', $studentId)->get()->first(fn ($application) => $application->attachments);
+        $candidateId = $user->userable_id;
+        $withFile = Application::where('candidate_id', $candidateId)->get()->first(fn ($application) => $application->attachments);
         $path = $withFile->attachments[0]['path'];
-        DB::table('opportunity_views')->insert(['student_id' => $studentId, 'internship_id' => Internship::firstOrFail()->id, 'viewed_at' => now()]);
+        DB::table('opportunity_views')->insert(['candidate_id' => $candidateId, 'opportunity_id' => Opportunity::firstOrFail()->id, 'viewed_at' => now()]);
 
         Storage::disk('local')->assertExists($path);
         $this->assertGreaterThan(0, DB::table('saved_searches')->where('user_id', $user->id)->count());
-        $this->assertGreaterThan(0, DB::table('likes')->where('student_id', $studentId)->count());
+        $this->assertGreaterThan(0, DB::table('likes')->where('candidate_id', $candidateId)->count());
         $this->assertGreaterThan(0, $user->notifications()->count());
 
         $this->actingAs($user)->delete('/profile', ['password' => 'password'])->assertRedirect('/');
 
         $this->assertGuest();
         $this->assertNull(User::find($user->id));
-        $this->assertNull(Student::find($studentId));
-        $this->assertSame(0, Application::where('student_id', $studentId)->count());
+        $this->assertNull(Candidate::find($candidateId));
+        $this->assertSame(0, Application::where('candidate_id', $candidateId)->count());
         $this->assertSame(0, DB::table('saved_searches')->where('user_id', $user->id)->count());
-        $this->assertSame(0, DB::table('likes')->where('student_id', $studentId)->count());
-        $this->assertSame(0, DB::table('opportunity_views')->where('student_id', $studentId)->count());
-        $this->assertSame(0, DB::table('skillables')->where('skillable_type', 'student')->where('skillable_id', $studentId)->count());
+        $this->assertSame(0, DB::table('likes')->where('candidate_id', $candidateId)->count());
+        $this->assertSame(0, DB::table('opportunity_views')->where('candidate_id', $candidateId)->count());
+        $this->assertSame(0, DB::table('skillables')->where('skillable_type', 'candidate')->where('skillable_id', $candidateId)->count());
         $this->assertSame(0, DB::table('notifications')->where('notifiable_id', $user->id)->count());
         $this->assertSame(0, DB::table('messages')->where('from_id', $user->id)->orWhere('to_id', $user->id)->count());
         Storage::disk('local')->assertMissing($path);
@@ -57,7 +57,7 @@ class AccountSecurityTest extends TestCase
 
     public function test_deleting_a_company_account_closes_its_roles_and_keeps_candidate_history(): void
     {
-        $company = Company::whereHas('user')->whereHas('internships', fn ($query) => $query->available())->whereHas('applications')->firstOrFail();
+        $company = Company::whereHas('user')->whereHas('opportunities', fn ($query) => $query->available())->whereHas('applications')->firstOrFail();
         $user = $company->user;
         $name = $company->display_name;
         $applications = Application::where('company_id', $company->id)->count();
@@ -68,8 +68,8 @@ class AccountSecurityTest extends TestCase
         $company = Company::findOrFail($company->id);
         $this->assertNull($company->user);
         $this->assertSame($name, $company->display_name);
-        $this->assertSame(0, $company->internships()->available()->count());
-        $this->assertSame(0, $company->internships()->where(fn ($query) => $query->where('status', 'open')->orWhere('publication_status', 'published'))->count());
+        $this->assertSame(0, $company->opportunities()->available()->count());
+        $this->assertSame(0, $company->opportunities()->where(fn ($query) => $query->where('status', 'open')->orWhere('publication_status', 'published'))->count());
         $this->assertSame($applications, Application::where('company_id', $company->id)->count());
     }
 
@@ -80,7 +80,7 @@ class AccountSecurityTest extends TestCase
         $this->actingAs($user)->delete('/profile', ['password' => 'wrong'])->assertSessionHasErrors('password');
 
         $this->assertNotNull(User::find($user->id));
-        $this->assertNotNull(Student::find($user->userable_id));
+        $this->assertNotNull(Candidate::find($user->userable_id));
     }
 
     public function test_changing_email_resets_verification(): void
@@ -106,11 +106,11 @@ class AccountSecurityTest extends TestCase
         $this->assertNull($user->userable_id);
         $this->assertNull($user->userable_type);
 
-        $student = User::where('email', 'student@example.com')->firstOrFail();
-        $this->actingAs($student)->put('/profile', ['name' => $student->name, 'email' => $student->email, 'is_admin' => true, 'userable_type' => 'company']);
+        $candidate = User::where('email', 'student@example.com')->firstOrFail();
+        $this->actingAs($candidate)->put('/profile', ['name' => $candidate->name, 'email' => $candidate->email, 'is_admin' => true, 'userable_type' => 'company']);
 
-        $this->assertFalse($student->fresh()->isAdmin());
-        $this->assertSame('student', $student->fresh()->userable_type);
+        $this->assertFalse($candidate->fresh()->isAdmin());
+        $this->assertSame('candidate', $candidate->fresh()->userable_type);
     }
 
     public function test_register_and_forgot_password_are_rate_limited(): void
@@ -126,30 +126,30 @@ class AccountSecurityTest extends TestCase
 
     public function test_applying_is_rate_limited(): void
     {
-        $student = User::where('email', 'student@example.com')->firstOrFail();
-        $internship = Internship::firstOrFail();
+        $candidate = User::where('email', 'student@example.com')->firstOrFail();
+        $opportunity = Opportunity::firstOrFail();
 
         for ($i = 0; $i < 10; $i++) {
-            $this->actingAs($student)->post("/internship/{$internship->id}/apply", []);
+            $this->actingAs($candidate)->post("/opportunities/{$opportunity->id}/apply", []);
         }
 
-        $this->actingAs($student)->post("/internship/{$internship->id}/apply", [])->assertStatus(429);
+        $this->actingAs($candidate)->post("/opportunities/{$opportunity->id}/apply", [])->assertStatus(429);
     }
 
     public function test_a_failed_notification_does_not_break_applying_or_replying(): void
     {
         $this->mock(Dispatcher::class)->shouldReceive('send')->andThrow(new \RuntimeException('mail is down'));
 
-        $student = User::where('email', 'student@example.com')->firstOrFail();
-        $internship = Internship::where('application_mode', 'internal')->available()
+        $candidate = User::where('email', 'student@example.com')->firstOrFail();
+        $opportunity = Opportunity::where('application_mode', 'internal')->available()
             ->whereHas('company.user')
-            ->whereDoesntHave('applications', fn ($query) => $query->where('student_id', $student->userable_id))
+            ->whereDoesntHave('applications', fn ($query) => $query->where('candidate_id', $candidate->userable_id))
             ->firstOrFail();
 
-        $this->actingAs($student)->post("/internship/{$internship->id}/apply", [
+        $this->actingAs($candidate)->post("/opportunities/{$opportunity->id}/apply", [
             'cover_letter' => str_repeat('I care about this role and can contribute from week one. ', 5),
         ])->assertRedirect(route('applications.index'));
-        $application = Application::where('student_id', $student->userable_id)->where('internship_id', $internship->id)->firstOrFail();
+        $application = Application::where('candidate_id', $candidate->userable_id)->where('opportunity_id', $opportunity->id)->firstOrFail();
 
         $this->actingAs($application->company->user)
             ->post("/applications/{$application->id}", ['status' => 'review'])

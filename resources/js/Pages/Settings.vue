@@ -23,7 +23,7 @@ const icons = {
 };
 
 const page = usePage();
-const isStudent = computed(() => props.settings.userable_type === 'student');
+const isCandidate = computed(() => props.settings.userable_type === 'candidate');
 const initials = computed(() =>
 	(props.settings.name || '')
 		.split(/\s+/)
@@ -248,7 +248,7 @@ const deleteAccount = () =>
 						</div>
 					</div>
 
-					<div v-if="isStudent" class="bg-white border border-line rounded-[18px] mb-[18px]">
+					<div v-if="isCandidate" class="bg-white border border-line rounded-[18px] mb-[18px]">
 						<div class="px-[22px] py-[18px] border-b border-line-2">
 							<h3 class="font-display text-[16.5px] font-semibold">Resume</h3>
 							<p class="text-[13px] text-muted mt-[3px]">A PDF of your resume. Only you can see it. We can read it to fill in your profile, and we use it with your profile to tailor CVs and cover letters.</p>
@@ -341,7 +341,7 @@ const deleteAccount = () =>
 									</select>
 									<div v-if="accountForm.errors.city_id" class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.city_id }}</div>
 								</div>
-								<div v-if="isStudent" class="mb-4">
+								<div v-if="isCandidate" class="mb-4">
 									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="settings-field">Field of work or study</label>
 									<select id="settings-field" v-model="accountForm.field_id" class="fld">
 										<option :value="null">Not selected</option>
@@ -349,7 +349,7 @@ const deleteAccount = () =>
 									</select>
 									<div v-if="accountForm.errors.field_id" class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.field_id }}</div>
 								</div>
-								<div v-if="!isStudent" class="mb-4">
+								<div v-if="!isCandidate" class="mb-4">
 									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="settings-website">Website</label>
 									<input id="settings-website" v-model="accountForm.website" class="fld" type="url" placeholder="https://…">
 									<div v-if="accountForm.errors.website" class="text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.website }}</div>
@@ -365,7 +365,7 @@ const deleteAccount = () =>
 								<label class="text-sm font-semibold">Country code<input v-model="accountForm.country_code" class="fld mt-2" maxlength="2" placeholder="TN, FR, US..."><span v-if="accountForm.errors.country_code" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountForm.errors.country_code }}</span></label>
 								<label class="text-sm font-semibold">City or location<input v-model="accountForm.location" class="fld mt-2" placeholder="Your location anywhere in the world"><span v-if="accountForm.errors.location" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountForm.errors.location }}</span></label>
 							</div>
-							<template v-if="isStudent">
+							<template v-if="isCandidate">
 								<h3 class="font-display text-lg font-semibold mt-7 mb-4">Your experience</h3>
 								<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
 									<label class="text-sm font-semibold">Years of experience<input v-model.number="accountForm.experience_years" class="fld mt-2" type="number" min="0" max="80"><span v-if="accountError('experience_years')" class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('experience_years') }}</span></label>
@@ -397,7 +397,7 @@ const deleteAccount = () =>
 						</div>
 					</form>
 
-					<div v-if="isStudent" class="bg-white border border-line rounded-[18px] mb-[18px]">
+					<div v-if="isCandidate" class="bg-white border border-line rounded-[18px] mb-[18px]">
 						<div class="px-[22px] py-[18px] border-b border-line-2">
 							<h3 class="font-display text-[16.5px] font-semibold">Public profile</h3>
 							<p class="text-[13px] text-muted mt-[3px]">Show your profile on Nextward's public candidate page so companies can find you. The Nextward team checks each profile first. Your email, phone number and resume are never shown.</p>

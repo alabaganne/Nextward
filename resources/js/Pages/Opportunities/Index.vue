@@ -6,9 +6,9 @@ export default { layout: opportunityLayout };
 import { computed, reactive, ref, watch } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import { Bell, ChevronDown, Search, SlidersHorizontal, X } from '@lucide/vue';
-import RoleCard from '@/Components/Internship/RoleCard.vue';
+import RoleCard from '@/Components/Opportunity/RoleCard.vue';
 import Pagination from '@/Components/Ui/Pagination.vue';
-const props = defineProps({ internships: Object, fields: Array, cities: Array, companies: Array, countries: Array, filters: { type: Object, default: () => ({}) }, category: String, categoryLabel: String });
+const props = defineProps({ opportunities: Object, fields: Array, cities: Array, companies: Array, countries: Array, filters: { type: Object, default: () => ({}) }, category: String, categoryLabel: String });
 const page = usePage();
 const guest = computed(() => !page.props.auth?.user);
 const fr = computed(() => page.props.locale === 'fr');
@@ -37,7 +37,7 @@ const panel = ref('');
 const toggle = (name) => panel.value = panel.value === name ? '' : name;
 
 const option = (value, en, french = en) => ({ value, label: text(en, french) });
-const counted = (items, key) => (items || []).filter((item) => item.internships_count || [form[key]].flat().includes(String(item.id))).map((item) => ({ value: String(item.id), label: item.name, count: item.internships_count }));
+const counted = (items, key) => (items || []).filter((item) => item.opportunities_count || [form[key]].flat().includes(String(item.id))).map((item) => ({ value: String(item.id), label: item.name, count: item.opportunities_count }));
 const options = computed(() => ({
     kind: [option('internship', 'Internships', 'Stages'), option('job', 'Jobs', 'Emplois')],
     country: (props.countries || []).map((country) => ({ value: country.code, label: country.name })),
@@ -91,7 +91,7 @@ const chips = computed(() => {
     return list;
 });
 const hasFilters = computed(() => Object.keys(props.filters).some((key) => key !== 'page'));
-const total = computed(() => props.internships.meta?.total || 0);
+const total = computed(() => props.opportunities.meta?.total || 0);
 
 function apply(changes = {}) {
     const query = new URLSearchParams();
@@ -133,9 +133,9 @@ const remove = (chip) => apply(chip.changes ?? Object.fromEntries(chip.keys.map(
         </div>
         <section id="results" class="@container mt-6 scroll-mt-24" :aria-label="text('Search results', 'Résultats de recherche')">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4 text-sm text-slate-600"><p><strong class="text-navy">{{ total }}</strong> {{ total === 1 ? text('opportunity', 'opportunité') : text('opportunities', 'opportunités') }}</p><Link v-if="guest || page.props.auth.user.is_candidate" :href="guest ? `${prefix}/login` : savedSearchUrl" class="inline-flex items-center gap-1.5 font-semibold text-blue-700 hover:underline"><Bell class="size-4" aria-hidden="true" />{{ text('Save search and get alerts', 'Sauvegarder et recevoir des alertes') }}</Link></div>
-            <div v-if="internships.data?.length" class="grid grid-cols-1 @3xl:grid-cols-2 gap-5"><RoleCard v-for="opportunity in internships.data" :key="opportunity.id" :internship="opportunity" /></div>
+            <div v-if="opportunities.data?.length" class="grid grid-cols-1 @3xl:grid-cols-2 gap-5"><RoleCard v-for="opportunity in opportunities.data" :key="opportunity.id" :opportunity="opportunity" /></div>
             <div v-else class="bg-white rounded-2xl border border-line p-8"><h2 class="font-display text-xl font-semibold">{{ text('No opportunities match these filters.', 'Aucune opportunité ne correspond à ces filtres.') }}</h2><p class="text-slate-600 mt-3">{{ text('Try removing a filter or using a broader keyword.', 'Essayez de retirer un filtre ou d’utiliser un mot-clé plus large.') }}</p><Link :href="chips.length || filters.search ? action : `${prefix}/opportunities`" class="inline-block mt-5 text-blue-700 font-semibold">{{ chips.length || filters.search ? text('Clear filters', 'Effacer les filtres') : text('Browse all opportunities', 'Voir toutes les opportunités') }}</Link></div>
-            <Pagination :meta="internships.meta" />
+            <Pagination :meta="opportunities.meta" />
         </section>
     </div>
 </template>

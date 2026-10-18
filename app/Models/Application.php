@@ -21,8 +21,8 @@ class Application extends Model
         'message',
         'attachments',
         'status',
-        'student_id',
-        'internship_id',
+        'candidate_id',
+        'opportunity_id',
         'company_id',
         'channel',
         'applied_at',
@@ -65,12 +65,12 @@ class Application extends Model
         return compact('disk', 'path');
     }
 
-    public function student() {
-        return $this->belongsTo(Student::class);
+    public function candidate() {
+        return $this->belongsTo(Candidate::class);
     }
 
-    public function internship() {
-        return $this->belongsTo(Internship::class);
+    public function opportunity() {
+        return $this->belongsTo(Opportunity::class);
     }
 
     public function company() {

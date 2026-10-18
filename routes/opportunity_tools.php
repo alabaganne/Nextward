@@ -3,8 +3,8 @@
 use App\Http\Controllers\OpportunityFeedbackController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/opportunities/{internship}/report', [OpportunityFeedbackController::class, 'report'])
-    ->whereNumber('internship')->middleware('throttle:5,1,report')->name('opportunities.report');
+Route::post('/opportunities/{opportunity}/report', [OpportunityFeedbackController::class, 'report'])
+    ->whereNumber('opportunity')->middleware('throttle:5,1,report')->name('opportunities.report');
 Route::post('/companies/{company}/claim', [OpportunityFeedbackController::class, 'claim'])
     ->whereNumber('company')->middleware(['auth', 'verified', 'throttle:5,1,claim'])->name('companies.claim');
 

@@ -31,7 +31,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         // Every new candidate gets the free credit, ready for when paid features open.
         static::created(function (User $user) {
-            if ($user->userable_type === 'student' && ($credits = (int) config('billing.signup_credits')) > 0) {
+            if ($user->userable_type === 'candidate' && ($credits = (int) config('billing.signup_credits')) > 0) {
                 CreditTransaction::create(['user_id' => $user->id, 'amount' => $credits, 'reason' => 'welcome']);
             }
         });
@@ -65,12 +65,8 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->userable_type === 'company';
     }
 
-    public function isStudent() {
-        return $this->userable_type === 'student';
-    }
-
     public function isCandidate() {
-        return $this->userable_type === 'student';
+        return $this->userable_type === 'candidate';
     }
 
     public function isAdmin() {
@@ -78,12 +74,12 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     // Admins are candidates too, so they get a candidate profile the first time they need one.
-    public function ensureCandidateProfile(): ?Student
+    public function ensureCandidateProfile(): ?Candidate
     {
         if ($this->isAdmin() && ! $this->userable_id) {
-            $student = Student::create();
-            $this->forceFill(['userable_type' => 'student', 'userable_id' => $student->id])->save();
-            $this->setRelation('userable', $student);
+            $candidate = Candidate::create();
+            $this->forceFill(['userable_type' => 'candidate', 'userable_id' => $candidate->id])->save();
+            $this->setRelation('userable', $candidate);
         }
 
         return $this->isCandidate() ? $this->userable : null;
@@ -104,7 +100,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return false;
         }
 
-        return Application::where('student_id', $to->userable_id)->where('company_id', $this->userable_id)->where('channel', 'internal')->exists()
+        return Application::where('candidate_id', $to->userable_id)->where('company_id', $this->userable_id)->where('channel', 'internal')->exists()
             || Message::where('from_id', $to->id)->where('to_id', $this->id)->exists();
     }
 

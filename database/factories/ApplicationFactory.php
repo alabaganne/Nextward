@@ -3,8 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Application;
-use App\Models\Internship;
-use App\Models\Student;
+use App\Models\Opportunity;
+use App\Models\Candidate;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class ApplicationFactory extends Factory
@@ -32,14 +32,14 @@ class ApplicationFactory extends Factory
             "I have attached my CV and portfolio for your review. I look forward to hearing from you.",
         ];
 
-        $internship = Internship::available()->inRandomOrder()->first() ?? Internship::factory()->create();
-        $student = Student::inRandomOrder()->first() ?? Student::factory()->create();
+        $opportunity = Opportunity::available()->inRandomOrder()->first() ?? Opportunity::factory()->create();
+        $candidate = Candidate::inRandomOrder()->first() ?? Candidate::factory()->create();
 
         return [
-            'internship_id' => $internship->id,
-            'student_id' => $student->id,
-            'company_id' => fn (array $attributes) => Internship::findOrFail($attributes['internship_id'])->company_id,
-            'channel' => fn (array $attributes) => Internship::findOrFail($attributes['internship_id'])->application_mode === 'external' ? 'external' : 'internal',
+            'opportunity_id' => $opportunity->id,
+            'candidate_id' => $candidate->id,
+            'company_id' => fn (array $attributes) => Opportunity::findOrFail($attributes['opportunity_id'])->company_id,
+            'channel' => fn (array $attributes) => Opportunity::findOrFail($attributes['opportunity_id'])->application_mode === 'external' ? 'external' : 'internal',
             'applied_at' => now()->subDays($this->faker->numberBetween(0, 7))->toDateString(),
             'status' => 'submitted',
             'cover_letter' => fn (array $attributes) => $attributes['channel'] === 'external' ? null : 'Fictional demo application. '.$this->faker->randomElement($coverLetters),

@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StudentRequest extends FormRequest
+class CandidateRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
@@ -30,8 +30,8 @@ class StudentRequest extends FormRequest
      */
     public function rules()
     {
-        if($this->student) {
-            $user_id = $this->student->user->id;
+        if($this->candidate) {
+            $user_id = $this->candidate->user->id;
         } else {
             $user_id = "";
         }

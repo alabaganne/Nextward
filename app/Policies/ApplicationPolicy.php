@@ -26,7 +26,7 @@ class ApplicationPolicy
     public function belongsTo(User $user, Application $application)
     {
         return $user->isAdmin()
-            || ($user->isCandidate() && $user->userable_id === $application->student_id)
+            || ($user->isCandidate() && $user->userable_id === $application->candidate_id)
             || ($application->channel === 'internal' && $user->isCompany() && $user->userable_id === $application->company_id);
     }
 
@@ -50,9 +50,9 @@ class ApplicationPolicy
      */
     public function create(User $user)
     {
-        $internship = Route::current()->internship;
+        $opportunity = Route::current()->opportunity;
 
-        if(!$user->isCandidate() || !$internship || $internship->application_mode !== 'internal' || !$internship->company?->user || ! $internship->isOpen() || Application::where('internship_id', $internship->id)->where('student_id', $user->userable_id)->exists()) {
+        if(!$user->isCandidate() || !$opportunity || $opportunity->application_mode !== 'internal' || !$opportunity->company?->user || ! $opportunity->isOpen() || Application::where('opportunity_id', $opportunity->id)->where('candidate_id', $user->userable_id)->exists()) {
             return false;
         }
 
@@ -68,7 +68,7 @@ class ApplicationPolicy
      */
     public function update(User $user, Application $application)
     {
-        return $application->channel === 'internal' && ($user->isAdmin() || ($user->isCandidate() && $user->userable_id === $application->student_id && ! in_array($application->status, ['offer', 'closed'], true)));
+        return $application->channel === 'internal' && ($user->isAdmin() || ($user->isCandidate() && $user->userable_id === $application->candidate_id && ! in_array($application->status, ['offer', 'closed'], true)));
     }
 
     public function reply(User $user, Application $application)
@@ -85,7 +85,7 @@ class ApplicationPolicy
      */
     public function delete(User $user, Application $application)
     {
-        return $user->isAdmin() || ($user->isCandidate() && $user->userable_id === $application->student_id && ($application->channel === 'external' || ! in_array($application->status, ['offer', 'closed'], true)));
+        return $user->isAdmin() || ($user->isCandidate() && $user->userable_id === $application->candidate_id && ($application->channel === 'external' || ! in_array($application->status, ['offer', 'closed'], true)));
     }
 
     /**

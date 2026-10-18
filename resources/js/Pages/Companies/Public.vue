@@ -7,7 +7,7 @@ import { computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import { ArrowUpRight, MapPin } from '@lucide/vue';
 import CompanyLogo from '@/Components/Ui/CompanyLogo.vue';
-import RoleCard from '@/Components/Internship/RoleCard.vue';
+import RoleCard from '@/Components/Opportunity/RoleCard.vue';
 const props = defineProps({ company: { type: Object, required: true }, opportunities: { type: [Object, Array], default: () => ({ data: [] }) }, translation: { type: String, default: null } });
 const page = usePage();
 const fr = computed(() => page.props.locale === 'fr');
@@ -38,7 +38,7 @@ const logo = computed(() => props.company.logo && /^https?:\/\//.test(props.comp
 
         <section class="mt-12" aria-labelledby="roles-title">
             <h2 id="roles-title" class="font-display text-2xl font-semibold">{{ text('Open internships and jobs at', 'Stages et emplois ouverts chez') }} {{ company.name }}</h2>
-            <div v-if="roles.length" class="mt-6 grid lg:grid-cols-2 gap-4"><RoleCard v-for="opportunity in roles" :key="opportunity.id" :internship="opportunity" /></div>
+            <div v-if="roles.length" class="mt-6 grid lg:grid-cols-2 gap-4"><RoleCard v-for="opportunity in roles" :key="opportunity.id" :opportunity="opportunity" /></div>
             <div v-else class="mt-6 bg-white rounded-2xl border border-line p-8">
                 <p class="text-slate-600">{{ text(`There are no open roles at ${company.name} right now.`, `Aucune offre ouverte chez ${company.name} pour le moment.`) }}</p>
                 <Link :href="`${prefix}/opportunities`" class="inline-block mt-4 text-blue-700 font-semibold">{{ text('Browse all opportunities', 'Voir toutes les opportunités') }}</Link>

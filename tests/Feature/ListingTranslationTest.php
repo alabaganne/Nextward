@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Ai\ListingTranslations;
 use App\Models\Company;
-use App\Models\Internship;
+use App\Models\Opportunity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -94,9 +94,9 @@ class ListingTranslationTest extends TestCase
         $this->artisan('opportunities:translate', ['--sync' => true])->expectsOutputToContain('Translated 0 listing(s).');
     }
 
-    private function listing(string $title, string $description): Internship
+    private function listing(string $title, string $description): Opportunity
     {
-        return Internship::create([
+        return Opportunity::create([
             'title' => $title, 'description' => $description, 'company_id' => Company::create(['name' => 'Atlas Cloud'])->id,
             'closing_at' => today()->addMonth(),
         ]);

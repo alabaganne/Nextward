@@ -55,13 +55,13 @@ class ApplicationSubmitted extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         $application = $this->application;
-        $role = $application->internship->title;
+        $role = $application->opportunity->title;
 
         return (new MailMessage)
             ->subject('New application for '.$role)
             ->markdown('mail.application-submitted', [
                 'company' => MailText::plain($application->company->display_name, 120),
-                'candidate' => MailText::plain($application->student->user->name, 120),
+                'candidate' => MailText::plain($application->candidate->user->name, 120),
                 'role' => MailText::plain($role, 160),
                 'excerpt' => filled($application->message ?: $application->cover_letter)
                     ? MailText::plain($application->message ?: $application->cover_letter, 400) : null,
@@ -78,12 +78,12 @@ class ApplicationSubmitted extends Notification implements ShouldQueue
      */
     public function toArray($notifiable)
     {
-        $studentName = e($this->application->student->user->name);
-        $internshipTitle = e($this->application->internship->title);
+        $candidateName = e($this->application->candidate->user->name);
+        $opportunityTitle = e($this->application->opportunity->title);
 
         return [
-            'title' => "{$this->application->student->user->name}'s Application",
-            'body' => "<span>{$studentName}</span> has applied to <span>{$internshipTitle}</span>.",
+            'title' => "{$this->application->candidate->user->name}'s Application",
+            'body' => "<span>{$candidateName}</span> has applied to <span>{$opportunityTitle}</span>.",
             'action' => "/applications/{$this->application->id}"
         ];
     }
