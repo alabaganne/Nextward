@@ -35,7 +35,7 @@ Rules for both:
 
 CV:
 - headline: the candidate's role in a few words, aimed at this job, but true to their background.
-- summary: two or three sentences on why they fit this job.
+- summary: two or three sentences on why they fit this job, written without pronouns (no I, he, she or they), like "Full-stack developer who built…".
 - skills: up to 15, the ones this job asks for first, only skills the candidate really has.
 - experience: their jobs, newest first, with the same titles, companies and dates. For each, two to four highlights: short lines that put forward what matters for this job.
 - education, projects and languages: from the profile or resume. Keep projects that fit the job.
