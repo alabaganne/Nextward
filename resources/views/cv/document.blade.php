@@ -14,13 +14,13 @@
             </div>
         @endif
         @if ($cv['skills'])
-            <div class="d-side-sec"><h4>{{ $labels['skills'] }}</h4><div class="d-side-skill"><span>{{ implode(', ', $cv['skills']) }}</span></div></div>
+            <div class="d-side-sec"><h4>{{ $labels['skills'] }}</h4><div class="d-side-skill"><span>{{ \App\Support\CvTemplates::join($cv['skills'], $locale) }}</span></div></div>
         @endif
         @if ($cv['education'])
             <div class="d-side-sec">
                 <h4>{{ $labels['education'] }}</h4>
                 @foreach ($cv['education'] as $school)
-                    @php($degree = implode(', ', array_filter([$school['degree'], $school['field']])))
+                    @php($degree = \App\Support\CvTemplates::join([$school['degree'], $school['field']], $locale))
                     <div class="d-side-skill">
                         <strong>{{ $degree ?: $school['school'] }}</strong>
                         <span>{{ implode(' · ', array_filter([$degree ? $school['school'] : '', \App\Support\CvTemplates::dateRange($school['start'], $school['end'], false, $locale)])) }}</span>

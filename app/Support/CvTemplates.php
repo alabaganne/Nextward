@@ -33,8 +33,10 @@ class CvTemplates
 
     public const DEFAULT = ['template' => 'halden', 'accent' => 'navy', 'font' => 'sans', 'paper' => 'a4'];
 
-    // Languages a CV or letter can be written in. Arabic is left out until the themes handle right-to-left text.
-    public const LOCALES = ['en', 'fr', 'de', 'es', 'it', 'pt', 'nl'];
+    // Languages a CV or letter can be written in.
+    public const LOCALES = ['en', 'fr', 'de', 'es', 'it', 'pt', 'nl', 'ar'];
+
+    public const RTL = ['ar'];
 
     private const LABELS = [
         'en' => ['summary' => 'Summary', 'profile' => 'Profile', 'experience' => 'Experience', 'education' => 'Education', 'skills' => 'Skills', 'projects' => 'Projects', 'languages' => 'Languages', 'contact' => 'Contact', 'present' => 'Present', 'cv' => 'Resume', 'letter' => 'Cover letter'],
@@ -43,6 +45,7 @@ class CvTemplates
         'es' => ['summary' => 'Resumen', 'profile' => 'Perfil', 'experience' => 'Experiencia', 'education' => 'Formación', 'skills' => 'Habilidades', 'projects' => 'Proyectos', 'languages' => 'Idiomas', 'contact' => 'Contacto', 'present' => 'actualidad', 'cv' => 'CV', 'letter' => 'Carta de presentación'],
         'it' => ['summary' => 'Profilo', 'profile' => 'Profilo', 'experience' => 'Esperienza', 'education' => 'Formazione', 'skills' => 'Competenze', 'projects' => 'Progetti', 'languages' => 'Lingue', 'contact' => 'Contatti', 'present' => 'oggi', 'cv' => 'CV', 'letter' => 'Lettera di presentazione'],
         'pt' => ['summary' => 'Resumo', 'profile' => 'Perfil', 'experience' => 'Experiência', 'education' => 'Formação', 'skills' => 'Competências', 'projects' => 'Projetos', 'languages' => 'Idiomas', 'contact' => 'Contacto', 'present' => 'atual', 'cv' => 'CV', 'letter' => 'Carta de apresentação'],
+        'ar' => ['summary' => 'نبذة مهنية', 'profile' => 'الملف الشخصي', 'experience' => 'الخبرة المهنية', 'education' => 'التعليم', 'skills' => 'المهارات', 'projects' => 'المشاريع', 'languages' => 'اللغات', 'contact' => 'معلومات الاتصال', 'present' => 'حتى الآن', 'cv' => 'السيرة الذاتية', 'letter' => 'رسالة التقديم'],
         'nl' => ['summary' => 'Samenvatting', 'profile' => 'Profiel', 'experience' => 'Werkervaring', 'education' => 'Opleiding', 'skills' => 'Vaardigheden', 'projects' => 'Projecten', 'languages' => 'Talen', 'contact' => 'Contact', 'present' => 'heden', 'cv' => 'CV', 'letter' => 'Motivatiebrief'],
     ];
 
@@ -54,6 +57,17 @@ class CvTemplates
     public static function labels(?string $locale): array
     {
         return self::LABELS[self::locale($locale)];
+    }
+
+    public static function dir(?string $locale): string
+    {
+        return in_array(self::locale($locale), self::RTL, true) ? 'rtl' : 'ltr';
+    }
+
+    // Skills and languages joined with the comma of the CV's language.
+    public static function join(array $items, ?string $locale): string
+    {
+        return implode(self::locale($locale) === 'ar' ? '، ' : ', ', array_filter($items, 'filled'));
     }
 
     // A full, valid style from whatever was saved or sent.
@@ -138,9 +152,10 @@ class CvTemplates
         return ['items' => $items, 'links' => $links];
     }
 
-    // "Ala Baganne" and "CV" become "Ala_Baganne_CV".
+    // "Ala Baganne" and "CV" become "Ala_Baganne_CV". Arabic labels become English, since the name is made ASCII.
     public static function fileName(?string $name, string $kind, string $extension = 'pdf'): string
     {
+        $kind = strtr($kind, [self::LABELS['ar']['cv'] => 'CV', self::LABELS['ar']['letter'] => 'Cover letter']);
         $base = trim(preg_replace('/_+/', '_', preg_replace('/[^\w-]/', '', preg_replace('/\s+/', '_', Str::ascii(trim(($name ?: '').' '.$kind))))), '_');
 
         return ($base ?: 'Resume').'.'.$extension;

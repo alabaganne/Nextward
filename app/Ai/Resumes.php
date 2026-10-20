@@ -12,7 +12,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Laravel\Ai\Files\Document;
 
-// Reads a resume PDF into profile suggestions (nothing is saved here) and translates resumes.
+// Reads a resume PDF into profile suggestions (nothing is saved here), translates resumes and makes editable copies of uploaded PDFs.
 class Resumes
 {
     public function __construct(private OpportunityClassifier $ai) {}
@@ -34,14 +34,17 @@ class Resumes
         return $this->clean($response->toArray());
     }
 
-    // Writes the draft's source resume in the draft's language. Uploaded PDFs are read; resumes made here are sent as text.
+    // Writes the draft's source resume in the draft's language, or in its own language for a copy. Uploaded PDFs are read;
+    // resumes made here are sent as text.
     public function translate(Resume $draft): array
     {
         $source = $draft->translatedFrom()->firstOrFail();
+        $copy = $draft->source === 'copy';
         $language = LanguageGuess::name($draft->locale) ?? 'English';
         $uploaded = $source->source === 'uploaded';
-        $response = (new ResumeTranslator($draft->locale))->prompt(
-            $uploaded ? "Translate the attached resume into {$language}." : "Translate this resume into {$language}.\n\n".json_encode(Arr::except($source->content ?? [], ['name', 'contact']), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        $response = (new ResumeTranslator($copy ? null : $draft->locale))->prompt(
+            $copy ? 'Read the attached resume into the fields, in the language it is written in.'
+                : ($uploaded ? "Translate the attached resume into {$language}." : "Translate this resume into {$language}.\n\n".json_encode(Arr::except($source->content ?? [], ['name', 'contact']), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)),
             attachments: $uploaded ? [Document::fromStorage($source->path, 'local')] : [],
             provider: $this->ai->provider(),
             model: $this->ai->model('review'),

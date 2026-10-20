@@ -1,7 +1,7 @@
 <script setup>
 import { computed, h, onBeforeUnmount, onMounted, ref } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { ArrowLeft, Download, Languages, RefreshCw, Star, Trash2 } from '@lucide/vue';
+import { ArrowLeft, Download, FilePenLine, Languages, RefreshCw, Star, Trash2 } from '@lucide/vue';
 import axios from 'axios';
 import AppShell from '@/Layouts/AppShell.vue';
 import PageHeader from '@/Components/Ui/PageHeader.vue';
@@ -86,7 +86,7 @@ const save = () => {
 const failed = (failure) => {
 	const code = failure.response?.status;
 	billingUrl.value = failure.response?.data?.billing_url || '';
-	error.value = code === 429 ? 'You asked for many translations in a short time. Please wait a little and try again.'
+	error.value = code === 429 ? 'You asked the AI for a lot in a short time. Please wait a little and try again.'
 		: code === 403 ? 'Verify your email address to use the AI tools.'
 		: failure.response?.data?.message || 'We could not start right now. Please try again in a minute.';
 };
@@ -98,8 +98,16 @@ const translate = async (target) => {
 		router.visit(data.url);
 	} catch (failure) { failed(failure); }
 };
+const makeCopy = async () => {
+	error.value = '';
+	try {
+		const { data } = await axios.post(route('resumes.copy', resume.value.id));
+		router.visit(data.url);
+	} catch (failure) { failed(failure); }
+};
+const isCopy = computed(() => resume.value?.source === 'copy');
 const regenerate = async () => {
-	if (resume.value.status === 'draft' && !window.confirm('Translate it again? Your edits to this draft will be replaced.')) return;
+	if (resume.value.status === 'draft' && !window.confirm(`${isCopy.value ? 'Read it again' : 'Translate it again'}? Your edits to this draft will be replaced.`)) return;
 	error.value = '';
 	try {
 		const { data } = await axios.post(route('resumes.regenerate', resume.value.id));
@@ -127,13 +135,13 @@ const editable = computed(() => isNew.value || (resume.value.editable && ['ready
 <template>
 	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-[1280px] mx-auto">
 		<Link :href="`${route('profile.show')}#resumes`" class="inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-muted hover:text-blue-700 mb-4"><ArrowLeft class="w-4 h-4" aria-hidden="true" /> Your resumes</Link>
-		<PageHeader :title="isNew ? 'New resume from your profile' : resume.name" :description="isNew ? 'Your profile, laid out with the theme you pick. Edit anything here; your profile itself does not change.' : [resume.language?.label, { uploaded: 'Uploaded PDF', profile: 'From your profile', translation: 'AI translation' }[resume.source], resume.is_main ? 'Main resume' : null].filter(Boolean).join(' · ')" />
+		<PageHeader :title="isNew ? 'New resume from your profile' : resume.name" :description="isNew ? 'Your profile, laid out with the theme you pick. Edit anything here; your profile itself does not change.' : [resume.language?.label, { uploaded: 'Uploaded PDF', profile: 'From your profile', translation: 'AI translation', copy: 'Editable copy' }[resume.source], resume.is_main ? 'Main resume' : null].filter(Boolean).join(' · ')" />
 
 		<p v-if="error" class="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">{{ error }} <a v-if="billingUrl" :href="billingUrl" class="underline font-semibold">See packs</a></p>
 
 		<div v-if="status === 'queued'" class="bg-white border border-line rounded-[18px] px-6 py-10 text-center" role="status">
 			<RefreshCw class="w-8 h-8 text-blue-600 mx-auto animate-spin" aria-hidden="true" />
-			<p class="font-display text-lg font-semibold mt-3">Translating your resume…</p>
+			<p class="font-display text-lg font-semibold mt-3">{{ isCopy ? 'Reading your resume…' : 'Translating your resume…' }}</p>
 			<p class="text-sm text-muted mt-1">This usually takes under a minute. You can leave this page and come back.</p>
 		</div>
 
@@ -143,8 +151,10 @@ const editable = computed(() => isNew.value || (resume.value.editable && ['ready
 		</div>
 
 		<div v-else-if="!editable" class="bg-white border border-line rounded-[18px] px-6 py-8">
-			<p class="text-[14.5px] text-ink-700">This is a PDF you uploaded, so it can’t be edited here. Download it, translate it with AI, or make a new resume from your profile.</p>
+			<p class="text-[14.5px] text-ink-700">This is a PDF you uploaded, so it can’t be edited as it is. Make an editable copy with AI, translate it, download it, or make a new resume from your profile.</p>
+			<p v-if="!free" class="text-xs text-muted mt-2">An editable copy or a translation uses 1 credit (3 rewrites included). You have {{ credits }}.</p>
 			<div class="flex flex-wrap gap-2.5 mt-5">
+				<button v-if="status === 'ready'" type="button" class="cbtn bg-blue-600 text-white hover:bg-blue-700" :disabled="!ai_enabled" @click="makeCopy"><FilePenLine class="w-4 h-4" aria-hidden="true" /> Make an editable copy</button>
 				<a :href="route('resumes.download', resume.id)" class="cbtn cbtn-secondary"><Download class="w-4 h-4" aria-hidden="true" /> Download PDF</a>
 				<button v-if="!resume.is_main" type="button" class="cbtn cbtn-secondary" @click="setMain"><Star class="w-4 h-4" aria-hidden="true" /> Make main</button>
 				<button v-for="target in resume.targets" :key="target.code" type="button" class="cbtn cbtn-secondary" :disabled="!ai_enabled" @click="translate(target)"><Languages class="w-4 h-4" aria-hidden="true" /> {{ target.label }} version</button>
@@ -153,7 +163,7 @@ const editable = computed(() => isNew.value || (resume.value.editable && ['ready
 		</div>
 
 		<template v-else>
-			<p v-if="status === 'draft'" class="mb-5 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">Check every line, then save. The AI only translated your resume; fix anything that is not exactly right.</p>
+			<p v-if="status === 'draft'" class="mb-5 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">Check every line, then save. The AI only {{ isCopy ? 'copied' : 'translated' }} your resume; fix anything that is not exactly right.</p>
 			<p v-else-if="isNew && full && !replace" class="mb-5 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">You already have 10 resumes. Replace your main one, or delete one first.</p>
 
 			<div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6 items-start max-[1080px]:grid-cols-1">
@@ -176,22 +186,22 @@ const editable = computed(() => isNew.value || (resume.value.editable && ['ready
 					</div>
 				</form>
 
-				<aside class="lg:sticky top-6 grid gap-3">
-					<CvPreview :cv="cv" :style-options="style" :locale="locale" />
+				<aside class="lg:sticky lg:top-[94px] lg:max-h-[calc(100vh-110px)] lg:overflow-y-auto grid gap-3">
 					<div class="flex flex-wrap gap-2">
 						<a v-if="!isNew && resume.has_file && status === 'ready'" :href="route('resumes.download', resume.id)" class="cbtn cbtn-secondary" :title="dirty ? 'Save first to download your latest changes' : null"><Download class="w-4 h-4" aria-hidden="true" /> PDF</a>
 						<button type="button" class="cbtn cbtn-secondary" @click="word"><Download class="w-4 h-4" aria-hidden="true" /> Word</button>
 						<button v-if="!isNew && !resume.is_main && status === 'ready'" type="button" class="cbtn cbtn-secondary" @click="setMain"><Star class="w-4 h-4" aria-hidden="true" /> Make main</button>
 						<button v-if="!isNew && resume.source === 'profile'" type="button" class="cbtn cbtn-secondary" @click="refresh"><RefreshCw class="w-4 h-4" aria-hidden="true" /> Refresh from my profile</button>
 						<button v-for="target in (!isNew ? resume.targets : [])" :key="target.code" type="button" class="cbtn cbtn-secondary" :disabled="!ai_enabled" @click="translate(target)"><Languages class="w-4 h-4" aria-hidden="true" /> {{ target.label }} version</button>
-						<button v-if="!isNew && status === 'draft'" type="button" class="cbtn cbtn-secondary" @click="regenerate"><RefreshCw class="w-4 h-4" aria-hidden="true" /> Translate again</button>
+						<button v-if="!isNew && status === 'draft'" type="button" class="cbtn cbtn-secondary" @click="regenerate"><RefreshCw class="w-4 h-4" aria-hidden="true" /> {{ isCopy ? 'Read again' : 'Translate again' }}</button>
 						<button v-if="!isNew" type="button" class="cbtn cbtn-secondary text-[#b91c1c]" @click="remove"><Trash2 class="w-4 h-4" aria-hidden="true" /> Delete</button>
 					</div>
 					<p class="text-xs text-muted">
 						<template v-if="dirty && !isNew">Save to update the PDF. </template>
 						<template v-if="!isNew && resume.targets?.length && !free">A translation uses 1 credit (3 rewrites included). You have {{ credits }}.</template>
-						<template v-if="!isNew && resume.rewrites_left !== null && resume.rewrites_left !== undefined"> {{ resume.rewrites_left }} rewrite(s) left on this credit.</template>
+						<template v-if="!isNew && status === 'draft' && resume.rewrites_left !== null && resume.rewrites_left !== undefined"> {{ resume.rewrites_left }} rewrite(s) left on this credit.</template>
 					</p>
+					<CvPreview :cv="cv" :style-options="style" :locale="locale" />
 				</aside>
 			</div>
 		</template>

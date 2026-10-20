@@ -35,6 +35,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('verified')->group(function () {
         Route::post('/profile/resume/read', [ResumeController::class, 'read'])->middleware('throttle:5,60,resume-read')->name('profile.resume.read');
         Route::post('/resumes/{resume}/translate', [ResumeTranslationController::class, 'store'])->whereNumber('resume')->middleware('throttle:10,60,resume-translations')->name('resumes.translate');
+        Route::post('/resumes/{resume}/copy', [ResumeTranslationController::class, 'copy'])->whereNumber('resume')->middleware('throttle:10,60,resume-translations')->name('resumes.copy');
         Route::post('/resumes/{resume}/regenerate', [ResumeTranslationController::class, 'regenerate'])->whereNumber('resume')->middleware('throttle:10,60,resume-translations')->name('resumes.regenerate');
         Route::post('/opportunities/{opportunity}/kit', [ApplicationKitController::class, 'store'])
             ->whereNumber('opportunity')->middleware('throttle:10,60,kits')->name('opportunities.kit');

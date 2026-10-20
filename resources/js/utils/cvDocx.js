@@ -1,10 +1,28 @@
 // Word copy of a CV, built in the browser (from Resume Studio's export). Plain and editable, in the theme's accent and paper size.
 const PAGE = { letter: { width: 12240, height: 15840 }, a4: { width: 11906, height: 16838 } };
+const ARABIC = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+
+// Arabic CVs: right-to-left paragraphs, Arial for Arabic letters, no slanted text, and Western digits like the PDF.
+export const rtlOptions = (locale) => {
+	const rtl = locale === 'ar';
+	const run = (options) => {
+		if (!rtl) return options;
+		const { italics, ...rest } = options;
+		return ARABIC.test(options.text || '') ? { ...rest, rightToLeft: true } : rest;
+	};
+	return {
+		rtl,
+		run,
+		dateLocale: rtl ? 'ar-u-nu-latn' : locale,
+		font: rtl ? { ascii: 'Calibri', hAnsi: 'Calibri', cs: 'Arial' } : 'Calibri',
+		join: (items) => items.filter(Boolean).join(rtl ? '، ' : ', '),
+	};
+};
 
 const monthYear = (value, locale) => {
 	const match = /^(\d{4})-(\d{2})$/.exec(String(value || '').trim());
 	if (!match) return String(value || '').trim();
-	return new Intl.DateTimeFormat(locale, { month: 'short', year: 'numeric' }).format(new Date(Number(match[1]), Number(match[2]) - 1, 1));
+	return new Intl.DateTimeFormat(rtlOptions(locale).dateLocale, { month: 'short', year: 'numeric' }).format(new Date(Number(match[1]), Number(match[2]) - 1, 1));
 };
 
 export const dateRange = (row, labels, locale) => {
@@ -17,7 +35,11 @@ const toUrl = (text) => (/^https?:\/\//i.test(text) ? text : `https://${text}`);
 const isLink = (text) => /^(https?:\/\/)?([\w-]+\.)+[a-z]{2,}(\/\S*)?$/i.test(text) && !text.includes('@');
 
 export async function downloadCvDocx({ cv, labels, locale = 'en', accent = '2A4B7C', paper = 'a4', fileName = 'Resume' }) {
-	const { Document, Packer, Paragraph, TextRun, ExternalHyperlink, AlignmentType, BorderStyle, TabStopType } = await import('docx');
+	const docx = await import('docx');
+	const { Document, Packer, ExternalHyperlink, AlignmentType, BorderStyle, TabStopType } = docx;
+	const { rtl, font, run, join } = rtlOptions(locale);
+	const Paragraph = function (options) { return new docx.Paragraph(rtl ? { ...options, bidirectional: true } : options); };
+	const TextRun = function (options) { return new docx.TextRun(run(options)); };
 	const ink = '15171A';
 	const soft = '555555';
 	const margin = 720;
@@ -58,14 +80,14 @@ export async function downloadCvDocx({ cv, labels, locale = 'en', accent = '2A4B
 	if (cv.education?.length) {
 		children.push(title(labels.education));
 		cv.education.forEach((school) => {
-			const degree = [school.degree, school.field].filter(Boolean).join(', ');
+			const degree = join([school.degree, school.field]);
 			children.push(head(degree || school.school, dateRange(school, labels, locale)));
 			if (degree) children.push(line(school.school));
 		});
 	}
 	if (cv.skills?.length) {
 		children.push(title(labels.skills));
-		children.push(new Paragraph({ spacing: { after: 40 }, children: [new TextRun({ text: cv.skills.join(', '), size: 20, color: '3A3E40' })] }));
+		children.push(new Paragraph({ spacing: { after: 40 }, children: [new TextRun({ text: join(cv.skills), size: 20, color: '3A3E40' })] }));
 	}
 	if (cv.projects?.length) {
 		children.push(title(labels.projects));
@@ -79,13 +101,13 @@ export async function downloadCvDocx({ cv, labels, locale = 'en', accent = '2A4B
 	}
 	if (cv.languages?.length) {
 		children.push(title(labels.languages));
-		children.push(new Paragraph({ spacing: { after: 40 }, children: [new TextRun({ text: cv.languages.join(', '), size: 20, color: '3A3E40' })] }));
+		children.push(new Paragraph({ spacing: { after: 40 }, children: [new TextRun({ text: join(cv.languages), size: 20, color: '3A3E40' })] }));
 	}
 
 	const doc = new Document({
 		title: cv.name || fileName,
 		creator: cv.name || undefined,
-		styles: { default: { document: { run: { font: 'Calibri' } } } },
+		styles: { default: { document: { run: { font } } } },
 		sections: [{ properties: { page: { size: page, margin: { top: margin, bottom: margin, left: margin, right: margin } } }, children }],
 	});
 	const blob = await Packer.toBlob(doc);

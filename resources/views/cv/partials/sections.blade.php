@@ -25,7 +25,7 @@
         <section class="d-sec">
             <h3 class="d-sec-title">{{ $labels['education'] }}</h3>
             @foreach ($cv['education'] as $school)
-                @php($degree = implode(', ', array_filter([$school['degree'], $school['field']])))
+                @php($degree = \App\Support\CvTemplates::join([$school['degree'], $school['field']], $locale))
                 <div class="d-entry">
                     <div class="d-entry-head">
                         <div>
@@ -40,7 +40,7 @@
     @elseif ($section === 'skills' && $cv['skills'])
         <section class="d-sec">
             <h3 class="d-sec-title">{{ $labels['skills'] }}</h3>
-            <div class="d-skills"><div class="d-skill-row">{{ implode(', ', $cv['skills']) }}</div></div>
+            <div class="d-skills"><div class="d-skill-row">{{ \App\Support\CvTemplates::join($cv['skills'], $locale) }}</div></div>
         </section>
     @elseif ($section === 'projects' && $cv['projects'])
         <section class="d-sec">
@@ -57,7 +57,7 @@
     @elseif ($section === 'languages' && $cv['languages'])
         <section class="d-sec">
             <h3 class="d-sec-title">{{ $labels['languages'] }}</h3>
-            <div class="d-skills"><div class="d-skill-row">{{ implode(', ', $cv['languages']) }}</div></div>
+            <div class="d-skills"><div class="d-skill-row">{{ \App\Support\CvTemplates::join($cv['languages'], $locale) }}</div></div>
         </section>
     @endif
 @endforeach

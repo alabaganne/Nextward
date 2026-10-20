@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
-import { Download, FileText, Languages, Pencil, Plus, Star, Trash2, Upload } from '@lucide/vue';
+import { Download, FilePenLine, FileText, Languages, Pencil, Plus, Star, Trash2, Upload } from '@lucide/vue';
 import axios from 'axios';
 
 // The candidate's resumes on their profile page: upload, make one from the profile, translate, pick the main one.
@@ -29,25 +29,32 @@ const makeMain = (resume) => router.post(route('resumes.main', resume.id), {}, {
 const remove = (resume) => {
 	if (window.confirm(`Delete “${resume.name}”?${resume.is_main ? ' Your newest other resume becomes the main one.' : ''}`)) router.delete(route('resumes.destroy', resume.id), { preserveScroll: true });
 };
-const translate = async (resume, target) => {
+// A translation, or an editable copy of an uploaded PDF (no target).
+const startAi = async (resume, target = null) => {
 	error.value = '';
 	billingUrl.value = '';
-	busy.value = `${resume.id}-${target.code}`;
+	busy.value = `${resume.id}-${target?.code || 'copy'}`;
 	try {
-		const { data } = await axios.post(route('resumes.translate', resume.id), { locale: target.code });
+		const { data } = target
+			? await axios.post(route('resumes.translate', resume.id), { locale: target.code })
+			: await axios.post(route('resumes.copy', resume.id));
 		router.visit(data.url);
 	} catch (failure) {
 		const status = failure.response?.status;
 		billingUrl.value = failure.response?.data?.billing_url || '';
-		error.value = status === 429 ? 'You asked for many translations in a short time. Please wait a little and try again.'
+		error.value = status === 429 ? 'You asked the AI for a lot in a short time. Please wait a little and try again.'
 			: status === 403 ? 'Verify your email address to use the AI tools.'
-			: failure.response?.data?.message || 'We could not start the translation. Please try again in a minute.';
+			: failure.response?.data?.message || 'We could not start right now. Please try again in a minute.';
 	} finally {
 		busy.value = null;
 	}
 };
-const source = { uploaded: 'Uploaded PDF', profile: 'From your profile', translation: 'AI translation' };
-const status = { queued: 'Being translated…', draft: 'Draft: check and save it', failed: 'Translation failed' };
+const source = { uploaded: 'Uploaded PDF', profile: 'From your profile', translation: 'AI translation', copy: 'Editable copy' };
+const status = (resume) => ({
+	queued: resume.source === 'copy' ? 'Being read…' : 'Being translated…',
+	draft: 'Draft: check and save it',
+	failed: resume.source === 'copy' ? 'Reading failed' : 'Translation failed',
+})[resume.status];
 </script>
 
 <template>
@@ -79,7 +86,7 @@ const status = { queued: 'Being translated…', draft: 'Draft: check and save it
 							<span v-if="resume.is_main" class="rounded-full bg-blue-600 text-white px-2 py-0.5 font-semibold">Main</span>
 							<span class="rounded-full bg-paper-2 px-2 py-0.5 text-ink-700">{{ source[resume.source] }}</span>
 							<span v-if="resume.language" class="rounded-full bg-paper-2 px-2 py-0.5 text-ink-700">{{ resume.language.label }}</span>
-							<span v-if="status[resume.status]" class="rounded-full px-2 py-0.5 font-semibold" :class="resume.status === 'failed' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-800'">{{ status[resume.status] }}</span>
+							<span v-if="status(resume)" class="rounded-full px-2 py-0.5 font-semibold" :class="resume.status === 'failed' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-800'">{{ status(resume) }}</span>
 							<span class="text-muted">Updated {{ resume.updated_label }}</span>
 						</p>
 					</div>
@@ -88,7 +95,8 @@ const status = { queued: 'Being translated…', draft: 'Draft: check and save it
 					<a v-if="resume.has_file && resume.status === 'ready'" :href="route('resumes.download', resume.id)" class="cbtn cbtn-secondary !py-1.5"><Download class="w-4 h-4" aria-hidden="true" /> PDF</a>
 					<Link v-if="resume.editable" :href="route('resumes.show', resume.id)" class="cbtn cbtn-secondary !py-1.5"><Pencil class="w-4 h-4" aria-hidden="true" /> {{ resume.status === 'draft' ? 'Check draft' : 'Open' }}</Link>
 					<button v-if="!resume.is_main && resume.status === 'ready'" type="button" class="cbtn cbtn-secondary !py-1.5" @click="makeMain(resume)"><Star class="w-4 h-4" aria-hidden="true" /> Make main</button>
-					<button v-for="target in resume.targets" :key="target.code" type="button" class="cbtn cbtn-secondary !py-1.5" :disabled="full || busy !== null || !emailVerified" :title="!emailVerified ? 'Verify your email to use the AI tools' : null" @click="translate(resume, target)"><Languages class="w-4 h-4" aria-hidden="true" /> {{ busy === `${resume.id}-${target.code}` ? 'Starting…' : `${target.label} version` }}</button>
+					<button v-if="resume.source === 'uploaded' && resume.status === 'ready'" type="button" class="cbtn cbtn-secondary !py-1.5" :disabled="full || busy !== null || !emailVerified" :title="!emailVerified ? 'Verify your email to use the AI tools' : null" @click="startAi(resume)"><FilePenLine class="w-4 h-4" aria-hidden="true" /> {{ busy === `${resume.id}-copy` ? 'Starting…' : 'Make editable' }}</button>
+					<button v-for="target in resume.targets" :key="target.code" type="button" class="cbtn cbtn-secondary !py-1.5" :disabled="full || busy !== null || !emailVerified" :title="!emailVerified ? 'Verify your email to use the AI tools' : null" @click="startAi(resume, target)"><Languages class="w-4 h-4" aria-hidden="true" /> {{ busy === `${resume.id}-${target.code}` ? 'Starting…' : `${target.label} version` }}</button>
 					<button type="button" class="cbtn cbtn-secondary !py-1.5 text-[#b91c1c]" :aria-label="`Delete ${resume.name}`" @click="remove(resume)"><Trash2 class="w-4 h-4" aria-hidden="true" /></button>
 				</div>
 			</li>
@@ -98,7 +106,7 @@ const status = { queued: 'Being translated…', draft: 'Draft: check and save it
 		</div>
 		<p class="px-[22px] py-3 border-t border-line-2 text-xs text-muted">
 			{{ resumes.length }} of {{ limit }} resumes. Making a resume from your profile, changing its theme and downloading are free.
-			<template v-if="!free">An AI translation uses 1 credit (3 rewrites included). You have {{ credits }}.</template>
+			<template v-if="!free">An AI translation, or an editable copy of an uploaded PDF, uses 1 credit (3 rewrites included). You have {{ credits }}.</template>
 		</p>
 	</section>
 </template>

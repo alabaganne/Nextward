@@ -42,9 +42,9 @@ class CvRenderTest extends TestCase
     public function test_unknown_styles_and_languages_fall_back_to_the_defaults(): void
     {
         $this->assertSame(CvTemplates::DEFAULT, CvTemplates::style(['template' => 'nope', 'accent' => ['x'], 'paper' => null]));
-        $this->assertSame('en', CvTemplates::locale('ar'));
+        $this->assertSame('en', CvTemplates::locale('he'));
 
-        $html = app(CvPdf::class)->html($this->cv(), null, 'ar');
+        $html = app(CvPdf::class)->html($this->cv(), null, 'he');
         $this->assertStringContainsString('tpl-halden', $html);
         $this->assertStringContainsString('Experience', $html);
     }
@@ -65,6 +65,39 @@ class CvRenderTest extends TestCase
 
         $this->assertStringStartsWith('%PDF', $pdf->pdf($this->cv(), null, 'en'));
         $this->assertStringStartsWith('%PDF', $pdf->letterPdf($this->cv(), 'Dear team.', null, 'fr'));
+    }
+
+    public function test_arabic_cvs_and_letters_read_right_to_left_with_an_arabic_font(): void
+    {
+        $pdf = app(CvPdf::class);
+        $cv = [...$this->cv(), 'name' => 'سامي بن علي', 'skills' => ['Laravel', 'قواعد البيانات'], 'languages' => ['العربية', 'الفرنسية']];
+
+        foreach (array_keys(CvTemplates::TEMPLATES) as $template) {
+            $html = html_entity_decode($pdf->html($cv, ['template' => $template], 'ar'), ENT_QUOTES);
+            $this->assertStringContainsString('<html lang="ar" dir="rtl">', $html, $template);
+            $this->assertStringContainsString('الخبرة المهنية', $html, $template);
+            $this->assertStringContainsString('حتى الآن', $html, $template);
+            $this->assertStringContainsString($template === 'soren' ? 'Laravel، قواعد البيانات' : 'العربية، الفرنسية', $html, $template);
+            $this->assertStringContainsString('<bdi dir="ltr">sami@example.com</bdi>', $html, $template);
+        }
+
+        $print = $pdf->html($cv, ['font' => 'serif'], 'ar', true);
+        $this->assertStringContainsString("font-family:'IBM Plex Sans Arabic'", $print);
+        $this->assertStringContainsString("font-family:'Noto Naskh Arabic'", $print);
+        $this->assertStringContainsString('<a href="tel:+21650000000" dir="ltr">', $print);
+        $this->assertStringContainsString("font-family:'IBM Plex Sans Arabic'", $pdf->html($cv, null, 'ar'));
+        $this->assertStringNotContainsString("font-family:'Noto Naskh Arabic'", $pdf->html($cv, null, 'ar', true));
+
+        $letter = $pdf->letterHtml($cv, 'السادة الكرام،', null, 'ar');
+        $this->assertStringContainsString('<html lang="ar" dir="rtl">', $letter);
+        $this->assertStringContainsString("font-family:'IBM Plex Sans Arabic'", $letter);
+
+        $french = $pdf->html($this->cv(), ['font' => 'serif'], 'fr', true);
+        $this->assertStringContainsString('<html lang="fr" dir="ltr">', $french);
+        $this->assertStringNotContainsString("font-family:'IBM Plex Sans Arabic'", $french);
+        $this->assertStringNotContainsString("font-family:'Noto Naskh Arabic'", $french);
+        $this->assertStringContainsString('Arabic, French, English', $french);
+        $this->assertSame('Sami_CV.pdf', CvTemplates::fileName('Sami', CvTemplates::labels('ar')['cv']));
     }
 
     public function test_the_preview_needs_a_login(): void

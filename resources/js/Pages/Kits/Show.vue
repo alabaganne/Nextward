@@ -131,7 +131,7 @@ const useToApply = () => {
 				</div>
 
 				<div v-show="tab === 'letter'" class="px-[22px] py-[22px]">
-					<label class="text-sm font-semibold">Cover letter<textarea v-model="letter" class="fld mt-2 leading-7" rows="18"></textarea></label>
+					<label class="text-sm font-semibold">Cover letter<textarea v-model="letter" dir="auto" class="fld mt-2 leading-7" rows="18"></textarea></label>
 				</div>
 
 				<div class="px-[22px] py-4 border-t border-line-2 flex flex-wrap justify-between gap-2.5">
@@ -148,7 +148,7 @@ const useToApply = () => {
 					</div>
 				</div>
 			</form>
-			<aside class="lg:sticky top-6">
+			<aside class="lg:sticky lg:top-[94px] lg:max-h-[calc(100vh-110px)] lg:overflow-y-auto">
 				<CvPreview v-if="tab === 'cv'" :cv="cv" :style-options="style" :locale="kit.locale" />
 				<CvPreview v-else :cv="cv" :style-options="style" :locale="kit.locale" :letter="letter" />
 				<p class="text-xs text-muted mt-2">Save your changes before downloading, so the PDF has them.</p>

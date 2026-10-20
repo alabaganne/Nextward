@@ -211,9 +211,7 @@ class OpportunityNormalizer
 
     public function countryName(?string $code, string $language = 'en'): ?string
     {
-        if (! $code) { return null; }
-        $name = class_exists(\Locale::class) ? \Locale::getDisplayRegion('-'.$code, $language) : '';
-        return $name && $name !== $code && ! str_contains($name, 'Unknown') ? $name : $code;
+        return \App\Support\Countries::name($code, $language);
     }
 
     // Known skills named in the title or description, in the order of importer.skills.

@@ -195,7 +195,7 @@ are guidance only; do not invent profile fields, metrics, or timeline data.
   teamSize, foundedYear, remote, contact{email,website,hiringLead}`
 - **User (candidate)**: `name, initials, headline, location, field, about, skills[],
   education[], experience[], links[], resumes[], profileStrength, openTo`
-- **Resume**: `id, name, language{code,label}, source (uploaded|profile|translation),
+- **Resume**: `id, name, language{code,label}, source (uploaded|profile|translation|copy),
   status (queued|draft|ready|failed), is_main, editable, has_file, style, targets[]`.
   Up to 10 per candidate; the main one is shared, read by the AI and picked first when applying.
 - **Application attachment**: `name, size, mime, resume, url`; the chosen resume comes first with `resume: true`.

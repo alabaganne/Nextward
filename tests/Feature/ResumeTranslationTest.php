@@ -188,6 +188,63 @@ class ResumeTranslationTest extends TestCase
         $this->actingAs($user)->postJson(route('resumes.regenerate', $source))->assertStatus(409);
     }
 
+    public function test_an_uploaded_pdf_gets_an_editable_copy_in_its_own_language(): void
+    {
+        $source = $this->uploaded(null);
+        Http::fake(['api.openai.com/v1/responses' => Http::response($this->reply('fr'))]);
+
+        $url = $this->actingAs($this->user)->postJson(route('resumes.copy', $source))->assertOk()->json('url');
+
+        $copy = Resume::where('translated_from_id', $source->id)->sole();
+        $this->assertSame(route('resumes.show', $copy), $url);
+        $this->assertSame(['My CV (editable)', 'copy', 'draft', 'fr'], [$copy->name, $copy->source, $copy->status, $copy->locale]);
+        $this->assertTrue($copy->isEditable());
+        $this->assertSame('Développeur Laravel', $copy->content['headline']);
+        $this->assertSame('fr', $source->fresh()->locale);
+        Http::assertSent(function ($request) {
+            $content = collect($request['input'])->flatMap(fn ($message) => is_array($message['content'] ?? null) ? $message['content'] : []);
+            $text = $content->where('type', 'input_text')->pluck('text')->implode("\n").json_encode($request['instructions'] ?? '');
+            return $content->contains('type', 'input_file') && str_contains($text, 'in the language it is written in') && ! str_contains($text, 'Translate the attached');
+        });
+
+        // Asking again opens the same copy, and saving it lays it out.
+        $this->actingAs($this->user)->postJson(route('resumes.copy', $source))->assertOk()->assertJsonPath('url', $url);
+        Http::assertSentCount(1);
+        $this->actingAs($this->user)->putJson(route('resumes.update', $copy), ['content' => $copy->content])->assertOk()->assertJsonPath('resume.status', 'ready');
+        Storage::disk('local')->assertExists($copy->fresh()->path);
+    }
+
+    public function test_only_ready_uploaded_pdfs_can_be_copied(): void
+    {
+        $this->actingAs($this->user)->post('/resumes/from-profile', ['locale' => 'en']);
+        Http::fake();
+
+        $this->actingAs($this->user->fresh())->postJson(route('resumes.copy', Resume::sole()))->assertStatus(409);
+        $this->actingAs($this->user)->postJson(route('resumes.copy', $this->uploaded('en', 'draft')))->assertStatus(409);
+        $this->actingAs(User::where('email', 'professional@example.com')->firstOrFail())->postJson(route('resumes.copy', $this->uploaded('en')))->assertNotFound();
+        config(['ai.providers.openai.key' => null]);
+        $this->actingAs($this->user)->postJson(route('resumes.copy', $this->uploaded('en')))->assertStatus(503);
+        Http::assertNothingSent();
+    }
+
+    public function test_a_failed_copy_gives_the_credit_back_and_can_be_read_again(): void
+    {
+        config(['billing.enabled' => true, 'billing.signup_credits' => 1]);
+        $user = $this->buyer();
+        $source = $this->uploaded('en', 'ready', $user->userable);
+        Http::fake(['api.openai.com/v1/responses' => Http::sequence()->push(['error' => ['message' => 'Server error']], 500)->push($this->reply('en'))]);
+
+        $this->actingAs($user)->postJson(route('resumes.copy', $source))->assertOk();
+        $copy = Resume::where('translated_from_id', $source->id)->sole();
+        $this->assertSame('failed', $copy->status);
+        $this->assertSame('We could not read your resume right now. Please try again in a minute.', $copy->error);
+        $this->assertSame(1, app(Credits::class)->balance($user));
+
+        $this->actingAs($user)->postJson(route('resumes.regenerate', $copy))->assertOk();
+        $this->assertSame('draft', $copy->fresh()->status);
+        $this->assertSame(0, app(Credits::class)->balance($user));
+    }
+
     private function uploaded(?string $locale, string $status = 'ready', ?Candidate $candidate = null): Resume
     {
         $path = 'resumes/'.str()->random(10).'.pdf';

@@ -4,7 +4,7 @@ This is a configuration guide for a future deployment, not a report that a VPS h
 
 ## Runtime and directory layout
 
-Use Nginx, PHP-FPM 8.3 or later, Composer, Node.js 24, a production database, Supervisor and cron. The PHP CLI and FPM must use the same PHP version and extensions. Enable PDO with your database driver, cURL, DOM/XML, Intl, Mbstring, OpenSSL, Tokenizer, Fileinfo and PCNTL for CLI queue timeouts. Without Intl, imported places keep country codes ("Tunis, TN") instead of names. Check the installed requirements with `composer check-platform-reqs --no-dev` after installation. SQLite is for isolated tests, not the deployment example below.
+Use Nginx, PHP-FPM 8.3 or later, Composer, Node.js 24, a production database, Supervisor and cron. The PHP CLI and FPM must use the same PHP version and extensions. Enable PDO with your database driver, cURL, DOM/XML, Mbstring, OpenSSL, Tokenizer, Fileinfo and PCNTL for CLI queue timeouts. Intl is optional: English and French country names come from `resources/data/countries.php`. Check the installed requirements with `composer check-platform-reqs --no-dev` after installation. SQLite is for isolated tests, not the deployment example below.
 
 Keep database and SSR ports off the public network. Permit HTTPS and the SSH access you need; permit HTTP for HTTPS redirects and certificate validation. Configure automatic certificate renewal and monitor it. Size PHP workers, database memory and queue concurrency for the actual VPS; start with one queue worker.
 

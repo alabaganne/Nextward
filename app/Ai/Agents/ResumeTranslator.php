@@ -14,6 +14,7 @@ use Laravel\Ai\Enums\Lab;
 use Laravel\Ai\Promptable;
 
 // Translates a candidate's resume (a PDF they uploaded, or one made on Nextward) into another language, fact for fact.
+// With no language, it copies an uploaded PDF into the fields as written.
 #[Strict]
 #[MaxTokens(16000)]
 #[Timeout(180)]
@@ -21,15 +22,16 @@ class ResumeTranslator implements Agent, HasProviderOptions, HasStructuredOutput
 {
     use CvSchema, Promptable, SetsEffort;
 
-    public function __construct(private string $locale) {}
+    public function __construct(private ?string $locale) {}
 
     public function instructions(): string
     {
         $language = LanguageGuess::name($this->locale) ?? 'English';
+        $task = $this->locale
+            ? "You translate a candidate's resume into {$language} for Nextward, a job board for IT people. You get the resume as a PDF or as JSON.\n\n- Translate every text into {$language}: headline, summary, highlights, job titles, degrees, fields of study, locations, project summaries and languages."
+            : "You copy a candidate's resume from a PDF into fields for Nextward, a job board for IT people, so they can edit it.\n\n- Copy every text word for word, in the language it is written in. Do not translate, reword or fix anything.";
         return <<<PROMPT
-You translate a candidate's resume into {$language} for Nextward, a job board for IT people. You get the resume as a PDF or as JSON.
-
-- Translate every text into {$language}: headline, summary, highlights, job titles, degrees, fields of study, locations, project summaries and languages.
+{$task}
 - Keep every fact exactly as it is: the same jobs, companies, schools, dates, numbers, skills and links, in the same order. Never add, drop, merge, shorten or improve anything.
 - Keep names of people, companies, schools, products, tools and technologies as they are. Skills that are tool or technology names stay as written.
 - Dates as "YYYY-MM" or "YYYY", as in the source. For a job they still hold, current is true and end is "".

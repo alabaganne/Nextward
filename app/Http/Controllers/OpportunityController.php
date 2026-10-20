@@ -35,7 +35,7 @@ class OpportunityController extends Controller
         $countries = Opportunity::available()->whereNotNull('country_code')->distinct()->orderBy('country_code')
             ->pluck('country_code')->map(fn ($code) => [
                 'code' => $code,
-                'name' => class_exists(\Locale::class) ? (\Locale::getDisplayRegion('und_'.$code, $request->is('fr/*') ? 'fr' : 'en') ?: $code) : $code,
+                'name' => \App\Support\Countries::name($code, $request->is('fr/*') ? 'fr' : 'en'),
             ])->values();
 
         return Inertia::render('Opportunities/Index', [

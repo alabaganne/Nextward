@@ -10,7 +10,7 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
-// Writes the AI translation of a resume as a draft the candidate checks before saving.
+// Writes the AI translation of a resume, or the editable copy of an uploaded PDF, as a draft the candidate checks before saving.
 class TranslateResume implements ShouldQueue
 {
     use Queueable;
@@ -26,7 +26,11 @@ class TranslateResume implements ShouldQueue
         if (! $draft || $draft->status !== 'queued') { return; }
         try {
             $result = $resumes->translate($draft);
-            $draft->update([...collect($result)->except('source_language')->all(), 'status' => 'draft', 'error' => null]);
+            $draft->update([
+                ...collect($result)->except('source_language')->all(),
+                ...($draft->source === 'copy' && ! $draft->locale ? ['locale' => $result['source_language']] : []),
+                'status' => 'draft', 'error' => null,
+            ]);
             $source = $draft->translatedFrom;
             if ($source && ! $source->locale && $result['source_language']) {
                 $source->update(['locale' => $result['source_language']]);
@@ -48,7 +52,8 @@ class TranslateResume implements ShouldQueue
     private function fail(Resume $draft, Credits $credits): void
     {
         if ($draft->status !== 'queued') { return; }
-        $draft->update(['status' => $draft->content ? 'draft' : 'failed', 'error' => 'We could not translate your resume right now. Please try again in a minute.']);
+        $error = $draft->source === 'copy' ? 'We could not read your resume right now. Please try again in a minute.' : 'We could not translate your resume right now. Please try again in a minute.';
+        $draft->update(['status' => $draft->content ? 'draft' : 'failed', 'error' => $error]);
         if ($draft->generations > 0) { $draft->decrement('generations'); }
         if ($user = $draft->candidate?->user) { $credits->refund($user, $draft->fresh()); }
     }

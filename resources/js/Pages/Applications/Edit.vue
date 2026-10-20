@@ -36,7 +36,7 @@ const form = useForm({
 // The resume goes first; other files are added below.
 const attachedResume = computed(() => props.application?.attachments?.find((file) => file.resume) || null);
 const otherAttachments = computed(() => props.application?.attachments?.filter((file) => !file.resume) || []);
-const sources = { uploaded: 'Uploaded PDF', profile: 'From your profile', translation: 'AI translation' };
+const sources = { uploaded: 'Uploaded PDF', profile: 'From your profile', translation: 'AI translation', copy: 'Editable copy' };
 const resumeOptions = computed(() => [
 	...(attachedResume.value ? [{ value: 'keep', label: attachedResume.value.name, hint: 'Already sent with this application' }] : []),
 	...props.kits.map((kit) => ({ value: `kit:${kit.id}`, label: 'Tailored CV for this role', hint: `${kit.language} · updated ${kit.updated_label}` })),

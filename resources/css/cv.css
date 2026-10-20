@@ -20,13 +20,18 @@ body { -webkit-font-smoothing: antialiased; }
 .doc-serif { font-family: var(--serif); }
 .doc-sans { font-family: var(--sans); }
 
+/* Arabic: its own faces, and no letter spacing or slant, which break joined letters */
+.tpl:lang(ar) { --sans: "Hanken Grotesk", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif; --serif: "Newsreader", "Noto Naskh Arabic", Georgia, serif; line-height: 1.65; }
+.tpl:lang(ar), .tpl:lang(ar) * { letter-spacing: 0 !important; font-style: normal !important; }
+.tpl:lang(ar) .d-name { line-height: 1.4; }
+
 .d-name { margin: 0; font-weight: 500; letter-spacing: -0.01em; font-size: 34px; line-height: 1.05; color: #15171a; }
 .d-headline { color: var(--doc-accent); font-weight: 600; font-size: 14px; margin-top: 6px; }
 .doc-serif .d-headline { font-style: italic; font-weight: 500; font-size: 16px; }
 
 .d-contact, .d-links { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12.5px; color: #555; margin-top: 12px; font-family: var(--sans); }
 .d-contact span, .d-links span { position: relative; }
-.d-contact span + span::before, .d-links span + span::before { content: "·"; position: absolute; left: -11px; color: #bbb; }
+.d-contact span + span::before, .d-links span + span::before { content: "·"; position: absolute; inset-inline-start: -11px; color: #bbb; }
 .d-links { color: var(--doc-accent); margin-top: 4px; }
 
 .d-body { margin-top: 30px; }
@@ -45,7 +50,7 @@ body { -webkit-font-smoothing: antialiased; }
 .d-note { font-size: 13px; color: #555; margin-top: 4px; font-style: italic; }
 .d-proj-link { color: var(--doc-accent); font-weight: 500; font-style: normal; }
 
-.d-bullets { margin: 8px 0 0; padding-left: 18px; list-style: disc; }
+.d-bullets { margin: 8px 0 0; padding-inline-start: 18px; list-style: disc; }
 .d-bullets li { font-size: 13.5px; color: #3a3e40; margin-bottom: 4px; line-height: 1.55; }
 .d-bullets li::marker { color: var(--doc-accent); }
 
@@ -57,7 +62,7 @@ body { -webkit-font-smoothing: antialiased; }
 .d-head-center .d-contact, .d-head-center .d-links { justify-content: center; }
 
 .d-head-left { display: flex; justify-content: space-between; align-items: flex-start; gap: 32px; }
-.d-head-left .d-contact-col { display: flex; flex-direction: column; gap: 3px; text-align: right; font-size: 12px; color: #666; font-family: var(--sans); }
+.d-head-left .d-contact-col { display: flex; flex-direction: column; gap: 3px; text-align: end; font-size: 12px; color: #666; font-family: var(--sans); }
 .d-head-left .d-contact-col .d-link { color: var(--doc-accent); }
 
 /* Ravenna: editorial */
@@ -70,8 +75,8 @@ body { -webkit-font-smoothing: antialiased; }
 /* Halden: modern */
 .tpl-halden .d-name { font-size: 32px; font-weight: 700; }
 .tpl-halden .d-head-left { padding-bottom: 18px; border-bottom: 1px solid #e7e7e3; }
-.tpl-halden .d-sec-title { border: none; padding-left: 13px; position: relative; }
-.tpl-halden .d-sec-title::before { content: ""; position: absolute; left: 0; top: 1px; bottom: 1px; width: 3px; background: var(--doc-accent); border-radius: 2px; }
+.tpl-halden .d-sec-title { border: none; padding-inline-start: 13px; position: relative; }
+.tpl-halden .d-sec-title::before { content: ""; position: absolute; inset-inline-start: 0; top: 1px; bottom: 1px; width: 3px; background: var(--doc-accent); border-radius: 2px; }
 
 /* Marlow: minimal */
 .tpl-marlow { padding: 84px 88px; }
@@ -128,5 +133,8 @@ body { -webkit-font-smoothing: antialiased; }
 .is-print .tpl.paper-a4 { min-height: calc(297mm - 1px); }
 .is-print .tpl, .is-print .tpl-atlas > .d-body, .is-print .tpl-soren > .d-side, .is-print .tpl-soren > .d-main { box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 .is-print .d-head, .is-print .d-sec-title, .is-print .d-entry-head { break-inside: avoid; break-after: avoid; }
+/* Sören's side column: a fixed block prints on every page, so the tint runs to the bottom of page 2 too */
+.is-print:has(.tpl-soren), .is-print .tpl-soren, .is-print .tpl-soren > .d-side { background: transparent; }
+.is-print .tpl-soren::before { content: ""; position: fixed; inset-block: 0; inset-inline-start: 0; width: 256px; background: oklch(0.965 0.006 160); z-index: -1; }
 .is-print .d-bullets li, .is-print .d-skill-row, .is-print .d-summary, .is-print .d-note, .is-print .d-side-skill, .is-print .d-side-line { break-inside: avoid; }
 * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }

@@ -172,7 +172,7 @@ const useToApply = () => {
         <div v-else class="mt-6">
             <p class="rounded-xl bg-blue-50 px-4 py-3 text-sm text-blue-900">{{ text('Read it through and fix anything that is not exactly right before you send it.', 'Relisez-la et corrigez ce qui n’est pas tout à fait juste avant de l’envoyer.') }}</p>
             <label class="sr-only" for="cover-letter-text">{{ text('Cover letter', 'Lettre de motivation') }}</label>
-            <textarea id="cover-letter-text" v-model="letter" :lang="kit.locale" rows="16" maxlength="20000" class="mt-4 w-full rounded-xl border-line p-4 text-[15px] leading-7 text-slate-800 focus:border-brand focus:ring-brand" @input="edited" @blur="save" />
+            <textarea id="cover-letter-text" v-model="letter" :lang="kit.locale" dir="auto" rows="16" maxlength="20000" class="mt-4 w-full rounded-xl border-line p-4 text-[15px] leading-7 text-slate-800 focus:border-brand focus:ring-brand" @input="edited" @blur="save" />
             <div class="mt-3 flex flex-wrap items-center gap-3">
                 <button type="button" class="cta cta-primary !py-2.5" @click="copy"><Copy :size="17" aria-hidden="true" />{{ copied ? text('Copied', 'Copiée') : text('Copy', 'Copier') }}</button>
                 <button type="button" class="cta cta-secondary !py-2.5" :disabled="exporting || !letter.trim()" @click="exportDocx"><Download :size="17" aria-hidden="true" />{{ text('Word (.docx)', 'Word (.docx)') }}</button>

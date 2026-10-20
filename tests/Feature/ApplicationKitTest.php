@@ -151,16 +151,25 @@ class ApplicationKitTest extends TestCase
         });
     }
 
-    public function test_kits_are_not_written_in_arabic_yet(): void
+    public function test_an_arabic_listing_offers_an_arabic_kit_with_a_right_to_left_cv(): void
     {
         $role = $this->role();
-        $role->update(['language' => 'ar']);
-        $this->assertSame(['en', 'fr'], ApplicationKits::locales($role->fresh()));
-        Http::fake();
+        $role->update(['language' => 'ar', 'title' => 'مطور Laravel', 'description' => 'نبحث عن مطور Laravel للانضمام إلى فريقنا في تونس.']);
+        $this->assertSame(['ar', 'en', 'fr'], ApplicationKits::locales($role->fresh()));
+        Http::fake(['api.openai.com/v1/responses' => Http::response($this->reply())]);
 
-        $this->actingAs($this->candidate())->postJson("/opportunities/{$role->id}/kit", ['locale' => 'ar'])->assertStatus(422)->assertJsonValidationErrors('locale');
         $this->actingAs($this->candidate())->postJson("/opportunities/{$role->id}/kit", ['locale' => 'de'])->assertStatus(422);
-        Http::assertNothingSent();
+        $this->actingAs($this->candidate())->postJson("/opportunities/{$role->id}/kit", ['locale' => 'ar'])->assertOk();
+
+        $kit = ApplicationKit::sole();
+        $this->assertSame('ar', $kit->locale);
+        Http::assertSent(function ($request) {
+            $prompt = collect($request['input'])->flatMap(fn ($message) => is_array($message['content'] ?? null) ? $message['content'] : [])
+                ->where('type', 'input_text')->pluck('text')->implode("\n");
+            return str_contains($prompt, 'in Arabic') && str_contains($prompt, 'Listing language: Arabic') && str_contains($prompt, 'نبحث عن مطور Laravel');
+        });
+        $this->assertStringContainsString('الخبرة المهنية', $this->actingAs($this->candidate())->get(route('kits.cv', $kit))->assertOk()->getContent());
+        $this->assertStringContainsString('Cover_letter', $this->actingAs($this->candidate())->get(route('kits.letter', $kit))->assertOk()->headers->get('Content-Disposition'));
     }
 
     public function test_a_kit_for_a_closed_listing_cannot_be_written_again(): void

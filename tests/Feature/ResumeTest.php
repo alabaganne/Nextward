@@ -156,7 +156,7 @@ class ResumeTest extends TestCase
     public function test_themes_must_be_known_and_are_merged_on_save(): void
     {
         $this->actingAs($this->user)->post('/resumes/from-profile', ['locale' => 'en', 'style' => ['template' => 'nope']])->assertSessionHasErrors('style.template');
-        $this->actingAs($this->user)->post('/resumes/from-profile', ['locale' => 'ar'])->assertSessionHasErrors('locale');
+        $this->actingAs($this->user)->post('/resumes/from-profile', ['locale' => 'he'])->assertSessionHasErrors('locale');
         $this->assertSame(0, Resume::count());
 
         $this->actingAs($this->user)->post('/resumes/from-profile', ['locale' => 'en', 'style' => ['template' => 'soren', 'accent' => 'plum']]);

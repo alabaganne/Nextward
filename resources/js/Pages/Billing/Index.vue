@@ -25,7 +25,7 @@ const buy = (pack) => {
 
 <template>
 	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-wrap mx-auto">
-		<PageHeader title="Credits" :description="`Credits pay for the AI tools. One credit writes a CV and cover letter for one role or translates a resume (each with ${drafts_per_credit - 1} rewrites included), or fills your profile from a resume. You get 5 free credits every month. Browsing, applying, and making resumes from your profile stay free.`" />
+		<PageHeader title="Credits" :description="`Credits pay for the AI tools. One credit writes a CV and cover letter for one role, translates a resume or makes an uploaded PDF editable (each with ${drafts_per_credit - 1} rewrites included), or fills your profile from a resume. You get 5 free credits every month. Browsing, applying, and making resumes from your profile stay free.`" />
 		<div class="bg-white border border-line rounded-[18px] px-6 py-5 mb-6 flex items-center justify-between gap-4 flex-wrap">
 			<div><p class="text-sm text-muted">Your balance</p><p class="font-display text-3xl font-semibold">{{ balance }} credit{{ balance === 1 ? '' : 's' }}</p></div>
 		</div>

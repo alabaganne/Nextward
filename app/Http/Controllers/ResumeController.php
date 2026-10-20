@@ -257,7 +257,7 @@ class ResumeController extends Controller
             ...$resume->summary(),
             'content' => $resume->isEditable() ? Cv::clean($resume->content ?? []) : null,
             'labels' => CvTemplates::labels($resume->locale),
-            'rewrites_left' => $resume->source === 'translation' && $credits->enabled() ? max(0, $resume->credits_used * $credits->draftsPerCredit() - $resume->generations) : null,
+            'rewrites_left' => in_array($resume->source, ['translation', 'copy'], true) && $credits->enabled() ? max(0, $resume->credits_used * $credits->draftsPerCredit() - $resume->generations) : null,
         ];
     }
 

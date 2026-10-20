@@ -10,13 +10,16 @@ use Spatie\Browsershot\Browsershot;
 class CvPdf
 {
     private const FONTS = [
-        'Hanken Grotesk' => ['file' => 'hanken-grotesk', 'styles' => ['normal' => [400, 500, 600, 700]]],
-        'Newsreader' => ['file' => 'newsreader', 'styles' => ['normal' => [400, 500, 600, 700], 'italic' => [400, 500]]],
+        'Hanken Grotesk' => ['file' => 'hanken-grotesk', 'styles' => ['normal' => [400, 500, 600, 700]], 'subsets' => ['latin', 'latin-ext']],
+        'Newsreader' => ['file' => 'newsreader', 'styles' => ['normal' => [400, 500, 600, 700], 'italic' => [400, 500]], 'subsets' => ['latin', 'latin-ext']],
+        'IBM Plex Sans Arabic' => ['file' => 'ibm-plex-sans-arabic', 'styles' => ['normal' => [400, 500, 600, 700]], 'subsets' => ['arabic']],
+        'Noto Naskh Arabic' => ['file' => 'noto-naskh-arabic', 'styles' => ['normal' => [400, 500, 600, 700]], 'subsets' => ['arabic']],
     ];
 
     private const RANGES = [
         'latin' => 'U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD',
         'latin-ext' => 'U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF',
+        'arabic' => 'U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC',
     ];
 
     public function html(array $cv, ?array $style, ?string $locale, bool $print = false): string
@@ -50,24 +53,30 @@ class CvPdf
             'cv' => $cv,
             'style' => $style,
             'locale' => $locale,
+            'dir' => CvTemplates::dir($locale),
             'labels' => CvTemplates::labels($locale),
             'accent' => CvTemplates::ACCENTS[$style['accent']]['value'],
             'print' => $print,
             'title' => trim(($cv['name'] ?: '').' '.CvTemplates::labels($locale)['cv']),
-            'css' => $this->fonts($style['font'], $print).file_get_contents(resource_path('css/cv.css'))
+            'css' => $this->fonts($style['font'], $locale, $print).file_get_contents(resource_path('css/cv.css'))
                 .($print ? '@page { size: '.($style['paper'] === 'letter' ? 'letter' : 'A4').'; margin: 0; }' : ''),
         ];
     }
 
-    // Serif themes still use the sans face for dates, contact and section titles. PDFs get the fonts inline so Chrome loads nothing.
-    private function fonts(string $font, bool $print): string
+    // Serif themes still use the sans face for dates, contact and section titles. Arabic faces load only for Arabic CVs.
+    // PDFs get the fonts inline so Chrome loads nothing.
+    private function fonts(string $font, string $locale, bool $print): string
     {
         $families = $font === 'serif' ? ['Hanken Grotesk', 'Newsreader'] : ['Hanken Grotesk'];
+        if ($locale === 'ar') {
+            $families = [...$families, ...($font === 'serif' ? ['IBM Plex Sans Arabic', 'Noto Naskh Arabic'] : ['IBM Plex Sans Arabic'])];
+        }
         $css = '';
         foreach ($families as $family) {
             foreach (self::FONTS[$family]['styles'] as $fontStyle => $weights) {
                 foreach ($weights as $weight) {
-                    foreach (self::RANGES as $subset => $range) {
+                    foreach (self::FONTS[$family]['subsets'] as $subset) {
+                        $range = self::RANGES[$subset];
                         $file = self::FONTS[$family]['file']."-$subset-$weight-$fontStyle.woff2";
                         $src = $print ? 'data:font/woff2;base64,'.base64_encode((string) file_get_contents(public_path("fonts/cv/$file"))) : "/fonts/cv/$file";
                         $css .= "@font-face{font-family:'$family';font-style:$fontStyle;font-weight:$weight;font-display:block;src:url($src) format('woff2');unicode-range:$range}";
