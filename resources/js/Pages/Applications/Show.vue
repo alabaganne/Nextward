@@ -186,7 +186,7 @@ const saveTracking = () => trackingForm.patch(route('applications.tracking.updat
 								rel="noopener"
 							>
 								<span class="w-[38px] h-[38px] rounded-[9px] bg-[#fee2e2] text-[#dc2626] grid place-items-center shrink-0 text-[10px] font-extrabold font-display">{{ (attachment.name || '').split('.').pop().slice(0, 3).toUpperCase() || 'DOC' }}</span>
-								<span><b class="text-[13.5px] text-ink block font-semibold">{{ attachment.name }}</b><span v-if="attachment.size" class="text-xs text-muted">{{ Math.round(attachment.size / 1024) }} KB</span></span>
+								<span><b class="text-[13.5px] text-ink block font-semibold">{{ attachment.name }}</b><span v-if="attachment.resume || attachment.size" class="text-xs text-muted">{{ [attachment.resume && 'Resume', attachment.size && `${Math.round(attachment.size / 1024)} KB`].filter(Boolean).join(' · ') }}</span></span>
 								<span class="ml-1.5 text-muted-2 [&_svg]:w-[17px] [&_svg]:h-[17px]"><component :is="icons.download" aria-hidden="true" /></span>
 							</a>
 						</div>

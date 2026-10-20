@@ -25,10 +25,10 @@ class BillingTest extends TestCase
         config(['importer.ai.enabled' => true, 'importer.ai.provider' => 'openai', 'ai.providers.openai.key' => 'test-key']);
     }
 
-    public function test_new_candidates_get_one_free_credit_and_billing_pages_stay_closed_while_off(): void
+    public function test_new_candidates_get_their_sign_up_credits_and_billing_pages_stay_closed_while_off(): void
     {
         $user = $this->candidate();
-        $this->assertSame(1, app(Credits::class)->balance($user));
+        $this->assertSame(20, app(Credits::class)->balance($user));
 
         $this->actingAs($user)->get('/billing')->assertNotFound();
         $this->post('/webhooks/billing/lemonsqueezy')->assertNotFound();
@@ -36,7 +36,7 @@ class BillingTest extends TestCase
 
     public function test_with_billing_on_one_credit_covers_a_kit_and_its_rewrites(): void
     {
-        config(['billing.enabled' => true, 'billing.rewrites_per_kit' => 1]);
+        config(['billing.enabled' => true, 'billing.signup_credits' => 1, 'billing.rewrites_per_kit' => 1]);
         $user = $this->candidate();
         $role = Opportunity::available()->firstOrFail();
         Http::fake(['api.openai.com/v1/responses' => Http::response($this->kitReply())]);
@@ -56,7 +56,7 @@ class BillingTest extends TestCase
 
     public function test_a_failed_first_draft_gives_the_credit_back(): void
     {
-        config(['billing.enabled' => true]);
+        config(['billing.enabled' => true, 'billing.signup_credits' => 1]);
         $user = $this->candidate();
         Http::fake(['api.openai.com/v1/responses' => Http::response(['error' => ['message' => 'Server error']], 500)]);
 
@@ -133,7 +133,7 @@ class BillingTest extends TestCase
 
     private function billingOn(array $gateway): void
     {
-        config(['billing.enabled' => true, 'billing.packs.starter' => ['credits' => 3, 'price_tnd' => 15000, 'price_usd' => 500, 'lemonsqueezy_variant' => '77'], ...$gateway]);
+        config(['billing.enabled' => true, 'billing.signup_credits' => 1, 'billing.packs.starter' => ['credits' => 3, 'price_tnd' => 15000, 'price_usd' => 500, 'lemonsqueezy_variant' => '77'], ...$gateway]);
     }
 
     private function candidate(): User

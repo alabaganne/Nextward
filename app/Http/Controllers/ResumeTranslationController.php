@@ -62,7 +62,7 @@ class ResumeTranslationController extends Controller
     private function start($user, Resume $draft, Credits $credits)
     {
         if (! $credits->chargeFor($user, $draft)) {
-            if (! $draft->content && $draft->generations === 0) {
+            if (! $draft->content && ! $draft->generations) {
                 $draft->delete();
             }
             return ResumeController::noCredits();

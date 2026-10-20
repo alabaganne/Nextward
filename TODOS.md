@@ -4,7 +4,7 @@ Unfinished work, small fixes and chores that are not on the roadmap (`FUTURE_PLA
 
 ## Finish resumes, themes and credits (in progress)
 
-Pushed unfinished. The plan: candidates keep up to 10 resumes (uploaded PDFs, exports of their profile, AI translations) with one main resume; resumes and kit CVs use the six Resume Studio themes, printed by headless Chrome; kits are written in the listing's own language; credits are on (20 at sign-up, 5 a month, 1 credit per AI call).
+The plan: candidates keep up to 10 resumes (uploaded PDFs, exports of their profile, AI translations) with one main resume; resumes and kit CVs use the six Resume Studio themes, printed by headless Chrome; kits are written in the listing's own language; credits are on (20 at sign-up, 5 a month, 1 credit per AI call).
 
 Done so far:
 - Themes: `resources/views/cv/*`, `resources/css/cv.css`, fonts in `public/fonts/cv/` (Newsreader, Hanken Grotesk, OFL), `app/Support/CvTemplates.php`, `app/Support/CvPdf.php` (Browsershot, `config/cv.php`). dompdf and `resources/views/pdf/` are gone.
@@ -13,19 +13,14 @@ Done so far:
 - Credits: `Credits` works for kits and resumes, `spend()` for resume reads, `credits:monthly` (scheduled on the 1st), billing on by default, packs 20/60/150, AI routes need a verified email.
 - Kits: languages from `ApplicationKits::locales()` (listing language first, then English and French), original listing text in the prompt, `current` flag and translated titles in the prompt, themes and live preview on `Kits/Show.vue`, Word CV, `regenerate` refuses closed listings.
 - Vue: `Components/Cv/{CvEditor,CvPreview,StylePicker}.vue`, `Components/Candidate/ResumeList.vue` on the profile page, `Pages/Resumes/Show.vue`, `utils/cvDocx.js`, Settings resume tab links to the profile page.
+- Applying: the apply page lets the candidate pick a ready resume, a tailored CV for this listing (printed when they apply) or none; the main resume is picked by default, or the kit CV when they come from the kit page. A copy is stored as the first file with `resume: true`, counts toward the 10 files, can be swapped or removed when editing, and withdrawing deletes the files (`ApplyWithResumeTest`).
+- Tests: the old failing tests are fixed, and resumes, translations, CV themes, the resume migration, `credits:monthly` and kit languages have tests. A translation asked for with no credit left no longer leaves a stuck draft behind.
+- Copy and docs: Home, About, Terms and Privacy speak of credits (20 free, then 5 a month), several resumes and AI translation; `AGENTS.md`, `README.md`, `DEPLOY.md`, `VPS_DEPLOYMENT.md` and `design/INTEGRATION.md` are up to date.
+- Checked in the browser on desktop (20 October 2026): profile resumes, `Resumes/Show` (the page was blank because `structuredClone` can't copy Vue props; fixed), `/resumes/new`, theme thumbnails, the kit page's "Apply with this CV and letter", applying with a kit CV (printed by Chrome), editing the application, the application page and the Credits page.
 
 Left to do:
 - [ ] On a new machine: `composer install`, `npm install`, `php artisan migrate`. PDFs need Chrome (`/usr/bin/google-chrome` is found on its own, or set `CV_CHROME_PATH`; or run `npx puppeteer browsers install chrome`).
-- [ ] Pick a resume when applying: `ApplicationController::create/edit` send ready resumes and this listing's kit CVs; `ApplicationRequest` takes `resume_id` (own, ready) or `kit_id` (own, this listing, has a CV) and `remove_resume`, and keeps the total at 10 files; the choice is copied into `applications/` as the first attachment with `resume: true` (kit CVs printed with `CvPdf`); `update` swaps or removes it; `destroy` deletes attachment files; `Application::attachmentLinks()` passes the `resume` flag. `Applications/Edit.vue`: a Resume choice above Attachments, defaulting to the kit saved in `sessionStorage` under `nextward.kit-cv.{id}` (set by `Kits/Show.vue`), else the main resume. `Applications/Show.vue`: label it "Resume".
-- [ ] Fix the failing tests (16 fail, 3 of them are the `intl` ones below):
-  - `ApplicationKitTest`: upload through `POST /resumes` instead of `/profile/resume`; the resume test moves to a new resume test file; seeder test checks `mainResume->path`.
-  - `BillingTest`: sign-up credits are now 20 (`BILLING_SIGNUP_CREDITS`), and `phpunit.xml` sets `BILLING_ENABLED=false`; check what each test expects.
-  - `PublicCandidateProfileTest`: create `Resume` rows instead of `forceFill(['resume_path' => …])`.
-  - `ResumeProfileTest`: upload through `/resumes`; reading now costs a credit with billing on and needs a verified email.
-- [ ] New tests: resume management (upload, limit of 10, main, delete promotes the newest, public profile follows the main one, export from profile makes no AI call and costs nothing, replace on and off, style validation, refresh), translation (PDF attached vs JSON, draft then save, same language twice is one call, 422/503, failure refunds), CV rendering (every theme renders with the right headings, `/cv/preview` needs a login), the resume migration, `credits:monthly` (once a month, verified only), kits (German listing gives `de` and the original text in the prompt, Arabic gives 422, regenerate on a closed listing gives 409, style saved). `CV_PDF_FAKE=true` in `phpunit.xml` keeps Chrome out of tests.
-- [ ] Copy that says the AI tools are free: `Welcome.vue`, `About.vue`, `Terms.vue` → "20 free credits, then 5 every month". `Privacy.vue`: several resumes, AI translation.
-- [ ] Docs: `AGENTS.md` (decisions: Resumes, Resume themes, which may keep their accent rules and colour band since they are the candidate's documents, Kit language, What is free, Payments with credits on, the Stack line with Chrome for PDFs); `README.md` (line 80 still says dompdf; AI, Credits, `credits:monthly`, Chrome setup); `DEPLOY.md` and `VPS_DEPLOYMENT.md` (install Chrome and its libraries, `CV_CHROME_PATH`, `CV_CHROME_NO_SANDBOX`); `design/INTEGRATION.md` (`resumes[]`).
-- [ ] Check in the browser: Profile > Resumes (upload, make from profile, translate, main, delete), `Resumes/Show` on desktop and phone, theme thumbnails (each change sends 6 preview requests after 1.5 s), Sören page 2, kit page preview and downloads, Billing page labels.
+- [ ] Check in the browser on a phone: Profile > Resumes, `Resumes/Show`, the apply page's resume choice, and the kit page. Also try a translation and Sören page 2 with a real AI key.
 - [ ] Not started: editing an uploaded PDF (only translation for now); Arabic CVs (right-to-left and an Arabic font).
 
 ## Fix the failing location tests
@@ -38,6 +33,6 @@ Three tests in `tests/Feature/OpportunityCleanupTest.php` fail on machines witho
 
 `OpportunityNormalizer` (`app/Importing/OpportunityNormalizer.php`, around line 215) turns country codes into names with `Locale::getDisplayRegion`. Without `intl` it keeps the code, so imported listings show "TN" instead of "Tunisia".
 
-- [ ] Install `intl` locally (`sudo apt install php8.5-intl`) and make sure the server has it too (`DEPLOY.md`, `VPS_DEPLOYMENT.md`).
+- [ ] Install `intl` locally (`sudo apt install php8.5-intl`). The server docs now list it (`VPS_DEPLOYMENT.md`). The three tests pass on a machine that has it.
 - [ ] Or keep a small fallback list of country names for when `intl` is missing, so the tests and the site work either way.
 - [ ] Run `php artisan test` and check that all three pass.

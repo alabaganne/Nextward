@@ -6,10 +6,14 @@ use App\Http\Requests\ApplicationRequest;
 use App\Http\Resources\ApplicationResource;
 use App\Http\Resources\OpportunityResource;
 use App\Models\Application;
+use App\Models\ApplicationKit;
+use App\Models\Candidate;
 use App\Models\Opportunity;
+use App\Models\Resume;
 use App\Models\User;
 use App\Notifications\ApplicationReviewed;
 use App\Notifications\ApplicationSubmitted;
+use App\Support\CvPdf;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Auth;
@@ -17,6 +21,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class ApplicationController extends Controller
@@ -67,10 +72,11 @@ class ApplicationController extends Controller
         ]);
     }
 
-    public function create(Opportunity $opportunity)
+    public function create(Opportunity $opportunity, Request $request)
     {
         return Inertia::render('Applications/Edit', [
-            'opportunity' => new OpportunityResource($opportunity)
+            'opportunity' => new OpportunityResource($opportunity),
+            ...$this->resumeChoices($request->user()->userable, $opportunity->id),
         ]);
     }
 
@@ -84,9 +90,10 @@ class ApplicationController extends Controller
             'opportunity_id' => $opportunity->id,
             'cover_letter' => $request->cover_letter,
             'message' => $request->message,
-            'attachments' => $request->hasFile('attachment_files')
-                ? $this->storeAttachments($request, 'applications')
-                : [],
+            'attachments' => [
+                ...array_filter([$this->resumeAttachment($request)]),
+                ...($request->hasFile('attachment_files') ? $this->storeAttachments($request, 'applications') : []),
+            ],
             'company_id' => $opportunity->company_id,
             'channel' => 'internal',
             'applied_at' => today(),
@@ -121,24 +128,25 @@ class ApplicationController extends Controller
                 Opportunity::findOrFail($application->opportunity_id)
             ),
             'application' => (new ApplicationResource($application))->resolve(),
+            ...$this->resumeChoices($application->candidate, $application->opportunity_id),
         ]);
     }
 
     public function update(Application $application, ApplicationRequest $request)
     {
-        $data = $request->validated();
-        if ($request->hasFile('attachment_files')) {
-            $data['attachments'] = array_merge(
-                $application->attachments ?: [],
-                $this->storeAttachments($request, 'applications')
-            );
-        } else {
-            unset($data['attachments']);
+        $attachments = collect($application->attachments ?: []);
+        $resume = $this->resumeAttachment($request, $application->candidate_id);
+        if ($resume || $request->boolean('remove_resume')) {
+            [$old, $attachments] = $attachments->partition(fn ($file) => $file['resume'] ?? false);
+            Application::deleteFiles($old->all());
         }
+        $attachments = [
+            ...array_filter([$resume]),
+            ...$attachments->values()->all(),
+            ...($request->hasFile('attachment_files') ? $this->storeAttachments($request, 'applications') : []),
+        ];
 
-        unset($data['attachment_files']);
-
-        $application->update($data);
+        $application->update([...$request->safe()->only('cover_letter', 'message'), 'attachments' => $attachments]);
 
         return Redirect::route('applications.show', $application)->with('toast', [
             'type' => 'update',
@@ -147,7 +155,9 @@ class ApplicationController extends Controller
     }
 
     public function destroy(Application $application) {
+        $files = $application->attachments ?: [];
         $application->delete();
+        Application::deleteFiles($files);
 
         return Redirect::route('applications.index')->with('toast', [
             'type' => 'destroy',
@@ -200,6 +210,41 @@ class ApplicationController extends Controller
                 'mime' => $file->getMimeType(),
             ];
         })->values()->all();
+    }
+
+    // Ready resumes and this listing's tailored CVs the candidate can send.
+    private function resumeChoices(?Candidate $candidate, int $opportunityId): array
+    {
+        if (! $candidate instanceof Candidate) {
+            return ['resumes' => [], 'kits' => []];
+        }
+
+        return [
+            'resumes' => $candidate->resumes()->where('status', 'ready')->whereNotNull('path')->orderByDesc('is_main')->latest('updated_at')->get()
+                ->map(fn (Resume $resume) => [...$resume->only('id', 'name', 'file_name', 'is_main', 'source'), 'language' => $resume->summary()['language']['label'] ?? null])->all(),
+            'kits' => ApplicationKit::where('candidate_id', $candidate->id)->where('opportunity_id', $opportunityId)->whereNotNull('cv')->latest('updated_at')->get()
+                ->map(fn (ApplicationKit $kit) => ['id' => $kit->id, 'language' => \App\Support\LanguageGuess::name($kit->locale) ?? strtoupper($kit->locale), 'updated_label' => $kit->updated_at?->diffForHumans()])->all(),
+        ];
+    }
+
+    // Copies the chosen resume, or prints the chosen tailored CV, so the company keeps it even if the candidate deletes theirs.
+    private function resumeAttachment(Request $request, ?int $candidateId = null): ?array
+    {
+        $candidateId ??= $request->user()->userable_id;
+        $path = 'applications/'.Str::random(40).'.pdf';
+        if ($request->filled('resume_id')) {
+            $resume = Resume::where('candidate_id', $candidateId)->findOrFail($request->integer('resume_id'));
+            abort_unless($resume->hasFile() && Storage::disk('local')->copy($resume->path, $path), 409, 'This resume file is missing. Upload it again.');
+            $name = $resume->file_name ?: 'resume.pdf';
+        } elseif ($request->filled('kit_id')) {
+            $kit = ApplicationKit::where('candidate_id', $candidateId)->with('opportunity.company')->findOrFail($request->integer('kit_id'));
+            Storage::disk('local')->put($path, app(CvPdf::class)->pdf($kit->cv, $kit->style, $kit->locale));
+            $name = $kit->fileName('cv');
+        } else {
+            return null;
+        }
+
+        return ['name' => $name, 'path' => $path, 'disk' => 'local', 'size' => Storage::disk('local')->size($path), 'mime' => 'application/pdf', 'resume' => true];
     }
 
     public function track(Opportunity $opportunity, Request $request)

@@ -25,7 +25,9 @@ const page = usePage();
 const resume = ref(props.resume);
 const isNew = computed(() => !resume.value);
 const start = props.resume || props.draft;
-const cv = ref(structuredClone(start.content || {}));
+// Props are reactive proxies, which structuredClone can't copy.
+const copy = (value) => JSON.parse(JSON.stringify(value || {}));
+const cv = ref(copy(start.content));
 const style = ref({ ...start.style });
 const locale = ref(props.resume?.language?.code || props.draft?.locale || 'en');
 const name = ref(start.name);
@@ -44,7 +46,7 @@ const free = computed(() => !page.props.billing?.enabled || page.props.billing?.
 const take = (data) => {
 	resume.value = data;
 	if (data.content) {
-		cv.value = structuredClone(data.content);
+		cv.value = copy(data.content);
 		style.value = { ...data.style };
 		name.value = data.name;
 		snapshot.value = JSON.stringify([cv.value, style.value, locale.value, name.value]);

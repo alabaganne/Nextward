@@ -1,6 +1,6 @@
 <script setup>
 import { ArrowRight, Check, ChevronRight, Clock3, MapPin } from '@lucide/vue';
-import { computed, h, onMounted } from 'vue';
+import { computed, h, onMounted, ref } from 'vue';
 import { Link, useForm } from '@inertiajs/vue3';
 import { sitePath } from '@/utils/url';
 import AppShell from '@/Layouts/AppShell.vue';
@@ -13,6 +13,8 @@ defineOptions({
 const props = defineProps({
 	opportunity: { type: Object, required: true },
 	application: { type: Object, default: null },
+	resumes: { type: Array, default: () => [] },
+	kits: { type: Array, default: () => [] },
 });
 
 const icons = {
@@ -31,23 +33,51 @@ const form = useForm({
 	attachment_files: [],
 });
 
-// A draft from the cover letter button on the opportunity page.
+// The resume goes first; other files are added below.
+const attachedResume = computed(() => props.application?.attachments?.find((file) => file.resume) || null);
+const otherAttachments = computed(() => props.application?.attachments?.filter((file) => !file.resume) || []);
+const sources = { uploaded: 'Uploaded PDF', profile: 'From your profile', translation: 'AI translation' };
+const resumeOptions = computed(() => [
+	...(attachedResume.value ? [{ value: 'keep', label: attachedResume.value.name, hint: 'Already sent with this application' }] : []),
+	...props.kits.map((kit) => ({ value: `kit:${kit.id}`, label: 'Tailored CV for this role', hint: `${kit.language} · updated ${kit.updated_label}` })),
+	...props.resumes.map((resume) => ({ value: `resume:${resume.id}`, label: resume.name, hint: [resume.is_main && 'Main resume', resume.language, sources[resume.source]].filter(Boolean).join(' · ') })),
+	{ value: 'none', label: 'No resume', hint: 'Attach your files below instead' },
+]);
+const mainResume = props.resumes.find((resume) => resume.is_main);
+const choice = ref(attachedResume.value ? 'keep' : editing.value ? 'none' : mainResume ? `resume:${mainResume.id}` : 'none');
+
+// A draft from the cover letter button on the opportunity page, and the CV picked on the kit page.
 onMounted(() => {
 	try {
 		const key = `nextward.cover-letter.${props.opportunity.id}`;
 		const draft = sessionStorage.getItem(key);
 		sessionStorage.removeItem(key);
 		if (draft && !form.cover_letter) form.cover_letter = draft;
+
+		const kitKey = `nextward.kit-cv.${props.opportunity.id}`;
+		const kit = Number(sessionStorage.getItem(kitKey));
+		sessionStorage.removeItem(kitKey);
+		if (!editing.value && props.kits.some((item) => item.id === kit)) choice.value = `kit:${kit}`;
 	} catch { /* storage blocked */ }
 });
 
+const resumeData = () => {
+	const [type, id] = choice.value.split(':');
+	return {
+		resume_id: type === 'resume' ? Number(id) : null,
+		kit_id: type === 'kit' ? Number(id) : null,
+		remove_resume: choice.value === 'none' && !!attachedResume.value,
+	};
+};
+
 const submit = () => {
 	if (editing.value) {
-		form.transform((data) => ({ ...data, _method: 'put' })).post(route('applications.update', props.application.id));
+		form.transform((data) => ({ ...data, ...resumeData(), _method: 'put' })).post(route('applications.update', props.application.id));
 	} else {
-		form.post(route('applications.store', props.opportunity.id));
+		form.transform((data) => ({ ...data, ...resumeData() })).post(route('applications.store', props.opportunity.id));
 	}
 };
+const resumeError = computed(() => form.errors.resume_id || form.errors.kit_id || form.errors.remove_resume);
 
 const pickFiles = (event) => {
 	form.attachment_files = Array.from(event.target.files || []);
@@ -103,13 +133,36 @@ const tips = [
 						</div>
 					</div>
 
+					<fieldset class="mb-6">
+						<legend class="block text-[13px] font-semibold mb-[7px] text-ink-700">Resume</legend>
+						<p class="text-[13px] text-muted mb-2.5">
+							Sent as a PDF with your application.
+							<template v-if="!resumes.length && !kits.length">You have no saved resume yet: <Link class="text-blue-700 font-semibold hover:underline" :href="`${route('profile.show')}#resumes`">add one on your profile</Link>, or attach it below.</template>
+						</p>
+						<div class="flex flex-col gap-2">
+							<label
+								v-for="option in resumeOptions"
+								:key="option.value"
+								class="flex items-center gap-3 rounded-[12px] border px-4 py-3 cursor-pointer transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-600"
+								:class="choice === option.value ? 'border-blue-600 bg-blue-50' : 'border-line hover:border-blue-300'"
+							>
+								<input v-model="choice" class="accent-blue-600 w-4 h-4 shrink-0" type="radio" name="resume" :value="option.value">
+								<span class="min-w-0">
+									<b class="block text-[13.5px] font-semibold text-ink truncate">{{ option.label }}</b>
+									<span class="block text-xs text-muted">{{ option.hint }}</span>
+								</span>
+							</label>
+						</div>
+						<div v-if="resumeError" class="text-xs text-[#dc2626] mt-[7px]">{{ resumeError }}</div>
+					</fieldset>
+
 					<div>
 						<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="attachment_files">Attachments</label>
-						<p id="attachment_files-hint" class="text-[13px] text-muted mb-2.5">Up to 10 files, 10&nbsp;MB each. PDF, Word, text, or RTF files. Your résumé, work samples, or anything that supports your application.</p>
+						<p id="attachment_files-hint" class="text-[13px] text-muted mb-2.5">Up to 10 files in all, your resume included, 10&nbsp;MB each. PDF, Word, text, or RTF files: work samples or anything that supports your application.</p>
 						<input id="attachment_files" class="fld !py-[9px]" type="file" accept=".pdf,.doc,.docx,.txt,.rtf" multiple aria-describedby="attachment_files-hint" @input="pickFiles">
 						<div v-if="attachmentError" class="text-xs text-[#dc2626] mt-[7px]">{{ attachmentError }}</div>
-						<div v-if="application?.attachments?.length" class="flex flex-wrap gap-2 mt-3">
-							<span v-for="attachment in application.attachments" :key="attachment.url || attachment.name" class="inline-flex items-center px-[11px] py-[5px] rounded-lg text-xs font-semibold bg-paper-3 text-ink-700">{{ attachment.name }}</span>
+						<div v-if="otherAttachments.length" class="flex flex-wrap gap-2 mt-3">
+							<span v-for="attachment in otherAttachments" :key="attachment.url || attachment.name" class="inline-flex items-center px-[11px] py-[5px] rounded-lg text-xs font-semibold bg-paper-3 text-ink-700">{{ attachment.name }}</span>
 						</div>
 					</div>
 				</div>

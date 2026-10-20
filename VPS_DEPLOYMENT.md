@@ -4,7 +4,7 @@ This is a configuration guide for a future deployment, not a report that a VPS h
 
 ## Runtime and directory layout
 
-Use Nginx, PHP-FPM 8.3 or later, Composer, Node.js 24, a production database, Supervisor and cron. The PHP CLI and FPM must use the same PHP version and extensions. Enable PDO with your database driver, cURL, DOM/XML, Mbstring, OpenSSL, Tokenizer, Fileinfo and PCNTL for CLI queue timeouts. Check the installed requirements with `composer check-platform-reqs --no-dev` after installation. SQLite is for isolated tests, not the deployment example below.
+Use Nginx, PHP-FPM 8.3 or later, Composer, Node.js 24, a production database, Supervisor and cron. The PHP CLI and FPM must use the same PHP version and extensions. Enable PDO with your database driver, cURL, DOM/XML, Intl, Mbstring, OpenSSL, Tokenizer, Fileinfo and PCNTL for CLI queue timeouts. Without Intl, imported places keep country codes ("Tunis, TN") instead of names. Check the installed requirements with `composer check-platform-reqs --no-dev` after installation. SQLite is for isolated tests, not the deployment example below.
 
 Keep database and SSR ports off the public network. Permit HTTPS and the SSH access you need; permit HTTP for HTTPS redirects and certificate validation. Configure automatic certificate renewal and monitor it. Size PHP workers, database memory and queue concurrency for the actual VPS; start with one queue worker.
 
@@ -30,6 +30,17 @@ sudo chmod 600 /srv/nextward/shared/.env
 ```
 
 The `.env` owner must be `nextward`. Its parent directories need appropriate traversal permissions. Public uploads under `storage/app/public` must be readable by Nginx. Never link `storage/app/private` or `shared/secrets` into `public`, and never use `chmod 777`.
+
+### Chrome for PDFs
+
+Resumes, tailored CVs and cover letters are printed to PDF by headless Chrome through Browsershot and Puppeteer (`app/Support/CvPdf.php`). Install Google Chrome, which also pulls in the libraries it needs:
+
+```bash
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+sudo apt install ./google-chrome-stable_current_amd64.deb
+```
+
+`/usr/bin/google-chrome`, `/usr/bin/chromium` and `/usr/bin/chromium-browser` are found on their own. Set `CV_CHROME_PATH` for another path. If PDFs fail with a sandbox error, which happens when Chrome runs as root or in a container, set `CV_CHROME_NO_SANDBOX=true`. `CV_PDF_TIMEOUT` (default 60 seconds) limits each print. After deploying, make a resume from a test profile and download it to check.
 
 ## Environment
 
@@ -67,6 +78,13 @@ INERTIA_SSR_THROW_ON_ERROR=false
 OPPORTUNITY_DIGESTS_ENABLED=false
 GOOGLE_INDEXING_ENABLED=false
 GOOGLE_INDEXING_DAILY_LIMIT=200
+
+CV_CHROME_PATH=
+CV_CHROME_NO_SANDBOX=false
+
+BILLING_ENABLED=true
+BILLING_SIGNUP_CREDITS=20
+BILLING_MONTHLY_CREDITS=5
 
 MAIL_MAILER=<your-configured-provider>
 MAIL_FROM_ADDRESS=<verified-sender-address>
@@ -235,6 +253,7 @@ This is a system cron file with a username column. If using `crontab -u nextward
 | Availability reconciliation | Every fifteen minutes | Deadlines, stale sources, permission changes and removals |
 | Digest dispatcher | Hourly | Feature enabled, explicit subscription and candidate-local due time |
 | Indexing dispatcher | Hourly | Feature enabled for API work; outbox retained when disabled |
+| Monthly credits | 1st of the month, 06:00 Africa/Tunis | Adds `BILLING_MONTHLY_CREDITS` to candidates with a verified email, once a month, while billing is on |
 | Scheduler heartbeat | Every minute | Used by `opportunities:health` |
 
 For a source with a 24-hour cadence, a completed full run sets its next full run to 05:00 Africa/Tunis. Other cadences use their configured interval. New sources can run immediately; bounded pending batches resume sooner, and failed requests use their retry time. This is not a rule that every source is scraped only once at 05:00. Each source also has a lock, request budget and permission checks. Three consecutive failed runs pause the source.

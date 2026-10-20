@@ -107,7 +107,7 @@ class ApplicationKitController extends Controller
         $this->authorizeKit($request, $kit);
         abort_unless($kit->cv, 404);
 
-        return $this->download($pdf->pdf($kit->cv, $kit->style, $kit->locale), $this->fileName($kit, 'cv'));
+        return $this->download($pdf->pdf($kit->cv, $kit->style, $kit->locale), $kit->fileName('cv'));
     }
 
     public function letter(Request $request, ApplicationKit $kit, CvPdf $pdf)
@@ -115,7 +115,7 @@ class ApplicationKitController extends Controller
         $this->authorizeKit($request, $kit);
         abort_unless($kit->cover_letter, 404);
 
-        return $this->download($pdf->letterPdf($kit->cv ?? [], $kit->cover_letter, $kit->style, $kit->locale), $this->fileName($kit, 'letter'));
+        return $this->download($pdf->letterPdf($kit->cv ?? [], $kit->cover_letter, $kit->style, $kit->locale), $kit->fileName('letter'));
     }
 
     // Takes a credit when needed and queues the draft. Returns an error response when the user has no credit.
@@ -133,12 +133,6 @@ class ApplicationKitController extends Controller
     private function authorizeKit(Request $request, ApplicationKit $kit): void
     {
         abort_unless($request->user()->isCandidate() && $kit->candidate_id === $request->user()->userable_id, 404);
-    }
-
-    // "Ala_Baganne_CV_Canonical.pdf"
-    private function fileName(ApplicationKit $kit, string $kind): string
-    {
-        return CvTemplates::fileName($kit->cv['name'] ?? null, CvTemplates::labels($kit->locale)[$kind].' '.$kit->opportunity?->company?->display_name);
     }
 
     private function download(string $pdf, string $name)

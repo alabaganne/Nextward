@@ -50,9 +50,10 @@ const example = computed(() => [
     { label: text('Source', 'Source'), value: text('Company careers page, checked 2 days ago', 'Page carrières de l’entreprise, contrôlée il y a 2 jours') },
 ]);
 const aiPoints = computed(() => [
-    text('Upload your resume once. We fill in your profile, and you check every detail.', 'Ajoutez votre CV une fois. Nous remplissons votre profil, et vous vérifiez chaque détail.'),
-    text('On any role, get a CV and a cover letter written for it, in English or French.', 'Sur chaque offre, obtenez un CV et une lettre écrits pour elle, en français ou en anglais.'),
+    text('Upload your resume, or make one from your profile with our themes. We can fill in your profile from it, and you check every detail.', 'Ajoutez votre CV, ou créez-en un depuis votre profil avec nos thèmes. Nous pouvons remplir votre profil à partir de celui-ci, et vous vérifiez chaque détail.'),
+    text('On any role, get a CV and a cover letter written for it, in the language of the listing, in English or in French.', 'Sur chaque offre, obtenez un CV et une lettre écrits pour elle, dans la langue de l’offre, en français ou en anglais.'),
     text('Only facts from your profile. Edit everything, then download or apply.', 'Uniquement des faits tirés de votre profil. Modifiez tout, puis téléchargez ou candidatez.'),
+    text('You get 20 free credits, then 5 more every month. One credit covers one AI task.', 'Vous recevez 20 crédits offerts, puis 5 de plus chaque mois. Un crédit couvre une tâche d’IA.'),
 ]);
 </script>
 <template>
@@ -129,7 +130,7 @@ const aiPoints = computed(() => [
                 <div class="public-container ai-band">
                     <img src="/nextward-assets/mascots/02-student-prepare-cv.svg" alt="" width="768" height="768" loading="lazy" class="ai-art" />
                     <div>
-                        <p class="landing-label inline-flex items-center gap-2"><Sparkles class="size-4" aria-hidden="true" />{{ text('Free while we launch', 'Gratuit pendant le lancement') }}</p>
+                        <p class="landing-label inline-flex items-center gap-2"><Sparkles class="size-4" aria-hidden="true" />{{ text('20 free credits to start', '20 crédits offerts pour commencer') }}</p>
                         <h2 id="ai-title" class="section-title">{{ text('A CV and cover letter for every role.', 'Un CV et une lettre pour chaque offre.') }}</h2>
                         <ul class="ai-points">
                             <li v-for="point in aiPoints" :key="point">{{ point }}</li>

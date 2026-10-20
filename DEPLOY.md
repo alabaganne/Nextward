@@ -11,6 +11,7 @@ Provision the following before running application commands:
 - Nginx with a valid HTTPS certificate and DNS pointing to the VPS.
 - PHP CLI and PHP-FPM 8.3 or later, with matching versions and the extensions listed in [the runtime requirements](VPS_DEPLOYMENT.md#runtime-and-directory-layout). CLI workers also need PCNTL.
 - Composer 2, Git, Node.js 24 and npm. Use a stable system Node path for Supervisor.
+- Google Chrome or Chromium, used to print resumes and cover letters as PDF. See [the VPS guide](VPS_DEPLOYMENT.md#chrome-for-pdfs).
 - MySQL or PostgreSQL, with an application database and a dedicated database user. The examples use MySQL.
 - Supervisor and cron, enabled on boot.
 - A service account named `nextward`, with access to the repository, and the `www-data` web server group.

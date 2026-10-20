@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Application extends Model
 {
@@ -40,6 +41,7 @@ class Application extends Model
             'name' => $attachment['name'] ?? 'Attachment',
             'size' => $attachment['size'] ?? null,
             'mime' => $attachment['mime'] ?? null,
+            'resume' => (bool) ($attachment['resume'] ?? false),
             'url' => route('applications.attachments.download', [$this, $index]),
         ])->values()->all();
     }
@@ -63,6 +65,15 @@ class Application extends Model
         }
 
         return compact('disk', 'path');
+    }
+
+    public static function deleteFiles(array $attachments): void
+    {
+        foreach ($attachments as $attachment) {
+            if (is_array($attachment) && ($storage = static::attachmentStorage($attachment))) {
+                Storage::disk($storage['disk'])->delete($storage['path']);
+            }
+        }
     }
 
     public function candidate() {

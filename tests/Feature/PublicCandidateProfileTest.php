@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Candidate;
+use App\Models\Resume;
 use App\Models\User;
 use App\Notifications\PublicProfileReviewed;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -125,7 +126,8 @@ class PublicCandidateProfileTest extends TestCase
 
     public function test_public_page_hides_contact_details_and_resume_by_default(): void
     {
-        $this->candidate()->forceFill(['public_status' => 'approved', 'resume_name' => 'cv.pdf'])->save();
+        $this->candidate()->forceFill(['public_status' => 'approved'])->save();
+        Resume::create(['candidate_id' => $this->candidate()->id, 'name' => 'cv', 'source' => 'uploaded', 'status' => 'ready', 'path' => 'resumes/cv.pdf', 'file_name' => 'cv.pdf', 'is_main' => true]);
 
         $html = $this->get($this->candidate()->publicUrl())->assertOk()->getContent();
 
@@ -138,7 +140,8 @@ class PublicCandidateProfileTest extends TestCase
     {
         Storage::fake('local');
         Storage::disk('local')->put('resumes/cv.pdf', '%PDF-1.4');
-        $this->candidate()->forceFill(['public_status' => 'approved', 'resume_path' => 'resumes/cv.pdf', 'resume_name' => 'cv.pdf'])->save();
+        $this->candidate()->forceFill(['public_status' => 'approved'])->save();
+        Resume::create(['candidate_id' => $this->candidate()->id, 'name' => 'cv', 'source' => 'uploaded', 'status' => 'ready', 'path' => 'resumes/cv.pdf', 'file_name' => 'cv.pdf', 'is_main' => true]);
         $url = $this->candidate()->publicUrl();
 
         $this->get("{$url}/resume")->assertNotFound();

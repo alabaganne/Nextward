@@ -194,7 +194,11 @@ are guidance only; do not invent profile fields, metrics, or timeline data.
 - **Company**: `id, slug, name, city, logoGradient, initials, about, openRoles,
   teamSize, foundedYear, remote, contact{email,website,hiringLead}`
 - **User (candidate)**: `name, initials, headline, location, field, about, skills[],
-  education[], experience[], links[], resume, profileStrength, openTo`
+  education[], experience[], links[], resumes[], profileStrength, openTo`
+- **Resume**: `id, name, language{code,label}, source (uploaded|profile|translation),
+  status (queued|draft|ready|failed), is_main, editable, has_file, style, targets[]`.
+  Up to 10 per candidate; the main one is shared, read by the AI and picked first when applying.
+- **Application attachment**: `name, size, mime, resume, url`; the chosen resume comes first with `resume: true`.
 - **Message thread**: `id, person{name,initials,gradient,role,company}, role(role applied to),
   online, unread, messages[{from(me|them), body, time, daySep?}]`
 

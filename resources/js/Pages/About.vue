@@ -16,8 +16,9 @@ const mission = computed(() => [
 ]);
 const tools = computed(() => [
 	text('Fill your profile from your resume, then check every detail.', 'Remplissez votre profil depuis votre CV, puis vérifiez chaque détail.'),
-	text('Get a CV and a cover letter written for any role, in English or French.', 'Obtenez un CV et une lettre écrits pour chaque offre, en français ou en anglais.'),
-	text('Edit both, then download them or use them to apply.', 'Modifiez-les, puis téléchargez-les ou utilisez-les pour candidater.'),
+	text('Get a CV and a cover letter written for any role, in the language of the listing, in English or in French.', 'Obtenez un CV et une lettre écrits pour chaque offre, dans la langue de l’offre, en français ou en anglais.'),
+	text('Translate your resume into English or French.', 'Traduisez votre CV en français ou en anglais.'),
+	text('Edit everything, then download it or use it to apply.', 'Modifiez tout, puis téléchargez-le ou utilisez-le pour candidater.'),
 ]);
 </script>
 
@@ -62,7 +63,7 @@ const tools = computed(() => [
 				<div>
 					<p class="landing-label inline-flex items-center gap-2"><Sparkles class="size-4" aria-hidden="true" />{{ text('Free to use', 'Gratuit') }}</p>
 					<h2 id="tools-title" class="section-title">{{ text('Free to use, with AI help when you apply.', 'Gratuit, avec l’aide de l’IA pour candidater.') }}</h2>
-					<p class="section-description">{{ text('Searching, saving, applying, alerts and tracking cost nothing. The AI tools are free while we launch.', 'Chercher, sauvegarder, candidater, recevoir des alertes et suivre vos candidatures ne coûte rien. Les outils d’IA sont gratuits pendant le lancement.') }}</p>
+					<p class="section-description">{{ text('Searching, saving, applying, alerts and tracking cost nothing, and so do resumes made from your profile. The AI tools use credits: you get 20 free credits, then 5 more every month.', 'Chercher, sauvegarder, candidater, recevoir des alertes et suivre vos candidatures ne coûte rien, tout comme les CV créés depuis votre profil. Les outils d’IA utilisent des crédits : vous en recevez 20 offerts, puis 5 de plus chaque mois.') }}</p>
 					<ul class="tool-list">
 						<li v-for="tool in tools" :key="tool"><Check class="tool-icon" aria-hidden="true" />{{ tool }}</li>
 					</ul>

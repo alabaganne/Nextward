@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\CvTemplates;
 use Illuminate\Database\Eloquent\Model;
 
 class ApplicationKit extends Model
@@ -21,5 +22,11 @@ class ApplicationKit extends Model
     public function opportunity()
     {
         return $this->belongsTo(Opportunity::class);
+    }
+
+    // "Ala_Baganne_CV_Canonical.pdf"
+    public function fileName(string $kind): string
+    {
+        return CvTemplates::fileName($this->cv['name'] ?? null, CvTemplates::labels($this->locale)[$kind].' '.$this->opportunity?->company?->display_name);
     }
 }

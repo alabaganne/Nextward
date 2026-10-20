@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Ai\ApplicationKits;
 use App\Models\ApplicationKit;
 use App\Models\Company;
 use App\Models\CreditTransaction;
@@ -33,7 +34,7 @@ class ApplicationKitTest extends TestCase
         $role = $this->role();
         Http::fake(['api.openai.com/v1/responses' => Http::response($this->reply())]);
 
-        $this->actingAs($candidate)->post('/profile/resume', ['resume' => UploadedFile::fake()->create('cv.pdf', 40, 'application/pdf')]);
+        $this->actingAs($candidate)->post('/resumes', ['resume' => UploadedFile::fake()->create('cv.pdf', 40, 'application/pdf')]);
         $url = $this->actingAs($candidate)->postJson("/opportunities/{$role->id}/kit", ['locale' => 'fr'])->assertOk()->json('url');
 
         $kit = ApplicationKit::sole();
@@ -118,24 +119,6 @@ class ApplicationKitTest extends TestCase
         $this->assertSame('ready', $kit->fresh()->status);
     }
 
-    public function test_the_resume_must_be_a_pdf_and_can_be_replaced_or_removed(): void
-    {
-        $candidate = $this->candidate();
-
-        $this->actingAs($candidate)->post('/profile/resume', ['resume' => UploadedFile::fake()->create('cv.docx', 40)])->assertSessionHasErrors('resume');
-        $this->actingAs($candidate)->post('/profile/resume', ['resume' => UploadedFile::fake()->create('first.pdf', 40, 'application/pdf')]);
-        $first = $candidate->userable->fresh()->resume_path;
-        $this->actingAs($candidate)->post('/profile/resume', ['resume' => UploadedFile::fake()->create('second.pdf', 40, 'application/pdf')]);
-
-        Storage::disk('local')->assertMissing($first);
-        $this->assertSame('second.pdf', $candidate->userable->fresh()->resume_name);
-        $this->actingAs($candidate)->get('/profile/resume')->assertOk()->assertDownload('second.pdf');
-
-        $this->actingAs($candidate)->delete('/profile/resume')->assertRedirect();
-        $this->assertNull($candidate->userable->fresh()->resume_path);
-        $this->actingAs($candidate)->get('/profile/resume')->assertNotFound();
-    }
-
     public function test_the_owner_profile_seeder_can_run_twice(): void
     {
         $this->seed(OwnerProfileSeeder::class);
@@ -145,7 +128,72 @@ class ApplicationKitTest extends TestCase
         $this->assertTrue($owner->isCandidate());
         $this->assertTrue(Hash::check('Pa$$w0rd', $owner->password));
         $this->assertSame('https://www.alabaganne.com', $owner->userable->website);
-        Storage::disk('local')->assertExists($owner->userable->resume_path);
+        $this->assertSame(1, $owner->userable->resumes()->count());
+        Storage::disk('local')->assertExists($owner->userable->mainResume->path);
+    }
+
+    public function test_a_german_listing_offers_a_german_kit_with_the_original_text_in_the_prompt(): void
+    {
+        $candidate = $this->candidate();
+        $role = $this->role();
+        $role->update(['language' => 'de', 'title' => 'Backend-Entwickler (m/w/d)', 'description' => 'Wir suchen eine Laravel-Entwicklerin für unser Team in Berlin.']);
+        $this->assertSame(['de', 'en', 'fr'], ApplicationKits::locales($role->fresh()));
+        Http::fake(['api.openai.com/v1/responses' => Http::response($this->reply())]);
+
+        $this->actingAs($candidate)->postJson("/opportunities/{$role->id}/kit", ['locale' => 'de'])->assertOk();
+
+        $this->assertSame('de', ApplicationKit::sole()->locale);
+        Http::assertSent(function ($request) {
+            $prompt = collect($request['input'])->flatMap(fn ($message) => is_array($message['content'] ?? null) ? $message['content'] : [])
+                ->where('type', 'input_text')->pluck('text')->implode("\n");
+            return str_contains($prompt, 'in German') && str_contains($prompt, 'Listing language: German')
+                && str_contains($prompt, 'Title: Backend-Entwickler (m/w/d)') && str_contains($prompt, 'Wir suchen eine Laravel-Entwicklerin');
+        });
+    }
+
+    public function test_kits_are_not_written_in_arabic_yet(): void
+    {
+        $role = $this->role();
+        $role->update(['language' => 'ar']);
+        $this->assertSame(['en', 'fr'], ApplicationKits::locales($role->fresh()));
+        Http::fake();
+
+        $this->actingAs($this->candidate())->postJson("/opportunities/{$role->id}/kit", ['locale' => 'ar'])->assertStatus(422)->assertJsonValidationErrors('locale');
+        $this->actingAs($this->candidate())->postJson("/opportunities/{$role->id}/kit", ['locale' => 'de'])->assertStatus(422);
+        Http::assertNothingSent();
+    }
+
+    public function test_a_kit_for_a_closed_listing_cannot_be_written_again(): void
+    {
+        $candidate = $this->candidate();
+        $role = $this->role();
+        Http::fake(['api.openai.com/v1/responses' => Http::response($this->reply())]);
+        $this->actingAs($candidate)->postJson("/opportunities/{$role->id}/kit", ['locale' => 'en']);
+        $kit = ApplicationKit::sole();
+
+        $role->update(['status' => 'closed']);
+        $this->actingAs($candidate)->postJson(route('kits.regenerate', $kit))->assertStatus(409);
+        $this->actingAs($candidate)->postJson("/opportunities/{$role->id}/kit", ['locale' => 'fr'])->assertNotFound();
+        Http::assertSentCount(1);
+
+        // The saved kit stays readable.
+        $this->actingAs($candidate)->get(route('kits.cv', $kit))->assertOk();
+    }
+
+    public function test_the_kit_theme_is_saved_and_new_kits_start_from_the_main_resume_theme(): void
+    {
+        $candidate = $this->candidate();
+        $candidate->userable->resumes()->create(['name' => 'Main', 'source' => 'profile', 'status' => 'ready', 'is_main' => true, 'style' => ['template' => 'verona', 'accent' => 'claret']]);
+        Http::fake(['api.openai.com/v1/responses' => Http::response($this->reply())]);
+
+        $this->actingAs($candidate)->postJson("/opportunities/{$this->role()->id}/kit", ['locale' => 'en']);
+        $kit = ApplicationKit::sole();
+        $this->assertSame(['template' => 'verona', 'accent' => 'claret', 'font' => 'sans', 'paper' => 'a4'], $kit->style);
+
+        $this->actingAs($candidate)->putJson(route('kits.update', $kit), ['style' => ['template' => 'nope']])->assertStatus(422)->assertJsonValidationErrors('style.template');
+        $this->actingAs($candidate)->putJson(route('kits.update', $kit), ['style' => ['font' => 'serif', 'paper' => 'letter']])->assertOk();
+        $this->assertSame(['template' => 'verona', 'accent' => 'claret', 'font' => 'serif', 'paper' => 'letter'], $kit->fresh()->style);
+        $this->actingAs($candidate)->getJson(route('kits.show', $kit))->assertJsonPath('kit.style.font', 'serif')->assertJsonPath('kit.labels.cv', 'Resume');
     }
 
     private function candidate(): User
