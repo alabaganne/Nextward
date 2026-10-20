@@ -96,13 +96,9 @@ const accountError = (key) =>
 	Object.entries(accountForm.errors).find(([name]) => name === key || name.startsWith(`${key}.`))?.[1];
 const hasAccountErrors = computed(() => Object.keys(accountForm.errors).length > 0);
 
-const resumeForm = useForm({ resume: null });
-const uploadResume = (event) => {
-	resumeForm.resume = event.target.files[0] || null;
-	event.target.value = '';
-	if (resumeForm.resume) resumeForm.post(route('profile.resume.store'), { preserveScroll: true, forceFormData: true });
-};
-const removeResume = () => router.delete(route('profile.resume.destroy'), { preserveScroll: true });
+const mainResume = computed(() => props.settings.main_resume);
+const aiFree = computed(() => !page.props.billing?.enabled || page.props.billing?.free);
+const readBillingUrl = ref('');
 
 const historyFields = {
 	experience: [
@@ -156,7 +152,9 @@ const readResume = async () => {
 			.map((row) => ({ ...row, use: !row.now }));
 		review.value = rows;
 	} catch (error) {
-		readError.value = error.response?.data?.message || 'We could not read your resume right now. Please try again in a minute.';
+		readBillingUrl.value = error.response?.data?.billing_url || '';
+		readError.value = error.response?.status === 403 ? 'Verify your email address to use the AI tools.'
+			: error.response?.data?.message || 'We could not read your resume right now. Please try again in a minute.';
 	} finally {
 		reading.value = false;
 	}
@@ -373,29 +371,23 @@ const deleteAccount = () =>
 						<div class="bg-white border border-line rounded-[18px] mb-[18px]">
 							<div class="px-[22px] py-[18px] border-b border-line-2">
 								<h3 class="font-display text-[16.5px] font-semibold">Resume</h3>
-								<p class="text-[13px] text-muted mt-[3px]">A PDF of your resume. Only you can see it, unless you share it on your public profile. We can read it to fill in your profile, and we use it with your profile to tailor CVs and cover letters.</p>
+								<p class="text-[13px] text-muted mt-[3px]">Your resumes live on your profile page: upload PDFs, make one from this profile with a theme, translate them and pick the main one. The main one is read to fill in your profile and used with your profile to tailor CVs and cover letters.</p>
 							</div>
 							<div class="px-[22px] py-[22px]">
 								<div class="flex items-center justify-between gap-4 flex-wrap">
 									<div class="flex items-center gap-3 min-w-0">
 										<FileText class="w-5 h-5 text-muted shrink-0" aria-hidden="true" />
-										<a v-if="settings.resume_name" :href="route('profile.resume.show')" class="text-[14px] font-semibold text-blue-700 hover:underline truncate">{{ settings.resume_name }}</a>
+										<a v-if="mainResume" :href="route('profile.resume.show')" class="text-[14px] font-semibold text-blue-700 hover:underline truncate">{{ mainResume.name }}</a>
 										<span v-else class="text-[13.5px] text-muted">No resume yet.</span>
 									</div>
-									<div class="flex gap-2.5">
-										<label class="cbtn cbtn-secondary cursor-pointer" :class="{ 'opacity-60 pointer-events-none': resumeForm.processing }">
-											{{ resumeForm.processing ? 'Uploading…' : settings.resume_name ? 'Replace PDF' : 'Upload PDF' }}
-											<input type="file" accept="application/pdf" class="sr-only" @change="uploadResume">
-										</label>
-										<button v-if="settings.resume_name" class="cbtn cbtn-secondary" type="button" @click="removeResume">Remove</button>
-									</div>
+									<a :href="`${route('profile.show')}#resumes`" class="cbtn cbtn-secondary">Manage your resumes</a>
 								</div>
-								<div v-if="resumeForm.errors.resume" class="text-xs text-[#dc2626] mt-[10px]" role="alert">{{ resumeForm.errors.resume }}</div>
-								<div v-if="settings.resume_name && !review" class="mt-4 rounded-[14px] bg-blue-50 px-4 py-3.5 flex items-center justify-between gap-3 flex-wrap">
-									<p class="text-[13.5px] text-ink-700">Save time: we read your resume and suggest profile details. You check them before anything is saved.</p>
+								<div v-if="mainResume && mainResume.source === 'uploaded' && !review" class="mt-4 rounded-[14px] bg-blue-50 px-4 py-3.5 flex items-center justify-between gap-3 flex-wrap">
+									<p class="text-[13.5px] text-ink-700">Save time: we read your main resume and suggest profile details. You check them before anything is saved.<template v-if="!aiFree"> Uses 1 credit.</template></p>
 									<button class="cbtn bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60" type="button" :disabled="reading" @click="readResume">{{ reading ? 'Reading your resume…' : 'Fill my profile from this resume' }}</button>
 								</div>
-								<p v-if="readError" class="text-xs text-[#dc2626] mt-[10px]" role="alert">{{ readError }}</p>
+								<p v-if="mainResume && mainResume.source === 'profile'" class="mt-4 text-[13px] text-muted">Your main resume is made from this profile. After you save changes here, open it on your profile page and press “Refresh from my profile”.</p>
+								<p v-if="readError" class="text-xs text-[#dc2626] mt-[10px]" role="alert">{{ readError }} <a v-if="readBillingUrl" :href="readBillingUrl" class="underline font-semibold">See packs</a></p>
 								<div v-if="review" class="mt-4">
 									<h4 class="font-display text-[15px] font-semibold">From your resume</h4>
 									<p v-if="!review.length" class="text-[13.5px] text-muted mt-1">Your profile already has everything we found.</p>

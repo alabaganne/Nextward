@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\City;
 use App\Models\Field;
 use App\Models\Candidate;
+use App\Models\Resume;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -32,8 +33,6 @@ class OwnerProfileSeeder extends Seeder
             'location' => 'Monastir, Tunisia',
             'languages' => ['English', 'French', 'Arabic'],
             'website' => 'https://www.alabaganne.com',
-            'resume_path' => $resume,
-            'resume_name' => 'Ala_Baganne_Resume.pdf',
             'about' => $this->about(),
             'preferences' => [
                 'kinds' => ['job'],
@@ -67,6 +66,17 @@ class OwnerProfileSeeder extends Seeder
             'userable_type' => 'candidate',
             'userable_id' => $candidate->id,
         ])->save();
+
+        Resume::updateOrCreate(['candidate_id' => $candidate->id, 'path' => $resume], [
+            'name' => 'Ala Baganne Resume',
+            'locale' => 'en',
+            'source' => 'uploaded',
+            'status' => 'ready',
+            'file_name' => 'Ala_Baganne_Resume.pdf',
+        ]);
+        if (! $candidate->resumes()->where('is_main', true)->exists()) {
+            Resume::where('candidate_id', $candidate->id)->where('path', $resume)->update(['is_main' => true]);
+        }
     }
 
     private function about(): string

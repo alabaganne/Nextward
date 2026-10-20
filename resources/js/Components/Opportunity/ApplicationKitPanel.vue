@@ -8,15 +8,20 @@ import { downloadLetterDocx, letterFileName } from '@/utils/letterDocx';
 const props = defineProps({
     opportunity: { type: Object, required: true },
     kits: { type: Array, default: () => [] },
+    kitLocales: { type: Array, default: () => [] },
 });
 const page = usePage();
 const fr = computed(() => page.props.locale === 'fr');
 const text = (en, french) => (fr.value ? french : en);
-const locale = ref(page.props.locale === 'fr' ? 'fr' : 'en');
+// The listing's own language first when we can write in it, otherwise the site language.
+const languages = computed(() => props.kitLocales.length ? props.kitLocales : [{ code: 'en', label: 'English' }, { code: 'fr', label: 'Français' }]);
+const siteLocale = page.props.locale === 'fr' ? 'fr' : 'en';
+const locale = ref(languages.value.find((option) => option.original)?.code || siteLocale);
 const kits = ref(Object.fromEntries(props.kits.map((kit) => [kit.locale, kit])));
 const kit = computed(() => kits.value[locale.value] || null);
 const billing = computed(() => page.props.billing || {});
 const credits = computed(() => page.props.auth?.user?.credits ?? 0);
+const free = computed(() => !billing.value.enabled || billing.value.free);
 const busy = ref(false);
 const error = ref('');
 const billingUrl = ref('');
@@ -139,8 +144,8 @@ const useToApply = () => {
             </div>
             <fieldset class="flex rounded-lg bg-paper-2 p-1 text-sm font-semibold">
                 <legend class="sr-only">{{ text('Language of the letter', 'Langue de la lettre') }}</legend>
-                <label v-for="option in [['en', 'English'], ['fr', 'Français']]" :key="option[0]" class="cursor-pointer rounded-md px-3 py-1.5 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand" :class="locale === option[0] ? 'bg-white text-navy' : 'text-slate-600'">
-                    <input v-model="locale" type="radio" :value="option[0]" class="sr-only">{{ option[1] }}
+                <label v-for="option in languages" :key="option.code" class="cursor-pointer rounded-md px-3 py-1.5 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand" :class="locale === option.code ? 'bg-white text-navy' : 'text-slate-600'" :title="option.original ? text('The language of this listing', 'La langue de cette offre') : null">
+                    <input v-model="locale" type="radio" :value="option.code" class="sr-only">{{ option.label }}
                 </label>
             </fieldset>
         </div>
@@ -148,9 +153,8 @@ const useToApply = () => {
         <div v-if="!kit" class="mt-6">
             <button type="button" class="cta cta-primary" :disabled="busy" @click="start"><Sparkles :size="17" aria-hidden="true" />{{ busy ? text('Starting…', 'Démarrage…') : text('Write my cover letter', 'Écrire ma lettre') }}</button>
             <p class="text-xs text-slate-500 leading-5 mt-3">
-                <template v-if="billing.enabled">{{ text(`Uses 1 credit, with a few rewrites included. You have ${credits}.`, `Utilise 1 crédit, quelques réécritures incluses. Il vous en reste ${credits}.`) }}</template>
-                <template v-else>{{ text('Free while we launch.', 'Gratuit pendant le lancement.') }}</template>
-                {{ text('We also write a CV for this role. Better results with your resume and experience in', 'Nous rédigeons aussi un CV pour cette offre. Meilleur résultat avec votre CV et vos expériences dans') }} <Link href="/settings" class="text-blue-700 underline">{{ text('Settings', 'Paramètres') }}</Link>.
+                <template v-if="!free">{{ text(`Uses 1 credit, with 3 rewrites included. You have ${credits}.`, `Utilise 1 crédit, 3 réécritures incluses. Il vous en reste ${credits}.`) }}</template>
+                {{ text('We also write a CV for this role. Better results with your main resume and your experience on', 'Nous rédigeons aussi un CV pour cette offre. Meilleur résultat avec votre CV principal et vos expériences sur') }} <Link href="/profile#resumes" class="text-blue-700 underline">{{ text('your profile', 'votre profil') }}</Link>.
             </p>
         </div>
 

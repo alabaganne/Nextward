@@ -98,7 +98,7 @@ class HandleInertiaRequests extends Middleware
             'locale' => $request->is('fr', 'fr/*') ? 'fr' : 'en',
             'ziggy' => fn () => [...(new Ziggy)->toArray(), 'location' => $request->url()],
             'seo' => fn () => PublicSeo::forRequest($request),
-            'billing' => ['enabled' => (bool) config('billing.enabled')],
+            'billing' => ['enabled' => (bool) config('billing.enabled'), 'free' => $user ? app(\App\Billing\Credits::class)->isFree($user) : false],
         ], $shared);
     }
 }

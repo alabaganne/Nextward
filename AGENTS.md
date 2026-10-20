@@ -69,7 +69,7 @@ When the owner makes a decision of any kind (product, logic, naming, data, desig
 | `SEO.md` | Blog, SEO and links |
 | `DEPLOY.md`, `VPS_DEPLOYMENT.md` | Deployment |
 | `FUTURE_PLANS.md` | Open roadmap |
-| `TODO.md` | Small fixes and chores |
+| `TODOS.md` | Unfinished work, small fixes and chores |
 | `VERDICT.md`, `MONETIZATION_STRATEGY.md`, `MARKETING_PLAN.md` | Business notes |
 | `database/seeders/data/SOURCES.md` | Seeded listings and import sources |
 | `LANDING_PAGE_IMPLEMENTATION_PROMPT.md`, `OPPORTUNITY_FINDER_IMPLEMENTATION_PLAN.md`, `PUBLIC_PAGES_REDESIGN_PROMPT.md` | Task briefs (history) |

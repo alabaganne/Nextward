@@ -5,6 +5,7 @@ import { Link, router } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
 import ProfileBanner from '@/Components/Candidate/ProfileBanner.vue';
 import SkillList from '@/Components/Candidate/SkillList.vue';
+import ResumeList from '@/Components/Candidate/ResumeList.vue';
 
 defineOptions({
 	layout: (_h, page) => h(AppShell, { active: 'profile' }, () => page),
@@ -49,6 +50,7 @@ const checklist = computed(() => {
 		items.splice(2, 0, { label: 'Pick your field', done: !!props.profile.field?.name });
 		items.push({ label: 'Add skills', done: (props.profile.skills || []).length > 0 });
 		items.push({ label: 'Add your experience or studies', done: (props.profile.experience || []).length + (props.profile.education || []).length > 0 });
+		items.push({ label: 'Add a resume', done: (props.profile.resumes || []).some((resume) => resume.is_main) });
 	} else if (isCompany.value) {
 		items.push({ label: 'Add a website', done: !!props.profile.website });
 	}
@@ -110,11 +112,13 @@ const publicState = computed(() => ({
 			<label class="px-[22px] py-4 border-t flex items-start gap-3 cursor-pointer" :class="profile.public_status === 'approved' ? 'border-[#d1fae5]' : 'border-blue-100'">
 				<input type="checkbox" class="mt-1 w-4 h-4 accent-blue-600 shrink-0" :checked="profile.public_contact" :disabled="publicBusy" @change="updatePublic({ contact: $event.target.checked })">
 				<span>
-					<b class="text-[14px] font-semibold block">Share my resume, email and phone number</b>
+					<b class="text-[14px] font-semibold block">Share my main resume, email and phone number</b>
 					<span class="text-[13px] text-muted block mt-0.5">Anyone who opens your public profile can download your resume and contact you. Turn this off at any time.</span>
 				</span>
 			</label>
 		</section>
+
+		<ResumeList v-if="isCandidate" :resumes="profile.resumes || []" :limit="profile.resume_limit" :email-verified="profile.email_verified" />
 
 		<div class="grid grid-cols-[1.65fr_1fr] gap-[18px] items-start max-[980px]:grid-cols-1">
 			<!-- LEFT -->

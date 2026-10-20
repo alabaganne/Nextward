@@ -52,7 +52,7 @@ class PublicCandidateController extends Controller
         $field = isset($filters['field']) ? (int) $filters['field'] : null;
         $resume = (bool) ($filters['resume'] ?? false);
 
-        $candidates = Candidate::publiclyListed()->with('user', 'field', 'city', 'skills')
+        $candidates = Candidate::publiclyListed()->with('user', 'field', 'city', 'skills', 'mainResume')
             ->when($search !== '', function ($query) use ($search) {
                 $term = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search).'%';
                 $query->where(fn ($query) => $query->where('headline', 'like', $term)->orWhere('location', 'like', $term)
@@ -62,7 +62,7 @@ class PublicCandidateController extends Controller
                     ->orWhereHas('field', fn ($query) => $query->where('name', 'like', $term)));
             })
             ->when($field, fn ($query) => $query->where('field_id', $field))
-            ->when($resume, fn ($query) => $query->where('public_contact', true)->whereNotNull('resume_path'))
+            ->when($resume, fn ($query) => $query->where('public_contact', true)->whereHas('mainResume'))
             ->orderByDesc('public_reviewed_at')->orderByDesc('id')
             ->paginate(24)->withQueryString()
             ->through(fn (Candidate $candidate) => $this->card($candidate, $locale));
@@ -100,7 +100,7 @@ class PublicCandidateController extends Controller
                 'contact' => $candidate->public_contact ? [
                     'email' => $candidate->user->email,
                     'phone_number' => $candidate->user->phone_number,
-                    'resume_url' => $candidate->resume_path ? route('candidates.public.resume', $candidateSlug, false) : null,
+                    'resume_url' => $candidate->mainResume?->path ? route('candidates.public.resume', $candidateSlug, false) : null,
                 ] : null,
             ],
             'status' => $candidate->public_status,
@@ -112,9 +112,10 @@ class PublicCandidateController extends Controller
     public function resume(Request $request, string $candidateSlug)
     {
         $candidate = $this->visible($request, $candidateSlug);
-        abort_unless($candidate->public_contact && $candidate->resume_path && Storage::disk('local')->exists($candidate->resume_path), 404);
+        $resume = $candidate->mainResume;
+        abort_unless($candidate->public_contact && $resume?->hasFile(), 404);
 
-        return Storage::disk('local')->response($candidate->resume_path, $candidate->resume_name ?: 'resume.pdf', [
+        return Storage::disk('local')->response($resume->path, $resume->file_name ?: 'resume.pdf', [
             'Content-Type' => 'application/pdf',
             'X-Robots-Tag' => 'noindex',
         ]);
@@ -166,7 +167,7 @@ class PublicCandidateController extends Controller
     private function visible(Request $request, string $candidateSlug): Candidate
     {
         abort_unless(preg_match('/^([1-9][0-9]*)-/', $candidateSlug, $matches), 404);
-        $candidate = Candidate::with('user', 'field', 'city', 'skills')->findOrFail($matches[1]);
+        $candidate = Candidate::with('user', 'field', 'city', 'skills', 'mainResume')->findOrFail($matches[1]);
         $viewer = $request->user();
         // The candidate and admins can preview a profile that is not live yet.
         $canPreview = $viewer && ($viewer->isAdmin() || ($viewer->isCandidate() && $viewer->userable_id === $candidate->id));
@@ -190,7 +191,7 @@ class PublicCandidateController extends Controller
             'experience_years' => $candidate->experience_years,
             'summary' => $candidate->about ? Str::limit(Str::squish($candidate->about), 220) : null,
             'url' => parse_url($candidate->publicUrl($locale), PHP_URL_PATH),
-            'has_resume' => $candidate->public_contact && (bool) $candidate->resume_path,
+            'has_resume' => $candidate->public_contact && (bool) $candidate->mainResume?->path,
         ];
     }
 }

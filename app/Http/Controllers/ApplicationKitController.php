@@ -5,11 +5,15 @@ namespace App\Http\Controllers;
 use App\Ai\ApplicationKits;
 use App\Billing\Credits;
 use App\Jobs\GenerateApplicationKit;
+use App\Models\Application;
 use App\Models\ApplicationKit;
 use App\Models\Opportunity;
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Support\Cv;
+use App\Support\CvPdf;
+use App\Support\CvTemplates;
+use App\Support\LanguageGuess;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 // Tailored CVs and cover letters: one kit per candidate, role and language.
@@ -28,10 +32,13 @@ class ApplicationKitController extends Controller
         $user = $request->user();
         $candidate = $user->ensureCandidateProfile() ?? abort(403);
         abort_unless($opportunity->publication_status === 'published' && $opportunity->isOpen(), 404);
-        $data = $request->validate(['locale' => 'required|in:en,fr']);
+        $data = $request->validate(['locale' => ['required', Rule::in(ApplicationKits::locales($opportunity))]]);
         abort_unless($writer->enabled(), 503, 'Tailored CVs and letters are not available right now.');
 
-        $kit = ApplicationKit::firstOrCreate(['candidate_id' => $candidate->id, 'opportunity_id' => $opportunity->id, 'locale' => $data['locale']]);
+        $kit = ApplicationKit::firstOrCreate(
+            ['candidate_id' => $candidate->id, 'opportunity_id' => $opportunity->id, 'locale' => $data['locale']],
+            ['style' => CvTemplates::style($candidate->mainResume?->style ?? ApplicationKit::where('candidate_id', $candidate->id)->whereNotNull('style')->latest('updated_at')->value('style'))],
+        );
         if ($kit->wasRecentlyCreated || $kit->status === 'failed') {
             if ($response = $this->start($user, $kit, $credits)) { return $response; }
         }
@@ -47,7 +54,7 @@ class ApplicationKitController extends Controller
             return response()->json(['kit' => $this->detail($kit)]);
         }
 
-        return Inertia::render('Kits/Show', ['kit' => $this->detail($kit)]);
+        return Inertia::render('Kits/Show', ['kit' => $this->detail($kit), ...ResumeController::editorProps()]);
     }
 
     public function update(Request $request, ApplicationKit $kit)
@@ -60,11 +67,13 @@ class ApplicationKitController extends Controller
             'cv.name' => 'nullable|string|max:150',
             'cv.contact' => 'nullable|array|max:8',
             'cv.contact.*' => 'nullable|string|max:255',
+            ...CvTemplates::rules(),
         ]);
         // The listing page saves the letter alone, without the CV.
         $kit->update([
-            'cover_letter' => trim((string) ($data['cover_letter'] ?? '')),
-            ...(isset($data['cv']) ? ['cv' => ['name' => trim((string) ($data['cv']['name'] ?? '')), 'contact' => array_values(array_filter(array_map('trim', $data['cv']['contact'] ?? []))), ...ApplicationKits::cleanCv($request->input('cv', []))]] : []),
+            ...($request->has('cover_letter') ? ['cover_letter' => trim((string) ($data['cover_letter'] ?? ''))] : []),
+            ...(isset($data['cv']) ? ['cv' => Cv::clean($request->input('cv', []))] : []),
+            ...(isset($data['style']) ? ['style' => CvTemplates::style([...($kit->style ?? []), ...$data['style']])] : []),
         ]);
         if ($request->wantsJson()) {
             return response()->json(['saved' => true]);
@@ -76,6 +85,7 @@ class ApplicationKitController extends Controller
     public function regenerate(Request $request, ApplicationKit $kit, ApplicationKits $writer, Credits $credits)
     {
         $this->authorizeKit($request, $kit);
+        abort_unless($kit->opportunity?->publication_status === 'published' && $kit->opportunity->isOpen(), 409, 'This listing is closed.');
         abort_unless($writer->enabled(), 503, 'Tailored CVs and letters are not available right now.');
         if ($kit->status !== 'queued' && ($response = $this->start($request->user(), $kit, $credits))) {
             return $response;
@@ -92,21 +102,20 @@ class ApplicationKitController extends Controller
         return redirect()->route('kits.index')->with('toast', ['type' => 'destroy', 'message' => 'The CV and letter were deleted.']);
     }
 
-    public function cv(Request $request, ApplicationKit $kit)
+    public function cv(Request $request, ApplicationKit $kit, CvPdf $pdf)
     {
         $this->authorizeKit($request, $kit);
         abort_unless($kit->cv, 404);
 
-        return Pdf::loadView('pdf.cv', ['cv' => $kit->cv, 'locale' => $kit->locale])->download($this->fileName($kit, 'CV'));
+        return $this->download($pdf->pdf($kit->cv, $kit->style, $kit->locale), $this->fileName($kit, 'cv'));
     }
 
-    public function letter(Request $request, ApplicationKit $kit)
+    public function letter(Request $request, ApplicationKit $kit, CvPdf $pdf)
     {
         $this->authorizeKit($request, $kit);
         abort_unless($kit->cover_letter, 404);
 
-        return Pdf::loadView('pdf.letter', ['kit' => $kit, 'name' => $kit->cv['name'] ?? '', 'contact' => $kit->cv['contact'] ?? []])
-            ->download($this->fileName($kit, $kit->locale === 'fr' ? 'Lettre' : 'Cover letter'));
+        return $this->download($pdf->letterPdf($kit->cv ?? [], $kit->cover_letter, $kit->style, $kit->locale), $this->fileName($kit, 'letter'));
     }
 
     // Takes a credit when needed and queues the draft. Returns an error response when the user has no credit.
@@ -126,9 +135,15 @@ class ApplicationKitController extends Controller
         abort_unless($request->user()->isCandidate() && $kit->candidate_id === $request->user()->userable_id, 404);
     }
 
+    // "Ala_Baganne_CV_Canonical.pdf"
     private function fileName(ApplicationKit $kit, string $kind): string
     {
-        return Str::slug(($kit->cv['name'] ?? 'nextward').' '.$kind.' '.$kit->opportunity?->company?->display_name).'.pdf';
+        return CvTemplates::fileName($kit->cv['name'] ?? null, CvTemplates::labels($kit->locale)[$kind].' '.$kit->opportunity?->company?->display_name);
+    }
+
+    private function download(string $pdf, string $name)
+    {
+        return response($pdf, 200, ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'attachment; filename="'.$name.'"']);
     }
 
     private function summary(ApplicationKit $kit): array
@@ -137,6 +152,7 @@ class ApplicationKitController extends Controller
         return [
             'id' => $kit->id,
             'locale' => $kit->locale,
+            'language' => LanguageGuess::name($kit->locale) ?? strtoupper($kit->locale),
             'status' => $kit->status,
             'error' => $kit->error,
             'updated_at' => $kit->updated_at?->toIso8601String(),
@@ -158,8 +174,11 @@ class ApplicationKitController extends Controller
         $credits = app(Credits::class);
         return [
             ...$this->summary($kit),
-            'cv' => $kit->cv,
+            'cv' => $kit->cv ? Cv::clean($kit->cv) : null,
             'cover_letter' => $kit->cover_letter,
+            'style' => CvTemplates::style($kit->style),
+            'labels' => CvTemplates::labels($kit->locale),
+            'application_id' => Application::where('candidate_id', $kit->candidate_id)->where('opportunity_id', $kit->opportunity_id)->value('id'),
             'rewrites_left' => $credits->enabled() ? max(0, $kit->credits_used * $credits->draftsPerCredit() - $kit->generations) : null,
         ];
     }

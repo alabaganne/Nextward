@@ -8,7 +8,7 @@ defineOptions({ layout: (_h, page) => h(AppShell, { active: 'billing' }, () => p
 const props = defineProps({ balance: Number, drafts_per_credit: Number, gateways: Array, packs: Array, history: Array });
 const names = { konnect: 'Konnect (cards, e-DINAR, wallet · TND)', flouci: 'Flouci (wallet, cards · TND)', lemonsqueezy: 'International card or PayPal (USD)' };
 const currencyOf = { konnect: 'TND', flouci: 'TND', lemonsqueezy: 'USD' };
-const reasons = { welcome: 'Welcome credit', purchase: 'Pack bought', kit: 'CV and letter', refund: 'Given back', grant: 'Added by Nextward' };
+const reasons = { welcome: 'Free credits', monthly: 'Free credits for the month', purchase: 'Pack bought', kit: 'CV and letter for a role', resume: 'Resume translation', resume_read: 'Profile filled from a resume', refund: 'Given back', grant: 'Added by Nextward' };
 const gateway = ref(props.gateways[0] || null);
 const busy = ref(null);
 const price = (pack) => {
@@ -25,7 +25,7 @@ const buy = (pack) => {
 
 <template>
 	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-wrap mx-auto">
-		<PageHeader title="Credits" :description="`One credit writes a tailored CV and cover letter for one role, with ${drafts_per_credit - 1} rewrites included. Browsing and applying stay free.`" />
+		<PageHeader title="Credits" :description="`Credits pay for the AI tools. One credit writes a CV and cover letter for one role or translates a resume (each with ${drafts_per_credit - 1} rewrites included), or fills your profile from a resume. You get 5 free credits every month. Browsing, applying, and making resumes from your profile stay free.`" />
 		<div class="bg-white border border-line rounded-[18px] px-6 py-5 mb-6 flex items-center justify-between gap-4 flex-wrap">
 			<div><p class="text-sm text-muted">Your balance</p><p class="font-display text-3xl font-semibold">{{ balance }} credit{{ balance === 1 ? '' : 's' }}</p></div>
 		</div>
@@ -39,7 +39,7 @@ const buy = (pack) => {
 			<div class="grid sm:grid-cols-3 gap-4 mb-8">
 				<article v-for="pack in packs" :key="pack.key" class="bg-white border border-line rounded-[18px] p-6 flex flex-col">
 					<p class="font-display text-2xl font-semibold">{{ pack.credits }} credits</p>
-					<p class="text-muted text-sm mt-1">{{ pack.credits }} roles, each with a CV and a cover letter</p>
+					<p class="text-muted text-sm mt-1">{{ pack.credits }} credits for the AI tools</p>
 					<p class="font-semibold text-lg mt-4">{{ price(pack) || 'Not available with this method' }}</p>
 					<button class="cbtn bg-blue-600 text-white hover:bg-blue-700 mt-5 disabled:opacity-60" type="button" :disabled="!price(pack) || busy" @click="buy(pack)">{{ busy === pack.key ? 'Opening…' : 'Buy' }}</button>
 				</article>

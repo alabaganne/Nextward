@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Support\CvPdf;
 use App\Support\CvTemplates;
+use App\Support\LanguageGuess;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -85,6 +86,30 @@ class Resume extends Model
     // Languages it can be translated into with AI.
     public function translationTargets(): array
     {
-        return array_values(array_diff(['en', 'fr'], [$this->locale]));
+        return $this->status === 'ready' ? array_values(array_diff(['en', 'fr'], [$this->locale])) : [];
+    }
+
+    // What lists and pages show.
+    public function summary(): array
+    {
+        $language = fn (?string $code) => $code ? ['code' => $code, 'label' => LanguageGuess::name($code) ?? strtoupper($code)] : null;
+
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'language' => $language($this->locale),
+            'source' => $this->source,
+            'status' => $this->status,
+            'is_main' => $this->is_main,
+            'editable' => $this->isEditable(),
+            'has_file' => (bool) $this->path,
+            'file_name' => $this->file_name,
+            'style' => $this->isEditable() ? CvTemplates::style($this->style) : null,
+            'error' => $this->error,
+            'targets' => array_map($language, $this->translationTargets()),
+            'translated_from' => $this->translated_from_id ? $this->translatedFrom?->only('id', 'name') : null,
+            'updated_at' => $this->updated_at?->toIso8601String(),
+            'updated_label' => $this->updated_at?->diffForHumans(),
+        ];
     }
 }

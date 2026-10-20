@@ -179,8 +179,11 @@ class CandidateController extends Controller
      */
     public function destroy(Candidate $candidate)
     {
+        // Rows go with the candidate; their resume files have to be deleted by hand.
+        $files = $candidate->resumes()->whereNotNull('path')->pluck('path')->all();
         $candidate->user()->delete();
         $candidate->delete();
+        \Illuminate\Support\Facades\Storage::disk('local')->delete($files);
 
         return Redirect::route('candidates.index')->with('toast', [
             'type' => 'destroy',

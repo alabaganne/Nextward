@@ -2,7 +2,7 @@
 export async function downloadLetterDocx({ letter, name = '', contact = [], locale = 'en', fileName = 'cover-letter' }) {
 	const { Document, Packer, Paragraph, TextRun } = await import('docx');
 	const font = 'Calibri';
-	const date = new Intl.DateTimeFormat(locale === 'fr' ? 'fr-FR' : 'en-GB', { dateStyle: 'long' }).format(new Date());
+	const date = new Intl.DateTimeFormat(locale === 'en' ? 'en-GB' : locale, { dateStyle: 'long' }).format(new Date());
 	const blocks = letter.trim().split(/\n\s*\n/).map((block) => new Paragraph({
 		spacing: { after: 200, line: 300 },
 		children: block.split('\n').map((line, index) => new TextRun({ text: line, font, size: 22, ...(index ? { break: 1 } : {}) })),

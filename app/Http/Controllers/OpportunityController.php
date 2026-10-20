@@ -169,6 +169,11 @@ class OpportunityController extends Controller
             'kits' => $request->user()?->isCandidate()
                 ? \App\Models\ApplicationKit::where('candidate_id', $request->user()->userable_id)->where('opportunity_id', $opportunity->id)->get(['id', 'locale', 'status'])
                 : [],
+            'kitLocales' => collect(\App\Ai\ApplicationKits::locales($opportunity))->map(fn ($code) => [
+                'code' => $code,
+                'label' => \App\Support\LanguageGuess::name($code, $locale) ?? strtoupper($code),
+                'original' => $code === $opportunity->originalLocale(),
+            ])->all(),
         ]);
     }
 

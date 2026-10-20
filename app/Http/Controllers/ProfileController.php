@@ -60,7 +60,8 @@ class ProfileController extends Controller
                 'location' => $candidate->location,
                 'languages' => $candidate->languages ?: [],
                 'website' => $candidate->website,
-                'resume_name' => $candidate->resume_name,
+                'resumes' => $candidate->resumes()->with('translatedFrom:id,name')->orderByDesc('is_main')->latest('updated_at')->get()->map->summary(),
+                'resume_limit' => \App\Models\Resume::LIMIT,
                 'experience' => $candidate->experience ?: [],
                 'education' => $candidate->education ?: [],
                 'projects' => $candidate->projects ?: [],
@@ -157,7 +158,7 @@ class ProfileController extends Controller
                 $files = $applications->flatMap(fn ($application) => $application->attachments ?: [])
                     ->map(fn ($attachment) => is_array($attachment) ? Application::attachmentStorage($attachment) : null)
                     ->filter()->all();
-                if ($profile->resume_path) { $files[] = ['disk' => 'local', 'path' => $profile->resume_path]; }
+                foreach ($profile->resumes()->whereNotNull('path')->pluck('path') as $path) { $files[] = ['disk' => 'local', 'path' => $path]; }
 
                 Application::whereKey($applications->modelKeys())->delete();
                 $profile->likes()->detach();
@@ -212,7 +213,7 @@ class ProfileController extends Controller
                 'location' => $userable->location ?? null,
                 'languages' => $userable->languages ?? [],
                 'preferences' => $userable->preferences ?? [],
-                'resume_name' => $userable->resume_name ?? null,
+                'main_resume' => $userable instanceof Candidate ? $userable->mainResume?->only('id', 'name', 'source', 'locale') : null,
                 'experience' => $userable->experience ?? [],
                 'education' => $userable->education ?? [],
                 'projects' => $userable->projects ?? [],
