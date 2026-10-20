@@ -22,10 +22,10 @@ class SavedSearchController extends Controller
                 'frequency' => $search->frequency,
                 'timezone' => $search->timezone,
                 'last_sent_at' => $search->last_sent_at?->toIso8601String(),
-                'browse_url' => self::browseUrl($search->filters),
+                'browse_url' => self::browseUrl($search->filters, true),
             ]),
             'initialFilters' => $initial,
-            'initialBrowseUrl' => self::browseUrl($initial),
+            'initialBrowseUrl' => self::browseUrl($initial, true),
             'deliveryEnabled' => (bool) config('importer.digests_enabled'),
             'timezones' => \DateTimeZone::listIdentifiers(),
         ]);
@@ -101,7 +101,7 @@ class SavedSearchController extends Controller
                 $input[$field] = strtoupper(trim($input[$field]));
             }
         }
-        foreach (['fields', 'companies', 'cities'] as $field) {
+        foreach (['fields', 'skills', 'companies', 'cities'] as $field) {
             if (isset($input[$field]) && is_array($input[$field])) {
                 $input[$field] = array_values(array_filter($input[$field], fn ($value) => $value !== '' && $value !== null));
             }
@@ -118,6 +118,7 @@ class SavedSearchController extends Controller
             'program_type' => 'nullable|in:pfe,summer,apprenticeship,graduate,other',
             'compensation_status' => 'nullable|in:paid,unpaid,unspecified',
             'fields' => 'nullable|array|max:20', 'fields.*' => 'integer|min:1',
+            'skills' => 'nullable|array|max:20', 'skills.*' => 'integer|min:1',
             'companies' => 'nullable|array|max:20', 'companies.*' => 'integer|min:1',
             'cities' => 'nullable|array|max:20', 'cities.*' => 'integer|min:1',
             'field' => 'nullable|integer|min:1',
@@ -138,11 +139,12 @@ class SavedSearchController extends Controller
         return array_filter($data, fn ($value) => $value !== null && $value !== '' && $value !== []);
     }
 
-    public static function browseUrl(array $filters): string
+    // Emails link to the public list; the saved searches page opens it inside /app.
+    public static function browseUrl(array $filters, bool $app = false): string
     {
         $category = $filters['category'] ?? null;
         unset($filters['category']);
         $query = http_build_query($filters);
-        return rtrim(config('app.url'), '/').'/opportunities'.($category ? '/'.$category : '').($query ? '?'.$query : '');
+        return ($app ? '/app' : rtrim(config('app.url'), '/')).'/opportunities'.($category ? '/'.$category : '').($query ? '?'.$query : '');
     }
 }

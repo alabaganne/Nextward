@@ -32,7 +32,7 @@ class AdminAccountCreationTest extends TestCase
                 'field_id' => $field->id,
                 'website' => 'https://example.com',
                 'about' => 'A profile created by the administrator.',
-            ])->assertRedirect(route("{$resource}.index"));
+            ])->assertRedirect(route($role === 'company' ? 'app.companies.index' : 'candidates.index'));
 
             $user = User::where('email', "{$role}@example.com")->firstOrFail();
             $this->assertSame($role, $user->userable_type);

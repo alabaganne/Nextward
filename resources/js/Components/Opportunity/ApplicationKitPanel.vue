@@ -51,7 +51,7 @@ const load = async () => {
     clearTimeout(timer);
     if (!kit.value) return;
     try {
-        const { data } = await axios.get(`/kits/${kit.value.id}`, { headers: { Accept: 'application/json' } });
+        const { data } = await axios.get(route('kits.show', kit.value.id), { headers: { Accept: 'application/json' } });
         take(data.kit);
     } catch { /* try again on the next tick */ }
     if (kit.value?.status === 'queued') timer = setTimeout(load, 3000);
@@ -64,7 +64,7 @@ const start = async () => {
     error.value = '';
     billingUrl.value = '';
     try {
-        const { data } = await axios.post(`/opportunities/${props.opportunity.id}/kit`, { locale: locale.value });
+        const { data } = await axios.post(route('opportunities.kit', props.opportunity.id), { locale: locale.value });
         take(data.kit);
         load();
     } catch (failure) {
@@ -78,7 +78,7 @@ const rewrite = async () => {
     if (!window.confirm(text('Write a new letter for this role? Your edits will be replaced.', 'Écrire une nouvelle lettre pour cette offre ? Vos modifications seront remplacées.'))) return;
     error.value = '';
     try {
-        const { data } = await axios.post(`/kits/${kit.value.id}/regenerate`);
+        const { data } = await axios.post(route('kits.regenerate', kit.value.id));
         take(data.kit);
         load();
     } catch (failure) {
@@ -93,7 +93,7 @@ const save = async () => {
     const value = letter.value;
     saveState.value = 'saving';
     try {
-        await axios.put(`/kits/${kit.value.id}`, { cover_letter: value }, { headers: { Accept: 'application/json' } });
+        await axios.put(route('kits.update', kit.value.id), { cover_letter: value }, { headers: { Accept: 'application/json' } });
         savedLetter.value = value;
         saveState.value = letter.value === value ? 'saved' : 'saving';
     } catch {
@@ -131,7 +131,7 @@ const exportDocx = async () => {
 const applyHere = computed(() => props.opportunity.application_mode === 'internal' && !props.opportunity.application);
 const useToApply = () => {
     try { sessionStorage.setItem(`nextward.cover-letter.${props.opportunity.id}`, letter.value); } catch { /* storage may be off */ }
-    router.visit(`/opportunities/${props.opportunity.id}/apply`);
+    router.visit(route('applications.create', props.opportunity.id));
 };
 </script>
 
@@ -154,7 +154,7 @@ const useToApply = () => {
             <button type="button" class="cta cta-primary" :disabled="busy" @click="start"><Sparkles :size="17" aria-hidden="true" />{{ busy ? text('Starting…', 'Démarrage…') : text('Write my cover letter', 'Écrire ma lettre') }}</button>
             <p class="text-xs text-slate-500 leading-5 mt-3">
                 <template v-if="!free">{{ text(`Uses 1 credit, with 3 rewrites included. You have ${credits}.`, `Utilise 1 crédit, 3 réécritures incluses. Il vous en reste ${credits}.`) }}</template>
-                {{ text('We also write a CV for this role. Better results with your main resume and your experience on', 'Nous rédigeons aussi un CV pour cette offre. Meilleur résultat avec votre CV principal et vos expériences sur') }} <Link href="/profile#resumes" class="text-blue-700 underline">{{ text('your profile', 'votre profil') }}</Link>.
+                {{ text('We also write a CV for this role. Better results with your main resume and your experience on', 'Nous rédigeons aussi un CV pour cette offre. Meilleur résultat avec votre CV principal et vos expériences sur') }} <Link :href="`${route('profile.show')}#resumes`" class="text-blue-700 underline">{{ text('your profile', 'votre profil') }}</Link>.
             </p>
         </div>
 
@@ -181,11 +181,11 @@ const useToApply = () => {
             </div>
             <div class="mt-5 border-t border-line pt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold">
                 <button type="button" class="inline-flex items-center gap-1.5 text-blue-700" @click="rewrite"><RefreshCw :size="15" aria-hidden="true" />{{ text('Write it again', 'La réécrire') }}</button>
-                <Link :href="`/kits/${kit.id}`" class="inline-flex items-center gap-1.5 text-blue-700"><FileText :size="15" aria-hidden="true" />{{ text('See the CV written for this role', 'Voir le CV rédigé pour cette offre') }}</Link>
+                <Link :href="route('kits.show', kit.id)" class="inline-flex items-center gap-1.5 text-blue-700"><FileText :size="15" aria-hidden="true" />{{ text('See the CV written for this role', 'Voir le CV rédigé pour cette offre') }}</Link>
                 <span v-if="kit.rewrites_left !== null && kit.rewrites_left !== undefined" class="font-normal text-slate-500">{{ text(`${kit.rewrites_left} rewrite(s) left`, `${kit.rewrites_left} réécriture(s) restante(s)`) }}</span>
             </div>
         </div>
 
-        <p v-if="error" class="text-sm text-red-700 mt-4" role="alert">{{ error }} <a v-if="billingUrl" :href="billingUrl" class="underline font-semibold">{{ text('See packs', 'Voir les packs') }}</a></p>
+        <p v-if="error" class="text-sm text-red-700 mt-4" role="alert">{{ error }} <a v-if="billingUrl" :href="billingUrl" class="underline font-semibold">{{ text('Get credits', 'Obtenir des crédits') }}</a></p>
     </section>
 </template>

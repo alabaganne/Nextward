@@ -19,7 +19,7 @@ Done:
 - Checked in the browser on desktop (20 October 2026): profile resumes, `Resumes/Show` (the page was blank because `structuredClone` can't copy Vue props; fixed), `/resumes/new`, theme thumbnails, the kit page's "Apply with this CV and letter", applying with a kit CV (printed by Chrome), editing the application, the application page and the Credits page.
 - Editing an uploaded PDF: **Make editable** has the AI copy it word for word into an editable resume (a draft to check, 1 credit), tested with a real AI call. A real French translation was checked too.
 - Arabic CVs: right to left in every theme, preview, PDF and Word, with self-hosted IBM Plex Sans Arabic and Noto Naskh Arabic (OFL). Kits for Arabic listings can be written in Arabic.
-- Sören: the side column's tint now runs down page 2 and later pages in print.
+- Bergen (was Sören): the side column's tint now runs down page 2 and later pages in print.
 - Checked at phone width (390 px): Profile > Resumes, `Resumes/Show`, the apply page's resume choice and the kit page. On wide screens the resume page's buttons sit above the preview, and both previews stay below the top bar.
 
 Nothing left here. New ideas for resumes go in `FUTURE_PLANS.md`.

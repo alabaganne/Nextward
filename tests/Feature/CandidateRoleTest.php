@@ -33,10 +33,10 @@ class CandidateRoleTest extends TestCase
     {
         $admin = User::factory()->create(['is_admin' => true]);
 
-        $this->actingAs($admin)->get('/settings')->assertOk()
+        $this->actingAs($admin)->get('/app/settings')->assertOk()
             ->assertInertia(fn (Assert $page) => $page->where('settings.userable_type', 'candidate'));
 
-        $this->actingAs($admin)->put('/profile', [
+        $this->actingAs($admin)->put('/app/profile', [
             'name' => $admin->name,
             'email' => $admin->email,
             'about' => 'Founder of Nextward and a software engineer.',

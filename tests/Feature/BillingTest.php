@@ -30,7 +30,7 @@ class BillingTest extends TestCase
         $user = $this->candidate();
         $this->assertSame(20, app(Credits::class)->balance($user));
 
-        $this->actingAs($user)->get('/billing')->assertNotFound();
+        $this->actingAs($user)->get('/app/billing')->assertNotFound();
         $this->post('/webhooks/billing/lemonsqueezy')->assertNotFound();
     }
 
@@ -41,7 +41,7 @@ class BillingTest extends TestCase
         $role = Opportunity::available()->firstOrFail();
         Http::fake(['api.openai.com/v1/responses' => Http::response($this->kitReply())]);
 
-        $this->actingAs($user)->postJson("/opportunities/{$role->id}/kit", ['locale' => 'en'])->assertOk();
+        $this->actingAs($user)->postJson("/app/opportunities/{$role->id}/kit", ['locale' => 'en'])->assertOk();
         $kit = ApplicationKit::sole();
         $this->assertSame(0, app(Credits::class)->balance($user));
         $this->assertSame(1, $kit->credits_used);
@@ -51,7 +51,7 @@ class BillingTest extends TestCase
         $this->assertSame(2, $kit->fresh()->generations);
 
         $other = Opportunity::available()->where('id', '!=', $role->id)->firstOrFail();
-        $this->actingAs($user)->postJson("/opportunities/{$other->id}/kit", ['locale' => 'en'])->assertStatus(402);
+        $this->actingAs($user)->postJson("/app/opportunities/{$other->id}/kit", ['locale' => 'en'])->assertStatus(402);
     }
 
     public function test_a_failed_first_draft_gives_the_credit_back(): void
@@ -60,7 +60,7 @@ class BillingTest extends TestCase
         $user = $this->candidate();
         Http::fake(['api.openai.com/v1/responses' => Http::response(['error' => ['message' => 'Server error']], 500)]);
 
-        $this->actingAs($user)->postJson('/opportunities/'.Opportunity::available()->firstOrFail()->id.'/kit', ['locale' => 'en'])->assertOk();
+        $this->actingAs($user)->postJson('/app/opportunities/'.Opportunity::available()->firstOrFail()->id.'/kit', ['locale' => 'en'])->assertOk();
 
         $this->assertSame('failed', ApplicationKit::sole()->status);
         $this->assertSame(1, app(Credits::class)->balance($user));
@@ -73,7 +73,7 @@ class BillingTest extends TestCase
         $user = $this->candidate();
         Http::fake(['api.lemonsqueezy.com/v1/checkouts' => Http::response(['data' => ['attributes' => ['url' => 'https://pay.lemonsqueezy.com/checkout/abc']]], 201)]);
 
-        $this->actingAs($user)->post('/billing/checkout', ['pack' => 'starter', 'gateway' => 'lemonsqueezy'])->assertRedirect('https://pay.lemonsqueezy.com/checkout/abc');
+        $this->actingAs($user)->post('/app/billing/checkout', ['pack' => 'starter', 'gateway' => 'lemonsqueezy'])->assertRedirect('https://pay.lemonsqueezy.com/checkout/abc');
         $payment = Payment::sole();
         $this->assertSame(500, $payment->amount);
         Http::assertSent(fn ($request) => $request['data']['relationships']['variant']['data']['id'] === '77'
@@ -104,7 +104,7 @@ class BillingTest extends TestCase
                 ->push(['payment' => ['status' => 'completed', 'amount' => 15000, 'reachedAmount' => 15000, 'token' => 'TND']]),
         ]);
 
-        $this->actingAs($user)->post('/billing/checkout', ['pack' => 'starter', 'gateway' => 'konnect'])->assertRedirect('https://gateway.sandbox.konnect.network/pay?payment_ref=ref-1');
+        $this->actingAs($user)->post('/app/billing/checkout', ['pack' => 'starter', 'gateway' => 'konnect'])->assertRedirect('https://gateway.sandbox.konnect.network/pay?payment_ref=ref-1');
         Http::assertSent(fn ($request) => str_ends_with($request->url(), 'init-payment') && $request['amount'] === 15000 && $request['receiverWalletId'] === 'wallet-1' && $request->hasHeader('x-api-key', 'k-key'));
 
         $this->getJson('/webhooks/billing/konnect?payment_ref=ref-1')->assertOk();
@@ -122,13 +122,35 @@ class BillingTest extends TestCase
             'developers.flouci.com/api/v2/verify_payment/fl-1' => Http::response(['success' => true, 'result' => ['status' => 'SUCCESS', 'amount' => 15000]]),
         ]);
 
-        $this->actingAs($user)->post('/billing/checkout', ['pack' => 'starter', 'gateway' => 'flouci'])->assertRedirect('https://checkout.flouci.com/fl-1');
+        $this->actingAs($user)->post('/app/billing/checkout', ['pack' => 'starter', 'gateway' => 'flouci'])->assertRedirect('https://checkout.flouci.com/fl-1');
         Http::assertSent(fn ($request) => str_ends_with($request->url(), 'generate_payment') && $request['amount'] === '15000' && $request->hasHeader('Authorization', 'Bearer pub:priv'));
         $payment = Payment::sole();
 
         $this->actingAs($user)->get(route('billing.return', ['gateway' => 'flouci', 'payment' => $payment->id, 'result' => 'success']))->assertRedirect(route('billing.index'));
         $this->assertSame(4, app(Credits::class)->balance($user));
-        $this->actingAs($user)->get('/billing')->assertOk();
+        $this->actingAs($user)->get('/app/billing')->assertOk();
+    }
+
+    public function test_during_the_beta_payments_are_locked_and_candidates_get_free_credits_as_often_as_they_like(): void
+    {
+        $this->billingOn(['billing.beta' => true, 'billing.beta_credits' => 100, 'billing.gateways.konnect' => ['currency' => 'TND', 'api_key' => 'k-key', 'wallet_id' => 'wallet-1', 'base_url' => 'https://api.sandbox.konnect.network/api/v2']]);
+        $user = $this->candidate();
+
+        $this->actingAs($user)->get(route('billing.index'))->assertOk()->assertInertia(fn ($page) => $page->where('beta', true)->where('beta_credits', 100)->has('packs', 3));
+        $this->post(route('billing.checkout'), ['pack' => 'starter', 'gateway' => 'konnect'])->assertForbidden();
+        $this->assertSame(0, Payment::count());
+
+        $this->from(route('billing.index'))->post(route('billing.beta'))->assertRedirect(route('billing.index'))->assertSessionHas('toast.type', 'store');
+        $this->from(route('billing.index'))->post(route('billing.beta'))->assertRedirect(route('billing.index'))->assertSessionHas('toast.type', 'store');
+        $this->assertSame(201, app(Credits::class)->balance($user));
+        $this->assertSame(2, CreditTransaction::where('user_id', $user->id)->where('reason', 'beta')->count());
+
+        $unverified = Candidate::create()->user()->create(['name' => 'New Person', 'email' => 'new@example.com', 'password' => Hash::make('password')]);
+        $this->actingAs($unverified)->post(route('billing.beta'))->assertRedirect(route('verification.notice'));
+        $this->assertSame(0, CreditTransaction::where('user_id', $unverified->id)->where('reason', 'beta')->count());
+
+        config(['billing.beta' => false]);
+        $this->actingAs($user)->post(route('billing.beta'))->assertNotFound();
     }
 
     private function billingOn(array $gateway): void

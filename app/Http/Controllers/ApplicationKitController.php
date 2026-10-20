@@ -122,7 +122,7 @@ class ApplicationKitController extends Controller
     private function start($user, ApplicationKit $kit, Credits $credits)
     {
         if (! $credits->chargeFor($user, $kit)) {
-            return response()->json(['message' => 'You have no credits left. Buy a pack to tailor more CVs and letters.', 'billing_url' => route('billing.index')], 402);
+            return response()->json(['message' => 'You have no credits left. Get more to tailor more CVs and letters.', 'billing_url' => route('billing.index')], 402);
         }
         $kit->update(['status' => 'queued', 'error' => null, 'generations' => $kit->generations + 1]);
         GenerateApplicationKit::dispatch($kit->id);

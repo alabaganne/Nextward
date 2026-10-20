@@ -29,9 +29,9 @@ class OpportunityActivityTest extends TestCase
         $candidate = $this->candidate();
         $opportunity = Opportunity::firstOrFail();
 
-        $this->actingAs($candidate)->postJson("/opportunities/{$opportunity->id}/opened")->assertNoContent();
+        $this->actingAs($candidate)->postJson("/app/opportunities/{$opportunity->id}/opened")->assertNoContent();
         $this->travel(5)->minutes();
-        $this->actingAs($candidate)->postJson("/opportunities/{$opportunity->id}/opened")->assertNoContent();
+        $this->actingAs($candidate)->postJson("/app/opportunities/{$opportunity->id}/opened")->assertNoContent();
 
         $rows = DB::table('opportunity_views')->where('candidate_id', $candidate->userable_id)->get();
         $this->assertCount(1, $rows);
@@ -43,10 +43,10 @@ class OpportunityActivityTest extends TestCase
         $opportunity = Opportunity::firstOrFail();
         $company = User::where('email', 'company@example.com')->firstOrFail();
 
-        $this->actingAs($company)->postJson("/opportunities/{$opportunity->id}/opened")->assertForbidden();
-        $this->actingAs($company)->postJson('/activity/sync', ['views' => []])->assertForbidden();
+        $this->actingAs($company)->postJson("/app/opportunities/{$opportunity->id}/opened")->assertForbidden();
+        $this->actingAs($company)->postJson('/app/activity/sync', ['views' => []])->assertForbidden();
         auth()->logout();
-        $this->postJson("/opportunities/{$opportunity->id}/opened")->assertUnauthorized();
+        $this->postJson("/app/opportunities/{$opportunity->id}/opened")->assertUnauthorized();
         $this->assertDatabaseCount('opportunity_views', 0);
     }
 
@@ -60,7 +60,7 @@ class OpportunityActivityTest extends TestCase
         $newSave = Opportunity::where('publication_status', 'published')->whereNull('merged_into_id')
             ->whereNotIn('id', DB::table('likes')->where('candidate_id', $candidateId)->pluck('opportunity_id'))->value('id');
 
-        $response = $this->actingAs($candidate)->postJson('/activity/sync', [
+        $response = $this->actingAs($candidate)->postJson('/app/activity/sync', [
             'views' => [$viewed => '2026-01-02T10:00:00Z', $alreadyViewed => '2020-01-01T00:00:00Z', 999999 => '2026-01-02T10:00:00Z'],
             'saves' => array_values(array_filter([$alreadySaved, $newSave, 999999])),
         ])->assertOk()->assertJsonPath('saves_added', 1);
@@ -80,7 +80,7 @@ class OpportunityActivityTest extends TestCase
         $opportunity = Opportunity::firstOrFail();
         DB::table('opportunity_views')->insert(['candidate_id' => $candidate->userable_id, 'opportunity_id' => $opportunity->id, 'viewed_at' => now()]);
 
-        $this->actingAs($candidate)->postJson('/activity/sync', [])
+        $this->actingAs($candidate)->postJson('/app/activity/sync', [])
             ->assertOk()
             ->assertJsonPath('saves_added', 0)
             ->assertJsonStructure(['views' => [$opportunity->id], 'saves']);
@@ -91,9 +91,9 @@ class OpportunityActivityTest extends TestCase
         $candidate = $this->candidate();
         $opportunity = Opportunity::firstOrFail();
 
-        $this->actingAs($candidate)->postJson('/activity/sync', ['views' => [$opportunity->id => '2099-01-01T00:00:00Z']])->assertOk();
+        $this->actingAs($candidate)->postJson('/app/activity/sync', ['views' => [$opportunity->id => '2099-01-01T00:00:00Z']])->assertOk();
         $this->assertStringStartsWith(now()->format('Y-m-d'), DB::table('opportunity_views')->value('viewed_at'));
 
-        $this->actingAs($candidate)->postJson('/activity/sync', ['saves' => range(1, 501)])->assertUnprocessable();
+        $this->actingAs($candidate)->postJson('/app/activity/sync', ['saves' => range(1, 501)])->assertUnprocessable();
     }
 }

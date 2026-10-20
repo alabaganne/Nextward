@@ -27,10 +27,10 @@ class SaveAndMessageTest extends TestCase
             $query->where('candidate_id', $candidate->userable->id);
         })->firstOrFail();
 
-        $this->actingAs($candidate)->post("/like/{$opportunity->id}")->assertRedirect();
+        $this->actingAs($candidate)->post("/app/like/{$opportunity->id}")->assertRedirect();
         $this->assertTrue($candidate->userable->fresh()->likes->contains($opportunity->id));
 
-        $this->actingAs($candidate)->post("/like/{$opportunity->id}")->assertRedirect();
+        $this->actingAs($candidate)->post("/app/like/{$opportunity->id}")->assertRedirect();
         $this->assertFalse($candidate->userable->fresh()->likes->contains($opportunity->id));
     }
 
@@ -39,14 +39,14 @@ class SaveAndMessageTest extends TestCase
         $candidate = User::where('email', 'student@example.com')->firstOrFail();
         $candidate->userable->likes()->sync(Opportunity::factory()->count(21)->create()->pluck('id'));
 
-        $this->actingAs($candidate)->get('/likes')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->actingAs($candidate)->get('/app/likes')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('Opportunities/Likes')
             ->has('likes.data', 20)
             ->where('likes.meta.total', 21)
             ->where('likes.meta.last_page', 2)
             ->where('likes.data.0.liked', true));
-        $this->actingAs($candidate)->get('/likes?page=2')->assertInertia(fn (Assert $page) => $page->has('likes.data', 1));
-        $this->actingAs($candidate)->get('/likes?page=3')->assertRedirect('/likes?page=2');
+        $this->actingAs($candidate)->get('/app/likes?page=2')->assertInertia(fn (Assert $page) => $page->has('likes.data', 1));
+        $this->actingAs($candidate)->get('/app/likes?page=3')->assertRedirect('/app/likes?page=2');
     }
 
     public function test_companies_cannot_save_roles(): void
@@ -54,7 +54,7 @@ class SaveAndMessageTest extends TestCase
         $companyUser = Company::firstOrFail()->user;
         $opportunity = Opportunity::firstOrFail();
 
-        $this->actingAs($companyUser)->post("/like/{$opportunity->id}")->assertForbidden();
+        $this->actingAs($companyUser)->post("/app/like/{$opportunity->id}")->assertForbidden();
     }
 
     public function test_candidate_can_message_a_company(): void
@@ -63,7 +63,7 @@ class SaveAndMessageTest extends TestCase
         $companyUser = Company::firstOrFail()->user;
 
         $this->actingAs($candidate)
-            ->post('/messages', [
+            ->post('/app/messages', [
                 'to_id' => $companyUser->id,
                 'text' => 'Hello! I would love to learn more about your open roles.',
             ])
@@ -82,7 +82,7 @@ class SaveAndMessageTest extends TestCase
         $companyUser = Company::firstOrFail()->user;
 
         $this->actingAs($candidate)
-            ->get("/messages/{$companyUser->id}")
+            ->get("/app/messages/{$companyUser->id}")
             ->assertRedirect(route('messages.index', ['user_id' => $companyUser->id]));
     }
 }

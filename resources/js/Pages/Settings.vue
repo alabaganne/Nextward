@@ -19,6 +19,8 @@ const props = defineProps({
 
 const page = usePage();
 const isCandidate = computed(() => props.settings.userable_type === 'candidate');
+// Shown before the username field, e.g. nextward.com/candidates/
+const profileBase = computed(() => `${route('home').replace(/^https?:\/\//, '').replace(/\/$/, '')}/candidates/`);
 
 const tabs = computed(() => [
 	{ key: 'profile', label: 'Profile', icon: UserRound },
@@ -40,6 +42,7 @@ watch(tab, (key) => {
 
 const accountForm = useForm({
 	name: props.settings.name,
+	username: props.settings.username || '',
 	phone_number: props.settings.phone_number,
 	linkedin_profile_url: props.settings.linkedin_profile_url,
 	city_id: props.settings.city_id,
@@ -231,16 +234,17 @@ const deleteAccount = () =>
 
 		<div class="grid grid-cols-[226px_1fr] gap-[22px] items-start max-[860px]:grid-cols-1">
 			<!-- SUB NAV -->
-			<div class="snav flex flex-col gap-[3px] sticky top-[92px] max-[860px]:flex-row max-[860px]:flex-wrap max-[860px]:static">
+			<div class="flex flex-col gap-[3px] sticky top-[92px] max-[860px]:flex-row max-[860px]:flex-wrap max-[860px]:static">
 				<button
 					v-for="item in tabs"
 					:key="item.key"
-					:class="{ on: tab === item.key }"
+					class="flex cursor-pointer items-center gap-[11px] rounded-[11px] px-[13px] py-[11px] text-left font-body text-[14.5px] font-semibold transition-colors"
+					:class="tab === item.key ? 'bg-blue-50 text-blue-700' : 'text-muted hover:bg-white hover:text-ink'"
 					type="button"
 					:aria-pressed="tab === item.key"
 					@click="tab = item.key"
 				>
-					<component :is="item.icon" aria-hidden="true" /> {{ item.label }}
+					<component :is="item.icon" class="size-[18px] shrink-0" :class="tab === item.key ? 'text-blue-600' : 'text-muted-2'" aria-hidden="true" /> {{ item.label }}
 					<span v-if="errorTabs.includes(item.key)" class="ml-auto w-2 h-2 rounded-full bg-[#dc2626]" aria-label="Has errors"></span>
 				</button>
 			</div>
@@ -274,6 +278,15 @@ const deleteAccount = () =>
 										<button type="button" class="text-[13px] font-semibold text-blue-700 hover:underline shrink-0" @click="openEmailSettings">Change</button>
 									</div>
 								</div>
+								<label v-if="isCandidate" class="block col-span-2 max-[560px]:col-span-1">
+									<span class="block text-[13px] font-semibold mb-[7px] text-ink-700">Username</span>
+									<span class="fld flex items-center gap-0.5 has-[:focus-visible]:border-blue-500">
+										<span class="text-muted shrink-0 max-[560px]:hidden">{{ profileBase }}</span>
+										<input v-model="accountForm.username" class="border-0 bg-transparent p-0 outline-none focus:ring-0 w-full min-w-0" type="text" maxlength="30" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="your-name" aria-describedby="username-note">
+									</span>
+									<span v-if="accountForm.errors.username" data-error class="block text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.username }}</span>
+									<span v-else id="username-note" class="block text-xs text-muted mt-[7px]">Your username is also your public profile link. Use lowercase letters, numbers and dashes. Leave it empty to use your name.</span>
+								</label>
 								<label class="block">
 									<span class="block text-[13px] font-semibold mb-[7px] text-ink-700">Phone</span>
 									<input v-model="accountForm.phone_number" class="fld" type="tel" autocomplete="tel">
@@ -387,7 +400,7 @@ const deleteAccount = () =>
 									<button class="cbtn bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60" type="button" :disabled="reading" @click="readResume">{{ reading ? 'Reading your resume…' : 'Fill my profile from this resume' }}</button>
 								</div>
 								<p v-if="mainResume && mainResume.source === 'profile'" class="mt-4 text-[13px] text-muted">Your main resume is made from this profile. After you save changes here, open it on your profile page and press “Refresh from my profile”.</p>
-								<p v-if="readError" class="text-xs text-[#dc2626] mt-[10px]" role="alert">{{ readError }} <a v-if="readBillingUrl" :href="readBillingUrl" class="underline font-semibold">See packs</a></p>
+								<p v-if="readError" class="text-xs text-[#dc2626] mt-[10px]" role="alert">{{ readError }} <a v-if="readBillingUrl" :href="readBillingUrl" class="underline font-semibold">Get credits</a></p>
 								<div v-if="review" class="mt-4">
 									<h4 class="font-display text-[15px] font-semibold">From your resume</h4>
 									<p v-if="!review.length" class="text-[13.5px] text-muted mt-1">Your profile already has everything we found.</p>

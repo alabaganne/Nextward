@@ -286,6 +286,20 @@ class Opportunity extends Model
         };
     }
 
+    // The AI's answer to "can someone living in Tunisia apply?". A role open to everyone that leaves Tunisia out
+    // gets TN excluded, so Open worldwide never shows it; a remote role open to a region with Tunisia counts as eligible.
+    public static function withTunisiaAnswer(array $data, string $answer): array
+    {
+        if ($answer === 'no' && ($data['applicant_scope'] ?? null) === 'anywhere') {
+            $data['excluded_countries'] = array_values(array_unique([...($data['excluded_countries'] ?? []), 'TN']));
+        }
+        $data['remote_eligibility'] = self::tunisiaEligibility($data) ?? $data['remote_eligibility'] ?? 'unknown';
+        if (($data['work_type'] ?? null) === 'remote' && in_array($answer, ['yes', 'no'], true) && ! in_array('TN', $data['excluded_countries'] ?? [], true)) {
+            $data['remote_eligibility'] = $answer === 'yes' ? 'eligible' : 'restricted';
+        }
+        return $data;
+    }
+
     public function isEligibleForCountry(?string $country, bool $includeUnknown = false): bool
     {
         $country = $country ? strtoupper($country) : null;
@@ -345,6 +359,10 @@ class Opportunity extends Model
             $query->where(fn ($query) => $query->where('country_code', 'TN')->orWhereJsonContains('locations', ['country_code' => 'TN']));
         }
         $query->withFilters($filters['fields'] ?? (isset($filters['field']) ? [$filters['field']] : []), $filters['companies'] ?? [], $filters['cities'] ?? [], $filters['search'] ?? '');
+        // Listings tagged with any of the picked skills.
+        if (! empty($filters['skills'])) {
+            $query->whereHas('skills', fn ($query) => $query->whereIn('skills.id', $filters['skills']));
+        }
         foreach (['kind', 'work_type', 'seniority', 'language', 'program_type', 'compensation_status'] as $field) {
             if (filled($filters[$field] ?? null)) {
                 $query->where($field, $filters[$field]);

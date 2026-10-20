@@ -29,7 +29,7 @@ class WorkspaceTest extends TestCase
     {
         $imported = Company::doesntHave('user')->firstOrFail();
 
-        $this->actingAs($this->candidate())->get('/companies')
+        $this->actingAs($this->candidate())->get('/app/companies')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Companies/Index')
@@ -40,7 +40,7 @@ class WorkspaceTest extends TestCase
     {
         $company = Company::has('user')->firstOrFail();
 
-        $this->actingAs($this->candidate())->get('/companies?search='.urlencode($company->display_name))
+        $this->actingAs($this->candidate())->get('/app/companies?search='.urlencode($company->display_name))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('filters.search', $company->display_name)
@@ -53,17 +53,17 @@ class WorkspaceTest extends TestCase
         $sender = Company::has('user')->firstOrFail()->user;
         Message::create(['from_id' => $sender->id, 'to_id' => $candidate->id, 'text' => 'Hello']);
 
-        $this->actingAs($candidate)->get('/dashboard')
+        $this->actingAs($candidate)->get('/app/dashboard')
             ->assertInertia(fn (Assert $page) => $page->where('badges.messages', fn ($count) => $count > 0));
 
-        $this->actingAs($candidate)->get('/messages?user_id='.$sender->id)->assertOk();
+        $this->actingAs($candidate)->get('/app/messages?user_id='.$sender->id)->assertOk();
 
         $this->assertSame(0, Message::where('from_id', $sender->id)->where('to_id', $candidate->id)->whereNull('read_at')->count());
     }
 
     public function test_signed_in_users_get_the_dashboard_counts(): void
     {
-        $this->actingAs($this->candidate())->get('/dashboard')
+        $this->actingAs($this->candidate())->get('/app/dashboard')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Dashboard')

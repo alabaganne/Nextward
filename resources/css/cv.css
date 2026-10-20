@@ -107,7 +107,7 @@ body { -webkit-font-smoothing: antialiased; }
 .tpl-verona .d-sec-title { font-family: inherit; letter-spacing: 0.08em; border-bottom: 1.5px solid #1a1d1b; text-transform: none; font-size: 15px; }
 .tpl-verona .d-links { color: #444; }
 
-/* Sören: two columns */
+/* Bergen: two columns */
 .tpl-soren { display: grid; grid-template-columns: 256px 1fr; padding: 0; }
 .tpl-soren .d-side { background: oklch(0.965 0.006 160); padding: 52px 30px; }
 .tpl-soren .d-side .d-name { font-size: 26px; }
@@ -133,7 +133,7 @@ body { -webkit-font-smoothing: antialiased; }
 .is-print .tpl.paper-a4 { min-height: calc(297mm - 1px); }
 .is-print .tpl, .is-print .tpl-atlas > .d-body, .is-print .tpl-soren > .d-side, .is-print .tpl-soren > .d-main { box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 .is-print .d-head, .is-print .d-sec-title, .is-print .d-entry-head { break-inside: avoid; break-after: avoid; }
-/* Sören's side column: a fixed block prints on every page, so the tint runs to the bottom of page 2 too */
+/* Bergen's side column: a fixed block prints on every page, so the tint runs to the bottom of page 2 too */
 .is-print:has(.tpl-soren), .is-print .tpl-soren, .is-print .tpl-soren > .d-side { background: transparent; }
 .is-print .tpl-soren::before { content: ""; position: fixed; inset-block: 0; inset-inline-start: 0; width: 256px; background: oklch(0.965 0.006 160); z-index: -1; }
 .is-print .d-bullets li, .is-print .d-skill-row, .is-print .d-summary, .is-print .d-note, .is-print .d-side-skill, .is-print .d-side-line { break-inside: avoid; }

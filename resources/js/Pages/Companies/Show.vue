@@ -5,7 +5,7 @@ import { Link, useForm, usePage } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
 import Pagination from '@/Components/Ui/Pagination.vue';
 import { gradientFor } from '@/utils/brand';
-import { sitePath } from '@/utils/url';
+import { appPath } from '@/utils/url';
 
 defineOptions({
 	layout: (_h, page) => h(AppShell, { active: 'companies' }, () => page),
@@ -36,7 +36,7 @@ const canEdit = computed(() => ownsCompany.value || page.props.auth?.user?.is_ad
 const canManageRole = (role) => canEdit.value && (page.props.auth?.user?.is_admin || role.origin === 'native');
 const roleHref = (role) => canManageRole(role)
 	? route('opportunities.edit', role.id)
-	: role.publication_status === 'published' ? sitePath(role.public_url) : null;
+	: role.publication_status === 'published' ? appPath(role.public_url) : null;
 const roleStatus = (role) => role.publication_status === 'draft' ? 'Draft'
 	: role.publication_status === 'suppressed' ? 'Suppressed'
 	: role.is_open ? 'Open' : 'Closed';
@@ -56,7 +56,7 @@ const roleInitials = (title) =>
 <template>
 	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-wrap mx-auto">
 		<div class="flex items-center gap-2 text-[13.5px] text-muted font-medium mb-[22px] [&_svg]:w-3.5 [&_svg]:h-3.5 [&_svg]:text-muted-2">
-			<Link class="hover:text-blue-700" :href="route('companies.index')">Companies</Link>
+			<Link class="hover:text-blue-700" :href="route('app.companies.index')">Companies</Link>
 			<component :is="icons.chevron" aria-hidden="true" />
 			<span class="text-ink-700 font-semibold">{{ company.name }}</span>
 		</div>
@@ -139,7 +139,7 @@ const roleInitials = (title) =>
 							<div class="text-xs text-muted mt-1.5">Roles</div>
 						</div>
 					</div>
-					<Link class="w-full justify-center mt-[18px] inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors [&_svg]:w-[17px] [&_svg]:h-[17px]" :href="canEdit ? `${route('companies.show', company.id)}#opportunities` : route('opportunities.index', { companies: [company.id] })">
+					<Link class="w-full justify-center mt-[18px] inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors [&_svg]:w-[17px] [&_svg]:h-[17px]" :href="canEdit ? `${route('companies.show', company.id)}#opportunities` : route('app.opportunities.index', { companies: [company.id] })">
 						{{ canEdit ? 'Manage opportunities' : 'View open roles' }} <component :is="icons.arrow" aria-hidden="true" />
 					</Link>
 				</section>

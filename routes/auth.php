@@ -58,11 +58,11 @@ Route::get('/verify-email/{id}/{hash}', [VerifyEmailController::class, '__invoke
                 ->middleware(['auth', 'signed', 'throttle:6,1,verify-email'])
                 ->name('verification.verify');
 
-Route::post('/settings/email', [EmailChangeController::class, 'store'])
+Route::post('/app/settings/email', [EmailChangeController::class, 'store'])
                 ->middleware(['auth', 'throttle:6,1,email-change'])
                 ->name('email.change');
 
-Route::delete('/settings/email', [EmailChangeController::class, 'destroy'])
+Route::delete('/app/settings/email', [EmailChangeController::class, 'destroy'])
                 ->middleware('auth')
                 ->name('email.change.cancel');
 

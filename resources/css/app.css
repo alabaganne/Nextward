@@ -1,9 +1,13 @@
 @import 'tailwindcss';
 @import './fonts.css';
-@import './custom.css' layer(components);
+@import './elements.css' layer(components);
+@import './public.css' layer(components);
 @import './workspace.css' layer(components);
 
 @plugin '@tailwindcss/forms';
+
+/* Sign-in pages on wide but short screens. */
+@custom-variant short-screen (@media (min-width: 900px) and (max-height: 820px));
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -21,6 +25,13 @@
   --color-brand-soft: #93b4fa;
   --color-navy: #0a1738;
   --color-pale: #f6f8fc;
+  --color-coral: #f78c78;
+
+  /* Public pages: grey text on white, light text on navy. */
+  --color-subtle: #586171;
+  --color-subtle-2: #67707e;
+  --color-mist: #c5cddc;
+  --color-mist-2: #a9b4c8;
 
   --color-gray-50: #f8fafc;
   --color-gray-100: #f1f5f9;
@@ -41,6 +52,7 @@
   --color-blue-200: #b9d0ff;
   --color-blue-300: #8ab2ff;
   --color-blue-400: #5a8dff;
+  --color-navy-600: #1b2b57;
   --color-navy-700: #0f2150;
   --color-navy-800: #0a1738;
   --color-navy-900: #070f26;
@@ -63,6 +75,12 @@
 
   --min-width-4: 1rem;
   --min-width-96: 24rem;
+
+  --animate-menu-pop: menu-pop 160ms cubic-bezier(.2, .7, .2, 1);
+
+  @keyframes menu-pop {
+    from { opacity: 0; transform: translateY(-4px) scale(.96); }
+  }
 }
 
 /*
@@ -73,6 +91,13 @@
   If we ever want to remove these styles, we need to add an explicit border
   color utility to any element that depends on these defaults.
 */
+@layer components {
+  /* Default size for icons with no width attribute. Lucide icons size themselves. */
+  svg:not([width]) {
+    @apply h-6 w-6;
+  }
+}
+
 @layer base {
   *,
   ::after,

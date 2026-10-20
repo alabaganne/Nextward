@@ -82,7 +82,7 @@ class CompanyController extends Controller
 
         $user->notify(new AccountCreated);
 
-        return Redirect::route('companies.index')->with('toast', [
+        return Redirect::route('app.companies.index')->with('toast', [
             'type' => 'store',
             'message' => 'Company created successfully.'
         ]);
@@ -190,7 +190,7 @@ class CompanyController extends Controller
         $company->delete();
         $this->deleteLogo($logo);
 
-        return Redirect::route('companies.index')->with('toast', [
+        return Redirect::route('app.companies.index')->with('toast', [
             'type' => 'destroy',
             'message' => 'Company deleted successfully.'
         ]);

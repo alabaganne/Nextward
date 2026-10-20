@@ -3,14 +3,15 @@ import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { ArrowRight, MapPin } from '@lucide/vue';
 import CompanyLogo from '@/Components/Ui/CompanyLogo.vue';
-import { sitePath } from '@/utils/url';
+import { appPath, isAppPath, sitePath } from '@/utils/url';
 const props = defineProps({ company: { type: Object, required: true } });
 const page = usePage();
 const fr = computed(() => page.props.locale === 'fr');
 const text = (en, french) => fr.value ? french : en;
 const count = computed(() => props.company.open_roles_count);
-// The workspace links to its own company page; the public site to the public one.
-const href = computed(() => props.company.href || sitePath(props.company.url));
+// The workspace links to its own pages; the public site to the public ones.
+const link = (url) => isAppPath(page.url) ? appPath(url) : sitePath(url);
+const href = computed(() => props.company.href || link(props.company.url));
 const openRoles = computed(() => count.value
     ? text(`${count.value} open ${count.value === 1 ? 'role' : 'roles'}`, `${count.value} ${count.value === 1 ? 'offre ouverte' : 'offres ouvertes'}`)
     : text('No open roles right now', 'Aucune offre ouverte'));
@@ -28,7 +29,7 @@ const openRoles = computed(() => count.value
         <ul v-if="company.roles?.length" class="mt-4 space-y-2 text-sm" :aria-label="text(`Latest roles at ${company.name}`, `Dernières offres chez ${company.name}`)">
             <li v-for="role in company.roles" :key="role.id" class="flex items-baseline gap-2 min-w-0">
                 <span class="shrink-0 rounded-md bg-paper-2 px-1.5 py-0.5 text-[11px] font-semibold text-ink-700">{{ role.kind === 'job' ? text('Job', 'Emploi') : text('Internship', 'Stage') }}</span>
-                <Link :href="sitePath(role.url)" class="truncate text-ink-700 hover:text-blue-700" :title="role.title">{{ role.title }}</Link>
+                <Link :href="link(role.url)" class="truncate text-ink-700 hover:text-blue-700" :title="role.title">{{ role.title }}</Link>
             </li>
         </ul>
         <div class="mt-auto pt-4">

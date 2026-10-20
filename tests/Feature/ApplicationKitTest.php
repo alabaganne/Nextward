@@ -34,8 +34,8 @@ class ApplicationKitTest extends TestCase
         $role = $this->role();
         Http::fake(['api.openai.com/v1/responses' => Http::response($this->reply())]);
 
-        $this->actingAs($candidate)->post('/resumes', ['resume' => UploadedFile::fake()->create('cv.pdf', 40, 'application/pdf')]);
-        $url = $this->actingAs($candidate)->postJson("/opportunities/{$role->id}/kit", ['locale' => 'fr'])->assertOk()->json('url');
+        $this->actingAs($candidate)->post('/app/resumes', ['resume' => UploadedFile::fake()->create('cv.pdf', 40, 'application/pdf')]);
+        $url = $this->actingAs($candidate)->postJson("/app/opportunities/{$role->id}/kit", ['locale' => 'fr'])->assertOk()->json('url');
 
         $kit = ApplicationKit::sole();
         $this->assertSame(route('kits.show', $kit), $url);
@@ -55,16 +55,35 @@ class ApplicationKitTest extends TestCase
         });
 
         // Asking again opens the same kit without a new call.
-        $this->actingAs($candidate)->postJson("/opportunities/{$role->id}/kit", ['locale' => 'fr'])->assertOk();
+        $this->actingAs($candidate)->postJson("/app/opportunities/{$role->id}/kit", ['locale' => 'fr'])->assertOk();
         Http::assertSentCount(1);
         $this->assertSame(0, CreditTransaction::where('reason', 'kit')->count());
+    }
+
+    public function test_a_letter_is_only_written_when_the_candidate_asks_for_one(): void
+    {
+        $candidate = $this->candidate();
+        $role = $this->role();
+        $segment = basename(parse_url($role->public_url, PHP_URL_PATH));
+        Http::fake(['api.openai.com/v1/responses' => Http::response($this->reply())]);
+
+        foreach (['/opportunities', $role->public_url, '/app/opportunities', "/app/opportunities/{$segment}", "/app/opportunities/{$role->id}/apply", '/app/kits'] as $uri) {
+            $this->actingAs($candidate)->get($uri)->assertOk();
+        }
+        $this->actingAs($candidate)->post("/app/like/{$role->id}");
+
+        $ai = fn () => collect(Http::recorded())->filter(fn ($pair) => str_contains($pair[0]->url(), 'api.openai.com'))->count();
+        $this->assertSame([0, 0], [ApplicationKit::count(), $ai()]);
+
+        $this->actingAs($candidate)->postJson("/app/opportunities/{$role->id}/kit", ['locale' => 'en'])->assertOk();
+        $this->assertSame([1, 1], [ApplicationKit::count(), $ai()]);
     }
 
     public function test_the_candidate_can_edit_download_and_delete_their_kit(): void
     {
         $candidate = $this->candidate();
         Http::fake(['api.openai.com/v1/responses' => Http::response($this->reply())]);
-        $this->actingAs($candidate)->postJson("/opportunities/{$this->role()->id}/kit", ['locale' => 'en']);
+        $this->actingAs($candidate)->postJson("/app/opportunities/{$this->role()->id}/kit", ['locale' => 'en']);
         $kit = ApplicationKit::sole();
 
         $this->actingAs($candidate)->getJson(route('kits.show', $kit))->assertOk()->assertJsonPath('kit.status', 'ready');
@@ -85,7 +104,7 @@ class ApplicationKitTest extends TestCase
 
         $this->actingAs($candidate)->get(route('kits.cv', $kit))->assertOk()->assertHeader('content-type', 'application/pdf');
         $this->actingAs($candidate)->get(route('kits.letter', $kit))->assertOk()->assertHeader('content-type', 'application/pdf');
-        $this->actingAs($candidate)->get('/kits')->assertOk();
+        $this->actingAs($candidate)->get('/app/kits')->assertOk();
 
         $other = User::where('userable_type', 'candidate')->where('id', '!=', $candidate->id)->firstOrFail();
         $this->actingAs($other)->getJson(route('kits.show', $kit))->assertNotFound();
@@ -98,10 +117,10 @@ class ApplicationKitTest extends TestCase
     public function test_companies_cannot_ask_and_ai_must_be_on(): void
     {
         $role = $this->role();
-        $this->actingAs(Company::firstOrFail()->user)->postJson("/opportunities/{$role->id}/kit", ['locale' => 'en'])->assertForbidden();
+        $this->actingAs(Company::firstOrFail()->user)->postJson("/app/opportunities/{$role->id}/kit", ['locale' => 'en'])->assertForbidden();
 
         config(['ai.providers.openai.key' => null]);
-        $this->actingAs($this->candidate())->postJson("/opportunities/{$role->id}/kit", ['locale' => 'en'])->assertStatus(503);
+        $this->actingAs($this->candidate())->postJson("/app/opportunities/{$role->id}/kit", ['locale' => 'en'])->assertStatus(503);
     }
 
     public function test_a_failed_ai_call_marks_the_kit_failed_and_it_can_be_tried_again(): void
@@ -110,12 +129,12 @@ class ApplicationKitTest extends TestCase
         $role = $this->role();
         Http::fake(['api.openai.com/v1/responses' => Http::sequence()->push(['error' => ['message' => 'Server error']], 500)->push($this->reply())]);
 
-        $this->actingAs($candidate)->postJson("/opportunities/{$role->id}/kit", ['locale' => 'en'])->assertOk();
+        $this->actingAs($candidate)->postJson("/app/opportunities/{$role->id}/kit", ['locale' => 'en'])->assertOk();
         $kit = ApplicationKit::sole();
         $this->assertSame('failed', $kit->status);
         $this->assertSame(0, $kit->generations);
 
-        $this->actingAs($candidate)->postJson("/opportunities/{$role->id}/kit", ['locale' => 'en'])->assertOk();
+        $this->actingAs($candidate)->postJson("/app/opportunities/{$role->id}/kit", ['locale' => 'en'])->assertOk();
         $this->assertSame('ready', $kit->fresh()->status);
     }
 
@@ -140,7 +159,7 @@ class ApplicationKitTest extends TestCase
         $this->assertSame(['de', 'en', 'fr'], ApplicationKits::locales($role->fresh()));
         Http::fake(['api.openai.com/v1/responses' => Http::response($this->reply())]);
 
-        $this->actingAs($candidate)->postJson("/opportunities/{$role->id}/kit", ['locale' => 'de'])->assertOk();
+        $this->actingAs($candidate)->postJson("/app/opportunities/{$role->id}/kit", ['locale' => 'de'])->assertOk();
 
         $this->assertSame('de', ApplicationKit::sole()->locale);
         Http::assertSent(function ($request) {
@@ -158,8 +177,8 @@ class ApplicationKitTest extends TestCase
         $this->assertSame(['ar', 'en', 'fr'], ApplicationKits::locales($role->fresh()));
         Http::fake(['api.openai.com/v1/responses' => Http::response($this->reply())]);
 
-        $this->actingAs($this->candidate())->postJson("/opportunities/{$role->id}/kit", ['locale' => 'de'])->assertStatus(422);
-        $this->actingAs($this->candidate())->postJson("/opportunities/{$role->id}/kit", ['locale' => 'ar'])->assertOk();
+        $this->actingAs($this->candidate())->postJson("/app/opportunities/{$role->id}/kit", ['locale' => 'de'])->assertStatus(422);
+        $this->actingAs($this->candidate())->postJson("/app/opportunities/{$role->id}/kit", ['locale' => 'ar'])->assertOk();
 
         $kit = ApplicationKit::sole();
         $this->assertSame('ar', $kit->locale);
@@ -177,12 +196,12 @@ class ApplicationKitTest extends TestCase
         $candidate = $this->candidate();
         $role = $this->role();
         Http::fake(['api.openai.com/v1/responses' => Http::response($this->reply())]);
-        $this->actingAs($candidate)->postJson("/opportunities/{$role->id}/kit", ['locale' => 'en']);
+        $this->actingAs($candidate)->postJson("/app/opportunities/{$role->id}/kit", ['locale' => 'en']);
         $kit = ApplicationKit::sole();
 
         $role->update(['status' => 'closed']);
         $this->actingAs($candidate)->postJson(route('kits.regenerate', $kit))->assertStatus(409);
-        $this->actingAs($candidate)->postJson("/opportunities/{$role->id}/kit", ['locale' => 'fr'])->assertNotFound();
+        $this->actingAs($candidate)->postJson("/app/opportunities/{$role->id}/kit", ['locale' => 'fr'])->assertNotFound();
         Http::assertSentCount(1);
 
         // The saved kit stays readable.
@@ -195,7 +214,7 @@ class ApplicationKitTest extends TestCase
         $candidate->userable->resumes()->create(['name' => 'Main', 'source' => 'profile', 'status' => 'ready', 'is_main' => true, 'style' => ['template' => 'verona', 'accent' => 'claret']]);
         Http::fake(['api.openai.com/v1/responses' => Http::response($this->reply())]);
 
-        $this->actingAs($candidate)->postJson("/opportunities/{$this->role()->id}/kit", ['locale' => 'en']);
+        $this->actingAs($candidate)->postJson("/app/opportunities/{$this->role()->id}/kit", ['locale' => 'en']);
         $kit = ApplicationKit::sole();
         $this->assertSame(['template' => 'verona', 'accent' => 'claret', 'font' => 'sans', 'paper' => 'a4'], $kit->style);
 

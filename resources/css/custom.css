@@ -1,8 +1,0 @@
-@import './buttons.css';
-@import './form.css';
-@import './public.css';
-
-/* Default size for icons with no width attribute. Lucide icons size themselves. */
-svg:not([width]) {
-	@apply h-6 w-6;
-}

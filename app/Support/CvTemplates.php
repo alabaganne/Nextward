@@ -12,7 +12,7 @@ class CvTemplates
         'ravenna' => ['name' => 'Ravenna', 'family' => 'Editorial', 'desc' => 'Centred serif masthead, classic and refined.', 'ats_safe' => true],
         'halden' => ['name' => 'Halden', 'family' => 'Modern', 'desc' => 'Left-aligned with a quiet accent rule.', 'ats_safe' => true],
         'marlow' => ['name' => 'Marlow', 'family' => 'Minimal', 'desc' => 'Lots of white space, hairline dividers.', 'ats_safe' => true],
-        'soren' => ['name' => 'Sören', 'family' => 'Two columns', 'desc' => 'Side column for contact, skills and education. Some ATS read it less well.', 'ats_safe' => false],
+        'soren' => ['name' => 'Bergen', 'family' => 'Two columns', 'desc' => 'Side column for contact, skills and education. Some ATS read it less well.', 'ats_safe' => false],
         'atlas' => ['name' => 'Atlas', 'family' => 'Bold', 'desc' => 'Colour header block, confident scale.', 'ats_safe' => true],
         'verona' => ['name' => 'Verona', 'family' => 'Classic', 'desc' => 'Traditional and plain. The safest pick for ATS.', 'ats_safe' => true],
     ];

@@ -20,22 +20,38 @@ class BillingController extends Controller
         $user = $request->user();
         abort_unless($user->isCandidate(), 403);
 
+        // During the beta every pack and payment method is shown, locked.
+        $beta = $credits->beta();
         return Inertia::render('Billing/Index', [
             'balance' => $credits->balance($user),
             'drafts_per_credit' => $credits->draftsPerCredit(),
-            'gateways' => $gateways->available(),
+            'beta' => $beta,
+            'beta_credits' => (int) config('billing.beta_credits'),
+            'gateways' => $beta ? array_keys(Gateways::ALL) : $gateways->available(),
             'packs' => collect(config('billing.packs'))->map(fn ($pack, $key) => [
                 'key' => $key,
                 'credits' => $pack['credits'],
                 'prices' => array_filter(['TND' => $pack['price_tnd'] ? (int) $pack['price_tnd'] : null, 'USD' => $pack['price_usd'] ? (int) $pack['price_usd'] : null]),
-            ])->filter(fn ($pack) => $pack['prices'])->values(),
+            ])->filter(fn ($pack) => $beta || $pack['prices'])->values(),
             'history' => CreditTransaction::where('user_id', $user->id)->latest('id')->take(30)->get(['amount', 'reason', 'note', 'created_at']),
         ]);
     }
 
-    public function checkout(Request $request, Gateways $gateways)
+    public function claimBeta(Request $request, Credits $credits)
+    {
+        abort_unless($credits->beta(), 404);
+        $user = $request->user();
+        abort_unless($user->isCandidate(), 403);
+
+        $credits->claimBeta($user);
+
+        return back()->with('toast', ['type' => 'store', 'message' => config('billing.beta_credits').' free credits added. Thanks for trying the beta.']);
+    }
+
+    public function checkout(Request $request, Gateways $gateways, Credits $credits)
     {
         abort_unless(config('billing.enabled'), 404);
+        abort_if($credits->beta(), 403, 'Payments open after the beta.');
         $user = $request->user();
         abort_unless($user->isCandidate(), 403);
         $data = $request->validate(['pack' => 'required|in:'.implode(',', array_keys(config('billing.packs'))), 'gateway' => 'required|in:'.implode(',', $gateways->available())]);

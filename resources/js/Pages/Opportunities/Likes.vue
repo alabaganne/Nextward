@@ -27,7 +27,7 @@ const icons = {
 	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-wrap mx-auto">
 		<PageHeader title="Saved roles" :description="`${total} ${total === 1 ? 'role' : 'roles'} saved for later. Apply before they close.`">
 			<template #actions>
-				<Link class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all [&_svg]:w-[17px] [&_svg]:h-[17px]" :href="route('opportunities.index')">
+				<Link class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all [&_svg]:w-[17px] [&_svg]:h-[17px]" :href="route('app.opportunities.index')">
 				Find more roles <component :is="icons.arrow" aria-hidden="true" />
 				</Link>
 			</template>
@@ -45,7 +45,7 @@ const icons = {
 			<div class="w-[72px] h-[72px] rounded-[20px] bg-blue-50 text-blue-600 grid place-items-center mb-5 [&_svg]:w-[34px] [&_svg]:h-[34px]"><component :is="icons.bookmark" aria-hidden="true" /></div>
 			<h3 class="font-display text-xl font-semibold mb-2">No saved roles yet</h3>
 			<p class="text-muted text-[15px] max-w-[340px] mb-[22px]">Tap the bookmark on any internship or job to save it here and apply when you're ready.</p>
-			<Link class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors" :href="route('opportunities.index')">Browse opportunities</Link>
+			<Link class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors" :href="route('app.opportunities.index')">Browse opportunities</Link>
 		</div>
 	</div>
 </template>

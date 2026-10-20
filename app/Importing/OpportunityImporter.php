@@ -448,9 +448,13 @@ class OpportunityImporter
         return Field::orderBy('name')->pluck('name')->all();
     }
 
+    // Every skill in the system: the catalogue first, then skills admins added. Capped to stay within the AI's answer limits.
     public function skillNames(): array
     {
-        return collect(config('importer.skills', []))->map(fn ($pattern, $name) => is_int($name) ? $pattern : $name)->values()->all();
+        $catalogue = collect(config('importer.skills', []))->map(fn ($pattern, $name) => is_int($name) ? $pattern : $name)->values();
+        $known = $catalogue->mapWithKeys(fn ($name) => [mb_strtolower($name) => true]);
+        $added = Skill::orderBy('name')->pluck('name')->reject(fn ($name) => isset($known[mb_strtolower($name)]));
+        return $catalogue->merge($added)->take(900)->values()->all();
     }
 
     // The AI answers replace the keyword guesses; "unknown" keeps whatever the rules found.
@@ -474,7 +478,7 @@ class OpportunityImporter
                 $data['applicant_scope'] = $review['applicant_scope'];
                 if ($review['evidence'] !== '') { $data['eligibility_evidence']['remote'] = Str::limit($review['evidence'], 400); }
             }
-            $data['remote_eligibility'] = Opportunity::tunisiaEligibility($data) ?? $data['remote_eligibility'];
+            $data = Opportunity::withTunisiaAnswer($data, $review['tunisia'] ?? 'unknown');
         } elseif ($data['work_type'] === 'remote' && ($review['remote_from_tunisia'] ?? 'unknown') !== 'unknown') {
             $data['remote_eligibility'] = $review['remote_from_tunisia'];
             if ($review['evidence'] !== '') { $data['eligibility_evidence']['remote'] = Str::limit($review['evidence'], 400); }

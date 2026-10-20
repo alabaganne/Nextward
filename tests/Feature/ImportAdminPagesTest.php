@@ -32,7 +32,7 @@ class ImportAdminPagesTest extends TestCase
         $source = ImportSource::first();
         $listing = OpportunitySource::whereNotNull('opportunity_id')->value('opportunity_id');
 
-        $this->actingAs($admin)->get('/admin/imports')->assertRedirect(route('imports.review'));
+        $this->actingAs($admin)->get('/app/admin/imports')->assertRedirect(route('imports.review'));
         foreach ([
             route('imports.sources.index') => 'Imports/Sources',
             route('imports.sources.create') => 'Imports/SourceForm',

@@ -74,7 +74,7 @@ const status = (resume) => ({
 		</div>
 
 		<p v-if="upload.errors.resume" class="mx-[22px] mt-4 text-sm text-red-700" role="alert">{{ upload.errors.resume }}</p>
-		<p v-if="error" class="mx-[22px] mt-4 text-sm text-red-700" role="alert">{{ error }} <a v-if="billingUrl" :href="billingUrl" class="underline font-semibold">See packs</a></p>
+		<p v-if="error" class="mx-[22px] mt-4 text-sm text-red-700" role="alert">{{ error }} <a v-if="billingUrl" :href="billingUrl" class="underline font-semibold">Get credits</a></p>
 
 		<ul v-if="resumes.length" class="divide-y divide-line-2">
 			<li v-for="resume in resumes" :key="resume.id" class="px-[22px] py-4 flex flex-wrap items-start justify-between gap-3">

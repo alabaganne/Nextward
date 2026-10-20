@@ -27,6 +27,18 @@ class SkillAdminTest extends TestCase
         return User::where('email', 'admin@example.com')->firstOrFail();
     }
 
+    public function test_admin_can_search_skills(): void
+    {
+        Skill::create(['name' => 'React Native']);
+        Skill::create(['name' => 'Kubernetes']);
+
+        $this->actingAs($this->admin())->get(route('skills.index', ['search' => 'native']))->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('filters.search', 'native')
+                ->where('skills.data', fn ($skills) => collect($skills)->pluck('name')->all() === ['React Native']));
+        $this->actingAs($this->admin())->get(route('skills.index', ['search' => '100%_']))
+            ->assertInertia(fn (Assert $page) => $page->where('skills.total', 0));
+    }
+
     public function test_admin_can_list_create_update_and_delete_skills(): void
     {
         $this->actingAs($this->admin());

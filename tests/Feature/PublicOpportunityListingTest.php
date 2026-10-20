@@ -6,6 +6,7 @@ use App\Models\City;
 use App\Models\Company;
 use App\Models\Field;
 use App\Models\Opportunity;
+use App\Models\Skill;
 use App\Models\Candidate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -63,6 +64,33 @@ class PublicOpportunityListingTest extends TestCase
             ->where('filters.fields', [(string) $this->field->id, (string) $design->id])
             ->where('opportunities.data', fn ($roles) => collect($roles)->pluck('title')->sort()->values()->all() === ['Design role', 'Web role'])
         );
+    }
+
+    public function test_browse_can_filter_by_skills_and_counts_the_skills_on_matching_roles()
+    {
+        $company = $this->company('Atlas Cloud');
+        [$react, $python, $figma] = collect(['React', 'Python', 'Figma'])->map(fn ($name) => Skill::create(['name' => $name]))->all();
+        $this->opportunity($company, 'React role', now()->addMonth())->skills()->sync([$react->id]);
+        $this->opportunity($company, 'Python role', now()->addMonth())->skills()->sync([$python->id]);
+        $this->opportunity($company, 'Full stack role', now()->addMonth())->skills()->sync([$react->id, $python->id]);
+        $this->opportunity($company, 'No skills listed', now()->addMonth());
+        $this->opportunity($company, 'Closed React role', now()->subDay())->skills()->sync([$react->id]);
+
+        $this->get("/opportunities?skills[]={$react->id}")->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('filters.skills', [(string) $react->id])
+            ->where('opportunities.data', fn ($roles) => collect($roles)->pluck('title')->sort()->values()->all() === ['Full stack role', 'React role'])
+            // Counts leave the skill filter out, so other skills can still be added. Unused skills are not listed.
+            ->where('skills', [
+                ['id' => $python->id, 'name' => 'Python', 'opportunities_count' => 2],
+                ['id' => $react->id, 'name' => 'React', 'opportunities_count' => 2],
+            ])
+        );
+        $this->get("/opportunities?skills[]={$react->id}&skills[]={$python->id}")->assertInertia(fn (Assert $page) => $page->has('opportunities.data', 3));
+        $this->get("/opportunities?skills[]={$figma->id}")->assertInertia(fn (Assert $page) => $page
+            ->has('opportunities.data', 0)
+            ->where('skills', fn ($skills) => collect($skills)->contains(fn ($skill) => $skill['id'] === $figma->id && $skill['opportunities_count'] === 0))
+        );
+        $this->get('/opportunities?skills[]=react')->assertNotFound();
     }
 
     public function test_the_board_is_empty_when_nothing_is_open()

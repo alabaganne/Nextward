@@ -22,7 +22,7 @@ class MessagingRulesTest extends TestCase
 
     private function send(User $from, User $to)
     {
-        return $this->actingAs($from)->post('/messages', ['to_id' => $to->id, 'text' => 'Hello there.']);
+        return $this->actingAs($from)->post('/app/messages', ['to_id' => $to->id, 'text' => 'Hello there.']);
     }
 
     private function companyWithNoLinkTo(User $candidateUser): User
@@ -116,7 +116,7 @@ class MessagingRulesTest extends TestCase
         $candidate = User::where('email', 'student@example.com')->firstOrFail();
         $message = Message::where('from_id', $candidate->id)->firstOrFail();
 
-        $this->actingAs($candidate)->delete("/messages/{$message->id}")->assertStatus(405);
+        $this->actingAs($candidate)->delete("/app/messages/{$message->id}")->assertStatus(405);
         $this->assertNotNull($message->fresh());
     }
 }

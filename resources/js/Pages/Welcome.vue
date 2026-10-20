@@ -49,6 +49,7 @@ const example = computed(() => [
     { label: text('Pay', 'Rémunération'), value: text('Not given by the source', 'Non précisée par la source'), unknown: true },
     { label: text('Source', 'Source'), value: text('Company careers page, checked 2 days ago', 'Page carrières de l’entreprise, contrôlée il y a 2 jours') },
 ]);
+const fieldLabel = 'mb-2 block text-[13px] font-semibold text-navy';
 const aiPoints = computed(() => [
     text('Upload your resume, or make one from your profile with our themes. We can fill in your profile from it, and you check every detail.', 'Ajoutez votre CV, ou créez-en un depuis votre profil avec nos thèmes. Nous pouvons remplir votre profil à partir de celui-ci, et vous vérifiez chaque détail.'),
     text('On any role, get a CV and a cover letter written for it, in the language of the listing, in English or in French.', 'Sur chaque offre, obtenez un CV et une lettre écrits pour elle, dans la langue de l’offre, en français ou en anglais.'),
@@ -66,17 +67,17 @@ const aiPoints = computed(() => [
                     <Link :href="`${prefix}/register`" class="cta cta-ghost focus-ring">{{ text('Create a free account', 'Créer un compte gratuit') }}</Link>
                 </template>
             </LandingHero>
-            <section class="public-container search-overlap" :aria-label="text('Search opportunities', 'Rechercher des opportunités')">
-                <form method="get" :action="`${prefix}/opportunities`" class="search-panel" role="search">
-                    <div class="search-grid is-three">
-                        <label><span class="field-label">{{ text('Role, company or skill', 'Poste, entreprise ou compétence') }}</span><span class="field"><Search aria-hidden="true" /><input name="search" type="search" maxlength="150" :placeholder="text('e.g. React, data, DevOps', 'ex. React, data, DevOps')" /></span></label>
-                        <label><span class="field-label">{{ text('Opportunity type', 'Type d’opportunité') }}</span><span class="field"><Briefcase aria-hidden="true" /><select name="kind"><option value="">{{ text('Internships and jobs', 'Stages et emplois') }}</option><option value="internship">{{ text('Internships', 'Stages') }}</option><option value="job">{{ text('Jobs', 'Emplois') }}</option></select></span></label>
-                        <button class="cta cta-primary focus-ring" type="submit">{{ text('Search opportunities', 'Rechercher') }}</button>
+            <section class="public-container relative z-[2] -mt-[72px] max-[768px]:-mt-[60px]" :aria-label="text('Search opportunities', 'Rechercher des opportunités')">
+                <form method="get" :action="`${prefix}/opportunities`" class="rounded-[18px] border border-line bg-white p-5 max-[768px]:p-4" role="search">
+                    <div class="grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)_auto] items-end gap-4 max-[1024px]:grid-cols-2 max-[768px]:grid-cols-1">
+                        <label class="max-[1024px]:col-span-full"><span :class="fieldLabel">{{ text('Role, company or skill', 'Poste, entreprise ou compétence') }}</span><span class="field"><Search aria-hidden="true" /><input name="search" type="search" maxlength="150" :placeholder="text('e.g. React, data, DevOps', 'ex. React, data, DevOps')" /></span></label>
+                        <label><span :class="fieldLabel">{{ text('Opportunity type', 'Type d’opportunité') }}</span><span class="field"><Briefcase aria-hidden="true" /><select name="kind"><option value="">{{ text('Internships and jobs', 'Stages et emplois') }}</option><option value="internship">{{ text('Internships', 'Stages') }}</option><option value="job">{{ text('Jobs', 'Emplois') }}</option></select></span></label>
+                        <button class="cta cta-primary focus-ring h-12" type="submit">{{ text('Search opportunities', 'Rechercher') }}</button>
                     </div>
                 </form>
-                <div v-if="shortcuts.length" class="chip-row">
-                    <p class="chip-row-label">{{ text('Popular searches:', 'Recherches populaires :') }}</p>
-                    <nav class="flex flex-wrap gap-2.5" :aria-label="text('Popular searches', 'Recherches populaires')"><Link v-for="shortcut in shortcuts" :key="shortcut.key" :href="href(shortcut)" class="chip focus-ring">{{ labels[shortcut.key] }}<span class="chip-count">{{ shortcut.count }}</span></Link></nav>
+                <div v-if="shortcuts.length" class="mt-[18px] flex flex-wrap items-center gap-2.5">
+                    <p class="mr-1 text-[14px] text-subtle">{{ text('Popular searches:', 'Recherches populaires :') }}</p>
+                    <nav class="flex flex-wrap gap-2.5" :aria-label="text('Popular searches', 'Recherches populaires')"><Link v-for="shortcut in shortcuts" :key="shortcut.key" :href="href(shortcut)" class="chip focus-ring">{{ labels[shortcut.key] }}<span class="font-medium text-brand tabular-nums">{{ shortcut.count }}</span></Link></nav>
                 </div>
             </section>
 
@@ -94,13 +95,13 @@ const aiPoints = computed(() => [
                         <div><p class="landing-label">{{ text('Companies', 'Entreprises') }}</p><h2 id="companies-title" class="section-title">{{ text('Companies hiring now', 'Ils recrutent en ce moment') }}</h2></div>
                         <Link :href="`${prefix}/companies`" class="landing-link focus-ring">{{ hiringCount > companies.length ? text(`See all ${hiringCount} companies`, `Voir les ${hiringCount} entreprises`) : text('See all companies', 'Voir toutes les entreprises') }}<ArrowRight class="action-icon" aria-hidden="true" /></Link>
                     </div>
-                    <form method="get" :action="`${prefix}/companies`" class="company-search" role="search">
+                    <form method="get" :action="`${prefix}/companies`" class="mb-7 flex max-w-[640px] gap-3 max-[768px]:flex-col" role="search">
                         <label class="field flex-1 min-w-0"><span class="sr-only">{{ text('Search companies', 'Rechercher une entreprise') }}</span><Building2 aria-hidden="true" /><input name="search" type="search" maxlength="100" :placeholder="text('Search a company by name or city', 'Cherchez une entreprise par nom ou ville')" /></label>
                         <button class="cta cta-primary focus-ring" type="submit">{{ text('Find companies', 'Trouver') }}</button>
                     </form>
-                    <ul class="company-grid">
+                    <ul class="grid grid-cols-4 gap-4 max-[1024px]:grid-cols-2 max-[768px]:grid-cols-1">
                         <li v-for="company in companies" :key="company.id">
-                            <Link :href="sitePath(company.url)" class="company-tile focus-ring">
+                            <Link :href="sitePath(company.url)" class="focus-ring flex h-full items-center gap-3.5 rounded-[18px] border border-line bg-white p-[18px] transition-[border-color] duration-180 hover:border-blue-300">
                                 <CompanyLogo class="size-12 rounded-xl text-base border border-line" :name="company.name" :src="company.logo" />
                                 <span class="min-w-0">
                                     <span class="block truncate font-semibold text-navy">{{ company.name }}</span>
@@ -113,27 +114,27 @@ const aiPoints = computed(() => [
                 </div>
             </section>
 
-            <section id="how-it-works" class="public-container how-section" aria-labelledby="how-title">
+            <section id="how-it-works" class="public-container scroll-mt-[100px] py-22 max-[768px]:py-14" aria-labelledby="how-title">
                 <p class="landing-label">{{ text('How it works', 'Comment ça marche') }}</p>
                 <h2 id="how-title" class="section-title">{{ text('Find your fit. Keep moving.', 'Trouvez votre place. Avancez.') }}</h2>
-                <ol class="steps">
+                <ol class="mt-10 grid grid-cols-3 gap-8 max-[768px]:grid-cols-1 max-[768px]:gap-7">
                     <li v-for="(step, index) in steps" :key="step.title">
-                        <img :src="`/nextward-assets/mascots/${step.art}.svg`" alt="" width="768" height="768" loading="lazy" class="section-art" />
-                        <span class="step-number mt-3" aria-hidden="true">0{{ index + 1 }}</span>
-                        <h3>{{ step.title }}</h3>
-                        <p>{{ step.body }}</p>
+                        <img :src="`/nextward-assets/mascots/${step.art}.svg`" alt="" width="768" height="768" loading="lazy" class="-ml-2.5 block size-28 max-[768px]:size-[92px]" />
+                        <span class="mt-3 grid size-11 place-items-center rounded-full bg-blue-50 font-display text-[15px] font-semibold text-brand tabular-nums" aria-hidden="true">0{{ index + 1 }}</span>
+                        <h3 class="mt-[18px] text-[19px] font-semibold tracking-[-.025em]">{{ step.title }}</h3>
+                        <p class="mt-2 text-[14.5px] leading-[1.75] text-subtle">{{ step.body }}</p>
                     </li>
                 </ol>
             </section>
 
             <section class="band-pale section" aria-labelledby="ai-title">
-                <div class="public-container ai-band">
-                    <img src="/nextward-assets/mascots/02-student-prepare-cv.svg" alt="" width="768" height="768" loading="lazy" class="ai-art" />
+                <div class="public-container grid grid-cols-[240px_minmax(0,1fr)] items-center gap-14 max-[1024px]:grid-cols-1 max-[1024px]:gap-6">
+                    <img src="/nextward-assets/mascots/02-student-prepare-cv.svg" alt="" width="768" height="768" loading="lazy" class="size-60 max-[1024px]:size-40" />
                     <div>
                         <p class="landing-label inline-flex items-center gap-2"><Sparkles class="size-4" aria-hidden="true" />{{ text('20 free credits to start', '20 crédits offerts pour commencer') }}</p>
                         <h2 id="ai-title" class="section-title">{{ text('A CV and cover letter for every role.', 'Un CV et une lettre pour chaque offre.') }}</h2>
-                        <ul class="ai-points">
-                            <li v-for="point in aiPoints" :key="point">{{ point }}</li>
+                        <ul class="mt-6 grid max-w-[620px] gap-3.5">
+                            <li v-for="point in aiPoints" :key="point" class="relative pl-[26px] text-[16px] leading-[1.7] text-gray-700 before:absolute before:top-2.5 before:left-1 before:size-2 before:rounded-full before:bg-brand">{{ point }}</li>
                         </ul>
                         <div class="flex flex-wrap gap-3 mt-8">
                             <Link :href="`${prefix}/register`" class="cta cta-primary focus-ring">{{ text('Create a free account', 'Créer un compte gratuit') }}<ArrowRight class="action-icon" aria-hidden="true" /></Link>
@@ -145,38 +146,38 @@ const aiPoints = computed(() => [
 
 
             <section class="section" aria-labelledby="anatomy-title">
-                <div class="public-container anatomy">
+                <div class="public-container grid grid-cols-2 items-center gap-18 max-[1024px]:grid-cols-1 max-[1024px]:gap-11">
                     <div>
                         <p class="landing-label">{{ text('Know before you apply', 'Sachez avant de postuler') }}</p>
                         <h2 id="anatomy-title" class="section-title">{{ text('The details that matter, on every listing.', 'Les détails qui comptent, sur chaque offre.') }}</h2>
-                        <dl class="promises">
-                            <div v-for="item in promises" :key="item.title"><component :is="item.icon" class="promise-icon" aria-hidden="true" /><div><dt>{{ item.title }}</dt><dd>{{ item.body }}</dd></div></div>
+                        <dl class="mt-9 grid gap-[26px]">
+                            <div v-for="item in promises" :key="item.title" class="flex gap-4"><component :is="item.icon" class="mt-px size-[26px] shrink-0 text-brand" aria-hidden="true" /><div><dt class="text-[17px] font-semibold">{{ item.title }}</dt><dd class="mt-1 max-w-[460px] text-[15px] leading-[1.7] text-subtle">{{ item.body }}</dd></div></div>
                         </dl>
                     </div>
-                    <div class="example-wrap">
-                        <img src="/nextward-assets/mascots/03-recruiter-clipboard.svg" alt="" width="768" height="768" loading="lazy" class="example-mascot" />
-                        <figure class="panel example" :aria-label="text('Example listing', 'Exemple d’offre')">
-                            <div class="example-head">
-                                <p class="example-tag">{{ text('Example listing', 'Exemple d’offre') }}</p>
-                                <h3>{{ text('Senior Backend Engineer', 'Ingénieur backend senior') }}</h3>
+                    <div class="relative pt-24 max-[768px]:pt-[76px]">
+                        <img src="/nextward-assets/mascots/03-recruiter-clipboard.svg" alt="" width="768" height="768" loading="lazy" class="absolute top-0 right-4 size-[140px] max-[768px]:size-[110px]" />
+                        <figure class="panel relative m-0 overflow-hidden" :aria-label="text('Example listing', 'Exemple d’offre')">
+                            <div class="border-b border-line px-[26px] pt-6 pb-[18px] max-[768px]:px-5">
+                                <p class="text-[11.5px] font-semibold tracking-[.12em] text-brand uppercase">{{ text('Example listing', 'Exemple d’offre') }}</p>
+                                <h3 class="mt-2 text-[22px] font-semibold tracking-[-.03em]">{{ text('Senior Backend Engineer', 'Ingénieur backend senior') }}</h3>
                             </div>
-                            <dl class="detail-rows example-rows">
-                                <div v-for="row in example" :key="row.label"><dt>{{ row.label }}</dt><dd :class="{ 'is-unknown': row.unknown }">{{ row.value }}</dd></div>
+                            <dl class="grid px-[26px] max-[768px]:px-5">
+                                <div v-for="row in example" :key="row.label" class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-4 border-b border-line py-[13px] text-[14px] last:border-b-0 max-[768px]:grid-cols-1 max-[768px]:gap-0.5"><dt class="text-subtle">{{ row.label }}</dt><dd :class="row.unknown ? 'font-medium text-subtle italic' : 'font-semibold text-navy'">{{ row.value }}</dd></div>
                             </dl>
-                            <p class="example-foot">{{ text('Apply on the employer’s website', 'Candidater sur le site de l’employeur') }}<ArrowUpRight class="action-icon" aria-hidden="true" /></p>
+                            <p class="m-0 flex items-center justify-between border-t border-line bg-pale px-[26px] py-4 text-[14px] font-semibold text-brand max-[768px]:px-5">{{ text('Apply on the employer’s website', 'Candidater sur le site de l’employeur') }}<ArrowUpRight class="action-icon" aria-hidden="true" /></p>
                         </figure>
                     </div>
                 </div>
             </section>
 
             <section class="public-container section pt-0!" aria-labelledby="employers-title">
-                <div class="employer-card">
-                    <img class="employer-art" src="/nextward-assets/mascots/21-cozy-career-workspace-night.webp" alt="" width="1672" height="941" loading="lazy" decoding="async" />
-                    <div class="employer-copy">
-                        <p class="landing-label">{{ text('For employers', 'Pour les employeurs') }}</p>
+                <div class="relative flex aspect-[1672/941] items-center overflow-hidden rounded-[22px] bg-[#0d2353] text-white max-[1024px]:aspect-auto max-[1024px]:flex-col max-[1024px]:items-stretch max-[768px]:rounded-[18px]">
+                    <img class="absolute inset-0 size-full object-cover object-right-bottom max-[1024px]:static max-[1024px]:aspect-video max-[1024px]:h-auto max-[1024px]:object-[85%_100%] max-[768px]:aspect-[4/3]" src="/nextward-assets/mascots/21-cozy-career-workspace-night.webp" alt="" width="1672" height="941" loading="lazy" decoding="async" />
+                    <div class="relative w-[48%] max-w-[580px] py-12 pr-12 pl-20 max-[1024px]:-order-1 max-[1024px]:w-auto max-[1024px]:max-w-none max-[1024px]:px-8 max-[1024px]:pt-10 max-[1024px]:pb-2 max-[768px]:px-6 max-[768px]:pt-8 max-[768px]:pb-0">
+                        <p class="landing-label text-blue-200">{{ text('For employers', 'Pour les employeurs') }}</p>
                         <h2 id="employers-title" class="section-title">{{ text('Hire students and professionals.', 'Recrutez des étudiants et des professionnels.') }}</h2>
-                        <p class="section-description">{{ text('Publish an internship or a job. Introduce your company, review applications, and keep candidate conversations in one place.', 'Publiez un stage ou un emploi. Présentez votre entreprise, examinez les candidatures et centralisez les échanges avec les candidats.') }}</p>
-                        <Link :href="currentUser?.userable_type === 'company' ? '/opportunities/create' : `${prefix}/register?account=company`" class="cta cta-primary focus-ring mt-8">{{ text('Post an opportunity', 'Publier une opportunité') }}<ArrowRight class="action-icon" aria-hidden="true" /></Link>
+                        <p class="section-description text-mist">{{ text('Publish an internship or a job. Introduce your company, review applications, and keep candidate conversations in one place.', 'Publiez un stage ou un emploi. Présentez votre entreprise, examinez les candidatures et centralisez les échanges avec les candidats.') }}</p>
+                        <Link :href="currentUser?.userable_type === 'company' ? route('opportunities.create') : `${prefix}/register?account=company`" class="cta cta-primary focus-ring mt-8 focus-visible:outline-white">{{ text('Post an opportunity', 'Publier une opportunité') }}<ArrowRight class="action-icon" aria-hidden="true" /></Link>
                     </div>
                 </div>
             </section>
@@ -189,9 +190,9 @@ const aiPoints = computed(() => [
                 <div class="guide-grid is-three"><GuideCard v-for="post in posts" :key="post.slug" :post="post" /></div>
             </section>
 
-            <section v-if="faqs.length" class="public-container faq-layout" aria-labelledby="faq-title">
+            <section v-if="faqs.length" class="public-container grid grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)] items-start gap-16 py-22 max-[1024px]:grid-cols-1 max-[1024px]:gap-8 max-[1024px]:py-18 max-[768px]:py-14" aria-labelledby="faq-title">
                 <div>
-                    <img src="/nextward-assets/mascots/04-mentor-pointing.svg" alt="" width="768" height="768" loading="lazy" class="faq-art" />
+                    <img src="/nextward-assets/mascots/04-mentor-pointing.svg" alt="" width="768" height="768" loading="lazy" class="mb-2 -ml-3.5 size-32" />
                     <h2 id="faq-title" class="section-title">{{ text('Questions people ask us', 'Les questions qu’on nous pose') }}</h2>
                     <p class="section-description">{{ text('Still unsure about something? Write to us from the contact page.', 'Une autre question ? Écrivez-nous depuis la page contact.') }} <Link :href="`${prefix}/contact`" class="font-semibold text-brand underline underline-offset-4 focus-ring">{{ text('Contact us', 'Nous contacter') }}</Link></p>
                 </div>
@@ -207,60 +208,3 @@ const aiPoints = computed(() => [
         </div>
     </PublicLayout>
 </template>
-<style scoped>
-.how-section { scroll-margin-top: 100px; padding-block: 88px; }
-.company-search { display: flex; gap: 12px; max-width: 640px; margin-bottom: 28px; }
-.company-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
-.company-tile { display: flex; align-items: center; gap: 14px; height: 100%; padding: 18px; border: 1px solid var(--color-line); border-radius: 18px; background: #fff; transition: border-color 180ms; }
-.company-tile:hover { border-color: #8ab2ff; }
-.ai-band { display: grid; grid-template-columns: 240px minmax(0, 1fr); align-items: center; gap: 56px; }
-.ai-art { width: 240px; height: 240px; }
-.ai-points { display: grid; gap: 14px; margin-top: 24px; max-width: 620px; }
-.ai-points li { position: relative; padding-left: 26px; color: #334155; font-size: 16px; line-height: 1.7; }
-.ai-points li::before { content: ''; position: absolute; left: 4px; top: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--color-brand); }
-.anatomy { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 72px; }
-.promises { display: grid; gap: 26px; margin-top: 36px; }
-.promises > div { display: flex; gap: 16px; }
-.promise-icon { flex-shrink: 0; width: 26px; height: 26px; margin-top: 1px; color: var(--color-brand); }
-.promises dt { font-size: 17px; font-weight: 600; }
-.promises dd { max-width: 460px; margin-top: 4px; color: #586171; font-size: 15px; line-height: 1.7; }
-.example-wrap { position: relative; padding-top: 96px; }
-.example-mascot { position: absolute; top: 0; right: 16px; width: 140px; height: 140px; }
-.example { position: relative; margin: 0; overflow: hidden; }
-.example-head { padding: 24px 26px 18px; border-bottom: 1px solid var(--color-line); }
-.example-tag { color: var(--color-brand); font-size: 11.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
-.example-head h3 { margin-top: 8px; font-size: 22px; font-weight: 600; letter-spacing: -.03em; }
-.example-rows { padding-inline: 26px; }
-.example-foot { display: flex; align-items: center; justify-content: space-between; margin: 0; padding: 16px 26px; border-top: 1px solid var(--color-line); background: #f6f8fc; color: var(--color-brand); font-size: 14px; font-weight: 600; }
-.employer-card { position: relative; display: flex; align-items: center; aspect-ratio: 1672 / 941; overflow: hidden; border-radius: 22px; background: #0d2353; color: #fff; }
-.employer-card .landing-label { color: #b9d0ff; }
-.employer-card .section-description { color: #c5cddc; }
-.employer-card .focus-ring:focus-visible { outline-color: #fff; }
-.employer-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: right bottom; }
-.employer-copy { position: relative; width: 48%; max-width: 580px; padding: 48px 48px 48px 80px; }
-.faq-layout { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); align-items: start; gap: 64px; padding-block: 88px; }
-.faq-art { width: 128px; height: 128px; margin: 0 0 8px -14px; }
-@media (max-width: 1023px) {
-    .company-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .ai-band { grid-template-columns: 1fr; gap: 24px; }
-    .ai-art { width: 160px; height: 160px; }
-    .anatomy { grid-template-columns: 1fr; gap: 44px; }
-    .employer-card { flex-direction: column; align-items: stretch; aspect-ratio: auto; }
-    .employer-copy { order: -1; width: auto; max-width: none; padding: 40px 32px 8px; }
-    .employer-art { position: static; height: auto; aspect-ratio: 16 / 9; object-position: 85% 100%; }
-    .faq-layout { grid-template-columns: 1fr; gap: 32px; padding-block: 72px; }
-}
-@media (max-width: 767px) {
-    .company-search { flex-direction: column; }
-    .company-grid { grid-template-columns: 1fr; }
-    .how-section { padding-block: 56px; }
-    .example-mascot { width: 110px; height: 110px; }
-    .example-wrap { padding-top: 76px; }
-    .example-head, .example-foot { padding-inline: 20px; }
-    .example-rows { padding-inline: 20px; }
-    .employer-card { border-radius: 18px; }
-    .employer-copy { padding: 32px 24px 0; }
-    .employer-art { aspect-ratio: 4 / 3; }
-    .faq-layout { padding-block: 56px; }
-}
-</style>

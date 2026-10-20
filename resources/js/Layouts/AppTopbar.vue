@@ -1,7 +1,8 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { Bell, ChevronDown, CircleUserRound, LogOut, Menu, Plus, Search, Settings } from '@lucide/vue';
+import { Bell, ChevronDown, CircleUserRound, LogOut, Menu, Plus, Search, Settings, X } from '@lucide/vue';
+import CreditsMenu from '@/Components/CreditsMenu.vue';
 
 defineProps({ navigationOpen: { type: Boolean, default: false } });
 defineEmits(['notifications', 'navigation']);
@@ -10,6 +11,7 @@ const page = usePage();
 const user = computed(() => page.props.auth?.user);
 const isCompany = computed(() => user.value?.userable_type === 'company');
 const unread = computed(() => user.value?.notifications?.unread_count || 0);
+const showCredits = computed(() => page.props.billing?.enabled && user.value?.credits !== null && user.value?.credits !== undefined);
 const roleLabel = computed(() => {
 	if (user.value?.is_admin) return 'Admin';
 	if (isCompany.value) return 'Company';
@@ -27,7 +29,19 @@ const initials = computed(() =>
 
 const search = ref(new URLSearchParams(page.url.split('?')[1] || '').get('search') || '');
 const submitSearch = () => {
-	router.get(route('opportunities.index'), search.value.trim() ? { search: search.value.trim() } : {});
+	router.get(route('app.opportunities.index'), search.value.trim() ? { search: search.value.trim() } : {});
+};
+const searchInput = ref(null);
+const clearSearch = () => {
+	search.value = '';
+	searchInput.value?.focus();
+};
+// "/" jumps to the search box from anywhere outside a text field.
+const focusSearch = (event) => {
+	if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey) return;
+	if (event.target.isContentEditable || event.target.closest?.('input, textarea, select')) return;
+	event.preventDefault();
+	searchInput.value?.focus();
 };
 
 const menu = ref(null);
@@ -35,10 +49,17 @@ const menuOpen = ref(false);
 const closeMenu = (event) => {
 	if (menu.value && !menu.value.contains(event.target)) menuOpen.value = false;
 };
-onMounted(() => document.addEventListener('click', closeMenu));
-onBeforeUnmount(() => document.removeEventListener('click', closeMenu));
+onMounted(() => {
+	document.addEventListener('click', closeMenu);
+	document.addEventListener('keydown', focusSearch);
+});
+onBeforeUnmount(() => {
+	document.removeEventListener('click', closeMenu);
+	document.removeEventListener('keydown', focusSearch);
+});
 
 const logout = () => router.post(route('logout'));
+const menuItem = 'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-blue-500';
 </script>
 
 <template>
@@ -47,16 +68,23 @@ const logout = () => router.post(route('logout'));
 			<Menu class="size-5" />
 		</button>
 
-		<form class="flex-1 min-w-0 max-w-[480px]" role="search" @submit.prevent="submitSearch">
-			<label class="flex items-center gap-2.5 bg-paper-2 border border-transparent rounded-[10px] px-3 h-10 transition-colors focus-within:bg-white focus-within:border-blue-500 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-blue-600">
-				<Search class="size-4 shrink-0 text-muted-2" aria-hidden="true" />
+		<form class="flex-1 min-w-0 max-w-[520px]" role="search" @submit.prevent="submitSearch">
+			<label class="group flex items-center gap-2.5 h-10 pl-3 pr-2 rounded-[11px] border-[1.5px] border-line bg-white cursor-text transition-colors hover:border-slate-300 focus-within:border-blue-500 focus-within:hover:border-blue-500">
+				<Search class="size-[18px] shrink-0 text-muted-2 transition-colors group-focus-within:text-blue-600" aria-hidden="true" />
 				<input
+					ref="searchInput"
 					v-model="search"
 					aria-label="Search opportunities"
-					class="border-0 bg-transparent p-0 outline-none focus:ring-0 text-sm w-full placeholder:text-muted-2"
+					aria-keyshortcuts="/"
+					class="min-w-0 w-full border-0 bg-transparent p-0 outline-none focus:ring-0 text-[14px] text-ink placeholder:text-muted-2 [&::-webkit-search-cancel-button]:appearance-none"
 					type="search"
+					enterkeyhint="search"
 					placeholder="Search roles, companies, skills…"
 				>
+				<button v-if="search" type="button" class="grid place-items-center size-6 shrink-0 rounded-md text-muted-2 transition-colors hover:bg-paper-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-blue-500" aria-label="Clear search" @click="clearSearch">
+					<X class="size-4" aria-hidden="true" />
+				</button>
+				<kbd v-else class="grid place-items-center min-w-[22px] h-[22px] px-1.5 shrink-0 rounded-md border border-line bg-paper-2 font-sans text-[11.5px] font-semibold text-muted group-focus-within:hidden max-[680px]:hidden" title="Press / to search" aria-hidden="true">/</kbd>
 			</label>
 		</form>
 
@@ -64,6 +92,8 @@ const logout = () => router.post(route('logout'));
 			<Link v-if="isCompany" class="cbtn cbtn-primary !py-0 h-10 !px-4 !text-sm max-[680px]:!px-0 max-[680px]:w-10" :href="route('opportunities.create')" aria-label="Post opportunity">
 				<Plus class="size-4" aria-hidden="true" /><span class="max-[680px]:hidden">Post opportunity</span>
 			</Link>
+
+			<CreditsMenu v-if="showCredits" />
 
 			<button v-if="user?.notifications" class="icon-btn" type="button" :aria-label="unread ? `Notifications, ${unread} unread` : 'Notifications'" @click="$emit('notifications')">
 				<Bell class="size-5" />
@@ -93,10 +123,10 @@ const logout = () => router.post(route('logout'));
 							<b class="block text-sm font-semibold truncate">{{ user?.name }}</b>
 							<span class="block text-xs text-muted truncate">{{ user?.email }}</span>
 						</div>
-						<Link class="menu-item" role="menuitem" :href="route('profile.show')" @click="menuOpen = false"><CircleUserRound class="size-4 text-muted-2" />Profile</Link>
-						<Link class="menu-item" role="menuitem" :href="route('settings')" @click="menuOpen = false"><Settings class="size-4 text-muted-2" />Settings</Link>
+						<Link :class="[menuItem, 'text-ink-700 hover:bg-paper-2 hover:text-ink']" role="menuitem" :href="route('profile.show')" @click="menuOpen = false"><CircleUserRound class="size-4 text-muted-2" />Profile</Link>
+						<Link :class="[menuItem, 'text-ink-700 hover:bg-paper-2 hover:text-ink']" role="menuitem" :href="route('settings')" @click="menuOpen = false"><Settings class="size-4 text-muted-2" />Settings</Link>
 						<div class="h-px bg-line-2 my-1.5"></div>
-						<button class="group menu-item transition-colors hover:bg-red-600 hover:text-white focus-visible:bg-red-600 focus-visible:text-white" role="menuitem" type="button" @click="logout"><LogOut class="size-4 text-muted-2 transition-colors group-hover:text-white group-focus-visible:text-white" />Log out</button>
+						<button :class="[menuItem, 'text-red-700 hover:bg-red-50 hover:text-red-800']" role="menuitem" type="button" @click="logout"><LogOut class="size-4 text-red-600" />Log out</button>
 					</div>
 				</Transition>
 			</div>

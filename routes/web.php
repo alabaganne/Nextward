@@ -46,11 +46,6 @@ Route::get('/sitemaps/opportunities-{page}.xml', [SitemapController::class, 'opp
 
 Route::match(['get', 'post'], '/webhooks/billing/{gateway}', \App\Http\Controllers\BillingWebhookController::class)
     ->whereIn('gateway', ['konnect', 'flouci', 'lemonsqueezy'])->middleware('throttle:120,1')->name('billing.webhook');
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/billing', [\App\Http\Controllers\BillingController::class, 'index'])->name('billing.index');
-    Route::post('/billing/checkout', [\App\Http\Controllers\BillingController::class, 'checkout'])->middleware('throttle:10,1')->name('billing.checkout');
-    Route::get('/billing/return/{gateway}', [\App\Http\Controllers\BillingController::class, 'return'])->whereIn('gateway', ['konnect', 'flouci', 'lemonsqueezy'])->name('billing.return');
-});
 
 Route::get('/', [PublicPageController::class, 'home'])->name('home');
 // The student and professional pages were merged into the home page.
@@ -66,7 +61,7 @@ Route::prefix('fr')->name('fr.')->group(function () {
     Route::get('/companies', [PublicCompanyController::class, 'index'])->name('companies');
     Route::get('/companies/{companySlug}', [PublicCompanyController::class, 'show'])->where('companySlug', '[0-9]+-[a-z0-9-]+')->name('company');
     Route::get('/candidates', [PublicCandidateController::class, 'index'])->name('candidates');
-    Route::get('/candidates/{candidateSlug}', [PublicCandidateController::class, 'show'])->where('candidateSlug', '[0-9]+-[a-z0-9-]+')->name('candidate');
+    Route::get('/candidates/{candidateSlug}', [PublicCandidateController::class, 'show'])->where('candidateSlug', \App\Support\Username::PROFILE_SLUG)->name('candidate');
     Route::inertia('/about', 'About')->name('about');
     Route::inertia('/contact', 'Contact')->name('contact');
     Route::inertia('/privacy', 'Privacy')->name('privacy');
@@ -87,6 +82,11 @@ foreach (['' => '', 'fr' => 'fr.'] as $prefix => $name) {
     });
 }
 
+// Signed-in pages moved under /app. Old links, emails and notifications still land in the right place.
+Route::redirect('/saved', '/app/likes', 301);
+Route::get('/{path}', fn (\Illuminate\Http\Request $request) => redirect('/app'.$request->getRequestUri(), 301))
+    ->where('path', '(?:dashboard|profile|settings|applications|likes|saved-searches|messages|kits|resumes|billing|talent|fields|skills|admin|candidates/manage)(?:/.*)?|opportunities/(?:create|[0-9]+/(?:edit|apply|applications))|companies/(?:create|[0-9]+(?:/edit)?)|candidates/[0-9]+(?:/edit)?');
+
 Route::get('/opportunities', [OpportunityController::class, 'index'])->name('opportunities.index');
 Route::get('/opportunities/{category}', [OpportunityController::class, 'index'])
     ->whereIn('category', ['internships', 'jobs'])->name('opportunities.category');
@@ -103,9 +103,9 @@ Route::get('/companies/{companySlug}', [PublicCompanyController::class, 'show'])
     ->where('companySlug', '[0-9]+-[a-z0-9-]+')->name('companies.public');
 Route::get('/candidates', [PublicCandidateController::class, 'index'])->name('candidates.public.index');
 Route::get('/candidates/{candidateSlug}', [PublicCandidateController::class, 'show'])
-    ->where('candidateSlug', '[0-9]+-[a-z0-9-]+')->name('candidates.public.show');
+    ->where('candidateSlug', \App\Support\Username::PROFILE_SLUG)->name('candidates.public.show');
 Route::get('/candidates/{candidateSlug}/resume', [PublicCandidateController::class, 'resume'])
-    ->where('candidateSlug', '[0-9]+-[a-z0-9-]+')->name('candidates.public.resume');
+    ->where('candidateSlug', \App\Support\Username::PROFILE_SLUG)->name('candidates.public.resume');
 Route::get('/internships', function (\Illuminate\Http\Request $request) {
     $query = $request->only('search', 'fields', 'cities', 'companies', 'page', 'work_type', 'country');
     return redirect('/opportunities/internships'.($query ? '?'.http_build_query($query) : ''), 301);
@@ -113,12 +113,25 @@ Route::get('/internships', function (\Illuminate\Http\Request $request) {
 Route::get('/internships/{opportunity}', [OpportunityController::class, 'show'])
     ->whereNumber('opportunity')->name('internships.show');
 // Old workspace links from before the rename.
-Route::get('/internships/{id}/{page}', fn (string $id, string $page) => redirect("/opportunities/{$id}/{$page}", 301))->whereNumber('id')->whereIn('page', ['edit', 'apply', 'applications']);
-Route::get('/students', fn () => redirect('/candidates/manage', 301));
-Route::get('/students/{path}', fn (string $path) => redirect('/candidates/'.$path, 301))->where('path', '[0-9]+(?:/edit)?');
+Route::get('/internships/{id}/{page}', fn (string $id, string $page) => redirect("/app/opportunities/{$id}/{$page}", 301))->whereNumber('id')->whereIn('page', ['edit', 'apply', 'applications']);
+Route::get('/students', fn () => redirect('/app/candidates/manage', 301));
+Route::get('/students/{path}', fn (string $path) => redirect('/app/candidates/'.$path, 301))->where('path', '[0-9]+(?:/edit)?');
 
-Route::group(['middleware' => 'auth'], function() {
+
+// Only /app pages get the workspace sidebar and header.
+Route::prefix('app')->middleware('auth')->group(function () {
+    Route::redirect('/', '/app/dashboard');
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::get('/opportunities', [OpportunityController::class, 'index'])->name('app.opportunities.index');
+    Route::get('/opportunities/{category}', [OpportunityController::class, 'index'])->whereIn('category', ['internships', 'jobs'])->name('app.opportunities.category');
+    Route::get('/opportunities/{opportunity}', [OpportunityController::class, 'publicShow'])->where('opportunity', '[0-9]+(?:-[a-z0-9-]+)?')->name('app.opportunities.show');
+    Route::get('/companies', [CompanyController::class, 'index'])->name('app.companies.index');
+    Route::middleware('verified')->group(function () {
+        Route::get('/billing', [\App\Http\Controllers\BillingController::class, 'index'])->name('billing.index');
+        Route::post('/billing/beta-credits', [\App\Http\Controllers\BillingController::class, 'claimBeta'])->middleware('throttle:10,1')->name('billing.beta');
+        Route::post('/billing/checkout', [\App\Http\Controllers\BillingController::class, 'checkout'])->middleware('throttle:10,1')->name('billing.checkout');
+        Route::get('/billing/return/{gateway}', [\App\Http\Controllers\BillingController::class, 'return'])->whereIn('gateway', ['konnect', 'flouci', 'lemonsqueezy'])->name('billing.return');
+    });
 	// Profile
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -133,6 +146,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::resource('opportunities', OpportunityController::class)->except(['index', 'show'])->middleware('verified');
     Route::resource('companies', CompanyController::class)->except('index');
     Route::get('/talent', [PublicCandidateController::class, 'talent'])->name('talent.index');
+    Route::get('/talent/{candidateSlug}', [PublicCandidateController::class, 'show'])->where('candidateSlug', \App\Support\Username::PROFILE_SLUG)->name('talent.show');
     Route::get('/candidates/manage', [CandidateController::class, 'index'])->name('candidates.index');
     Route::resource('candidates', CandidateController::class)->except('index')->whereNumber('candidate');
     Route::resource('fields', FieldController::class);
@@ -149,7 +163,6 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('/opportunities/{opportunity}/applications', OpportunityApplicationController::class)->name('opportunities.applications.index');
 	// Likes
     Route::get('/likes', [LikeController::class, 'index'])->name('likes.index');
-    Route::redirect('/saved', '/likes');
     Route::post('/like/{opportunity}', [LikeController::class, 'store'])->name('likes.store');
 	// Messages
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
@@ -158,9 +171,8 @@ Route::group(['middleware' => 'auth'], function() {
 	// Notifications
 	Route::delete('/notifications', [NotificationController::class, 'clear'])->name('notifications.clear');
     Route::post('/notifications/{notification}', [NotificationController::class, 'store'])->name('notifications.store');
+    Route::get('/admin/signups', \App\Http\Controllers\SignupSourceController::class)->middleware('admin')->name('signups.index');
 });
-
-Route::get('/admin/signups', \App\Http\Controllers\SignupSourceController::class)->middleware(['auth', 'admin'])->name('signups.index');
 
 require __DIR__.'/candidate_workflows.php';
 require __DIR__.'/opportunity_tools.php';

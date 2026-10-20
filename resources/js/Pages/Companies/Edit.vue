@@ -65,7 +65,7 @@ const destroy = () => {
 <template>
 	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-[860px] mx-auto">
 		<div class="flex items-center gap-2 text-[13.5px] text-muted font-medium mb-[22px] [&_svg]:w-3.5 [&_svg]:h-3.5 [&_svg]:text-muted-2">
-			<Link class="hover:text-blue-700" :href="route('companies.index')">Companies</Link>
+			<Link class="hover:text-blue-700" :href="route('app.companies.index')">Companies</Link>
 			<component :is="icons.chevron" aria-hidden="true" />
 			<span class="text-ink-700 font-semibold">{{ editing ? company.name : 'New company' }}</span>
 		</div>
@@ -141,7 +141,7 @@ const destroy = () => {
 			<div class="px-8 max-[560px]:px-5 py-4 border-t border-line-2 flex items-center gap-2.5 bg-white rounded-b-[18px]">
 				<button v-if="editing && page.props.auth?.user?.is_admin" class="cbtn !px-[18px] !py-2.5 bg-[#dc2626] text-white hover:bg-[#b91c1c]" type="button" @click="destroy">Delete</button>
 				<div class="flex-1"></div>
-				<Link class="cbtn bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700" :href="editing ? route('companies.show', company.id) : route('companies.index')">Cancel</Link>
+				<Link class="cbtn bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700" :href="editing ? route('companies.show', company.id) : route('app.companies.index')">Cancel</Link>
 				<button class="cbtn bg-blue-600 text-white hover:bg-blue-700" type="submit" :disabled="form.processing">{{ editing ? 'Save changes' : 'Create company' }}</button>
 			</div>
 		</form>

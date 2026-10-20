@@ -39,7 +39,7 @@ const chip = (on) => on ? 'bg-blue-600 text-white border-blue-600' : 'bg-white b
 						<h1 id="candidates-title" class="hero-title">{{ text('Candidates', 'Des candidats') }} <span class="accent">{{ text('ready for their next role.', 'prêts pour leur prochain poste.') }}</span></h1>
 						<p class="hero-lead">{{ text('Each candidate chose to share this profile, and the Nextward team checked it before it went live. Some also share their resume and contact details, so you can reach out directly.', 'Chaque candidat a choisi de partager ce profil, et l’équipe Nextward l’a vérifié avant sa mise en ligne. Certains partagent aussi leur CV et leurs coordonnées pour que vous puissiez les contacter directement.') }}</p>
 					</div>
-					<figure class="hero-stage candidates-stage">
+					<figure class="hero-stage w-[min(100%,320px)]">
 						<img src="/nextward-assets/mascots/10-portfolio-laptop.svg" alt="" width="768" height="768" fetchpriority="high" />
 						<Sparkle style="top: 16%; left: 14%; --i: 0" />
 						<Sparkle class="is-sky" style="top: 10%; right: 12%; width: 16px; height: 16px; --i: 1" />
@@ -69,7 +69,7 @@ const chip = (on) => on ? 'bg-blue-600 text-white border-blue-600' : 'bg-white b
 					<p class="text-slate-600 text-sm mt-1.5">{{ filtered ? text('Try another name, skill or field.', 'Essayez un autre nom, une autre compétence ou un autre domaine.') : text('Check back soon.', 'Revenez bientôt.') }}</p>
 					<Link v-if="filtered" :href="`${prefix}/candidates`" class="mt-4 text-sm font-semibold text-blue-700 hover:underline">{{ text('Clear filters', 'Effacer les filtres') }}</Link>
 				</div>
-				<div v-else class="candidate-grid">
+				<div v-else class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,340px),1fr))] gap-5">
 					<CandidateCard v-for="candidate in list" :key="candidate.id" :candidate="candidate" />
 				</div>
 
@@ -81,14 +81,9 @@ const chip = (on) => on ? 'bg-blue-600 text-white border-blue-600' : 'bg-white b
 			</section>
 
 			<ClosingBanner :title="text('Want your profile here?', 'Vous voulez apparaître ici ?')" :body="text('Fill in your candidate profile, then ask to show it on Nextward from your profile page. We check every profile before it goes live.', 'Complétez votre profil de candidat, puis demandez à l’afficher sur Nextward depuis votre page de profil. Nous vérifions chaque profil avant sa mise en ligne.')">
-				<Link v-if="user" href="/profile" class="cta cta-light focus-ring">{{ text('Open your profile', 'Ouvrir votre profil') }}<ArrowRight class="action-icon" aria-hidden="true" /></Link>
+				<Link v-if="user" :href="route('profile.show')" class="cta cta-light focus-ring">{{ text('Open your profile', 'Ouvrir votre profil') }}<ArrowRight class="action-icon" aria-hidden="true" /></Link>
 				<Link v-else :href="`${prefix}/register`" class="cta cta-light focus-ring">{{ text('Create a free account', 'Créer un compte gratuit') }}<ArrowRight class="action-icon" aria-hidden="true" /></Link>
 			</ClosingBanner>
 		</div>
 	</PublicLayout>
 </template>
-
-<style scoped>
-.candidates-stage { width: min(100%, 320px); }
-.candidate-grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); }
-</style>

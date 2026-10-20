@@ -13,7 +13,7 @@ const status = { queued: 'Being written', ready: 'Ready', failed: 'Failed' };
 <template>
 	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-wrap mx-auto">
 		<PageHeader title="CV & letters" description="The CVs and cover letters written for the roles you picked. Open one to edit it, download it or use it to apply.">
-			<template #actions><Link :href="route('opportunities.index')" class="cbtn cbtn-secondary h-11 !py-0">Browse opportunities</Link></template>
+			<template #actions><Link :href="route('app.opportunities.index')" class="cbtn cbtn-secondary h-11 !py-0">Browse opportunities</Link></template>
 		</PageHeader>
 		<div v-if="!kits.length" class="bg-white border border-line rounded-[18px] px-6 py-10 text-center">
 			<FileUser class="w-9 h-9 text-blue-600 mx-auto" aria-hidden="true" />

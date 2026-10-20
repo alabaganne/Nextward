@@ -25,7 +25,7 @@ class ResumeProfileTest extends TestCase
     {
         $user = User::where('email', 'student@example.com')->firstOrFail();
         $before = $user->userable->fresh()->toArray();
-        $this->actingAs($user)->post('/resumes', ['resume' => UploadedFile::fake()->create('cv.pdf', 40, 'application/pdf')]);
+        $this->actingAs($user)->post('/app/resumes', ['resume' => UploadedFile::fake()->create('cv.pdf', 40, 'application/pdf')]);
         Http::fake(['api.openai.com/v1/responses' => Http::response($this->reply([
             'headline' => 'Laravel developer', 'about' => 'I build web apps.', 'experience_years' => 2,
             'location' => 'Tunis, Tunisia', 'country_code' => 'tn', 'phone_number' => '', 'website' => 'not a link',
@@ -36,7 +36,7 @@ class ResumeProfileTest extends TestCase
             'projects' => [['name' => 'Nextward', 'summary' => 'Job board', 'url' => 'https://example.com']],
         ]))]);
 
-        $this->actingAs($user)->postJson('/profile/resume/read')->assertOk()
+        $this->actingAs($user)->postJson('/app/profile/resume/read')->assertOk()
             ->assertJsonPath('suggestions.headline', 'Laravel developer')
             ->assertJsonPath('suggestions.country_code', 'TN')
             ->assertJsonPath('suggestions.website', '')
@@ -56,25 +56,25 @@ class ResumeProfileTest extends TestCase
     public function test_reading_needs_a_resume_and_ai(): void
     {
         $user = User::where('email', 'student@example.com')->firstOrFail();
-        $this->actingAs($user)->postJson('/profile/resume/read')->assertNotFound();
+        $this->actingAs($user)->postJson('/app/profile/resume/read')->assertNotFound();
 
-        $this->actingAs($user)->post('/resumes', ['resume' => UploadedFile::fake()->create('cv.pdf', 40, 'application/pdf')]);
+        $this->actingAs($user)->post('/app/resumes', ['resume' => UploadedFile::fake()->create('cv.pdf', 40, 'application/pdf')]);
         config(['ai.providers.openai.key' => null]);
-        $this->actingAs($user->fresh())->postJson('/profile/resume/read')->assertStatus(503);
+        $this->actingAs($user->fresh())->postJson('/app/profile/resume/read')->assertStatus(503);
     }
 
     public function test_a_phone_number_used_by_another_account_is_not_suggested(): void
     {
         $user = User::where('email', 'student@example.com')->firstOrFail();
         User::where('email', 'admin@example.com')->update(['phone_number' => '+216 50 101 959']);
-        $this->actingAs($user)->post('/resumes', ['resume' => UploadedFile::fake()->create('cv.pdf', 40, 'application/pdf')]);
+        $this->actingAs($user)->post('/app/resumes', ['resume' => UploadedFile::fake()->create('cv.pdf', 40, 'application/pdf')]);
         Http::fake(['api.openai.com/v1/responses' => Http::response($this->reply([
             'headline' => '', 'about' => '', 'experience_years' => 0, 'location' => '', 'country_code' => '', 'phone_number' => '+216 50 101 959',
             'website' => '', 'linkedin_profile_url' => '', 'languages' => [], 'skills' => [], 'experience' => [], 'education' => [], 'projects' => [],
         ]))]);
 
-        $this->actingAs($user)->postJson('/profile/resume/read')->assertOk()->assertJsonPath('suggestions.phone_number', '');
-        $this->actingAs($user)->put('/profile', ['name' => $user->name, 'phone_number' => '+216 50 101 959'])
+        $this->actingAs($user)->postJson('/app/profile/resume/read')->assertOk()->assertJsonPath('suggestions.phone_number', '');
+        $this->actingAs($user)->put('/app/profile', ['name' => $user->name, 'phone_number' => '+216 50 101 959'])
             ->assertSessionHasErrors(['phone_number' => 'Another account already uses this phone number.']);
     }
 
@@ -82,10 +82,10 @@ class ResumeProfileTest extends TestCase
     {
         config(['billing.enabled' => true, 'billing.signup_credits' => 1]);
         $user = \App\Models\Candidate::create()->user()->create(['name' => 'Buyer Name', 'email' => 'buyer@example.com', 'password' => 'password']);
-        $this->actingAs($user)->post('/resumes', ['resume' => UploadedFile::fake()->create('cv.pdf', 40, 'application/pdf')]);
+        $this->actingAs($user)->post('/app/resumes', ['resume' => UploadedFile::fake()->create('cv.pdf', 40, 'application/pdf')]);
         $credits = app(\App\Billing\Credits::class);
 
-        $this->actingAs($user->fresh())->postJson('/profile/resume/read')->assertForbidden();
+        $this->actingAs($user->fresh())->postJson('/app/profile/resume/read')->assertForbidden();
 
         $user->forceFill(['email_verified_at' => now()])->save();
         Http::fake(['api.openai.com/v1/responses' => Http::sequence()->push(['error' => ['message' => 'Server error']], 500)->push($this->reply([
@@ -93,22 +93,22 @@ class ResumeProfileTest extends TestCase
             'website' => '', 'linkedin_profile_url' => '', 'languages' => [], 'skills' => [], 'experience' => [], 'education' => [], 'projects' => [],
         ]))]);
 
-        $this->actingAs($user->fresh())->postJson('/profile/resume/read')->assertStatus(502);
+        $this->actingAs($user->fresh())->postJson('/app/profile/resume/read')->assertStatus(502);
         $this->assertSame(1, $credits->balance($user));
 
-        $this->actingAs($user->fresh())->postJson('/profile/resume/read')->assertOk()->assertJsonPath('suggestions.headline', 'Développeur');
+        $this->actingAs($user->fresh())->postJson('/app/profile/resume/read')->assertOk()->assertJsonPath('suggestions.headline', 'Développeur');
         $this->assertSame(0, $credits->balance($user));
         // The language read from the resume is kept on it.
         $this->assertSame('fr', $user->userable->mainResume->fresh()->locale);
 
-        $this->actingAs($user->fresh())->postJson('/profile/resume/read')->assertStatus(402);
+        $this->actingAs($user->fresh())->postJson('/app/profile/resume/read')->assertStatus(402);
     }
 
     public function test_settings_saves_experience_education_and_projects(): void
     {
         $user = User::where('email', 'student@example.com')->firstOrFail();
 
-        $this->actingAs($user)->put('/profile', [
+        $this->actingAs($user)->put('/app/profile', [
             'name' => $user->name, 'email' => $user->email,
             'experience' => [['title' => 'Developer', 'company' => 'Acme', 'start' => '2023-01', 'current' => true, 'junk' => 'x']],
             'education' => [['school' => 'ISSAT Sousse', 'degree' => 'Engineering']],
@@ -122,7 +122,7 @@ class ResumeProfileTest extends TestCase
         $this->assertSame('ISSAT Sousse', $candidate->education[0]['school']);
         $this->assertSame('https://example.com', $candidate->projects[0]['url']);
 
-        $this->actingAs($user)->put('/profile', ['name' => $user->name, 'email' => $user->email, 'experience' => [['company' => 'No title']]])
+        $this->actingAs($user)->put('/app/profile', ['name' => $user->name, 'email' => $user->email, 'experience' => [['company' => 'No title']]])
             ->assertSessionHasErrors('experience.0.title');
     }
 

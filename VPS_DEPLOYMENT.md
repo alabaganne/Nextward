@@ -85,6 +85,9 @@ CV_CHROME_NO_SANDBOX=false
 BILLING_ENABLED=true
 BILLING_SIGNUP_CREDITS=20
 BILLING_MONTHLY_CREDITS=5
+# Payments locked and free credits (100 at a time) on request, until payments open
+BILLING_BETA=true
+BILLING_BETA_CREDITS=100
 
 MAIL_MAILER=<your-configured-provider>
 MAIL_FROM_ADDRESS=<verified-sender-address>
@@ -306,7 +309,7 @@ Run Artisan as `nextward` using the production PHP binary. Inspect the initial H
 
 `opportunities:health --public` returns exit code 1 when it finds an old/missing scheduler heartbeat, delayed queue work, failed jobs, overdue/erroring sources, stale imported content, uncertain digest deliveries, failed indexing notifications or broken SSR/public HTML. It logs warnings. Configure a monitor outside this cron process to alert on failures; a stopped cron daemon cannot report its own failure. Also monitor disk space, database backups, certificate expiry, PHP/Nginx errors and Supervisor restarts. `/up` alone does not verify queues, sources or SSR content.
 
-Review source permissions and errors in `/admin/imports`. Do not enable fictional demo sources. Start each real approved source in review mode with a small request limit. `opportunities:import --dry-run` still makes real network requests. Digests require explicit consent; do not enable them merely to test a worker. Use fake providers in automated checks, then controlled accounts for production delivery verification.
+Review source permissions and errors in `/app/admin/imports`. Do not enable fictional demo sources. Start each real approved source in review mode with a small request limit. `opportunities:import --dry-run` still makes real network requests. Digests require explicit consent; do not enable them merely to test a worker. Use fake providers in automated checks, then controlled accounts for production delivery verification.
 
 Investigate failed jobs before targeted retries. If a digest outcome is uncertain, use `opportunities:review-digest BATCH_UUID` and compare the provider's delivery record, then use either `--mark-sent` or `--retry-confirmed-unsent` for the confirmed outcome. Do not blindly retry all mail jobs. For a crashed scheduler mutex, first establish that the original process is gone, then `php artisan schedule:clear-cache` clears scheduler locks; it does not resolve arbitrary source/delivery locks.
 

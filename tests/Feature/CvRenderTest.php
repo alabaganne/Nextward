@@ -102,21 +102,21 @@ class CvRenderTest extends TestCase
 
     public function test_the_preview_needs_a_login(): void
     {
-        $this->post('/cv/preview', ['cv' => $this->cv()])->assertRedirect('/login');
-        $this->postJson('/cv/preview', ['cv' => $this->cv()])->assertUnauthorized();
+        $this->post('/app/cv/preview', ['cv' => $this->cv()])->assertRedirect('/login');
+        $this->postJson('/app/cv/preview', ['cv' => $this->cv()])->assertUnauthorized();
 
         $this->seed(\Tests\Fixtures\DemoSeeder::class);
         $user = User::where('email', 'student@example.com')->firstOrFail();
 
-        $html = $this->actingAs($user)->post('/cv/preview', ['cv' => $this->cv(), 'locale' => 'de', 'style' => ['template' => 'atlas']])
+        $html = $this->actingAs($user)->post('/app/cv/preview', ['cv' => $this->cv(), 'locale' => 'de', 'style' => ['template' => 'atlas']])
             ->assertOk()->assertHeader('Content-Type', 'text/html; charset=UTF-8')->getContent();
         $this->assertStringContainsString('Berufserfahrung', $html);
         $this->assertStringContainsString('tpl-atlas', $html);
 
-        $letter = $this->actingAs($user)->post('/cv/preview', ['cv' => $this->cv(), 'letter' => 'Madame, Monsieur,', 'locale' => 'fr'])->assertOk()->getContent();
+        $letter = $this->actingAs($user)->post('/app/cv/preview', ['cv' => $this->cv(), 'letter' => 'Madame, Monsieur,', 'locale' => 'fr'])->assertOk()->getContent();
         $this->assertStringContainsString('Madame, Monsieur,', $letter);
 
-        $this->actingAs($user)->postJson('/cv/preview', ['cv' => $this->cv(), 'style' => ['template' => 'nope']])->assertStatus(422);
+        $this->actingAs($user)->postJson('/app/cv/preview', ['cv' => $this->cv(), 'style' => ['template' => 'nope']])->assertStatus(422);
     }
 
     private function cv(): array

@@ -47,9 +47,15 @@ class Candidate extends Model
         return $this->public_status === 'approved';
     }
 
+    // The username when the candidate picked one, otherwise {id}-{name}.
+    public function publicSlug(): string
+    {
+        return $this->user?->username ?: $this->id.'-'.(Str::slug($this->user?->name ?? '') ?: 'candidate');
+    }
+
     public function publicUrl(string $locale = 'en'): string
     {
-        return rtrim(config('app.url'), '/').($locale === 'fr' ? '/fr' : '').'/candidates/'.$this->id.'-'.(Str::slug($this->user?->name ?? '') ?: 'candidate');
+        return rtrim(config('app.url'), '/').($locale === 'fr' ? '/fr' : '').'/candidates/'.$this->publicSlug();
     }
 
     public function user() {

@@ -7,7 +7,7 @@ use App\Http\Controllers\ResumeController;
 use App\Http\Controllers\ResumeTranslationController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth')->group(function () {
+Route::prefix('app')->middleware('auth')->group(function () {
     Route::middleware('throttle:120,1,activity')->group(function () {
         Route::post('/opportunities/{opportunity}/opened', [OpportunityActivityController::class, 'opened'])
             ->whereNumber('opportunity')->name('opportunities.opened');

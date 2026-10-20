@@ -38,7 +38,7 @@ class EmailChangeTest extends TestCase
 
     public function test_verified_email_changes_only_after_the_old_address_confirms(): void
     {
-        $this->actingAs($this->user)->post('/settings/email', ['email' => 'new@example.com', 'password' => 'password'])
+        $this->actingAs($this->user)->post('/app/settings/email', ['email' => 'new@example.com', 'password' => 'password'])
             ->assertSessionHasNoErrors()->assertRedirect();
 
         $user = $this->user->fresh();
@@ -63,7 +63,7 @@ class EmailChangeTest extends TestCase
     {
         $this->user->forceFill(['email_verified_at' => null])->save();
 
-        $this->actingAs($this->user->fresh())->post('/settings/email', ['email' => 'fixed@example.com', 'password' => 'password'])
+        $this->actingAs($this->user->fresh())->post('/app/settings/email', ['email' => 'fixed@example.com', 'password' => 'password'])
             ->assertSessionHasNoErrors();
 
         $user = $this->user->fresh();
@@ -75,10 +75,10 @@ class EmailChangeTest extends TestCase
 
     public function test_change_needs_the_password_and_a_free_new_address(): void
     {
-        $this->actingAs($this->user)->post('/settings/email', ['email' => 'new@example.com', 'password' => 'wrong'])->assertSessionHasErrors('password');
-        $this->actingAs($this->user)->post('/settings/email', ['email' => 'admin@example.com', 'password' => 'password'])
+        $this->actingAs($this->user)->post('/app/settings/email', ['email' => 'new@example.com', 'password' => 'wrong'])->assertSessionHasErrors('password');
+        $this->actingAs($this->user)->post('/app/settings/email', ['email' => 'admin@example.com', 'password' => 'password'])
             ->assertSessionHasErrors(['email' => 'Another account already uses this email.']);
-        $this->actingAs($this->user)->post('/settings/email', ['email' => 'Student@Example.com', 'password' => 'password'])
+        $this->actingAs($this->user)->post('/app/settings/email', ['email' => 'Student@Example.com', 'password' => 'password'])
             ->assertSessionHasErrors(['email' => 'This is already your email.']);
 
         $this->assertNull($this->user->fresh()->pending_email);
@@ -87,12 +87,12 @@ class EmailChangeTest extends TestCase
 
     public function test_cancelled_or_tampered_links_do_nothing(): void
     {
-        $this->actingAs($this->user)->post('/settings/email', ['email' => 'new@example.com', 'password' => 'password']);
+        $this->actingAs($this->user)->post('/app/settings/email', ['email' => 'new@example.com', 'password' => 'password']);
         $url = $this->confirmUrl($this->user->fresh());
 
         $this->get(str_replace(sha1('new@example.com'), sha1('evil@example.com'), $url))->assertForbidden();
 
-        $this->actingAs($this->user)->delete('/settings/email')->assertRedirect();
+        $this->actingAs($this->user)->delete('/app/settings/email')->assertRedirect();
         $this->assertNull($this->user->fresh()->pending_email);
         $this->actingAs($this->user)->get($url)->assertRedirect(route('settings'));
         $this->assertSame('student@example.com', $this->user->fresh()->email);
@@ -100,7 +100,7 @@ class EmailChangeTest extends TestCase
 
     public function test_link_fails_if_the_new_address_was_taken_meanwhile(): void
     {
-        $this->actingAs($this->user)->post('/settings/email', ['email' => 'new@example.com', 'password' => 'password']);
+        $this->actingAs($this->user)->post('/app/settings/email', ['email' => 'new@example.com', 'password' => 'password']);
         $url = $this->confirmUrl($this->user->fresh());
         User::where('email', 'admin@example.com')->update(['email' => 'new@example.com']);
 
@@ -112,7 +112,7 @@ class EmailChangeTest extends TestCase
 
     public function test_expired_links_are_refused(): void
     {
-        $this->actingAs($this->user)->post('/settings/email', ['email' => 'new@example.com', 'password' => 'password']);
+        $this->actingAs($this->user)->post('/app/settings/email', ['email' => 'new@example.com', 'password' => 'password']);
         $expired = URL::temporarySignedRoute('email.change.confirm', now()->subMinute(), ['user' => $this->user->id, 'hash' => sha1('new@example.com')]);
 
         $this->get($expired)->assertForbidden();

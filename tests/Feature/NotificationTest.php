@@ -62,7 +62,7 @@ class NotificationTest extends TestCase
         $candidate = User::where('email', 'student@example.com')->first();
         $count = $candidate->notifications()->count();
 
-        $this->actingAs($candidate)->get('/notifications/clear')->assertStatus(405);
+        $this->actingAs($candidate)->get('/app/notifications/clear')->assertStatus(405);
 
         $this->assertGreaterThan(0, $count);
         $this->assertSame($count, $candidate->notifications()->count());

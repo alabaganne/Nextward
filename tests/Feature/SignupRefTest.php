@@ -76,10 +76,10 @@ class SignupRefTest extends TestCase
 
     public function test_only_admins_can_see_sign_up_sources(): void
     {
-        $this->get('/admin/signups')->assertRedirect('/login');
+        $this->get('/app/admin/signups')->assertRedirect('/login');
 
         $candidate = Candidate::create()->user()->create(['name' => 'Cand', 'email' => 'cand@example.com', 'password' => 'secret-password']);
-        $this->actingAs($candidate)->get('/admin/signups')->assertForbidden();
+        $this->actingAs($candidate)->get('/app/admin/signups')->assertForbidden();
     }
 
     public function test_admin_sees_counts_per_ref(): void
@@ -95,7 +95,7 @@ class SignupRefTest extends TestCase
 
         $admin = User::factory()->create(['is_admin' => true]);
 
-        $this->actingAs($admin)->get('/admin/signups')->assertOk()
+        $this->actingAs($admin)->get('/app/admin/signups')->assertOk()
             ->assertInertia(fn (Assert $page) => $page->component('Signups/Index')
                 ->has('rows', 3)
                 ->where('rows.0', ['ref' => 'reddit-tunisia', 'last_7' => 1, 'last_30' => 2, 'total' => 3, 'candidates' => 2, 'with_alerts' => 1])

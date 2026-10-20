@@ -9,6 +9,7 @@ use App\Models\Field;
 use App\Models\SavedSearch;
 use App\Models\Candidate;
 use App\Support\ProfileHistory;
+use App\Support\Username;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -88,6 +89,9 @@ class ProfileController extends Controller
         if ($request->filled('country_code') && is_string($request->input('country_code'))) {
             $request->merge(['country_code' => strtoupper(trim($request->input('country_code')))]);
         }
+        if ($request->has('username')) {
+            $request->merge(['username' => Username::clean($request->input('username'))]);
+        }
 
         $data = $request->validate([
             'name' => 'required|string|max:255',
@@ -118,12 +122,18 @@ class ProfileController extends Controller
             'preferences.seniority.*' => 'in:entry,graduate,mid,senior,lead,executive',
             'preferences.include_unknown_eligibility' => 'nullable|boolean',
             ...ProfileHistory::rules(),
+            // Only candidates have a public profile, so only they pick a username.
+            'username' => $user->isCandidate() ? Username::rules($user->id) : 'prohibited',
         ], [
             'phone_number.unique' => 'Another account already uses this phone number.',
+            ...Username::messages(),
         ]);
 
         // The email changes through EmailChangeController, never here.
         $user->update(collect($data)->only('name', 'phone_number', 'linkedin_profile_url')->toArray());
+        if (array_key_exists('username', $data)) {
+            $user->forceFill(['username' => $data['username']])->save();
+        }
 
         if ($user->isCompany()) {
             $user->userable->update(collect($data)->only('name', 'about', 'website', 'city_id', 'country_code', 'location')->toArray());
@@ -202,6 +212,7 @@ class ProfileController extends Controller
                 'email' => $user->email,
                 'phone_number' => $user->phone_number,
                 'linkedin_profile_url' => $user->linkedin_profile_url,
+                'username' => $user->username,
                 'userable_type' => $user->userable_type,
                 'about' => $userable->about ?? null,
                 'website' => $userable->website ?? null,

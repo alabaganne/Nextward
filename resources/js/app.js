@@ -11,7 +11,7 @@ import { startActivitySync } from './composables/useOpportunityActivity';
 import { trackPreviousPage } from './composables/usePreviousPage';
 
 const pages = import.meta.glob('./Pages/**/*.vue');
-const publicPages = ['Welcome', 'About', 'Contact', 'Privacy', 'Terms', 'Blog/Index', 'Blog/Show', 'Candidates/Directory', 'Candidates/Public'];
+const publicPages = ['Welcome', 'About', 'Contact', 'Privacy', 'Terms', 'Blog/Index', 'Blog/Show', 'Candidates/Directory'];
 createInertiaApp({
     resolve: async (name) => {
         const module = await pages[`./Pages/${name}.vue`]();

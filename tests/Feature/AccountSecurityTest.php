@@ -39,7 +39,7 @@ class AccountSecurityTest extends TestCase
         $this->assertGreaterThan(0, DB::table('likes')->where('candidate_id', $candidateId)->count());
         $this->assertGreaterThan(0, $user->notifications()->count());
 
-        $this->actingAs($user)->delete('/profile', ['password' => 'password'])->assertRedirect('/');
+        $this->actingAs($user)->delete('/app/profile', ['password' => 'password'])->assertRedirect('/');
 
         $this->assertGuest();
         $this->assertNull(User::find($user->id));
@@ -61,7 +61,7 @@ class AccountSecurityTest extends TestCase
         $name = $company->display_name;
         $applications = Application::where('company_id', $company->id)->count();
 
-        $this->actingAs($user)->delete('/profile', ['password' => 'password'])->assertRedirect('/');
+        $this->actingAs($user)->delete('/app/profile', ['password' => 'password'])->assertRedirect('/');
 
         $this->assertNull(User::find($user->id));
         $company = Company::findOrFail($company->id);
@@ -76,7 +76,7 @@ class AccountSecurityTest extends TestCase
     {
         $user = User::where('email', 'student@example.com')->firstOrFail();
 
-        $this->actingAs($user)->delete('/profile', ['password' => 'wrong'])->assertSessionHasErrors('password');
+        $this->actingAs($user)->delete('/app/profile', ['password' => 'wrong'])->assertSessionHasErrors('password');
 
         $this->assertNotNull(User::find($user->id));
         $this->assertNotNull(Candidate::find($user->userable_id));
@@ -86,7 +86,7 @@ class AccountSecurityTest extends TestCase
     {
         $user = User::where('email', 'student@example.com')->firstOrFail();
 
-        $this->actingAs($user)->put('/profile', ['name' => $user->name, 'email' => 'new-address@example.com'])->assertRedirect();
+        $this->actingAs($user)->put('/app/profile', ['name' => $user->name, 'email' => 'new-address@example.com'])->assertRedirect();
 
         $this->assertSame('student@example.com', $user->fresh()->email);
     }
@@ -99,7 +99,7 @@ class AccountSecurityTest extends TestCase
         $this->assertNull($user->userable_type);
 
         $candidate = User::where('email', 'student@example.com')->firstOrFail();
-        $this->actingAs($candidate)->put('/profile', ['name' => $candidate->name, 'email' => $candidate->email, 'is_admin' => true, 'userable_type' => 'company']);
+        $this->actingAs($candidate)->put('/app/profile', ['name' => $candidate->name, 'email' => $candidate->email, 'is_admin' => true, 'userable_type' => 'company']);
 
         $this->assertFalse($candidate->fresh()->isAdmin());
         $this->assertSame('candidate', $candidate->fresh()->userable_type);
@@ -122,10 +122,10 @@ class AccountSecurityTest extends TestCase
         $opportunity = Opportunity::firstOrFail();
 
         for ($i = 0; $i < 10; $i++) {
-            $this->actingAs($candidate)->post("/opportunities/{$opportunity->id}/apply", []);
+            $this->actingAs($candidate)->post("/app/opportunities/{$opportunity->id}/apply", []);
         }
 
-        $this->actingAs($candidate)->post("/opportunities/{$opportunity->id}/apply", [])->assertStatus(429);
+        $this->actingAs($candidate)->post("/app/opportunities/{$opportunity->id}/apply", [])->assertStatus(429);
     }
 
     public function test_a_failed_notification_does_not_break_applying_or_replying(): void
@@ -138,13 +138,13 @@ class AccountSecurityTest extends TestCase
             ->whereDoesntHave('applications', fn ($query) => $query->where('candidate_id', $candidate->userable_id))
             ->firstOrFail();
 
-        $this->actingAs($candidate)->post("/opportunities/{$opportunity->id}/apply", [
+        $this->actingAs($candidate)->post("/app/opportunities/{$opportunity->id}/apply", [
             'cover_letter' => str_repeat('I care about this role and can contribute from week one. ', 5),
         ])->assertRedirect(route('applications.index'));
         $application = Application::where('candidate_id', $candidate->userable_id)->where('opportunity_id', $opportunity->id)->firstOrFail();
 
         $this->actingAs($application->company->user)
-            ->post("/applications/{$application->id}", ['status' => 'review'])
+            ->post("/app/applications/{$application->id}", ['status' => 'review'])
             ->assertRedirect();
         $this->assertSame('review', $application->fresh()->status);
     }

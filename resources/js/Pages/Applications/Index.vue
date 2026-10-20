@@ -97,7 +97,7 @@ const partyName = (application) => (isCandidate.value ? application.company?.nam
 				</div>
 				<div v-else-if="!rows.length" class="px-[22px] py-8 text-[14px] text-muted">
 					No applications here yet.
-					<Link v-if="isCandidate" class="font-semibold text-blue-700" :href="route('opportunities.index')">Browse opportunities</Link>
+					<Link v-if="isCandidate" class="font-semibold text-blue-700" :href="route('app.opportunities.index')">Browse opportunities</Link>
 				</div>
 			</div>
 		</div>

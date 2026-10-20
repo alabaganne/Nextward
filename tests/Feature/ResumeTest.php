@@ -29,9 +29,9 @@ class ResumeTest extends TestCase
 
     public function test_uploads_must_be_pdfs_and_the_first_one_becomes_the_main_resume(): void
     {
-        $this->actingAs($this->user)->post('/resumes', ['resume' => UploadedFile::fake()->create('cv.docx', 40)])->assertSessionHasErrors('resume');
-        $this->actingAs($this->user)->post('/resumes', ['resume' => UploadedFile::fake()->create('First CV.pdf', 40, 'application/pdf')])->assertSessionHasNoErrors();
-        $this->actingAs($this->user)->post('/resumes', ['resume' => UploadedFile::fake()->create('second.pdf', 40, 'application/pdf')])->assertSessionHasNoErrors();
+        $this->actingAs($this->user)->post('/app/resumes', ['resume' => UploadedFile::fake()->create('cv.docx', 40)])->assertSessionHasErrors('resume');
+        $this->actingAs($this->user)->post('/app/resumes', ['resume' => UploadedFile::fake()->create('First CV.pdf', 40, 'application/pdf')])->assertSessionHasNoErrors();
+        $this->actingAs($this->user)->post('/app/resumes', ['resume' => UploadedFile::fake()->create('second.pdf', 40, 'application/pdf')])->assertSessionHasNoErrors();
 
         [$first, $second] = Resume::orderBy('id')->get();
         $this->assertSame('First CV', $first->name);
@@ -40,7 +40,7 @@ class ResumeTest extends TestCase
         $this->assertFalse($second->is_main);
         Storage::disk('local')->assertExists($first->path);
 
-        $this->actingAs($this->user)->get('/profile/resume')->assertOk()->assertDownload('First CV.pdf');
+        $this->actingAs($this->user)->get('/app/profile/resume')->assertOk()->assertDownload('First CV.pdf');
         $this->actingAs($this->user)->get(route('resumes.download', $second))->assertOk()->assertDownload('second.pdf');
     }
 
@@ -50,12 +50,12 @@ class ResumeTest extends TestCase
             $this->resume("Resume $i", $i === 1);
         }
 
-        $this->actingAs($this->user)->post('/resumes', ['resume' => UploadedFile::fake()->create('cv.pdf', 40, 'application/pdf')])->assertSessionHasErrors('resume');
-        $this->actingAs($this->user)->post('/resumes/from-profile', ['locale' => 'en'])->assertSessionHasErrors('resume');
+        $this->actingAs($this->user)->post('/app/resumes', ['resume' => UploadedFile::fake()->create('cv.pdf', 40, 'application/pdf')])->assertSessionHasErrors('resume');
+        $this->actingAs($this->user)->post('/app/resumes/from-profile', ['locale' => 'en'])->assertSessionHasErrors('resume');
         $this->assertSame(Resume::LIMIT, Resume::count());
 
         // Replacing the main resume does not need a free slot.
-        $this->actingAs($this->user)->post('/resumes/from-profile', ['locale' => 'en', 'replace' => true])->assertSessionHasNoErrors();
+        $this->actingAs($this->user)->post('/app/resumes/from-profile', ['locale' => 'en', 'replace' => true])->assertSessionHasNoErrors();
         $this->assertSame(Resume::LIMIT, Resume::count());
     }
 
@@ -120,7 +120,7 @@ class ResumeTest extends TestCase
         $user->userable->update(['headline' => 'Laravel developer', 'about' => 'I build web apps.']);
         $before = app(Credits::class)->balance($user);
 
-        $this->actingAs($user)->post('/resumes/from-profile', ['locale' => 'fr', 'name' => 'Mon CV', 'style' => ['template' => 'atlas']])->assertRedirect();
+        $this->actingAs($user)->post('/app/resumes/from-profile', ['locale' => 'fr', 'name' => 'Mon CV', 'style' => ['template' => 'atlas']])->assertRedirect();
 
         $resume = Resume::sole();
         $this->assertSame(['Mon CV', 'profile', 'ready', 'fr', true], [$resume->name, $resume->source, $resume->status, $resume->locale, $resume->is_main]);
@@ -139,13 +139,13 @@ class ResumeTest extends TestCase
     {
         $old = $this->resume('Old', true);
 
-        $this->actingAs($this->user)->post('/resumes/from-profile', ['locale' => 'en'])->assertSessionHasNoErrors();
+        $this->actingAs($this->user)->post('/app/resumes/from-profile', ['locale' => 'en'])->assertSessionHasNoErrors();
         $kept = Resume::where('source', 'profile')->sole();
         $this->assertTrue($kept->is_main);
         $this->assertFalse($old->fresh()->is_main);
         $this->assertSame(2, Resume::count());
 
-        $this->actingAs($this->user->fresh())->post('/resumes/from-profile', ['locale' => 'en', 'replace' => true])->assertSessionHasNoErrors();
+        $this->actingAs($this->user->fresh())->post('/app/resumes/from-profile', ['locale' => 'en', 'replace' => true])->assertSessionHasNoErrors();
         $this->assertModelMissing($kept);
         Storage::disk('local')->assertMissing($kept->path);
         $this->assertSame(2, Resume::count());
@@ -155,11 +155,11 @@ class ResumeTest extends TestCase
 
     public function test_themes_must_be_known_and_are_merged_on_save(): void
     {
-        $this->actingAs($this->user)->post('/resumes/from-profile', ['locale' => 'en', 'style' => ['template' => 'nope']])->assertSessionHasErrors('style.template');
-        $this->actingAs($this->user)->post('/resumes/from-profile', ['locale' => 'he'])->assertSessionHasErrors('locale');
+        $this->actingAs($this->user)->post('/app/resumes/from-profile', ['locale' => 'en', 'style' => ['template' => 'nope']])->assertSessionHasErrors('style.template');
+        $this->actingAs($this->user)->post('/app/resumes/from-profile', ['locale' => 'he'])->assertSessionHasErrors('locale');
         $this->assertSame(0, Resume::count());
 
-        $this->actingAs($this->user)->post('/resumes/from-profile', ['locale' => 'en', 'style' => ['template' => 'soren', 'accent' => 'plum']]);
+        $this->actingAs($this->user)->post('/app/resumes/from-profile', ['locale' => 'en', 'style' => ['template' => 'soren', 'accent' => 'plum']]);
         $resume = Resume::sole();
         $path = $resume->path;
 
@@ -185,7 +185,7 @@ class ResumeTest extends TestCase
 
     public function test_refresh_lays_a_profile_resume_out_again_from_the_profile(): void
     {
-        $this->actingAs($this->user)->post('/resumes/from-profile', ['locale' => 'en']);
+        $this->actingAs($this->user)->post('/app/resumes/from-profile', ['locale' => 'en']);
         $resume = Resume::sole();
         $this->user->userable->update(['headline' => 'Senior Laravel developer']);
 
@@ -197,8 +197,8 @@ class ResumeTest extends TestCase
 
     public function test_the_editor_pages_open_for_the_owner(): void
     {
-        $this->actingAs($this->user)->get('/resumes/new')->assertOk();
-        $this->actingAs($this->user)->post('/resumes/from-profile', ['locale' => 'en']);
+        $this->actingAs($this->user)->get('/app/resumes/new')->assertOk();
+        $this->actingAs($this->user)->post('/app/resumes/from-profile', ['locale' => 'en']);
         $resume = Resume::sole();
 
         $this->actingAs($this->user)->get(route('resumes.show', $resume))->assertOk();

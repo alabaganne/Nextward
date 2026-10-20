@@ -26,7 +26,7 @@ const image = computed(() => guideImage(props.post));
 		<div class="landing">
 			<article :lang="post.locale">
 				<header class="hero-dark">
-					<div class="public-container article-head" :class="{ 'has-image': image }">
+					<div class="public-container grid max-w-5xl gap-10 pt-14 pb-16 max-[768px]:pt-9 max-[768px]:pb-11" :class="{ 'grid-cols-[minmax(0,1fr)_minmax(0,400px)] items-end max-[1024px]:grid-cols-1 max-[1024px]:gap-7': image }">
 						<div class="min-w-0">
 							<nav class="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-semibold">
 								<Link :href="`${prefix}/blog`" class="focus-ring inline-flex items-center gap-2 text-blue-200 hover:text-white"><ArrowLeft class="h-4 w-4" aria-hidden="true" />{{ text('All guides', 'Tous les guides') }}</Link>
@@ -38,10 +38,10 @@ const image = computed(() => guideImage(props.post));
 								<time :datetime="post.published_at">{{ formatDate(post.published_at) }}</time>
 								<span>{{ post.read_time }} {{ text('min read', 'min de lecture') }}</span>
 							</p>
-							<h1 class="article-title">{{ post.title }}</h1>
-							<p class="article-lead">{{ post.excerpt }}</p>
+							<h1 class="mt-4 text-[length:clamp(34px,4.2vw,52px)] leading-[1.08] font-bold tracking-[-.045em] text-balance">{{ post.title }}</h1>
+							<p class="mt-[18px] max-w-[640px] text-[18px] leading-[1.7] text-mist max-[768px]:text-[17px]">{{ post.excerpt }}</p>
 						</div>
-						<img v-if="image" :src="image.src" :alt="image.alt" :width="image.width" :height="image.height" fetchpriority="high" decoding="async" class="article-photo" />
+						<img v-if="image" :src="image.src" :alt="image.alt" :width="image.width" :height="image.height" fetchpriority="high" decoding="async" class="h-auto w-full rounded-[18px] bg-navy-600 max-[1024px]:max-w-[560px]" />
 					</div>
 				</header>
 
@@ -76,14 +76,14 @@ const image = computed(() => guideImage(props.post));
 						<nav class="sticky top-28 text-sm" :aria-label="text('On this page', 'Sur cette page')">
 							<p class="font-semibold text-navy">{{ text('On this page', 'Sur cette page') }}</p>
 							<ul class="mt-4 space-y-1">
-								<li v-for="item in post.toc" :key="item.id"><a :href="`#${item.id}`" class="toc-link focus-ring">{{ item.text }}</a></li>
+								<li v-for="item in post.toc" :key="item.id"><a :href="`#${item.id}`" class="focus-ring block rounded-lg px-2.5 py-1.5 leading-[1.5] text-subtle transition-colors duration-150 hover:bg-pale hover:text-brand">{{ item.text }}</a></li>
 							</ul>
 						</nav>
 					</aside>
 				</div>
 			</article>
 
-			<section v-if="related.length" class="band-pale section-tight" aria-labelledby="related-title">
+			<section v-if="related.length" class="band-pale py-16 max-[768px]:py-12" aria-labelledby="related-title">
 				<div class="public-container">
 					<div class="section-head">
 						<h2 id="related-title" class="section-title">{{ text('More guides', 'Autres guides') }}</h2>
@@ -101,20 +101,4 @@ const image = computed(() => guideImage(props.post));
 	</PublicLayout>
 </template>
 
-<style scoped>
-.article-head { display: grid; gap: 40px; max-width: 64rem; padding-block: 56px 64px; }
-.article-head.has-image { grid-template-columns: minmax(0, 1fr) minmax(0, 400px); align-items: end; }
-.article-title { margin-top: 16px; font-size: clamp(34px, 4.2vw, 52px); font-weight: 700; line-height: 1.08; letter-spacing: -.045em; text-wrap: balance; }
-.article-lead { max-width: 640px; margin-top: 18px; color: #c5cddc; font-size: 18px; line-height: 1.7; }
-.article-photo { width: 100%; height: auto; border-radius: 18px; background: #1b2b57; }
-.toc-link { display: block; padding: 6px 10px; border-radius: 8px; color: #586171; line-height: 1.5; transition: background 150ms, color 150ms; }
-.toc-link:hover { background: #f6f8fc; color: var(--color-brand); }
-@media (max-width: 1023px) {
-	.article-head.has-image { grid-template-columns: 1fr; gap: 28px; }
-	.article-photo { max-width: 560px; }
-}
-@media (max-width: 767px) {
-	.article-head { padding-block: 36px 44px; }
-	.article-lead { font-size: 17px; }
-}
-</style>
+<style src="./Show.css"></style>

@@ -43,7 +43,7 @@ async function sync(user) {
     const guestData = state.owner === null;
     if (!guestData && state.owner !== user.id) reset(user.id);
     try {
-        const { data } = await axios.post('/activity/sync', { views: state.views, saves: guestData ? state.saves : [] });
+        const { data } = await axios.post('/app/activity/sync', { views: state.views, saves: guestData ? state.saves : [] });
         if (currentUser?.id !== user.id) return;
         state.owner = user.id;
         state.views = asObject(data.views);
@@ -73,7 +73,7 @@ export function markOpened(opportunity) {
     if (typeof window === 'undefined') return;
     state.views[opportunity.id] = new Date().toISOString();
     persist();
-    if (isCandidate(currentUser)) axios.post(`/opportunities/${opportunity.id}/opened`).catch(() => {});
+    if (isCandidate(currentUser)) axios.post(`/app/opportunities/${opportunity.id}/opened`).catch(() => {});
 }
 
 export function toggleSaved(opportunity) {
@@ -84,7 +84,7 @@ export function toggleSaved(opportunity) {
     };
     if (!currentUser) return setSaved(!state.saves.includes(id));
     const wasSaved = !!opportunity.liked;
-    router.post(`/like/${id}`, {}, { preserveScroll: true, onSuccess: () => setSaved(!wasSaved) });
+    router.post(`/app/like/${id}`, {}, { preserveScroll: true, onSuccess: () => setSaved(!wasSaved) });
 }
 
 export const openedAt = (id) => (state.ready && state.views[id]) || null;

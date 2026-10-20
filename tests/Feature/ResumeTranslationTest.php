@@ -30,7 +30,7 @@ class ResumeTranslationTest extends TestCase
 
     public function test_an_uploaded_pdf_is_sent_as_a_file_and_comes_back_as_a_draft(): void
     {
-        $this->actingAs($this->user)->post('/resumes', ['resume' => UploadedFile::fake()->create('My CV.pdf', 40, 'application/pdf')]);
+        $this->actingAs($this->user)->post('/app/resumes', ['resume' => UploadedFile::fake()->create('My CV.pdf', 40, 'application/pdf')]);
         $source = Resume::sole();
         Http::fake(['api.openai.com/v1/responses' => Http::response($this->reply('en'))]);
 
@@ -55,7 +55,7 @@ class ResumeTranslationTest extends TestCase
 
     public function test_a_resume_made_here_is_sent_as_text_and_keeps_its_name_and_contact(): void
     {
-        $this->actingAs($this->user)->post('/resumes/from-profile', ['locale' => 'en', 'content' => [
+        $this->actingAs($this->user)->post('/app/resumes/from-profile', ['locale' => 'en', 'content' => [
             'name' => 'Ala Baganne', 'contact' => ['student@example.com'], 'headline' => 'Laravel developer', 'skills' => ['Laravel'],
         ]]);
         $source = Resume::sole();
@@ -216,7 +216,7 @@ class ResumeTranslationTest extends TestCase
 
     public function test_only_ready_uploaded_pdfs_can_be_copied(): void
     {
-        $this->actingAs($this->user)->post('/resumes/from-profile', ['locale' => 'en']);
+        $this->actingAs($this->user)->post('/app/resumes/from-profile', ['locale' => 'en']);
         Http::fake();
 
         $this->actingAs($this->user->fresh())->postJson(route('resumes.copy', Resume::sole()))->assertStatus(409);

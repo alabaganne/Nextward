@@ -2,11 +2,11 @@
 import { ArrowRight, ChevronRight } from '@lucide/vue';
 import { computed, h, ref, watch } from 'vue';
 import { Link, useForm } from '@inertiajs/vue3';
-import { sitePath } from '@/utils/url';
+import { appPath } from '@/utils/url';
 import AppShell from '@/Layouts/AppShell.vue';
 
 defineOptions({ layout: (_h, page) => h(AppShell, { active: 'opportunities' }, () => page) });
-const props = defineProps({ fields: Array, cities: { type: Array, default: () => [] }, skills: { type: Array, default: () => [] }, opportunity: { type: Object, default: null } });
+const props = defineProps({ fields: Array, cities: { type: Array, default: () => [] }, skills: { type: Array, default: () => [] }, opportunity: { type: Object, default: null }, aiReview: { type: Boolean, default: false } });
 const MAX_SKILLS = 12;
 const editing = computed(() => !!props.opportunity);
 const role = computed(() => props.opportunity || {});
@@ -35,9 +35,12 @@ watch(() => role.value.id, () => {
 });
 const countries = (text) => [...new Set(text.split(',').map((part) => part.trim().toUpperCase()).filter(Boolean))];
 const skillSearch = ref('');
+// Picked skills first, then the most used ones; a search looks through all of them.
 const shownSkills = computed(() => {
 	const term = skillSearch.value.trim().toLowerCase();
-	return term ? props.skills.filter((skill) => form.skills.includes(skill.id) || skill.name.toLowerCase().includes(term)) : props.skills;
+	const picked = props.skills.filter((skill) => form.skills.includes(skill.id));
+	const rest = props.skills.filter((skill) => !form.skills.includes(skill.id) && (!term || skill.name.toLowerCase().includes(term)));
+	return [...picked, ...(term ? rest : rest.slice(0, 30))];
 });
 // File uploads drop empty arrays, so an empty string clears every skill.
 const payload = (data) => ({ ...data, skills: data.skills.length ? data.skills : '' });
@@ -54,7 +57,7 @@ const employmentTypes = { FULL_TIME: 'Full-time', PART_TIME: 'Part-time', CONTRA
 
 <template>
 	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-[1080px] mx-auto">
-		<div class="flex items-center gap-2 text-sm text-muted mb-6"><Link :href="route('opportunities.index')">Opportunities</Link><ChevronRight :size="14" /><span>{{ editing ? 'Edit opportunity' : 'Post an opportunity' }}</span></div>
+		<div class="flex items-center gap-2 text-sm text-muted mb-6"><Link :href="route('app.opportunities.index')">Opportunities</Link><ChevronRight :size="14" /><span>{{ editing ? 'Edit opportunity' : 'Post an opportunity' }}</span></div>
 		<div class="mb-6"><span class="block font-display text-xs font-semibold tracking-widest uppercase text-blue-600 mb-2">Hire students and professionals</span><h1 class="font-display text-[32px] font-semibold">{{ editing ? 'Edit opportunity' : 'Post an opportunity' }}</h1><p class="text-muted mt-2">Share clear responsibilities, requirements, compensation, and where candidates can work.</p></div>
 		<form class="bg-white border border-line rounded-[18px]" @submit.prevent="submit">
 			<div class="px-8 max-[560px]:px-5 py-7 space-y-5">
@@ -68,8 +71,8 @@ const employmentTypes = { FULL_TIME: 'Full-time', PART_TIME: 'Part-time', CONTRA
 				<fieldset><legend class="text-sm font-semibold mb-2">Employment type</legend><div class="flex flex-wrap gap-x-6 gap-y-3"><label v-for="(label, value) in employmentTypes" :key="value" class="text-sm flex gap-2 items-center"><input v-model="form.employment_types" type="checkbox" :value="value"> {{ label }}</label></div></fieldset>
 				<fieldset v-if="skills.length">
 					<legend class="text-sm font-semibold">Skills</legend>
-					<p class="text-xs text-muted mt-1 mb-3">Pick up to {{ MAX_SKILLS }} skills candidates should have. {{ form.skills.length }} of {{ MAX_SKILLS }} picked.</p>
-					<input v-if="skills.length > 20" v-model="skillSearch" class="fld mb-3 max-w-sm" type="search" placeholder="Search skills" aria-label="Search skills">
+					<p class="text-xs text-muted mt-1 mb-3">Pick up to {{ MAX_SKILLS }} skills candidates should have. {{ form.skills.length }} of {{ MAX_SKILLS }} picked.<template v-if="aiReview"> After you save, AI reads the description and adds matching skills and any details you left empty, like experience or who can apply. You can change them anytime.</template></p>
+					<input v-model="skillSearch" class="fld mb-3 max-w-sm" type="search" :placeholder="`Search ${skills.length} skills`" aria-label="Search skills">
 					<div class="flex flex-wrap gap-2 max-h-[232px] overflow-y-auto">
 						<label
 							v-for="skill in shownSkills"
@@ -127,7 +130,7 @@ const employmentTypes = { FULL_TIME: 'Full-time', PART_TIME: 'Part-time', CONTRA
 					<label class="text-sm font-semibold">Availability<select v-model="form.status" class="fld mt-2"><option value="open">Open</option><option value="closed">Closed</option></select></label>
 				</div>
 			</div>
-			<div class="px-8 max-[560px]:px-5 py-4 border-t border-line-2 flex justify-end gap-3"><Link class="cbtn border border-line" :href="editing && role.publication_status === 'published' ? sitePath(role.public_url) || route('internships.show', role.id) : route('dashboard')">Cancel</Link><button class="cbtn bg-blue-600 text-white" type="submit" :disabled="form.processing">{{ editing ? 'Save changes' : form.publication_status === 'draft' ? 'Save draft' : 'Publish opportunity' }} <ArrowRight :size="17" /></button></div>
+			<div class="px-8 max-[560px]:px-5 py-4 border-t border-line-2 flex justify-end gap-3"><Link class="cbtn border border-line" :href="editing && role.publication_status === 'published' ? appPath(role.public_url) || route('app.opportunities.show', role.id) : route('dashboard')">Cancel</Link><button class="cbtn bg-blue-600 text-white" type="submit" :disabled="form.processing">{{ editing ? 'Save changes' : form.publication_status === 'draft' ? 'Save draft' : 'Publish opportunity' }} <ArrowRight :size="17" /></button></div>
 		</form>
 	</div>
 </template>

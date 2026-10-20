@@ -31,7 +31,7 @@ class PublicCandidateController extends Controller
     public function talent(Request $request)
     {
         abort_unless($request->user()->isAdmin() || $request->user()->isCompany(), 403);
-        [$candidates, $filters] = $this->search($request, 'en');
+        [$candidates, $filters] = $this->search($request, 'en', true);
 
         return Inertia::render('Talent/Index', [
             'candidates' => $candidates,
@@ -40,7 +40,7 @@ class PublicCandidateController extends Controller
         ]);
     }
 
-    private function search(Request $request, string $locale): array
+    private function search(Request $request, string $locale, bool $app = false): array
     {
         $filters = $request->validate([
             'search' => ['nullable', 'string', 'max:100'],
@@ -65,7 +65,7 @@ class PublicCandidateController extends Controller
             ->when($resume, fn ($query) => $query->where('public_contact', true)->whereHas('mainResume'))
             ->orderByDesc('public_reviewed_at')->orderByDesc('id')
             ->paginate(24)->withQueryString()
-            ->through(fn (Candidate $candidate) => $this->card($candidate, $locale));
+            ->through(fn (Candidate $candidate) => $this->card($candidate, $locale, $app));
 
         return [$candidates, ['search' => $search, 'field' => $field, 'resume' => $resume]];
     }
@@ -75,18 +75,22 @@ class PublicCandidateController extends Controller
         return Field::whereHas('candidates', fn ($query) => $query->publiclyListed())->orderBy('name')->get(['id', 'name']);
     }
 
+    // Also the workspace copy at /app/talent/{slug}, for admins and companies.
     public function show(Request $request, string $candidateSlug)
     {
+        $app = $request->routeIs('talent.show');
+        abort_if($app && ! ($request->user()->isAdmin() || $request->user()->isCompany()), 403);
         $candidate = $this->visible($request, $candidateSlug);
 
         $locale = $request->is('fr/*') ? 'fr' : 'en';
-        if ($candidateSlug !== basename(parse_url($candidate->publicUrl($locale), PHP_URL_PATH))) {
-            return redirect($candidate->publicUrl($locale), 301);
+        if ($candidateSlug !== $candidate->publicSlug()) {
+            return redirect($app ? route('talent.show', $candidate->publicSlug()) : $candidate->publicUrl($locale), 301);
         }
+        $seo = PublicSeo::candidate($candidate);
 
         return Inertia::render('Candidates/Public', [
             'candidate' => [
-                ...$this->card($candidate, $locale),
+                ...$this->card($candidate, $locale, $app),
                 'skills' => $candidate->skills->pluck('name')->merge($candidate->preferences['skills'] ?? [])->unique()->values(),
                 'about' => $candidate->about,
                 'experience' => $candidate->experience ?: [],
@@ -104,8 +108,8 @@ class PublicCandidateController extends Controller
                 ] : null,
             ],
             'status' => $candidate->public_status,
-            'seo' => PublicSeo::candidate($candidate),
-            'translation' => parse_url($candidate->publicUrl($locale === 'fr' ? 'en' : 'fr'), PHP_URL_PATH),
+            'seo' => $app ? PublicSeo::workspace($seo) : $seo,
+            'translation' => $app ? null : parse_url($candidate->publicUrl($locale === 'fr' ? 'en' : 'fr'), PHP_URL_PATH),
         ]);
     }
 
@@ -164,10 +168,13 @@ class PublicCandidateController extends Controller
         return back()->with('toast', ['type' => 'update', 'message' => $status === 'approved' ? 'Profile approved. It is now public.' : 'Profile declined. It stays private.']);
     }
 
+    // Finds the candidate from a username or an {id}-{name} link.
     private function visible(Request $request, string $candidateSlug): Candidate
     {
-        abort_unless(preg_match('/^([1-9][0-9]*)-/', $candidateSlug, $matches), 404);
-        $candidate = Candidate::with('user', 'field', 'city', 'skills', 'mainResume')->findOrFail($matches[1]);
+        $query = Candidate::with('user', 'field', 'city', 'skills', 'mainResume');
+        $candidate = preg_match('/^([1-9][0-9]*)-/', $candidateSlug, $matches)
+            ? $query->findOrFail($matches[1])
+            : $query->whereHas('user', fn ($query) => $query->where('username', $candidateSlug))->firstOrFail();
         $viewer = $request->user();
         // The candidate and admins can preview a profile that is not live yet.
         $canPreview = $viewer && ($viewer->isAdmin() || ($viewer->isCandidate() && $viewer->userable_id === $candidate->id));
@@ -176,7 +183,7 @@ class PublicCandidateController extends Controller
         return $candidate;
     }
 
-    private function card(Candidate $candidate, string $locale): array
+    private function card(Candidate $candidate, string $locale, bool $app = false): array
     {
         $skills = $candidate->skills->pluck('name')->merge($candidate->preferences['skills'] ?? [])->unique()->values();
 
@@ -190,7 +197,7 @@ class PublicCandidateController extends Controller
             'skills_count' => $skills->count(),
             'experience_years' => $candidate->experience_years,
             'summary' => $candidate->about ? Str::limit(Str::squish($candidate->about), 220) : null,
-            'url' => parse_url($candidate->publicUrl($locale), PHP_URL_PATH),
+            'url' => $app ? route('talent.show', $candidate->publicSlug(), false) : parse_url($candidate->publicUrl($locale), PHP_URL_PATH),
             'has_resume' => $candidate->public_contact && (bool) $candidate->mainResume?->path,
         ];
     }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\OpportunityRequest;
 use App\Http\Resources\OpportunityResource;
+use App\Jobs\ReviewPostedOpportunity;
 use App\Models\City;
 use App\Models\Company;
 use App\Models\Field;
@@ -11,6 +12,7 @@ use App\Models\Opportunity;
 use App\Models\Skill;
 use App\Support\PublicSeo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -22,6 +24,7 @@ class OpportunityController extends Controller
     {
         $categories = ['internships' => 'Internships', 'jobs' => 'Jobs'];
         abort_if($category && ! array_key_exists($category, $categories), 404);
+        $app = $request->routeIs('app.*');
         $filters = $this->browseFilters($request);
         $request->query->replace($filters);
         $queryFilters = array_merge($filters, ['category' => $category]);
@@ -38,6 +41,8 @@ class OpportunityController extends Controller
                 'name' => \App\Support\Countries::name($code, $request->is('fr/*') ? 'fr' : 'en'),
             ])->values();
 
+        $seo = PublicSeo::browse($request, $category, $results->total());
+
         return Inertia::render('Opportunities/Index', [
             'filters' => $filters,
             'opportunities' => OpportunityResource::collection($results),
@@ -45,8 +50,21 @@ class OpportunityController extends Controller
             'categoryLabel' => $categories[$category] ?? 'Explore opportunities',
             'countries' => $countries,
             'fields' => Field::withCount(['opportunities' => fn ($query) => $query->available()->searchFilters(array_diff_key($queryFilters, ['fields' => true, 'field' => true]))])->orderBy('name')->get(),
-            'seo' => PublicSeo::browse($request, $category, $results->total()),
+            'skills' => $this->skillCounts(array_diff_key($queryFilters, ['skills' => true]), $filters['skills'] ?? []),
+            'seo' => $app ? PublicSeo::workspace($seo) : $seo,
         ]);
+    }
+
+    // Skills on the listings that match the other filters, most used first. Picked skills always stay in the list.
+    private function skillCounts(array $filters, array $picked): array
+    {
+        $counts = DB::table('skillables')->where('skillable_type', 'opportunity')
+            ->whereIn('skillable_id', Opportunity::available()->searchFilters($filters)->select('opportunities.id'))
+            ->selectRaw('skill_id, count(*) as total')->groupBy('skill_id')->pluck('total', 'skill_id');
+
+        return Skill::whereIn('id', $counts->keys()->merge($picked)->unique())->get(['id', 'name'])
+            ->map(fn ($skill) => ['id' => $skill->id, 'name' => $skill->name, 'opportunities_count' => (int) ($counts[$skill->id] ?? 0)])
+            ->sortBy([['opportunities_count', 'desc'], ['name', 'asc']])->values()->all();
     }
 
     private function browseFilters(Request $request): array
@@ -60,7 +78,7 @@ class OpportunityController extends Controller
         if (isset($input['search']) && is_string($input['search'])) {
             $input['search'] = trim($input['search']);
         }
-        foreach (['fields', 'companies', 'cities'] as $field) {
+        foreach (['fields', 'skills', 'companies', 'cities'] as $field) {
             if (isset($input[$field]) && is_array($input[$field])) {
                 $input[$field] = array_values(array_filter($input[$field], fn ($value) => $value !== '' && $value !== null));
             }
@@ -78,6 +96,8 @@ class OpportunityController extends Controller
             'fields' => 'nullable|array|max:20',
             'fields.*' => 'integer|min:1',
             'field' => 'nullable|integer|min:1',
+            'skills' => 'nullable|array|max:20',
+            'skills.*' => 'integer|min:1',
             'companies' => 'nullable|array|max:20',
             'companies.*' => 'integer|min:1',
             'cities' => 'nullable|array|max:20',
@@ -100,6 +120,13 @@ class OpportunityController extends Controller
         return array_filter($validator->validated(), fn ($value) => $value !== null && $value !== '' && $value !== []);
     }
 
+    // Most used skills first, so the form can show the common ones before a search.
+    private function skillChoices()
+    {
+        return Skill::select('id', 'name')->withCount('opportunities')->orderByDesc('opportunities_count')->orderBy('name')->get()
+            ->map(fn ($skill) => ['id' => $skill->id, 'name' => $skill->name]);
+    }
+
     public function getFields()
     {
         return Field::select('id', 'name')->orderBy('name')->get();
@@ -111,7 +138,8 @@ class OpportunityController extends Controller
         return Inertia::render('Opportunities/Edit', [
             'fields' => $this->getFields(),
             'cities' => City::select('id', 'name')->orderBy('name')->get(),
-            'skills' => Skill::select('id', 'name')->orderBy('name')->get(),
+            'skills' => $this->skillChoices(),
+            'aiReview' => app(\App\Ai\OpportunityClassifier::class)->enabled(),
         ]);
     }
 
@@ -126,9 +154,10 @@ class OpportunityController extends Controller
         $data['attachments'] = $this->storeAttachments($request, 'internships');
         $opportunity = Opportunity::create($data);
         $opportunity->skills()->sync($request->validated('skills') ?? []);
+        ReviewPostedOpportunity::dispatch($opportunity->id);
 
         return redirect($opportunity->publication_status === 'published'
-            ? route('opportunities.show', ['opportunity' => $opportunity->id.'-'.$opportunity->slug])
+            ? route('app.opportunities.show', ['opportunity' => $opportunity->id.'-'.$opportunity->slug])
             : route('opportunities.edit', $opportunity))
             ->with('toast', ['type' => 'store', 'message' => 'Your opportunity has been saved.']);
     }
@@ -146,9 +175,10 @@ class OpportunityController extends Controller
         $opportunity = $this->canonicalOpportunity(Opportunity::findOrFail($matches[1]));
         abort_unless($opportunity->publication_status === 'published', 404);
         $locale = $request->is('fr/*') ? 'fr' : 'en';
+        $app = $request->routeIs('app.*');
         $canonicalSegment = basename(parse_url($opportunity->publicUrl($locale), PHP_URL_PATH));
         if ($segment !== $canonicalSegment) {
-            return redirect($opportunity->publicUrl($locale), 301);
+            return redirect($app ? route('app.opportunities.show', $canonicalSegment) : $opportunity->publicUrl($locale), 301);
         }
         $opportunity->load(['company.user', 'company.city', 'field', 'city', 'skills', 'sources.importSource', 'translations']);
         if ($request->user()?->isCandidate()) {
@@ -164,8 +194,8 @@ class OpportunityController extends Controller
         return Inertia::render('Opportunities/Show', [
             'opportunity' => (new OpportunityResource($opportunity))->resolve($request),
             'related' => OpportunityResource::collection($related),
-            'seo' => PublicSeo::opportunity($opportunity),
-            'translation' => parse_url($opportunity->publicUrl($locale === 'fr' ? 'en' : 'fr'), PHP_URL_PATH),
+            'seo' => $app ? PublicSeo::workspace(PublicSeo::opportunity($opportunity)) : PublicSeo::opportunity($opportunity),
+            'translation' => $app ? null : parse_url($opportunity->publicUrl($locale === 'fr' ? 'en' : 'fr'), PHP_URL_PATH),
             'kits' => $request->user()?->isCandidate()
                 ? \App\Models\ApplicationKit::where('candidate_id', $request->user()->userable_id)->where('opportunity_id', $opportunity->id)->get(['id', 'locale', 'status'])
                 : [],
@@ -195,7 +225,8 @@ class OpportunityController extends Controller
             'opportunity' => $opportunity->load('skills:id,name'),
             'fields' => $this->getFields(),
             'cities' => City::select('id', 'name')->orderBy('name')->get(),
-            'skills' => Skill::select('id', 'name')->orderBy('name')->get(),
+            'skills' => $this->skillChoices(),
+            'aiReview' => app(\App\Ai\OpportunityClassifier::class)->enabled(),
         ]);
     }
 
@@ -216,12 +247,15 @@ class OpportunityController extends Controller
         if ($skills !== null) {
             $opportunity->skills()->sync($skills);
         }
+        if ($opportunity->origin !== 'imported' && $opportunity->wasChanged(['title', 'description'])) {
+            ReviewPostedOpportunity::dispatch($opportunity->id);
+        }
         if ($replaceFiles) {
             $this->deleteAttachments($oldAttachments);
         }
 
         return redirect($opportunity->publication_status === 'published'
-            ? route('opportunities.show', ['opportunity' => $opportunity->id.'-'.$opportunity->slug])
+            ? route('app.opportunities.show', ['opportunity' => $opportunity->id.'-'.$opportunity->slug])
             : route('opportunities.edit', $opportunity))
             ->with('toast', ['type' => 'update', 'message' => 'Opportunity updated successfully.']);
     }

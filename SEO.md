@@ -14,7 +14,7 @@ The goal is for Nextward to show up on Google (most searches from Tunisia are in
   - `JobPosting` on opportunities
   - `Organization` on company pages
 - **Sitemaps** at `/sitemap.xml`: pages, blog posts (with last-updated dates), company pages and opportunities.
-- **`/robots.txt`:** lets every bot, AI bots included, read public pages, and blocks the private areas.
+- **`/robots.txt`:** lets every bot, AI bots included, read public pages, and blocks the private areas (everything under `/app`, plus the old paths that now redirect there). The `/app/opportunities` copies of public pages are `noindex`.
 - **`/llms.txt`:** a plain-text summary of Nextward for AI tools, with links to every guide. Each guide also has a Markdown copy at `/blog/{slug}.md`.
 - **RSS feeds:** `/blog/feed.xml` and `/fr/blog/feed.xml`.
 - **IndexNow:** `php artisan seo:indexnow` runs every hour and tells Bing about new or changed pages. ChatGPT search and Copilot use Bing's index.
@@ -26,7 +26,7 @@ The goal is for Nextward to show up on Google (most searches from Tunisia are in
 - **Public company pages:** `/companies/{id}-{slug}`. Pages with no open roles and a short "about" text are kept out of Google (`noindex`).
 - **Opportunity lists:** `/opportunities`, `/opportunities/internships` and `/opportunities/jobs` (also under `/fr`) are the crawlable lists in the sitemap. The old Tunisia and relocation pages (`/opportunities/tunisia`, `/remote-from-tunisia`, `/relocation`) redirect with a 301 to the matching filters, so old links and blog links keep working.
 - **Companies directory:** `/companies` and `/fr/companies`, in the pages sitemap. Only the plain list is indexed; searches, field filters and "All companies" are `noindex`.
-- **Public candidate profiles:** `/candidates` and `/candidates/{id}-{slug}` (also under `/fr`). They hold personal data, so they are always `noindex` and are not in the sitemap.
+- **Public candidate profiles:** `/candidates` and `/candidates/{username}`, or `/candidates/{id}-{slug}` until the candidate picks a username (also under `/fr`; the old link redirects). They hold personal data, so they are always `noindex` and are not in the sitemap.
 
 ## Writing a blog post
 

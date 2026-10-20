@@ -36,6 +36,10 @@ const asksForPage = computed(() => ['help', 'bug', 'listing'].includes(form.topi
 const asksForScreenshot = computed(() => ['help', 'bug'].includes(form.topic));
 const pageFilled = ref(false);
 const sent = ref(false);
+const label = 'mb-1.5 block text-[14px] font-semibold text-navy';
+const field = 'w-full rounded-xl border border-line bg-white px-3.5 py-[11px] text-[15px] text-ink focus-visible:border-brand focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand aria-invalid:border-[#dc2626]';
+const error = 'mt-1.5 text-[13px] text-[#b91c1c]';
+const hint = 'mt-1.5 text-[13px] text-subtle-2';
 
 onMounted(() => {
 	form.page_url = previousPageUrl();
@@ -62,7 +66,7 @@ const submit = () => form
 						<h1 id="contact-title" class="hero-title">{{ text('How can we help?', 'Comment pouvons-nous vous aider ?') }}</h1>
 						<p class="hero-lead">{{ text('Ask for help with anything, report a bug or suggest a feature. We read every message and answer by email.', 'Demandez de l’aide sur n’importe quel sujet, signalez un bug ou proposez une idée. Nous lisons chaque message et répondons par e-mail.') }}</p>
 					</div>
-					<figure class="hero-stage contact-stage">
+					<figure class="hero-stage w-[min(100%,320px)]">
 						<img src="/nextward-assets/mascots/04-mentor-pointing.svg" alt="" width="768" height="768" fetchpriority="high" />
 						<Sparkle style="top: 14%; right: 10%; --i: 0" />
 						<Sparkle class="is-sky" style="top: 30%; left: 12%; width: 14px; height: 14px; --i: 1" />
@@ -74,8 +78,8 @@ const submit = () => form
 				<div>
 					<h2 class="section-title !mt-0">{{ text('Send us a message', 'Envoyez-nous un message') }}</h2>
 
-					<div v-if="sent" class="contact-sent mt-8" role="status">
-						<Icon name="check-circle" />
+					<div v-if="sent" class="mt-8 flex gap-3.5 rounded-2xl border border-[#bbf7d0] bg-[#f0fdf4] px-6 py-[22px]" role="status">
+						<Icon name="check-circle" class="size-6 shrink-0 text-[#16a34a]" />
 						<div>
 							<p class="font-semibold text-navy">{{ text('Thanks, your message is on its way.', 'Merci, votre message est bien parti.') }}</p>
 							<p class="mt-1 text-slate-600">{{ text('We will reply to', 'Nous répondrons à') }} {{ form.email }}.</p>
@@ -83,57 +87,57 @@ const submit = () => form
 						</div>
 					</div>
 
-					<form v-else class="contact-form mt-8" novalidate @submit.prevent="submit">
+					<form v-else class="mt-8 grid gap-5 rounded-2xl border border-line bg-white p-7" novalidate @submit.prevent="submit">
 						<fieldset>
-							<legend>{{ text('What is it about?', 'Quel est le sujet ?') }}</legend>
-							<div class="topic-grid">
-								<label v-for="item in topics" :key="item.value" class="topic-option" :class="{ 'is-picked': form.topic === item.value }">
+							<legend :class="label">{{ text('What is it about?', 'Quel est le sujet ?') }}</legend>
+							<div class="mt-1 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+								<label v-for="item in topics" :key="item.value" :class="['m-0 flex cursor-pointer flex-col gap-1 rounded-xl border p-3.5 text-[14px] font-semibold text-navy transition-colors duration-160 has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-brand', form.topic === item.value ? 'border-brand bg-blue-50' : 'border-line bg-white hover:border-[#b9c8ef]']">
 									<input v-model="form.topic" type="radio" name="topic" :value="item.value" class="sr-only" />
-									<Icon :name="item.icon" />
-									<span class="topic-label">{{ item.label }}</span>
-									<span class="topic-hint">{{ item.hint }}</span>
+									<Icon :name="item.icon" class="size-[22px] text-brand" />
+									<span class="mt-1 text-[14px] leading-[1.3] font-semibold text-navy">{{ item.label }}</span>
+									<span class="hidden text-[12.5px] leading-[1.45] font-normal text-subtle-2 sm:block">{{ item.hint }}</span>
 								</label>
 							</div>
-							<p v-if="form.errors.topic" class="contact-error">{{ form.errors.topic }}</p>
+							<p v-if="form.errors.topic" :class="error">{{ form.errors.topic }}</p>
 						</fieldset>
 						<div class="grid sm:grid-cols-2 gap-5">
 							<div>
-								<label for="contact-name">{{ text('Your name', 'Votre nom') }}</label>
-								<input id="contact-name" v-model="form.name" type="text" autocomplete="name" maxlength="120" required :aria-invalid="!!form.errors.name" :aria-describedby="form.errors.name ? 'contact-name-error' : null" />
-								<p v-if="form.errors.name" id="contact-name-error" class="contact-error">{{ form.errors.name }}</p>
+								<label for="contact-name" :class="label">{{ text('Your name', 'Votre nom') }}</label>
+								<input id="contact-name" :class="field" v-model="form.name" type="text" autocomplete="name" maxlength="120" required :aria-invalid="!!form.errors.name" :aria-describedby="form.errors.name ? 'contact-name-error' : null" />
+								<p v-if="form.errors.name" id="contact-name-error" :class="error">{{ form.errors.name }}</p>
 							</div>
 							<div>
-								<label for="contact-email">{{ text('Email address', 'Adresse e-mail') }}</label>
-								<input id="contact-email" v-model="form.email" type="email" autocomplete="email" maxlength="200" required :aria-invalid="!!form.errors.email" :aria-describedby="form.errors.email ? 'contact-email-error' : null" />
-								<p v-if="form.errors.email" id="contact-email-error" class="contact-error">{{ form.errors.email }}</p>
+								<label for="contact-email" :class="label">{{ text('Email address', 'Adresse e-mail') }}</label>
+								<input id="contact-email" :class="field" v-model="form.email" type="email" autocomplete="email" maxlength="200" required :aria-invalid="!!form.errors.email" :aria-describedby="form.errors.email ? 'contact-email-error' : null" />
+								<p v-if="form.errors.email" id="contact-email-error" :class="error">{{ form.errors.email }}</p>
 							</div>
 						</div>
 						<div>
-							<label for="contact-message">{{ text('Message', 'Message') }}</label>
-							<textarea id="contact-message" v-model="form.message" rows="7" minlength="10" maxlength="5000" required :placeholder="topic.placeholder" :aria-invalid="!!form.errors.message" aria-describedby="contact-message-hint" />
-							<p v-if="form.errors.message" class="contact-error">{{ form.errors.message }}</p>
-							<p id="contact-message-hint" class="contact-hint">{{ text('Please don’t send passwords or CVs here.', 'N’envoyez ni mot de passe ni CV ici.') }}</p>
+							<label for="contact-message" :class="label">{{ text('Message', 'Message') }}</label>
+							<textarea id="contact-message" :class="field" v-model="form.message" rows="7" minlength="10" maxlength="5000" required :placeholder="topic.placeholder" :aria-invalid="!!form.errors.message" aria-describedby="contact-message-hint" />
+							<p v-if="form.errors.message" :class="error">{{ form.errors.message }}</p>
+							<p id="contact-message-hint" :class="hint">{{ text('Please don’t send passwords or CVs here.', 'N’envoyez ni mot de passe ni CV ici.') }}</p>
 						</div>
 						<div v-if="asksForPage">
-							<label for="contact-url">{{ form.topic === 'listing' ? text('Link to the listing', 'Lien de l’offre') : text('Page where it happened (optional)', 'Page concernée (facultatif)') }}</label>
-							<input id="contact-url" v-model="form.page_url" type="url" inputmode="url" maxlength="300" placeholder="https://" :aria-invalid="!!form.errors.page_url" :aria-describedby="form.errors.page_url ? 'contact-url-error' : (pageFilled ? 'contact-url-hint' : null)" />
-							<p v-if="form.errors.page_url" id="contact-url-error" class="contact-error">{{ form.errors.page_url }}</p>
-							<p v-else-if="pageFilled" id="contact-url-hint" class="contact-hint">{{ text('We filled in the page you came from. Change or clear it if it’s not the right one.', 'Nous avons mis la page d’où vous venez. Modifiez-la ou effacez-la si ce n’est pas la bonne.') }}</p>
+							<label for="contact-url" :class="label">{{ form.topic === 'listing' ? text('Link to the listing', 'Lien de l’offre') : text('Page where it happened (optional)', 'Page concernée (facultatif)') }}</label>
+							<input id="contact-url" :class="field" v-model="form.page_url" type="url" inputmode="url" maxlength="300" placeholder="https://" :aria-invalid="!!form.errors.page_url" :aria-describedby="form.errors.page_url ? 'contact-url-error' : (pageFilled ? 'contact-url-hint' : null)" />
+							<p v-if="form.errors.page_url" id="contact-url-error" :class="error">{{ form.errors.page_url }}</p>
+							<p v-else-if="pageFilled" id="contact-url-hint" :class="hint">{{ text('We filled in the page you came from. Change or clear it if it’s not the right one.', 'Nous avons mis la page d’où vous venez. Modifiez-la ou effacez-la si ce n’est pas la bonne.') }}</p>
 						</div>
 						<div v-if="asksForScreenshot">
-							<label for="contact-screenshot">{{ text('Screenshot (optional)', 'Capture d’écran (facultatif)') }}</label>
-							<input id="contact-screenshot" type="file" accept="image/png,image/jpeg,image/webp" class="contact-file" :aria-invalid="!!form.errors.screenshot" aria-describedby="contact-screenshot-hint" @change="pickScreenshot" />
-							<p v-if="form.errors.screenshot" class="contact-error">{{ form.errors.screenshot }}</p>
-							<p id="contact-screenshot-hint" class="contact-hint">
+							<label for="contact-screenshot" :class="label">{{ text('Screenshot (optional)', 'Capture d’écran (facultatif)') }}</label>
+							<input id="contact-screenshot" type="file" accept="image/png,image/jpeg,image/webp" class="block w-full text-[14px] text-gray-600 file:mr-3 file:cursor-pointer file:rounded-[10px] file:border file:border-line file:bg-pale file:px-3.5 file:py-2 file:font-semibold file:text-navy" :aria-invalid="!!form.errors.screenshot" aria-describedby="contact-screenshot-hint" @change="pickScreenshot" />
+							<p v-if="form.errors.screenshot" :class="error">{{ form.errors.screenshot }}</p>
+							<p id="contact-screenshot-hint" :class="hint">
 								{{ text('PNG, JPG or WebP, up to 5 MB.', 'PNG, JPG ou WebP, 5 Mo maximum.') }}
 								<template v-if="form.topic === 'bug'">{{ text('Bug reports also include your browser and device type, to help us find the problem.', 'Les signalements de bug incluent aussi votre navigateur et votre type d’appareil, pour nous aider à trouver le problème.') }}</template>
 							</p>
 						</div>
-						<div class="contact-trap" aria-hidden="true">
+						<div class="absolute -left-[10000px] h-px w-px overflow-hidden" aria-hidden="true">
 							<label for="contact-website">Website</label>
 							<input id="contact-website" v-model="form.website" type="text" tabindex="-1" autocomplete="off" />
 						</div>
-						<button type="submit" class="cta cta-primary focus-ring" :disabled="form.processing">
+						<button type="submit" class="cta cta-primary focus-ring disabled:cursor-wait disabled:opacity-70" :disabled="form.processing">
 							{{ form.processing ? text('Sending…', 'Envoi…') : text('Send message', 'Envoyer le message') }}<Icon name="arrow-right" class="action-icon" />
 						</button>
 					</form>
@@ -141,11 +145,11 @@ const submit = () => form
 
 				<aside class="self-start rounded-2xl bg-pale p-8">
 					<h3 class="font-display text-xl font-semibold text-navy">{{ text('Quick answers', 'Réponses rapides') }}</h3>
-					<ul class="contact-notes mt-5">
-						<li><Icon name="lifebuoy" /><span>{{ text('Forgot your password?', 'Mot de passe oublié ?') }} <Link :href="`${prefix}/forgot-password`" class="font-semibold text-brand hover:text-brand-dark focus-ring">{{ text('Get a reset link', 'Recevoir un lien') }}</Link>.</span></li>
-						<li><Icon name="mail" /><span>{{ text('No confirmation email? Check your spam folder, then ask for a new one from the banner in your dashboard.', 'Pas d’e-mail de confirmation ? Regardez dans vos spams, puis demandez-en un nouveau depuis le bandeau de votre tableau de bord.') }}</span></li>
-						<li><Icon name="exclamation-triangle" /><span>{{ text('To fix or remove a listing, you can also use “Report an issue” on the listing page.', 'Pour corriger ou retirer une offre, vous pouvez aussi utiliser « Signaler un problème » sur la page de l’offre.') }}</span></li>
-						<li><Icon name="briefcase" /><span>{{ text('Employers can post roles for free after creating a company account.', 'Les employeurs peuvent publier des offres gratuitement après avoir créé un compte entreprise.') }}</span></li>
+					<ul class="mt-5 grid gap-4 text-[15px] leading-[1.6] text-gray-600">
+						<li class="flex gap-3"><Icon name="lifebuoy" class="mt-[3px] size-5 shrink-0 text-brand" /><span>{{ text('Forgot your password?', 'Mot de passe oublié ?') }} <Link :href="`${prefix}/forgot-password`" class="font-semibold text-brand hover:text-brand-dark focus-ring">{{ text('Get a reset link', 'Recevoir un lien') }}</Link>.</span></li>
+						<li class="flex gap-3"><Icon name="mail" class="mt-[3px] size-5 shrink-0 text-brand" /><span>{{ text('No confirmation email? Check your spam folder, then ask for a new one from the banner in your dashboard.', 'Pas d’e-mail de confirmation ? Regardez dans vos spams, puis demandez-en un nouveau depuis le bandeau de votre tableau de bord.') }}</span></li>
+						<li class="flex gap-3"><Icon name="exclamation-triangle" class="mt-[3px] size-5 shrink-0 text-brand" /><span>{{ text('To fix or remove a listing, you can also use “Report an issue” on the listing page.', 'Pour corriger ou retirer une offre, vous pouvez aussi utiliser « Signaler un problème » sur la page de l’offre.') }}</span></li>
+						<li class="flex gap-3"><Icon name="briefcase" class="mt-[3px] size-5 shrink-0 text-brand" /><span>{{ text('Employers can post roles for free after creating a company account.', 'Les employeurs peuvent publier des offres gratuitement après avoir créé un compte entreprise.') }}</span></li>
 					</ul>
 					<div class="mt-8 pt-6 border-t border-line text-sm text-slate-600">
 						<p>{{ text('Prefer email?', 'Vous préférez l’e-mail ?') }} <a :href="`mailto:${contactEmail}`" class="font-semibold text-brand hover:text-brand-dark focus-ring">{{ contactEmail }}</a></p>
@@ -156,33 +160,3 @@ const submit = () => form
 		</div>
 	</PublicLayout>
 </template>
-
-<style scoped>
-.contact-stage { width: min(100%, 320px); }
-.contact-form { display: grid; gap: 20px; padding: 28px; border: 1px solid var(--color-line); border-radius: 16px; background: #fff; }
-.contact-form label, .contact-form legend { display: block; margin-bottom: 6px; color: var(--color-navy); font-size: 14px; font-weight: 600; }
-.contact-form input:not([type="radio"]):not([type="file"]), .contact-form select, .contact-form textarea { width: 100%; border: 1px solid var(--color-line); border-radius: 12px; background-color: #fff; padding: 11px 14px; font-size: 15px; color: var(--color-ink); }
-.contact-form input:focus-visible, .contact-form select:focus-visible, .contact-form textarea:focus-visible { outline: 2px solid var(--color-brand); outline-offset: 1px; border-color: var(--color-brand); }
-.contact-form [aria-invalid="true"] { border-color: #dc2626; }
-.contact-form button[disabled] { opacity: .7; cursor: wait; }
-.topic-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 4px; }
-@media (min-width: 640px) { .topic-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-.contact-form .topic-option { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 14px; border: 1px solid var(--color-line); border-radius: 12px; background: #fff; cursor: pointer; transition: background-color 160ms, border-color 160ms; }
-.topic-option:hover { border-color: #b9c8ef; }
-.topic-option.is-picked { border-color: var(--color-brand); background: #eef4ff; }
-.topic-option:has(input:focus-visible) { outline: 2px solid var(--color-brand); outline-offset: 2px; }
-.topic-option svg { width: 22px; height: 22px; color: var(--color-brand); }
-.topic-label { margin-top: 4px; color: var(--color-navy); font-size: 14px; font-weight: 600; line-height: 1.3; }
-.topic-hint { display: none; color: #67707e; font-size: 12.5px; font-weight: 400; line-height: 1.45; }
-@media (min-width: 640px) { .topic-hint { display: block; } }
-.contact-file { display: block; width: 100%; color: #475569; font-size: 14px; }
-.contact-file::file-selector-button { margin-right: 12px; padding: 8px 14px; border: 1px solid var(--color-line); border-radius: 10px; background: #f6f8fc; color: var(--color-navy); font-weight: 600; cursor: pointer; }
-.contact-error { margin-top: 6px; color: #b91c1c; font-size: 13px; }
-.contact-hint { margin-top: 6px; color: #67707e; font-size: 13px; }
-.contact-trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
-.contact-sent { display: flex; gap: 14px; padding: 22px 24px; border: 1px solid #bbf7d0; border-radius: 16px; background: #f0fdf4; }
-.contact-sent svg { width: 24px; height: 24px; flex-shrink: 0; color: #16a34a; }
-.contact-notes { display: grid; gap: 16px; color: #475569; font-size: 15px; line-height: 1.6; }
-.contact-notes li { display: flex; gap: 12px; }
-.contact-notes svg { width: 20px; height: 20px; flex-shrink: 0; margin-top: 3px; color: var(--color-brand); }
-</style>

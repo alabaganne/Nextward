@@ -72,13 +72,13 @@ class PageSmokeTest extends TestCase
     {
         $candidate = $this->candidate();
 
-        foreach (['/dashboard', '/applications', '/likes', '/messages', '/companies', '/profile', '/settings'] as $uri) {
+        foreach (['/app/dashboard', '/app/opportunities', '/app/applications', '/app/likes', '/app/messages', '/app/companies', '/app/profile', '/app/settings'] as $uri) {
             $this->actingAs($candidate)->get($uri)->assertOk();
         }
 
         $application = Application::where('candidate_id', $candidate->userable->id)->firstOrFail();
         $this->actingAs($candidate)
-            ->get("/applications/{$application->id}")
+            ->get("/app/applications/{$application->id}")
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Applications/Show')
@@ -86,13 +86,13 @@ class PageSmokeTest extends TestCase
                 ->has('application.company.name'));
 
         $company = Company::firstOrFail();
-        $this->actingAs($candidate)->get("/companies/{$company->id}")->assertOk();
+        $this->actingAs($candidate)->get("/app/companies/{$company->id}")->assertOk();
     }
 
     public function test_dashboard_receives_real_props(): void
     {
         $this->actingAs($this->candidate())
-            ->get('/dashboard')
+            ->get('/app/dashboard')
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Dashboard')
                 ->where('opportunities_count', Opportunity::open()->count())
@@ -105,14 +105,14 @@ class PageSmokeTest extends TestCase
         Opportunity::firstOrFail()->update(['status' => 'closed']);
 
         foreach ([$application->candidate->user, $application->company->user, User::where('email', 'admin@example.com')->firstOrFail()] as $user) {
-            $this->actingAs($user)->get('/applications')
+            $this->actingAs($user)->get('/app/applications')
                 ->assertInertia(fn (Assert $page) => $page
                     ->has('applications.data.0.company.id')
                     ->has('applications.data.0.company.name')
                     ->has('applications.data.0.candidate.id')
                     ->has('applications.data.0.candidate.name'));
 
-            $this->get('/dashboard')
+            $this->get('/app/dashboard')
                 ->assertInertia(fn (Assert $page) => $page
                     ->where('opportunities_count', Opportunity::open()->count()));
         }
@@ -144,7 +144,7 @@ class PageSmokeTest extends TestCase
         ]);
 
         foreach ([$candidate, $opportunity->company->user] as $user) {
-            $this->actingAs($user)->get('/dashboard')
+            $this->actingAs($user)->get('/app/dashboard')
                 ->assertInertia(fn (Assert $page) => $page
                     ->has('applications', 4)
                     ->where('applications', fn ($applications) => collect($applications)
@@ -183,10 +183,10 @@ class PageSmokeTest extends TestCase
         $company = User::where('email', 'company@example.com')->firstOrFail();
         $admin = User::where('email', 'admin@example.com')->firstOrFail();
 
-        $this->actingAs($admin)->get('/candidates/manage')->assertOk();
+        $this->actingAs($admin)->get('/app/candidates/manage')->assertOk();
 
         foreach ([$company, $admin] as $user) {
-            foreach (['/dashboard', '/opportunities', '/applications', '/messages', '/companies', '/profile', '/settings'] as $uri) {
+            foreach (['/app/dashboard', '/app/opportunities', '/app/applications', '/app/messages', '/app/companies', '/app/profile', '/app/settings'] as $uri) {
                 $this->actingAs($user)->get($uri)->assertOk();
             }
         }
@@ -234,7 +234,7 @@ class PageSmokeTest extends TestCase
         $this->actingAs($admin);
 
         foreach ([
-            'companies.index' => 'Companies/Index',
+            'app.companies.index' => 'Companies/Index',
             'candidates.index' => 'Candidates/Index',
             'skills.index' => 'Skills/Index',
             'fields.index' => 'Fields/Index',

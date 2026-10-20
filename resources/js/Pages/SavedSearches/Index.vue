@@ -34,7 +34,7 @@ const remove = (search) => router.delete(route('saved-searches.destroy', search.
 <template>
     <div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-wrap mx-auto">
         <PageHeader title="Saved searches" description="Keep the filters you use most. Email alerts are optional and you can pause them at any time.">
-            <template #actions><Link :href="route('opportunities.index')" class="cbtn cbtn-secondary h-11 !py-0">Browse opportunities</Link></template>
+            <template #actions><Link :href="route('app.opportunities.index')" class="cbtn cbtn-secondary h-11 !py-0">Browse opportunities</Link></template>
         </PageHeader>
         <p v-if="!deliveryEnabled" class="mb-6 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">Email alerts are not switched on yet. Your alert choices will apply once they are.</p>
         <div class="grid gap-6 items-start" :class="hasFilters || editing ? 'lg:grid-cols-[1fr_360px]' : ''">
@@ -42,7 +42,7 @@ const remove = (search) => router.delete(route('saved-searches.destroy', search.
                 <div v-if="!searches.length" class="border border-line rounded-[16px] bg-white p-7">
                     <h2 class="font-display text-lg font-semibold">No saved searches yet</h2>
                     <p class="text-muted text-[15px] mt-1.5 max-w-[520px]">Open Opportunities, set your filters, then choose "Save this search and set alerts". It will show up here.</p>
-                    <Link :href="route('opportunities.index')" class="cbtn cbtn-primary h-11 !py-0 mt-5">Set up a search</Link>
+                    <Link :href="route('app.opportunities.index')" class="cbtn cbtn-primary h-11 !py-0 mt-5">Set up a search</Link>
                 </div>
                 <article v-for="search in searches" :key="search.id" class="border border-line rounded-[16px] bg-white p-5">
                     <h2 class="font-display text-lg font-semibold"><a :href="search.browse_url" class="hover:text-blue-700">{{ search.name }}</a></h2>

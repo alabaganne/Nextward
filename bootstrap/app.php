@@ -30,7 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
         ]);
 
-        $middleware->redirectUsersTo('/dashboard');
+        $middleware->redirectUsersTo('/app/dashboard');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->respond(function (Response $response, Throwable $exception, Request $request) {

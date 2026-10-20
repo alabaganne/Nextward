@@ -1,10 +1,17 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, h } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import { ArrowUpRight, Briefcase, FileText, GraduationCap, Mail, MapPin, Phone } from '@lucide/vue';
+import AppShell from '@/Layouts/AppShell.vue';
 import PublicLayout from '@/Layouts/Public.vue';
 import ProfileBanner from '@/Components/Candidate/ProfileBanner.vue';
 import SkillList from '@/Components/Candidate/SkillList.vue';
+import { isAppPath } from '@/utils/url';
+
+// /app/talent/{slug} opens the profile inside the workspace; /candidates/{slug} is the public page.
+defineOptions({
+	layout: (_h, page) => isAppPath(usePage().url) ? h(AppShell, { active: 'talent' }, () => page) : h(PublicLayout, () => page),
+});
 
 const props = defineProps({
 	candidate: { type: Object, required: true },
@@ -14,6 +21,7 @@ const props = defineProps({
 const page = usePage();
 const fr = computed(() => page.props.locale === 'fr');
 const prefix = computed(() => fr.value ? '/fr' : '');
+const inApp = computed(() => isAppPath(page.url));
 const text = (en, french) => fr.value ? french : en;
 const experience = computed(() => {
 	const years = props.candidate.experience_years;
@@ -35,9 +43,9 @@ const preview = computed(() => ({
 </script>
 
 <template>
-	<PublicLayout>
+	<div>
 		<div class="public-container max-w-6xl! py-12">
-			<nav class="text-sm text-slate-600" :aria-label="text('Breadcrumb', 'Fil d’Ariane')"><Link :href="`${prefix}/candidates`" class="hover:text-brand">{{ text('Candidate profiles', 'Profils de candidats') }}</Link> <span aria-hidden="true">/</span> <span class="text-navy">{{ candidate.name }}</span></nav>
+			<nav class="text-sm text-slate-600" :aria-label="text('Breadcrumb', 'Fil d’Ariane')"><Link v-if="inApp" :href="route('talent.index')" class="hover:text-brand">Talent</Link><Link v-else :href="`${prefix}/candidates`" class="hover:text-brand">{{ text('Candidate profiles', 'Profils de candidats') }}</Link> <span aria-hidden="true">/</span> <span class="text-navy">{{ candidate.name }}</span></nav>
 
 			<p v-if="status !== 'approved'" class="mt-6 rounded-xl bg-[#fef3c7] px-5 py-3.5 text-sm font-semibold text-[#92400e]" role="status">{{ preview }}</p>
 
@@ -74,8 +82,8 @@ const preview = computed(() => ({
 					<section v-if="candidate.contact" class="bg-white border border-line rounded-2xl p-6" aria-labelledby="contact-title">
 						<h2 id="contact-title" class="font-display text-lg font-semibold">{{ text('Contact', 'Contact') }}</h2>
 						<ul class="mt-4 grid gap-3 text-[15px]">
-							<li><a :href="`mailto:${candidate.contact.email}`" class="flex items-center gap-2.5 font-semibold text-blue-700 hover:underline min-w-0"><span class="icon"><Mail :size="16" aria-hidden="true" /></span><span class="break-all">{{ candidate.contact.email }}</span></a></li>
-							<li v-if="candidate.contact.phone_number"><a :href="`tel:${candidate.contact.phone_number.replace(/\s+/g, '')}`" class="flex items-center gap-2.5 font-semibold text-blue-700 hover:underline"><span class="icon"><Phone :size="16" aria-hidden="true" /></span>{{ candidate.contact.phone_number }}</a></li>
+							<li><a :href="`mailto:${candidate.contact.email}`" class="flex items-center gap-2.5 font-semibold text-blue-700 hover:underline min-w-0"><span class="grid size-[34px] shrink-0 place-items-center rounded-[10px] bg-blue-50"><Mail :size="16" aria-hidden="true" /></span><span class="break-all">{{ candidate.contact.email }}</span></a></li>
+							<li v-if="candidate.contact.phone_number"><a :href="`tel:${candidate.contact.phone_number.replace(/\s+/g, '')}`" class="flex items-center gap-2.5 font-semibold text-blue-700 hover:underline"><span class="grid size-[34px] shrink-0 place-items-center rounded-[10px] bg-blue-50"><Phone :size="16" aria-hidden="true" /></span>{{ candidate.contact.phone_number }}</a></li>
 						</ul>
 					</section>
 
@@ -86,9 +94,5 @@ const preview = computed(() => ({
 				</aside>
 			</div>
 		</div>
-	</PublicLayout>
+	</div>
 </template>
-
-<style scoped>
-.icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: #eef4ff; flex-shrink: 0; }
-</style>

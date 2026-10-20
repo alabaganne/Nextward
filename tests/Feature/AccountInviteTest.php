@@ -25,7 +25,7 @@ class AccountInviteTest extends TestCase
             'name' => 'Invited Company',
             'email' => 'invited-company@example.com',
             'website' => 'https://invited.example.com',
-        ])->assertRedirect(route('companies.index'));
+        ])->assertRedirect(route('app.companies.index'));
 
         foreach (['invited-candidate@example.com', 'invited-company@example.com'] as $email) {
             $user = User::where('email', $email)->firstOrFail();

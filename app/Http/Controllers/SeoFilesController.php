@@ -8,7 +8,7 @@ use App\Support\PublicSeo;
 
 class SeoFilesController extends Controller
 {
-    private const PRIVATE_PATHS = ['/dashboard', '/messages', '/applications', '/settings', '/profile', '/likes', '/saved', '/notifications', '/admin', '/alerts/', '/students', '/fields', '/skills', '/password'];
+    private const PRIVATE_PATHS = ['/app/', '/dashboard', '/messages', '/applications', '/settings', '/profile', '/likes', '/saved', '/notifications', '/admin', '/alerts/', '/students', '/fields', '/skills', '/password'];
 
     public function robots()
     {

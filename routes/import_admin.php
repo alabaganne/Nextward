@@ -3,7 +3,7 @@
 use App\Http\Controllers\ImportAdminController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'admin'])->prefix('admin/imports')->group(function () {
+Route::middleware(['auth', 'admin'])->prefix('app/admin/imports')->group(function () {
     Route::get('/', [ImportAdminController::class, 'index'])->name('imports.index');
     Route::get('/sources', [ImportAdminController::class, 'sources'])->name('imports.sources.index');
     Route::get('/review', [ImportAdminController::class, 'review'])->name('imports.review');

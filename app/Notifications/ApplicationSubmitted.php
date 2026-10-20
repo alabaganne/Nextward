@@ -84,7 +84,7 @@ class ApplicationSubmitted extends Notification implements ShouldQueue
         return [
             'title' => "{$this->application->candidate->user->name}'s Application",
             'body' => "<span>{$candidateName}</span> has applied to <span>{$opportunityTitle}</span>.",
-            'action' => "/applications/{$this->application->id}"
+            'action' => route('applications.show', $this->application->id, false)
         ];
     }
 

@@ -1,0 +1,27 @@
+/* Article body. The HTML comes from Markdown, so it can't carry Tailwind classes. */
+@layer components {
+	.nw-prose { font-size: 18px; line-height: 1.8; color: #334155; }
+	.nw-prose > * + * { margin-top: 1.25em; }
+	.nw-prose h2 { margin-top: 2.2em; font-family: var(--font-display); font-size: 27px; font-weight: 600; line-height: 1.3; letter-spacing: -.03em; color: var(--color-navy); scroll-margin-top: 110px; }
+	.nw-prose h3 { margin-top: 1.8em; font-family: var(--font-display); font-size: 21px; font-weight: 600; line-height: 1.4; letter-spacing: -.02em; color: var(--color-navy); scroll-margin-top: 110px; }
+	.nw-prose h2 + *, .nw-prose h3 + * { margin-top: .75em; }
+	.nw-prose > :first-child { margin-top: 0; }
+	.nw-prose a { color: var(--color-brand); font-weight: 600; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+	.nw-prose a:hover { color: var(--color-brand-dark); }
+	.nw-prose strong { color: var(--color-navy); font-weight: 600; }
+	.nw-prose ul, .nw-prose ol { padding-left: 1.4em; }
+	.nw-prose ul { list-style: disc; }
+	.nw-prose ol { list-style: decimal; }
+	.nw-prose li + li { margin-top: .45em; }
+	.nw-prose li::marker { color: var(--color-brand); }
+	.nw-prose blockquote { background: #eef4ff; border-radius: 14px; padding: 18px 22px; color: var(--color-navy); }
+	.nw-prose code { font-size: .9em; background: #eef2f7; border-radius: 6px; padding: 2px 6px; }
+	.nw-prose hr { border: 0; border-top: 1px solid var(--color-line); margin-block: 2.5em; }
+	.nw-prose table { width: 100%; border-collapse: collapse; font-size: 15px; line-height: 1.6; display: block; overflow-x: auto; }
+	.nw-prose th, .nw-prose td { border: 1px solid var(--color-line); padding: 10px 12px; text-align: left; vertical-align: top; }
+	.nw-prose th { background: #f6f8fc; color: var(--color-navy); font-weight: 600; }
+	@media (max-width: 767px) {
+		.nw-prose { font-size: 17px; }
+		.nw-prose h2 { font-size: 23px; }
+	}
+}

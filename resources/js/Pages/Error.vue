@@ -29,7 +29,7 @@ const copy = computed(() => ({
 			<h1 class="font-display text-[28px] font-semibold tracking-[-.02em] leading-tight mt-2">{{ copy.title }}</h1>
 			<p class="text-muted text-[15px] mt-3">{{ copy.text }}</p>
 			<div class="flex justify-center gap-3 mt-7 flex-wrap">
-				<a v-if="user" href="/dashboard" class="cbtn cbtn-primary h-11 !py-0">{{ text('Go to dashboard', 'Aller à mon espace') }}</a>
+				<a v-if="user" href="/app/dashboard" class="cbtn cbtn-primary h-11 !py-0">{{ text('Go to dashboard', 'Aller à mon espace') }}</a>
 				<a v-else :href="prefix || '/'" class="cbtn cbtn-primary h-11 !py-0">{{ text('Go to home page', 'Retour à l’accueil') }}</a>
 				<a :href="`${prefix}/opportunities`" class="cbtn cbtn-secondary h-11 !py-0">{{ text('Browse opportunities', 'Voir les opportunités') }}</a>
 			</div>

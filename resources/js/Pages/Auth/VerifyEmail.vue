@@ -1,28 +1,26 @@
 <template>
-	<div class="auth-message-icon"><icon name="mail" /></div>
-	<header class="auth-heading">
-		<p class="auth-kicker">Almost there</p>
-		<h1>Check your inbox.</h1>
-		<p>Follow the link in your verification email to confirm your address and get started.</p>
-	</header>
+	<div class="mb-6 flex size-12 items-center justify-center rounded-full border border-[#dce5f8] bg-[#f1f5ff] text-brand"><icon name="mail" class="size-[23px]" /></div>
+	<auth-heading kicker="Almost there" description="Follow the link in your verification email to confirm your address and get started.">Check your inbox.</auth-heading>
 	<auth-feedback :status="verificationLinkSent ? 'A new verification link is on its way. Check your inbox and spam folder.' : ''" :errors="form.errors" />
 	<form @submit.prevent="submit" :aria-busy="form.processing">
-		<p class="auth-hint">Can’t find the email? Check your spam folder, or send a new link below.</p>
-		<breeze-button class="auth-submit-spaced" :disabled="form.processing">{{ form.processing ? 'Sending email…' : 'Resend verification email' }}<icon name="arrow-right" /></breeze-button>
+		<p :class="classes.hint">Can’t find the email? Check your spam folder, or send a new link below.</p>
+		<breeze-button class="mt-7" :disabled="form.processing">{{ form.processing ? 'Sending email…' : 'Resend verification email' }}<icon name="arrow-right" /></breeze-button>
 	</form>
-	<div class="auth-switch"><Link :href="route('logout')" method="post" as="button" class="auth-link focus-ring">Log out</Link></div>
+	<div :class="classes.switchRow"><Link :href="route('logout')" method="post" as="button" :class="classes.link">Log out</Link></div>
 </template>
 
 <script>
 import { useForm } from '@inertiajs/vue3';
 import AuthFeedback from '@/Components/Auth/Feedback.vue';
+import AuthHeading from '@/Components/Auth/Heading.vue';
+import * as classes from '@/Components/Auth/classes';
 import BreezeButton from '@/Components/Breeze/Button.vue';
 import BreezeGuestLayout from '@/Layouts/Guest.vue';
 export default {
 	layout: BreezeGuestLayout,
 
 	components: {
-		BreezeButton, AuthFeedback,
+		BreezeButton, AuthFeedback, AuthHeading,
 	},
 
 	props: {
@@ -31,6 +29,7 @@ export default {
 
 	data() {
 		return {
+			classes: { ...classes },
 			form: useForm()
 		}
 	},

@@ -8,35 +8,36 @@ defineProps({
 	sections: Array,
 });
 // [[text]] marks a detail the owner must fill in before launch.
+const body = 'text-[15.5px] leading-[1.8] text-gray-700';
 const parts = (line) => line.split(/\[\[(.+?)\]\]/).map((text, index) => ({ text, fill: index % 2 === 1 }));
 </script>
 
 <template>
 	<div class="landing">
 		<section aria-labelledby="legal-title" class="hero-dark">
-			<div class="public-container legal-hero">
+			<div class="public-container pt-16 pb-18 max-[900px]:py-10">
 				<p class="landing-label">{{ label }}</p>
-				<h1 id="legal-title" class="hero-title">{{ title }}</h1>
-				<p class="hero-lead">{{ lead }}</p>
-				<p class="legal-updated">{{ updated }}</p>
+				<h1 id="legal-title" class="hero-title text-[length:clamp(40px,4.6vw,64px)]">{{ title }}</h1>
+				<p class="hero-lead max-w-[640px]">{{ lead }}</p>
+				<p class="mt-5 text-[13px] text-mist-2">{{ updated }}</p>
 			</div>
 		</section>
 
-		<div class="public-container legal-grid">
-			<nav :aria-label="tocLabel" class="legal-toc">
-				<p>{{ tocLabel }}</p>
-				<ol>
-					<li v-for="section in sections" :key="section.id"><a :href="`#${section.id}`" class="focus-ring">{{ section.title }}</a></li>
+		<div class="public-container grid grid-cols-[240px_minmax(0,1fr)] gap-16 pt-16 pb-24 max-[900px]:grid-cols-1 max-[900px]:gap-10 max-[900px]:pt-11 max-[900px]:pb-18">
+			<nav :aria-label="tocLabel" class="sticky top-[104px] self-start max-[900px]:static max-[900px]:rounded-[14px] max-[900px]:border max-[900px]:border-line max-[900px]:p-[18px]">
+				<p class="text-[11px] font-semibold tracking-[.15em] text-subtle-2 uppercase">{{ tocLabel }}</p>
+				<ol class="mt-3.5 grid gap-0.5">
+					<li v-for="section in sections" :key="section.id"><a :href="`#${section.id}`" class="focus-ring block rounded-lg px-2.5 py-1.5 text-[13.5px] leading-[1.5] text-subtle transition-colors duration-150 hover:bg-pale hover:text-brand">{{ section.title }}</a></li>
 				</ol>
 			</nav>
-			<div class="legal-body">
-				<section v-for="section in sections" :id="section.id" :key="section.id" :aria-labelledby="`${section.id}-title`">
-					<h2 :id="`${section.id}-title`">{{ section.title }}</h2>
+			<div class="max-w-[720px]">
+				<section v-for="(section, sectionIndex) in sections" :id="section.id" :key="section.id" class="scroll-mt-24" :class="{ 'mt-11 border-t border-line pt-10': sectionIndex > 0 }" :aria-labelledby="`${section.id}-title`">
+					<h2 :id="`${section.id}-title`" class="font-display text-[24px] font-semibold tracking-[-.03em]">{{ section.title }}</h2>
 					<template v-for="(block, index) in section.body" :key="index">
-						<ul v-if="Array.isArray(block)">
-							<li v-for="item in block" :key="item"><template v-for="(part, i) in parts(item)" :key="i"><mark v-if="part.fill" class="legal-fill">{{ part.text }}</mark><template v-else>{{ part.text }}</template></template></li>
+						<ul v-if="Array.isArray(block)" class="mt-3.5 grid list-disc gap-2 pl-5 marker:text-brand">
+							<li v-for="item in block" :key="item" :class="body"><template v-for="(part, i) in parts(item)" :key="i"><mark v-if="part.fill" class="rounded-[4px] border border-dashed border-[#d97706] bg-[#fef3c7] px-1.5 py-px font-semibold text-[#78350f] box-decoration-clone">{{ part.text }}</mark><template v-else>{{ part.text }}</template></template></li>
 						</ul>
-						<p v-else><template v-for="(part, i) in parts(block)" :key="i"><mark v-if="part.fill" class="legal-fill">{{ part.text }}</mark><template v-else>{{ part.text }}</template></template></p>
+						<p v-else class="mt-3.5" :class="body"><template v-for="(part, i) in parts(block)" :key="i"><mark v-if="part.fill" class="rounded-[4px] border border-dashed border-[#d97706] bg-[#fef3c7] px-1.5 py-px font-semibold text-[#78350f] box-decoration-clone">{{ part.text }}</mark><template v-else>{{ part.text }}</template></template></p>
 					</template>
 				</section>
 				<slot />
@@ -44,30 +45,3 @@ const parts = (line) => line.split(/\[\[(.+?)\]\]/).map((text, index) => ({ text
 		</div>
 	</div>
 </template>
-
-<style scoped>
-.legal-hero { padding-block: 64px 72px; }
-.legal-hero .hero-title { font-size: clamp(40px, 4.6vw, 64px); }
-.legal-hero .hero-lead { max-width: 640px; }
-.legal-updated { margin-top: 20px; font-size: 13px; color: #a9b4c8; }
-.legal-grid { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 64px; padding-block: 64px 96px; }
-.legal-toc { position: sticky; top: 104px; align-self: start; }
-.legal-toc p { font-size: 11px; font-weight: 600; letter-spacing: .15em; text-transform: uppercase; color: #67707e; }
-.legal-toc ol { margin-top: 14px; display: grid; gap: 2px; }
-.legal-toc a { display: block; padding: 6px 10px; border-radius: 8px; font-size: 13.5px; line-height: 1.5; color: #586171; transition: background 150ms, color 150ms; }
-.legal-toc a:hover { background: #f6f8fc; color: var(--color-brand); }
-.legal-body { max-width: 720px; }
-.legal-body section { scroll-margin-top: 96px; }
-.legal-body section + section { margin-top: 44px; padding-top: 40px; border-top: 1px solid var(--color-line); }
-.legal-body h2 { font-family: var(--font-display); font-size: 24px; font-weight: 600; letter-spacing: -.03em; }
-.legal-body p, .legal-body li { font-size: 15.5px; line-height: 1.8; color: #334155; }
-.legal-body p { margin-top: 14px; }
-.legal-body ul { margin-top: 14px; display: grid; gap: 8px; padding-left: 20px; list-style: disc; }
-.legal-body li::marker { color: var(--color-brand); }
-.legal-fill { padding: 1px 6px; border: 1px dashed #d97706; border-radius: 4px; background: #fef3c7; color: #78350f; font-weight: 600; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
-@media (max-width: 899px) {
-	.legal-grid { grid-template-columns: 1fr; gap: 40px; padding-block: 44px 72px; }
-	.legal-toc { position: static; padding: 18px; border: 1px solid var(--color-line); border-radius: 14px; }
-	.legal-hero { padding-block: 40px; }
-}
-</style>

@@ -237,7 +237,7 @@ sudo -u nextward php artisan nextward:make-admin you@example.com
 
 It asks for a name and a password (typed hidden) and marks the email as confirmed. An admin must have no student/company profile under the current `User::isAdmin()` rules, so the command refuses accounts that have one. On updates, keep the existing admin account.
 
-Open `/admin/imports` to configure sources. Start with approved permission evidence, correct allowed domains, a supported provider, review mode and small request limits. Follow [the import instructions](README.md#approved-sources-and-import-operation). A real seed listing does not by itself establish that its source is ready for recurring scraping. Dry-run imports still make network requests.
+Open `/app/admin/imports` to configure sources. Start with approved permission evidence, correct allowed domains, a supported provider, review mode and small request limits. Follow [the import instructions](README.md#approved-sources-and-import-operation). A real seed listing does not by itself establish that its source is ready for recurring scraping. Dry-run imports still make network requests.
 
 Enable email digests only after consent and unsubscribe delivery are checked with controlled accounts. Google indexing is optional; configure it separately using [the indexing instructions](README.md#optional-google-indexing-api). Sitemaps and normal crawling work without the API.
 

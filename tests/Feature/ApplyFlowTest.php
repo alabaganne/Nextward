@@ -29,7 +29,7 @@ class ApplyFlowTest extends TestCase
         })->firstOrFail();
 
         $this->actingAs($candidate)
-            ->post("/opportunities/{$opportunity->id}/apply", [
+            ->post("/app/opportunities/{$opportunity->id}/apply", [
                 'cover_letter' => str_repeat('I care about this role and can contribute from week one. ', 5),
                 'message' => str_repeat('Available to start immediately and happy to talk. ', 3),
             ])
@@ -48,7 +48,7 @@ class ApplyFlowTest extends TestCase
         $companyUser = $application->company->user;
 
         $this->actingAs($companyUser)
-            ->post("/applications/{$application->id}", ['status' => 'offer'])
+            ->post("/app/applications/{$application->id}", ['status' => 'offer'])
             ->assertRedirect();
 
         $this->assertSame('offer', $application->fresh()->status);
@@ -62,7 +62,7 @@ class ApplyFlowTest extends TestCase
             ->firstOrFail();
 
         $this->actingAs($candidate)
-            ->delete("/applications/{$application->id}")
+            ->delete("/app/applications/{$application->id}")
             ->assertRedirect();
 
         $this->assertDatabaseMissing('applications', ['id' => $application->id]);

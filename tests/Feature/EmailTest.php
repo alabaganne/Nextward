@@ -74,13 +74,13 @@ class EmailTest extends TestCase
         $user->forceFill(['email_verified_at' => null])->save();
         $opportunity = Opportunity::where('application_mode', 'internal')->firstOrFail();
 
-        $this->actingAs($user)->get("/opportunities/{$opportunity->id}/apply")->assertRedirect(route('verification.notice'));
-        $this->actingAs($user)->post("/opportunities/{$opportunity->id}/apply", ['cover_letter' => 'Hello'])->assertRedirect(route('verification.notice'));
-        $this->actingAs($user)->post('/messages', ['to_id' => $opportunity->company->user->id, 'text' => 'Hello'])->assertRedirect(route('verification.notice'));
-        $this->actingAs($user)->post('/saved-searches', ['name' => 'Laravel'])->assertRedirect(route('verification.notice'));
+        $this->actingAs($user)->get("/app/opportunities/{$opportunity->id}/apply")->assertRedirect(route('verification.notice'));
+        $this->actingAs($user)->post("/app/opportunities/{$opportunity->id}/apply", ['cover_letter' => 'Hello'])->assertRedirect(route('verification.notice'));
+        $this->actingAs($user)->post('/app/messages', ['to_id' => $opportunity->company->user->id, 'text' => 'Hello'])->assertRedirect(route('verification.notice'));
+        $this->actingAs($user)->post('/app/saved-searches', ['name' => 'Laravel'])->assertRedirect(route('verification.notice'));
 
         $this->assertSame(0, Message::where('from_id', $user->id)->where('text', 'Hello')->count());
-        $this->actingAs($user)->get('/dashboard')->assertOk();
+        $this->actingAs($user)->get('/app/dashboard')->assertOk();
     }
 
     public function test_resetting_the_password_also_confirms_the_email(): void
@@ -173,8 +173,8 @@ class EmailTest extends TestCase
         $company = $application->company->user;
         $candidateUser = $application->candidate->user;
 
-        $this->actingAs($company)->post('/messages', ['to_id' => $candidateUser->id, 'text' => 'Are you free on Tuesday?'])->assertRedirect();
-        $this->actingAs($company)->post('/messages', ['to_id' => $candidateUser->id, 'text' => 'Or Wednesday?'])->assertRedirect();
+        $this->actingAs($company)->post('/app/messages', ['to_id' => $candidateUser->id, 'text' => 'Are you free on Tuesday?'])->assertRedirect();
+        $this->actingAs($company)->post('/app/messages', ['to_id' => $candidateUser->id, 'text' => 'Or Wednesday?'])->assertRedirect();
 
         Notification::assertSentToTimes($candidateUser, MessageReceived::class, 1);
     }

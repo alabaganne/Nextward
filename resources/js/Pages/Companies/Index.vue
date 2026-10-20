@@ -26,7 +26,7 @@ const reload = () => {
 	const query = {};
 	if (search.value.trim()) query.search = search.value.trim();
 	if (hiring.value) query.hiring = 1;
-	router.get(route('companies.index'), query, { preserveState: true, preserveScroll: true, replace: true });
+	router.get(route('app.companies.index'), query, { preserveState: true, preserveScroll: true, replace: true });
 };
 watch(search, () => {
 	clearTimeout(timer);

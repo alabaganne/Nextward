@@ -18,8 +18,9 @@ User-approved designs and implemented components take precedence over prototypes
 
 `vite.config.js` is the sole Vite configuration. It uses `laravel-vite-plugin`,
 `@vitejs/plugin-vue`, and `@tailwindcss/vite`, with entrypoints
-`resources/css/app.css` and `resources/js/app.js`. Use `npm run dev` for HMR and
-`npm run build` for production assets.
+`resources/css/app.css` and `resources/js/app.js`. Use `npm run dev` for the whole
+local stack with HMR (`npm run dev:vite` for Vite alone) and `npm run build` for
+production assets.
 
 Tailwind 4 tokens live in the `@theme` block of `resources/css/app.css`. Add shared
 workspace tokens there rather than introducing `tailwind.config.js`, a Tailwind 3
@@ -28,7 +29,9 @@ PostCSS pipeline, runtime Play CDN scripts, or a second Vite config.
 ```css
 /* resources/css/app.css */
 @import 'tailwindcss';
-@import './custom.css' layer(components);
+@import './fonts.css';
+@import './elements.css' layer(components);
+@import './public.css' layer(components);
 @import './workspace.css' layer(components);
 @plugin '@tailwindcss/forms';
 
@@ -51,12 +54,30 @@ Inter, Space Grotesk, and Plus Jakarta Sans are self-hosted: woff2 files in
 `app.css`). No font is loaded from Google. `AppShell` uses `font-body` for workspace text. Public/auth pages use Inter through
 `font-sans`; all share `font-display` for headings.
 
-### 1c. Shared component CSS and icons
+### 1c. Where styles go
 
-Workspace patterns (`.fld`, messages bubbles, chips) live in
-`resources/css/workspace.css`. `custom.css` retains compatibility helpers and
-imports `public.css`; `Guest.vue` loads `auth.css`. Keep workspace additions from
-changing the approved public/auth forms and spacing.
+Style with Tailwind classes in the template first. A class list used several times
+in one component goes in a constant or helper in its script (see `navItem` in
+`AppSidebar.vue` or `Components/Auth/classes.js` for the sign-in pages). Plain CSS is
+for what Tailwind can't do well, and it lives next to the component that uses it:
+a short `<style>` block, or a file with the component's name when it is long
+(`Pages/Blog/Show.css` styles article HTML that comes from Markdown).
+
+`resources/css/` keeps only what several components share:
+
+| File | Holds |
+|---|---|
+| `app.css` | Tailwind setup, theme tokens, the `menu-pop` animation, the `short-screen` variant |
+| `elements.css` | Defaults for focus outlines, labels and form fields |
+| `public.css` | Public page classes: container, buttons (`.cta`), sections, hero, mascot stage, search field, chips, guide grid, FAQ |
+| `workspace.css` | Workspace classes: `.cbtn`, `.icon-btn`, `.fld`, `.ck` |
+| `fonts.css` | Self-hosted `@font-face` rules |
+| `cv.css` | Resume and letter PDFs, inlined by `CvPdf`, not part of the site bundle |
+
+When a shared class ends up used by one component only, move it into that
+component. Use px breakpoints (`max-[1024px]:`, `max-[768px]:`). Tailwind sorts
+named breakpoints (`max-lg:`) after px ones, so mixing them on one element lets the
+wider rule win on phones.
 
 Use `Shared/Icon.vue` / `@heroicons/vue` for public/auth icons and named
 `@lucide/vue` components for workspace icons. Do not handwrite SVG paths or embed
@@ -118,6 +139,10 @@ The application is on Vue 3 and Inertia 3. Existing workspace pages use
 `defineOptions({ layout: (h, page) => h(AppShell, { active: '…' }, () => page) })`.
 The app resolver also defaults pages to `AppShell`. Public/auth pages assign their
 own layouts. Match the existing page's pattern and avoid nested layout chrome.
+Signed-in routes live under `/app` and only those render `AppShell`. Pages shared by
+both sides (`Opportunities/Index`, `Opportunities/Show`) use `opportunityLayout`,
+which picks `AppShell` for `/app` URLs and `Public` otherwise; inside `/app`, use
+`appPath()` from `utils/url.js` so listing and company links stay in the workspace.
 
 ### `AppSidebar.vue` / `AppTopbar.vue`
 Port the markup from `tailwind/workspace-shell.js` (`navMarkup` / `topbarMarkup`).
@@ -131,6 +156,32 @@ button opens and closes it, it opens on its own when `active` is one of its page
 (`imports.sources`, `imports.review` and so on), and it shows the summed badge
 while closed. Child links use `.nav-child`: indented under the group label, the
 same flat tint when active, no side bars.
+
+Credits are not a sidebar item. With billing on, candidates see their balance as a
+pill in the topbar (`CreditsMenu.vue`, blue tint, amber at 0). Hovering it, or
+clicking or tapping it, opens a panel with the balance, what a credit pays for, the
+next free monthly credits (or a nudge to verify the email) and a button to the
+Credits page (`#packs`) labelled "Buy more credits". During the beta
+(`billing.beta`) it also has a beta note and a "Get 100 free credits" button that
+works every time it is pressed. The Credits page shows the
+packs greyed out (`grayscale`, low opacity, `inert`) under a grey overlay with a
+white card: a lock in a rounded square and "Payments are coming soon".
+
+### CV editor (`CvStudio.vue`)
+
+The kit page (`Kits/Show`) and the resume editor (`Resumes/Show`) share one
+full-height layout (`AppShell` with `fill`): a header bar with the title and
+actions, then three panes that each scroll on their own and no max width. On the
+left, the sections (Design, Name & contact, About, Experience, Education,
+Projects, Skills, Languages, and Cover letter on kits), shown as icons only below
+1400px. In the middle, one section at a time (`CvEditor` with a `section` prop),
+with previous and next links. On the right, the preview on a grey background,
+with each printed page drawn as its own sheet (no dashed break lines). Below
+1280px the sections become a scrolling row of tabs and a Preview button swaps the
+editor for the preview. Entries (roles, schools, projects) open one at a time and
+can be moved up or down; skills and languages are chips; bullet points are one box
+each (Enter adds the next). Ctrl+S saves, and leaving with unsaved changes asks
+first (`utils/editor.js`). PDF downloads on kits save first.
 
 ### `Public.vue` and `Guest.vue`
 

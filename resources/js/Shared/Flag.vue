@@ -1,11 +1,12 @@
 <script setup>
 import { useId } from 'vue';
+// Callers set the size and outline colour.
 defineProps({ code: { type: String, required: true } });
 const id = useId();
 </script>
 
 <template>
-	<span class="flag" aria-hidden="true">
+	<span class="inline-flex shrink-0 overflow-hidden rounded-full outline-1 -outline-offset-1 [&>svg]:size-full" aria-hidden="true">
 		<svg v-if="code === 'fr'" viewBox="0 0 3 2" preserveAspectRatio="xMidYMid slice"><path fill="#002654" d="M0 0h1v2H0z" /><path fill="#fff" d="M1 0h1v2H1z" /><path fill="#ce1126" d="M2 0h1v2H2z" /></svg>
 		<svg v-else viewBox="0 0 60 30" preserveAspectRatio="xMidYMid slice">
 			<clipPath :id="`${id}-s`"><path d="M0 0v30h60V0z" /></clipPath>
@@ -20,8 +21,3 @@ const id = useId();
 		</svg>
 	</span>
 </template>
-
-<style scoped>
-.flag { display: inline-flex; flex-shrink: 0; width: 20px; height: 20px; overflow: hidden; border-radius: 50%; outline: 1px solid rgb(10 23 56 / .12); outline-offset: -1px; }
-.flag svg { width: 100%; height: 100%; }
-</style>

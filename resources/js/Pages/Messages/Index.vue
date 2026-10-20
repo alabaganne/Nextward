@@ -107,8 +107,8 @@ onMounted(() => {
 				<button
 					v-for="contact in visibleContacts"
 					:key="contact.id"
-					class="conv w-full text-left"
-					:class="{ active: contact.id === selectedContact?.id }"
+					class="flex w-full cursor-pointer gap-3 border-b border-line-2 py-3.5 pr-[18px] pl-[21px] text-left transition-colors hover:bg-paper-2"
+					:class="{ 'bg-blue-50': contact.id === selectedContact?.id }"
 					type="button"
 					@click="pick(contact)"
 				>
@@ -119,7 +119,7 @@ onMounted(() => {
 							<span class="text-[11.5px] text-muted-2 shrink-0 font-medium">{{ contact.latest_message?.created_at }}</span>
 						</span>
 						<span class="block text-xs text-blue-700 font-semibold my-px mb-1 capitalize">{{ contact.userable_type }}</span>
-						<span class="block prev" :class="{ unread: isUnread(contact) }">{{ contact.latest_message?.text }}</span>
+						<span class="block overflow-hidden text-[13px] leading-[1.4] text-ellipsis whitespace-nowrap" :class="isUnread(contact) ? 'font-semibold text-ink' : 'text-muted'">{{ contact.latest_message?.text }}</span>
 					</span>
 				</button>
 				<div v-if="!visibleContacts.length" class="px-5 py-8 text-[14px] text-muted">No conversations yet.</div>
@@ -141,9 +141,9 @@ onMounted(() => {
 				<div
 					v-for="message in selectedContact.messages || []"
 					:key="message.id"
-					class="bubble"
-					:class="message.from_id === me?.id ? 'me' : 'them'"
-				>{{ message.text }}<span class="time">{{ message.created_at }}</span></div>
+					class="mb-[3px] max-w-[64%] rounded-2xl px-[15px] py-[11px] text-[14.5px] leading-[1.5]"
+					:class="message.from_id === me?.id ? 'self-end rounded-br-[5px] bg-blue-600 text-white' : 'self-start rounded-bl-[5px] border border-line bg-white text-ink-700'"
+				>{{ message.text }}<span class="mt-[5px] block text-[10.5px] font-medium opacity-70" :class="{ 'text-right': message.from_id === me?.id }">{{ message.created_at }}</span></div>
 			</div>
 
 			<p v-if="form.errors.text || form.errors.to_id || sendError" class="shrink-0 bg-white px-6 pt-3 text-[13.5px] text-red-700" role="alert">{{ form.errors.text || form.errors.to_id || sendError }}</p>

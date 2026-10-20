@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class RegistrationTest extends TestCase
@@ -15,6 +16,8 @@ class RegistrationTest extends TestCase
         $response = $this->get('/register');
 
         $response->assertStatus(200);
+        // No Tunisian city list and no username on sign-up; people pick a username later in Settings.
+        $response->assertInertia(fn (Assert $page) => $page->has('fields')->missing('cities'));
     }
 
     public function test_new_users_can_register()

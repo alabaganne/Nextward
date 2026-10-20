@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\City;
 use App\Models\Company;
 use App\Models\Field;
 use App\Models\Candidate;
@@ -24,7 +23,6 @@ class RegisteredUserController extends Controller
     public function create(Request $request)
     {
         return Inertia::render('Auth/Register', [
-            'cities' => City::select('id', 'name')->orderBy('name')->get(),
             'fields' => Field::select('id', 'name')->orderBy('name')->get(),
             'accountType' => $request->query('account') === 'company' ? 'company' : 'candidate',
         ]);
@@ -52,7 +50,6 @@ class RegisteredUserController extends Controller
             'password' => 'required|string|confirmed|min:8',
             'phone_number' => 'nullable|string|max:255|unique:users,phone_number',
             'linkedin_profile_url' => 'nullable|url|max:255',
-            'city_id' => 'nullable|exists:cities,id',
             'field_id' => 'nullable|exists:fields,id',
             'country_code' => 'nullable|string|size:2|regex:/^[A-Z]{2}$/',
             'location' => 'nullable|string|max:255',
@@ -89,14 +86,12 @@ class RegisteredUserController extends Controller
                     'name' => $data['name'],
                     'website' => $data['website'],
                     'about' => $data['about'],
-                    'city_id' => $data['city_id'] ?? null,
                     'country_code' => $data['country_code'] ?? null,
                     'location' => $data['location'] ?? null,
                 ])
                 : Candidate::create([
                     'about' => $data['about'] ?? null,
                     'field_id' => $data['field_id'] ?? null,
-                    'city_id' => $data['city_id'] ?? null,
                     'country_code' => $data['country_code'] ?? null,
                     'location' => $data['location'] ?? null,
                     'preferences' => $data['preferences'] ?? [],

@@ -16,6 +16,12 @@ class PublicSeo
             && ! $request->routeIs('fr.login*', 'fr.register*', 'fr.password.*');
     }
 
+    // The /app copy of a public page keeps its title but stays out of search engines.
+    public static function workspace(array $seo): array
+    {
+        return [...$seo, 'robots' => 'noindex, nofollow', 'alternates' => [], 'structured_data' => []];
+    }
+
     public static function forRequest(Request $request): array
     {
         $fr = $request->is('fr', 'fr/*');

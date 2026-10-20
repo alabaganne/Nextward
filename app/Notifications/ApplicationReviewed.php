@@ -93,7 +93,7 @@ class ApplicationReviewed extends Notification implements ShouldQueue
         return [
             'title' => "{$this->application->company->display_name}'s Reply",
             'body' => "<span>{$companyName}</span> has reviewed your application for <span>{$opportunityTitle}</span>.",
-            'action' => "/applications/{$this->application->id}",
+            'action' => route('applications.show', $this->application->id, false),
         ];
     }
 

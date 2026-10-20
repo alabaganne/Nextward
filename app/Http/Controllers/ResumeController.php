@@ -246,7 +246,7 @@ class ResumeController extends Controller
 
     public static function noCredits()
     {
-        return response()->json(['message' => 'You have no credits left. Buy a pack to keep using the AI tools.', 'billing_url' => route('billing.index')], 402);
+        return response()->json(['message' => 'You have no credits left. Get more to keep using the AI tools.', 'billing_url' => route('billing.index')], 402);
     }
 
     private function detail(Resume $resume): array

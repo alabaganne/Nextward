@@ -42,14 +42,14 @@ class PublicCandidateProfileTest extends TestCase
         Notification::fake();
         $url = $this->candidate()->publicUrl();
 
-        $this->actingAs($this->candidateUser->fresh())->put('/profile/public', ['public' => true])->assertRedirect();
+        $this->actingAs($this->candidateUser->fresh())->put('/app/profile/public', ['public' => true])->assertRedirect();
         $this->assertSame('pending', $this->candidate()->public_status);
 
         auth()->logout();
         $this->get($url)->assertNotFound();
         $this->get('/candidates')->assertOk()->assertInertia(fn (Assert $page) => $page->component('Candidates/Directory')->has('candidates.data', 0));
 
-        $this->actingAs($this->admin)->post("/candidates/{$this->candidate()->id}/public-profile", ['decision' => 'approve'])->assertRedirect();
+        $this->actingAs($this->admin)->post("/app/candidates/{$this->candidate()->id}/public-profile", ['decision' => 'approve'])->assertRedirect();
         $this->assertSame('approved', $this->candidate()->public_status);
         Notification::assertSentTo($this->candidateUser, PublicProfileReviewed::class);
 
@@ -72,13 +72,13 @@ class PublicCandidateProfileTest extends TestCase
     {
         $this->candidate()->forceFill(['public_status' => 'pending', 'public_contact' => true])->save();
 
-        $this->actingAs($this->candidateUser->fresh())->get('/profile')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->actingAs($this->candidateUser->fresh())->get('/app/profile')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('Profile/Show')
             ->where('profile.public_status', 'pending')
             ->where('profile.public_contact', true)
             ->where('profile.public_url', parse_url($this->candidate()->publicUrl(), PHP_URL_PATH))
             ->where('profile.email_verified', true));
-        $this->get('/settings')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->get('/app/settings')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('Settings')
             ->missing('settings.public_status'));
     }
@@ -104,14 +104,70 @@ class PublicCandidateProfileTest extends TestCase
         $company = User::where('email', 'company@example.com')->firstOrFail();
 
         foreach ([$this->admin, $company] as $viewer) {
-            $this->actingAs($viewer)->get('/talent?search=laravel')->assertOk()->assertInertia(fn (Assert $page) => $page
+            $this->actingAs($viewer)->get('/app/talent?search=laravel')->assertOk()->assertInertia(fn (Assert $page) => $page
                 ->component('Talent/Index')
                 ->has('candidates.data', 1)
                 ->where('candidates.data.0.name', 'Ala Baganne'));
         }
-        $this->actingAs($this->admin)->get('/talent?search=nobody-matches-this')->assertOk()
+        $this->actingAs($this->admin)->get('/app/talent?search=nobody-matches-this')->assertOk()
             ->assertInertia(fn (Assert $page) => $page->has('candidates.data', 0));
-        $this->actingAs(User::where('email', 'professional@example.com')->firstOrFail())->get('/talent')->assertForbidden();
+        $this->actingAs(User::where('email', 'professional@example.com')->firstOrFail())->get('/app/talent')->assertForbidden();
+    }
+
+    public function test_talent_cards_open_the_profile_inside_the_workspace(): void
+    {
+        $candidate = $this->candidate();
+        $candidate->forceFill(['public_status' => 'approved'])->save();
+        $slug = $candidate->publicSlug();
+        $company = User::where('email', 'company@example.com')->firstOrFail();
+        $this->get("/app/talent/{$slug}")->assertRedirect('/login');
+        // The public directory links to the public page.
+        $this->get('/candidates')->assertInertia(fn (Assert $page) => $page->where('candidates.data.0.url', "/candidates/{$slug}"));
+
+        $this->actingAs($company)->get('/app/talent')->assertInertia(fn (Assert $page) => $page->where('candidates.data.0.url', "/app/talent/{$slug}"));
+        $this->actingAs($company)->get("/app/talent/{$slug}")->assertOk()
+            ->assertHeader('X-Robots-Tag', 'noindex, nofollow')
+            ->assertInertia(fn (Assert $page) => $page->component('Candidates/Public')
+                ->where('candidate.name', 'Ala Baganne')
+                ->where('seo.robots', 'noindex, nofollow')
+                ->where('translation', null));
+        $this->actingAs($this->admin)->get("/app/talent/{$candidate->id}-old-name")->assertStatus(301)->assertRedirect(route('talent.show', $slug));
+        $this->actingAs(User::where('email', 'professional@example.com')->firstOrFail())->get("/app/talent/{$slug}")->assertForbidden();
+    }
+
+    public function test_a_candidate_picks_a_username_that_becomes_their_profile_link(): void
+    {
+        $candidate = $this->candidate();
+        $candidate->forceFill(['public_status' => 'approved'])->save();
+        $oldLink = "/candidates/{$candidate->id}-ala-baganne";
+        $save = fn (User $user, ?string $username) => $this->actingAs($user)->put('/app/profile', ['name' => $user->name, 'username' => $username]);
+
+        $save($this->candidateUser, '  Ala-Dev ')->assertSessionHasNoErrors();
+        $this->assertSame('ala-dev', $this->candidateUser->fresh()->username);
+        $this->assertSame(url('/candidates/ala-dev'), $this->candidate()->publicUrl());
+        $this->get('/candidates/ala-dev')->assertOk()->assertInertia(fn (Assert $page) => $page->where('candidate.name', 'Ala Baganne'));
+        $this->get('/fr/candidates/ala-dev')->assertOk();
+        $this->get($oldLink)->assertStatus(301)->assertRedirect(url('/candidates/ala-dev'));
+        $this->actingAs($this->candidateUser)->get('/app/settings')->assertInertia(fn (Assert $page) => $page->where('settings.username', 'ala-dev'));
+
+        foreach (['ab', '1ala', 'ala--dev', 'ala_dev', 'manage', 'talent', str_repeat('a', 31)] as $bad) {
+            $save($this->candidateUser, $bad)->assertSessionHasErrors('username');
+        }
+        $this->assertSame('ala-dev', $this->candidateUser->fresh()->username);
+        $admin = $this->admin;
+        $save($admin, 'ala-dev')->assertSessionHasErrors(['username' => 'Someone already uses this username.']);
+        $this->get('/candidates/someone-else')->assertNotFound();
+
+        // Clearing it brings back the {id}-{name} link.
+        $save($this->candidateUser, '')->assertSessionHasNoErrors();
+        $this->assertNull($this->candidateUser->fresh()->username);
+        $this->get($oldLink)->assertOk();
+        $this->get('/candidates/ala-dev')->assertNotFound();
+        // Companies have no candidate profile, so no username either.
+        $company = User::where('email', 'company@example.com')->firstOrFail();
+        $save($company, 'acme')->assertSessionHasErrors('username');
+        // The old workspace link with "manage" still goes to the admin list.
+        $this->actingAs($admin)->get('/candidates/manage')->assertStatus(301)->assertRedirect('/app/candidates/manage');
     }
 
     public function test_public_directory_can_be_searched(): void
@@ -145,7 +201,7 @@ class PublicCandidateProfileTest extends TestCase
         $url = $this->candidate()->publicUrl();
 
         $this->get("{$url}/resume")->assertNotFound();
-        $this->actingAs($this->candidateUser->fresh())->put('/profile/public', ['contact' => true])->assertRedirect();
+        $this->actingAs($this->candidateUser->fresh())->put('/app/profile/public', ['contact' => true])->assertRedirect();
         $this->assertTrue($this->candidate()->public_contact);
         auth()->logout();
 
@@ -163,7 +219,7 @@ class PublicCandidateProfileTest extends TestCase
     {
         $this->candidate()->forceFill(['public_status' => 'approved'])->save();
 
-        $this->actingAs($this->candidateUser->fresh())->put('/profile/public', ['public' => false])->assertRedirect();
+        $this->actingAs($this->candidateUser->fresh())->put('/app/profile/public', ['public' => false])->assertRedirect();
 
         $this->assertNull($this->candidate()->public_status);
         auth()->logout();
@@ -174,7 +230,7 @@ class PublicCandidateProfileTest extends TestCase
     {
         $this->candidate()->forceFill(['public_status' => 'pending'])->save();
 
-        $this->actingAs($this->admin)->post("/candidates/{$this->candidate()->id}/public-profile", ['decision' => 'decline'])->assertRedirect();
+        $this->actingAs($this->admin)->post("/app/candidates/{$this->candidate()->id}/public-profile", ['decision' => 'decline'])->assertRedirect();
 
         $this->assertSame('declined', $this->candidate()->public_status);
         $this->actingAs($this->candidateUser->fresh())->get($this->candidate()->publicUrl())->assertOk()->assertInertia(fn (Assert $page) => $page->where('status', 'declined'));
@@ -187,12 +243,12 @@ class PublicCandidateProfileTest extends TestCase
         $candidate = $this->candidate();
         $company = User::where('email', 'company@example.com')->firstOrFail();
 
-        $this->actingAs($this->admin)->post("/candidates/{$candidate->id}/public-profile", ['decision' => 'approve'])->assertSessionHasErrors('decision');
+        $this->actingAs($this->admin)->post("/app/candidates/{$candidate->id}/public-profile", ['decision' => 'approve'])->assertSessionHasErrors('decision');
         $this->assertNull($this->candidate()->public_status);
 
         $candidate->forceFill(['public_status' => 'pending'])->save();
-        $this->actingAs($this->candidateUser->fresh())->post("/candidates/{$candidate->id}/public-profile", ['decision' => 'approve'])->assertForbidden();
-        $this->actingAs($company)->post("/candidates/{$candidate->id}/public-profile", ['decision' => 'approve'])->assertForbidden();
+        $this->actingAs($this->candidateUser->fresh())->post("/app/candidates/{$candidate->id}/public-profile", ['decision' => 'approve'])->assertForbidden();
+        $this->actingAs($company)->post("/app/candidates/{$candidate->id}/public-profile", ['decision' => 'approve'])->assertForbidden();
         $this->assertSame('pending', $this->candidate()->public_status);
     }
 
@@ -200,7 +256,7 @@ class PublicCandidateProfileTest extends TestCase
     {
         $this->candidateUser->forceFill(['email_verified_at' => null])->save();
 
-        $this->actingAs($this->candidateUser->fresh())->put('/profile/public', ['public' => true])->assertRedirect(route('verification.notice'));
+        $this->actingAs($this->candidateUser->fresh())->put('/app/profile/public', ['public' => true])->assertRedirect(route('verification.notice'));
 
         $this->assertNull($this->candidate()->public_status);
     }
@@ -209,7 +265,7 @@ class PublicCandidateProfileTest extends TestCase
     {
         $this->candidate()->forceFill(['public_status' => 'pending'])->save();
 
-        $this->actingAs($this->admin)->get('/candidates/manage?public=pending')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->actingAs($this->admin)->get('/app/candidates/manage?public=pending')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('Candidates/Index')
             ->where('pending_count', 1)
             ->has('candidates.data', 1)

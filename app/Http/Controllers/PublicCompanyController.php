@@ -11,12 +11,9 @@ use Inertia\Inertia;
 
 class PublicCompanyController extends Controller
 {
-    // Visitors (and the French site) get the public directory; signed-in users keep their workspace page.
+    // Everyone gets the public directory here; signed-in users have the workspace list at /app/companies.
     public function index(Request $request)
     {
-        if ($request->user() && ! $request->is('fr/*')) {
-            return app(CompanyController::class)->index($request);
-        }
         $filters = $request->validate([
             'search' => ['nullable', 'string', 'max:100'],
             'field' => ['nullable', 'integer'],

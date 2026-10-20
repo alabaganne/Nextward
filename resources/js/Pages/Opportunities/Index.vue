@@ -8,24 +8,28 @@ import { router, usePage } from '@inertiajs/vue3';
 import { Bell, ChevronDown, Globe, Search, X } from '@lucide/vue';
 import RoleCard from '@/Components/Opportunity/RoleCard.vue';
 import Pagination from '@/Components/Ui/Pagination.vue';
-const props = defineProps({ opportunities: Object, fields: Array, countries: Array, filters: { type: Object, default: () => ({}) }, category: String, categoryLabel: String });
+import { isAppPath } from '@/utils/url';
+const props = defineProps({ opportunities: Object, fields: Array, skills: { type: Array, default: () => [] }, countries: Array, filters: { type: Object, default: () => ({}) }, category: String, categoryLabel: String });
 const page = usePage();
 const guest = computed(() => !page.props.auth?.user);
 const fr = computed(() => page.props.locale === 'fr');
-const prefix = computed(() => fr.value ? '/fr' : '');
+const inApp = computed(() => isAppPath(page.url));
+const prefix = computed(() => inApp.value ? '/app' : fr.value ? '/fr' : '');
+const publicPrefix = computed(() => fr.value ? '/fr' : '');
 const text = (en, french) => fr.value ? french : en;
 const categories = computed(() => [{ key: '', label: text('All opportunities', 'Toutes les opportunités') }, { key: 'internships', label: text('Internships', 'Stages') }, { key: 'jobs', label: text('Jobs', 'Emplois') }]);
 const heading = computed(() => props.category ? categories.value.find((item) => item.key === props.category)?.label : text('Browse opportunities', 'Explorer les opportunités'));
 const action = computed(() => `${prefix.value}/opportunities${props.category ? `/${props.category}` : ''}`);
-const savedSearchUrl = computed(() => '/saved-searches?' + new URLSearchParams(Object.entries(props.filters).flatMap(([key, value]) => Array.isArray(value) ? value.map((item) => [`${key}[]`, item]) : [[key, value]])).toString() + (props.category ? `&category=${props.category}` : ''));
+const savedSearchUrl = computed(() => '/app/saved-searches?' + new URLSearchParams(Object.entries(props.filters).flatMap(([key, value]) => Array.isArray(value) ? value.map((item) => [`${key}[]`, item]) : [[key, value]])).toString() + (props.category ? `&category=${props.category}` : ''));
 
-const listKeys = ['fields', 'cities', 'companies'];
-const formKeys = ['search', 'kind', 'country', 'work_type', 'seniority', 'posted_within', 'fields', 'worldwide'];
+const listKeys = ['fields', 'skills', 'cities', 'companies'];
+const formKeys = ['search', 'kind', 'country', 'work_type', 'seniority', 'posted_within', 'fields', 'skills', 'worldwide'];
 const first = (value) => String((Array.isArray(value) ? value[0] : value) ?? '');
 const isOn = (value) => [true, 1, '1', 'true'].includes(value);
 function toForm(filters) {
     const values = Object.fromEntries(formKeys.map((key) => [key, first(filters[key])]));
     values.fields = [filters.fields ?? filters.field ?? []].flat().map(String);
+    values.skills = [filters.skills ?? []].flat().map(String);
     values.worldwide = isOn(filters.worldwide);
     return values;
 }
@@ -35,6 +39,8 @@ watch(() => props.filters, (filters) => Object.assign(form, toForm(filters)));
 const extra = computed(() => Object.fromEntries(Object.entries(props.filters).filter(([key]) => ![...formKeys, 'field', 'page'].includes(key))));
 const panel = ref('');
 const toggle = (name) => panel.value = panel.value === name ? '' : name;
+const skillSearch = ref('');
+const allSkills = ref(false);
 
 const option = (value, en, french = en) => ({ value, label: text(en, french) });
 const counted = (items, key) => (items || []).filter((item) => item.opportunities_count || [form[key]].flat().includes(String(item.id))).map((item) => ({ value: String(item.id), label: item.name, count: item.opportunities_count }));
@@ -46,6 +52,7 @@ const options = computed(() => ({
     posted_within: [option('1', 'Last 24 hours', 'Dernières 24 heures'), option('7', 'Last 7 days', '7 derniers jours'), option('30', 'Last 30 days', '30 derniers jours')],
     employment_type: [option('FULL_TIME', 'Full time', 'Temps plein'), option('PART_TIME', 'Part time', 'Temps partiel'), option('CONTRACTOR', 'Contract / freelance', 'Contrat / freelance'), option('TEMPORARY', 'Temporary', 'Temporaire')],
     fields: counted(props.fields, 'fields'),
+    skills: counted(props.skills, 'skills'),
     // Older links and saved searches can still carry these; they show as chips.
     compensation_status: [option('paid', 'Paid', 'Rémunéré'), option('unpaid', 'Unpaid', 'Non rémunéré'), option('unspecified', 'Pay not specified', 'Rémunération non précisée')],
     program_type: [option('pfe', 'PFE'), option('summer', 'Summer internship', 'Stage d’été'), option('apprenticeship', 'Apprenticeship', 'Alternance')],
@@ -58,6 +65,14 @@ const quickFilters = computed(() => [
     { key: 'posted_within', label: text('Posted', 'Publication'), any: text('Any date', 'Toutes les dates') },
 ].filter((item) => item.show !== false && options.value[item.key].length));
 const fieldsLabel = computed(() => form.fields.length > 1 ? text(`${form.fields.length} fields`, `${form.fields.length} domaines`) : form.fields.length ? optionLabel('fields', form.fields[0]) : text('Any field', 'Tous les domaines'));
+const skillsLabel = computed(() => form.skills.length > 1 ? text(`${form.skills.length} skills`, `${form.skills.length} compétences`) : form.skills.length ? optionLabel('skills', form.skills[0]) : text('Any skill', 'Toutes les compétences'));
+// Picked skills first, then the most used. A search looks through all of them.
+const skillChoices = computed(() => {
+    const words = skillSearch.value.trim().toLowerCase();
+    const list = [...options.value.skills].sort((a, b) => form.skills.includes(b.value) - form.skills.includes(a.value));
+    const found = words ? list.filter((item) => item.label.toLowerCase().includes(words)) : list;
+    return words || allSkills.value ? found : found.slice(0, Math.max(24, form.skills.length));
+});
 
 const units = computed(() => ({ hour: text('hour', 'heure'), day: text('day', 'jour'), week: text('week', 'semaine'), month: text('month', 'mois'), year: text('year', 'an') }));
 const languages = { en: 'English', fr: 'Français', ar: 'العربية' };
@@ -69,13 +84,14 @@ const chips = computed(() => {
     const f = props.filters;
     // Filters already visible as controls don't need a chip.
     const shown = ['fields', ...quickFilters.value.map((item) => item.key)];
-    const list = Object.keys(options.value).filter((key) => key !== 'fields' && first(f[key]) && !shown.includes(key)).map((key) => ({ keys: [key], label: optionLabel(key, first(f[key])) }));
+    const list = Object.keys(options.value).filter((key) => !['fields', 'skills'].includes(key) && first(f[key]) && !shown.includes(key)).map((key) => ({ keys: [key], label: optionLabel(key, first(f[key])) }));
     for (const [key, en, french] of [['cities', 'City', 'Ville'], ['companies', 'Employer', 'Employeur']]) {
         const count = [f[key] ?? []].flat().length;
         if (count) list.push({ keys: [key], label: count > 1 ? `${text(en, french)} (${count})` : text(en, french) });
     }
-    // The field button only names one field, so list each one when several are picked.
+    // The field and skill buttons only name one choice, so list each one when several are picked.
     if (applied.fields.length > 1 && panel.value !== 'fields') list.unshift(...applied.fields.map((value) => ({ keys: [`fields-${value}`], label: optionLabel('fields', value), changes: { fields: applied.fields.filter((item) => item !== value) } })));
+    if (applied.skills.length > 1 && panel.value !== 'skills') list.push(...applied.skills.map((value) => ({ keys: [`skills-${value}`], label: optionLabel('skills', value), changes: { skills: applied.skills.filter((item) => item !== value) } })));
     if (f.min_pay != null) list.push({ keys: ['min_pay', 'currency', 'pay_unit'], label: `${text('Pay from', 'À partir de')} ${f.min_pay} ${f.currency || ''}${f.pay_unit ? ` / ${units.value[f.pay_unit] || f.pay_unit}` : ''}` });
     if (f.language) list.push({ keys: ['language'], label: `${text('Listing in', 'Offre en')} ${languages[f.language] || f.language}` });
     if (f.duration_max) list.push({ keys: ['duration_max'], label: text(`Up to ${f.duration_max} weeks`, `${f.duration_max} semaines max.`) });
@@ -101,7 +117,7 @@ function apply(changes = {}) {
 const remove = (chip) => apply(chip.changes ?? Object.fromEntries(chip.keys.map((key) => [key, ''])));
 </script>
 <template>
-    <section :class="guest ? 'bg-white border-b border-line' : ''"><div class="public-container pt-10 pb-7"><p v-if="guest" class="text-sm text-blue-700 font-semibold uppercase tracking-widest">{{ text('Students and professionals', 'Étudiants et professionnels') }}</p><h1 class="font-display text-4xl font-semibold tracking-tight mt-3">{{ heading }}</h1><p v-if="guest" class="text-slate-600 leading-7 mt-4 max-w-3xl">{{ page.props.seo?.description }}</p><nav class="flex gap-2 mt-6 py-1 -mx-5 px-5 overflow-x-auto [scrollbar-width:none] sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible" :aria-label="text('Opportunity categories', 'Catégories d’opportunités')"><Link v-for="item in categories" :key="item.key" :href="`${prefix}/opportunities${item.key ? `/${item.key}` : ''}`" class="shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold border" :class="(category || '') === item.key ? 'bg-blue-600 text-white border-blue-600' : 'border-line hover:border-blue-300'">{{ item.label }}</Link></nav></div></section>
+    <section :class="inApp ? '' : 'bg-white border-b border-line'"><div class="public-container pt-10 pb-7"><p v-if="!inApp" class="text-sm text-blue-700 font-semibold uppercase tracking-widest">{{ text('Students and professionals', 'Étudiants et professionnels') }}</p><h1 class="font-display text-4xl font-semibold tracking-tight mt-3">{{ heading }}</h1><p v-if="!inApp" class="text-slate-600 leading-7 mt-4 max-w-3xl">{{ page.props.seo?.description }}</p><nav class="flex gap-2 mt-6 py-1 -mx-5 px-5 overflow-x-auto [scrollbar-width:none] sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible" :aria-label="text('Opportunity categories', 'Catégories d’opportunités')"><Link v-for="item in categories" :key="item.key" :href="`${prefix}/opportunities${item.key ? `/${item.key}` : ''}`" class="shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold border" :class="(category || '') === item.key ? 'bg-blue-600 text-white border-blue-600' : 'border-line hover:border-blue-300'">{{ item.label }}</Link></nav></div></section>
     <div class="public-container py-8">
         <form :action="action" method="get" role="search" @submit.prevent="apply()">
             <div class="flex gap-3">
@@ -110,6 +126,7 @@ const remove = (chip) => apply(chip.changes ?? Object.fromEntries(chip.keys.map(
             </div>
             <div class="relative flex items-center gap-2 mt-2 py-1 -mx-5 px-5 overflow-x-auto [scrollbar-width:none] sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible">
                 <button v-if="options.fields.length" type="button" class="shrink-0 whitespace-nowrap h-10 inline-flex items-center gap-2 rounded-full border pl-4 pr-3 text-sm font-semibold" :class="panel === 'fields' || form.fields.length ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-line bg-white text-navy hover:border-blue-300'" :aria-expanded="panel === 'fields'" aria-controls="field-filters" @click="toggle('fields')"><span class="sr-only">{{ text('Field', 'Domaine') }}: </span>{{ fieldsLabel }}<ChevronDown class="size-4 transition-transform" :class="panel === 'fields' && 'rotate-180'" aria-hidden="true" /></button>
+                <button v-if="options.skills.length" type="button" class="shrink-0 whitespace-nowrap h-10 inline-flex items-center gap-2 rounded-full border pl-4 pr-3 text-sm font-semibold" :class="panel === 'skills' || form.skills.length ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-line bg-white text-navy hover:border-blue-300'" :aria-expanded="panel === 'skills'" aria-controls="skill-filters" @click="toggle('skills')"><span class="sr-only">{{ text('Skills', 'Compétences') }}: </span>{{ skillsLabel }}<ChevronDown class="size-4 transition-transform" :class="panel === 'skills' && 'rotate-180'" aria-hidden="true" /></button>
                 <label v-for="item in quickFilters" :key="item.key" class="shrink-0"><span class="sr-only">{{ item.label }}</span><select v-model="form[item.key]" :name="listKeys.includes(item.key) ? `${item.key}[]` : item.key" class="h-10 max-w-full rounded-full pl-4 pr-9 text-sm font-semibold" :class="form[item.key] ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-line bg-white text-navy hover:border-blue-300'" @change="apply()"><option value="">{{ item.any }}</option><option v-for="choice in options[item.key]" :key="choice.value" :value="choice.value">{{ choice.label }}</option></select></label>
                 <label class="shrink-0 whitespace-nowrap h-10 inline-flex items-center gap-2 rounded-full border px-4 text-sm font-semibold cursor-pointer has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-600" :class="form.worldwide ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-line bg-white text-navy hover:border-blue-300'" :title="text('Roles people in any country can apply to', 'Offres accessibles depuis n’importe quel pays')"><input v-model="form.worldwide" name="worldwide" type="checkbox" value="1" class="sr-only" @change="apply()" /><Globe class="size-4" aria-hidden="true" />{{ text('Open worldwide', 'Ouvert au monde entier') }}</label>
                 <Link v-if="hasFilters" :href="action" preserve-scroll class="shrink-0 whitespace-nowrap px-2 text-sm font-semibold text-blue-700 hover:underline">{{ text('Clear all', 'Tout effacer') }}</Link>
@@ -118,12 +135,19 @@ const remove = (chip) => apply(chip.changes ?? Object.fromEntries(chip.keys.map(
                 <div class="flex items-center justify-between gap-3"><p id="field-filters-label" class="text-sm font-semibold">{{ text('Field', 'Domaine') }} <span class="font-normal text-slate-500">{{ text('· pick one or more', '· un ou plusieurs') }}</span></p><button v-if="form.fields.length" type="button" class="text-sm font-semibold text-blue-700 hover:underline" @click="apply({ fields: [] })">{{ text('Clear', 'Effacer') }}</button></div>
                 <div class="flex flex-wrap gap-2 mt-3"><label v-for="choice in options.fields" :key="choice.value" class="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium cursor-pointer" :class="form.fields.includes(choice.value) ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-line bg-white text-navy hover:border-blue-300'"><input v-model="form.fields" name="fields[]" type="checkbox" :value="choice.value" class="rounded" @change="apply()" />{{ choice.label }}<span class="text-xs text-slate-500">{{ choice.count }}</span></label></div>
             </div>
+            <div v-show="panel === 'skills'" id="skill-filters" role="group" aria-labelledby="skill-filters-label" class="mt-3 rounded-2xl border border-line bg-white p-5">
+                <div class="flex flex-wrap items-center justify-between gap-3"><p id="skill-filters-label" class="text-sm font-semibold">{{ text('Skills', 'Compétences') }} <span class="font-normal text-slate-500">{{ text('· roles that ask for any of them', '· offres qui demandent au moins l’une d’elles') }}</span></p><button v-if="form.skills.length" type="button" class="text-sm font-semibold text-blue-700 hover:underline" @click="apply({ skills: [] })">{{ text('Clear', 'Effacer') }}</button></div>
+                <label class="relative block mt-3 max-w-sm"><span class="sr-only">{{ text('Find a skill', 'Chercher une compétence') }}</span><Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400 pointer-events-none" aria-hidden="true" /><input v-model="skillSearch" type="search" :placeholder="text('Find a skill', 'Chercher une compétence')" class="w-full h-10 rounded-lg border-line pl-9 text-sm" @keydown.enter.prevent /></label>
+                <div class="flex flex-wrap gap-2 mt-3"><label v-for="choice in skillChoices" :key="choice.value" class="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium cursor-pointer" :class="form.skills.includes(choice.value) ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-line bg-white text-navy hover:border-blue-300'"><input v-model="form.skills" name="skills[]" type="checkbox" :value="choice.value" class="rounded" @change="apply()" />{{ choice.label }}<span class="text-xs text-slate-500">{{ choice.count }}</span></label></div>
+                <p v-if="!skillChoices.length" class="text-sm text-slate-500 mt-3">{{ text('No skill matches that search.', 'Aucune compétence ne correspond.') }}</p>
+                <button v-else-if="!skillSearch.trim() && options.skills.length > skillChoices.length" type="button" class="text-sm font-semibold text-blue-700 hover:underline mt-3" @click="allSkills = true">{{ text(`Show all ${options.skills.length} skills`, `Voir les ${options.skills.length} compétences`) }}</button>
+            </div>
         </form>
         <div v-if="chips.length" class="flex flex-wrap items-center gap-2 mt-4">
             <button v-for="chip in chips" :key="chip.keys[0]" type="button" class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 pl-3 pr-2 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-200" :aria-label="text(`Remove filter: ${chip.label}`, `Retirer le filtre : ${chip.label}`)" @click="remove(chip)">{{ chip.label }}<X class="size-3.5" aria-hidden="true" /></button>
         </div>
         <section id="results" class="@container mt-6 scroll-mt-24" :aria-label="text('Search results', 'Résultats de recherche')">
-            <div class="flex flex-wrap items-center justify-between gap-3 mb-4 text-sm text-slate-600"><p><strong class="text-navy">{{ total }}</strong> {{ total === 1 ? text('opportunity', 'opportunité') : text('opportunities', 'opportunités') }}</p><Link v-if="guest || page.props.auth.user.is_candidate" :href="guest ? `${prefix}/login` : savedSearchUrl" class="inline-flex items-center gap-1.5 font-semibold text-blue-700 hover:underline"><Bell class="size-4" aria-hidden="true" />{{ text('Save search and get alerts', 'Sauvegarder et recevoir des alertes') }}</Link></div>
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4 text-sm text-slate-600"><p><strong class="text-navy">{{ total }}</strong> {{ total === 1 ? text('opportunity', 'opportunité') : text('opportunities', 'opportunités') }}</p><Link v-if="guest || page.props.auth.user.is_candidate" :href="guest ? `${publicPrefix}/login` : savedSearchUrl" class="inline-flex items-center gap-1.5 font-semibold text-blue-700 hover:underline"><Bell class="size-4" aria-hidden="true" />{{ text('Save search and get alerts', 'Sauvegarder et recevoir des alertes') }}</Link></div>
             <div v-if="opportunities.data?.length" class="grid grid-cols-1 @3xl:grid-cols-2 gap-5"><RoleCard v-for="opportunity in opportunities.data" :key="opportunity.id" :opportunity="opportunity" /></div>
             <div v-else class="bg-white rounded-2xl border border-line p-8"><h2 class="font-display text-xl font-semibold">{{ text('No opportunities match these filters.', 'Aucune opportunité ne correspond à ces filtres.') }}</h2><p class="text-slate-600 mt-3">{{ text('Try removing a filter or using a broader keyword.', 'Essayez de retirer un filtre ou d’utiliser un mot-clé plus large.') }}</p><Link :href="hasFilters ? action : `${prefix}/opportunities`" class="inline-block mt-5 text-blue-700 font-semibold">{{ hasFilters ? text('Clear filters', 'Effacer les filtres') : text('Browse all opportunities', 'Voir toutes les opportunités') }}</Link></div>
             <Pagination :meta="opportunities.meta" />

@@ -81,11 +81,12 @@ class PublicCompanyDirectoryTest extends TestCase
             ->where('companies.data.0.roles.0.url', $role->publicUrl('fr')));
     }
 
-    public function test_signed_in_users_keep_the_workspace_list()
+    public function test_signed_in_users_get_the_public_directory_and_the_workspace_list_under_app()
     {
         $user = User::factory()->create();
 
-        $this->actingAs($user)->get('/companies')->assertOk()->assertInertia(fn (Assert $page) => $page->component('Companies/Index'));
+        $this->actingAs($user)->get('/companies')->assertOk()->assertInertia(fn (Assert $page) => $page->component('Companies/Directory'));
+        $this->actingAs($user)->get('/app/companies')->assertOk()->assertInertia(fn (Assert $page) => $page->component('Companies/Index'));
         $this->actingAs($user)->get('/fr/companies')->assertOk()->assertInertia(fn (Assert $page) => $page->component('Companies/Directory'));
     }
 

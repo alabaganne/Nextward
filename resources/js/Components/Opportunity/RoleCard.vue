@@ -4,14 +4,17 @@ import { Link, usePage } from '@inertiajs/vue3';
 import { ArrowUpRight, Banknote, Bookmark, Globe, MapPin } from '@lucide/vue';
 import CompanyLogo from '@/Components/Ui/CompanyLogo.vue';
 import { openedAt, isSaved, toggleSaved } from '@/composables/useOpportunityActivity';
-import { sitePath } from '@/utils/url';
+import { appPath, isAppPath, sitePath } from '@/utils/url';
 const props = defineProps({ opportunity: { type: Object, required: true } });
 const page = usePage();
 const fr = computed(() => page.props.locale === 'fr');
 const user = computed(() => page.props.auth?.user);
 const candidate = computed(() => user.value?.is_candidate || user.value?.userable_type === 'candidate');
 const saved = computed(() => user.value ? !!props.opportunity.liked : isSaved(props.opportunity.id));
-const publicUrl = computed(() => sitePath(props.opportunity.public_url) || `/opportunities/${props.opportunity.id}`);
+const publicUrl = computed(() => {
+    const url = sitePath(props.opportunity.public_url) || `/opportunities/${props.opportunity.id}`;
+    return isAppPath(page.url) ? appPath(url) : url;
+});
 const text = (en, french) => fr.value ? french : en;
 const payLabel = computed(() => {
     const pay = props.opportunity.pay;

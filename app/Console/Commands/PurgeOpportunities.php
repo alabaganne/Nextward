@@ -122,7 +122,7 @@ class PurgeOpportunities extends Command
     private function notifications(array $applicationIds): int
     {
         if (! $applicationIds) { return 0; }
-        $links = array_fill_keys(array_map(fn ($id) => "/applications/{$id}", $applicationIds), true);
+        $links = array_fill_keys(array_merge(...array_map(fn ($id) => ["/applications/{$id}", "/app/applications/{$id}"], $applicationIds)), true);
         $ids = DB::table('notifications')->whereIn('type', [ApplicationSubmitted::class, ApplicationReviewed::class])
             ->get(['id', 'data'])
             ->filter(fn ($row) => isset($links[json_decode($row->data, true)['action'] ?? '']))

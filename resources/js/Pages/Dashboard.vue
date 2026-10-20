@@ -2,7 +2,7 @@
 import { Bookmark, Briefcase, Building2, CalendarCheck, ChevronRight, FileText, GraduationCap } from '@lucide/vue';
 import { computed, h } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
-import { sitePath } from '@/utils/url';
+import { appPath } from '@/utils/url';
 import AppShell from '@/Layouts/AppShell.vue';
 import CompanyLogo from '@/Components/Ui/CompanyLogo.vue';
 import PageHeader from '@/Components/Ui/PageHeader.vue';
@@ -43,8 +43,8 @@ const description = computed(() => {
 const cards = computed(() => {
 	if (isAdmin.value) {
 		return [
-			{ label: 'Open opportunities', value: props.opportunities_count, icon: Briefcase, href: route('opportunities.index') },
-			{ label: 'Companies', value: props.companies_count, icon: Building2, href: route('companies.index') },
+			{ label: 'Open opportunities', value: props.opportunities_count, icon: Briefcase, href: route('app.opportunities.index') },
+			{ label: 'Companies', value: props.companies_count, icon: Building2, href: route('app.companies.index') },
 			{ label: 'Candidates', value: props.candidates_count, icon: GraduationCap, href: route('candidates.index') },
 		];
 	}
@@ -68,7 +68,7 @@ const cards = computed(() => {
 		<PageHeader :title="`${is_new_user ? 'Welcome' : 'Welcome back'}, ${firstName}`" document-title="Dashboard" :description="description">
 			<template #actions>
 				<Link v-if="isCompany" class="cbtn cbtn-secondary h-11 !py-0" :href="managedRolesHref">Manage your roles</Link>
-				<Link v-else-if="!isAdmin" class="cbtn cbtn-primary h-11 !py-0" :href="route('opportunities.index')">Browse opportunities</Link>
+				<Link v-else-if="!isAdmin" class="cbtn cbtn-primary h-11 !py-0" :href="route('app.opportunities.index')">Browse opportunities</Link>
 			</template>
 		</PageHeader>
 
@@ -114,12 +114,12 @@ const cards = computed(() => {
 				<div v-if="!applications.length" class="px-5 py-8 text-[14.5px] text-muted">
 					<div v-if="isAdmin" class="flex flex-wrap gap-x-6 gap-y-3">
 						<Link class="font-semibold text-blue-700 hover:underline" :href="route('imports.review')">Review queue</Link>
-						<Link class="font-semibold text-blue-700 hover:underline" :href="route('companies.index')">Companies</Link>
+						<Link class="font-semibold text-blue-700 hover:underline" :href="route('app.companies.index')">Companies</Link>
 						<Link class="font-semibold text-blue-700 hover:underline" :href="route('candidates.index')">Candidates</Link>
 						<Link class="font-semibold text-blue-700 hover:underline" :href="route('fields.index')">Fields</Link>
 					</div>
 					<p v-else-if="isCompany">No applications yet. Keep your <Link class="font-semibold text-blue-700 hover:underline" :href="managedRolesHref">role details</Link> up to date to attract candidates.</p>
-					<p v-else>You have not applied anywhere yet. <Link class="font-semibold text-blue-700 hover:underline" :href="route('opportunities.index')">Find a role</Link> to get started.</p>
+					<p v-else>You have not applied anywhere yet. <Link class="font-semibold text-blue-700 hover:underline" :href="route('app.opportunities.index')">Find a role</Link> to get started.</p>
 				</div>
 			</section>
 
@@ -134,7 +134,7 @@ const cards = computed(() => {
 						v-for="item in recommended"
 						:key="item.id"
 						class="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-paper-2"
-						:href="sitePath(item.public_url) || route('internships.show', item.id)"
+						:href="appPath(item.public_url) || route('app.opportunities.show', item.id)"
 					>
 						<CompanyLogo class="size-9 rounded-[9px] text-[12px]" :name="item.company?.name || ''" :src="item.company?.image" />
 						<div class="min-w-0">

@@ -1,9 +1,11 @@
 import { h } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import AppShell from './AppShell.vue';
 import PublicLayout from './Public.vue';
+import { isAppPath } from '@/utils/url';
 
-// Signed-in users stay in their workspace; visitors get the public site.
+// /app pages get the workspace; the same page anywhere else is the public site, signed in or not.
 export default (_h, page) =>
-	page.props?.auth?.user && page.props?.locale !== 'fr'
+	isAppPath(usePage().url)
 		? h(AppShell, { active: 'opportunities' }, () => page)
 		: h(PublicLayout, () => page);

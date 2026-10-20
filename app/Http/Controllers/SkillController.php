@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Requests\SkillRequest;
 use App\Models\Skill;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
@@ -16,10 +17,16 @@ class SkillController extends Controller
         $this->middleware(EnsureUserIsAdmin::class);
     }
 
-    public function index()
+    public function index(Request $request)
     {
+        $search = trim((string) ($request->validate(['search' => 'nullable|string|max:100'])['search'] ?? ''));
+        $term = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search).'%';
+
         return Inertia::render('Skills/Index', [
-            'skills' => Skill::withCount(['opportunities', 'candidates'])->orderBy('name')->paginate(20),
+            'skills' => Skill::withCount(['opportunities', 'candidates'])
+                ->when($search !== '', fn ($query) => $query->where('name', 'like', $term))
+                ->orderBy('name')->paginate(20)->withQueryString(),
+            'filters' => ['search' => $search],
         ]);
     }
 

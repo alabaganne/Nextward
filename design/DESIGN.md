@@ -168,7 +168,7 @@ handwrite SVG paths, embed SVG icon strings, or substitute Unicode/emoji icons.
 
 ## 6. Layout chrome
 
-- **Workspace (signed-in)**: dark navy sidebar (248px) + white topbar with search.
+- **Workspace (signed-in)**: dark navy sidebar (248px) + white topbar with search (the Input style, a clear button, and `/` focuses it from anywhere outside a text field).
   In HTML this is the `<app-shell active="…">…</app-shell>` wrapper. In Vue it's the
   `AppShell` persistent layout with `<slot/>`. The page only writes the content;
   the chrome is never duplicated per page.
