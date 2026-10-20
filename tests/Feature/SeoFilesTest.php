@@ -24,7 +24,8 @@ class SeoFilesTest extends TestCase
         $this->get('/llms.txt')->assertOk()
             ->assertHeader('Content-Type', 'text/markdown; charset=UTF-8')
             ->assertSee('# Nextward', false)
-            ->assertSee(url('/opportunities/remote-from-tunisia'), false)
+            ->assertSee(url('/opportunities?worldwide=1'), false)
+            ->assertDontSee('remote-from-tunisia', false)
             ->assertSee(url('/blog/how-to-find-an-internship-as-a-student.md'), false)
             ->assertSee(url('/fr/blog/trouver-un-stage-etudiant.md'), false);
     }

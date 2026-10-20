@@ -46,7 +46,6 @@ class PublicOpportunityListingTest extends TestCase
             ->where('opportunities.data.0.is_open', true)
             ->where('opportunities.data.1.is_open', true)
             ->where('fields.0.opportunities_count', 2)
-            ->where('companies.0.opportunities_count', 2)
         );
     }
 
@@ -73,8 +72,30 @@ class PublicOpportunityListingTest extends TestCase
         $this->get('/opportunities/internships')->assertInertia(fn (Assert $page) => $page
             ->has('opportunities.data', 0)
             ->where('fields.0.opportunities_count', 0)
-            ->has('companies', 0)
         );
+    }
+
+    public function test_open_worldwide_shows_roles_anyone_can_apply_to_and_never_ones_that_leave_tunisia_out()
+    {
+        $company = $this->company('Atlas Cloud');
+        $this->opportunity($company, 'Anywhere role', now()->addMonth())->update(['applicant_scope' => 'anywhere']);
+        $this->opportunity($company, 'Anywhere but sanctions', now()->addMonth())->update(['applicant_scope' => 'anywhere', 'excluded_countries' => ['IR', 'CU']]);
+        $this->opportunity($company, 'Anywhere but Tunisia', now()->addMonth())->update(['applicant_scope' => 'anywhere', 'excluded_countries' => ['TN']]);
+        $this->opportunity($company, 'US work rights needed', now()->addMonth())->update(['applicant_scope' => 'local', 'country_code' => 'US']);
+        $this->opportunity($company, 'Not stated', now()->addMonth());
+
+        $this->get('/opportunities?worldwide=1')->assertInertia(fn (Assert $page) => $page
+            ->where('filters.worldwide', '1')
+            ->where('opportunities.data', fn ($roles) => collect($roles)->pluck('title')->sort()->values()->all() === ['Anywhere but sanctions', 'Anywhere role'])
+            ->where('opportunities.data', fn ($roles) => collect($roles)->every(fn ($role) => $role['applicant_scope'] === 'anywhere'))
+        );
+    }
+
+    public function test_the_old_tunisia_pages_lead_to_the_matching_filters()
+    {
+        $this->get('/opportunities/tunisia?search=react')->assertStatus(301)->assertRedirect('/opportunities?search=react&country=TN');
+        $this->get('/opportunities/remote-from-tunisia')->assertStatus(301)->assertRedirect('/opportunities?work_type=remote');
+        $this->get('/fr/opportunities/relocation')->assertStatus(301)->assertRedirect('/fr/opportunities?relocation=1');
     }
 
     public function test_companies_still_see_their_own_closed_opportunities()

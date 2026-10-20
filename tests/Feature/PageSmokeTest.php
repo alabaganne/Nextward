@@ -162,7 +162,8 @@ class PageSmokeTest extends TestCase
                 ->component('Opportunities/Index')
                 ->has('opportunities.data')
                 ->has('fields')
-                ->has('cities'));
+                ->has('countries')
+                ->missing('cities'));
     }
 
     public function test_company_edit_uses_the_company_route_identifier(): void
