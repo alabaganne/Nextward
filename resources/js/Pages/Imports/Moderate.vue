@@ -10,11 +10,11 @@ defineOptions({ layout: (_h, page) => h(AppShell, { active: 'imports.review' }, 
 const props = defineProps({ opportunity: Object, sources: Array, reports: Array });
 const page = usePage();
 
-const facts = { remote_eligibility: ['eligible', 'restricted', 'unknown'], relocation: ['yes', 'no', 'unknown'], visa_sponsorship: ['yes', 'no', 'unknown'], kind: ['internship', 'job'] };
-const labels = { title: 'Title', description: 'Description', kind: 'Internship or job', location: 'Location', country_code: 'Country code', remote_eligibility: 'Remote from Tunisia', relocation: 'Relocation', visa_sponsorship: 'Visa sponsorship' };
+const facts = { applicant_scope: ['anywhere', 'listed', 'local', 'unknown'], remote_eligibility: ['eligible', 'restricted', 'unknown'], relocation: ['yes', 'no', 'unknown'], visa_sponsorship: ['yes', 'no', 'unknown'], kind: ['internship', 'job'] };
+const labels = { title: 'Title', description: 'Description', kind: 'Internship or job', location: 'Location', country_code: 'Country code', applicant_scope: 'Who can apply', remote_eligibility: 'Remote from Tunisia', relocation: 'Relocation', visa_sponsorship: 'Visa sponsorship' };
 const moderation = useForm({ action: 'suppress', reason: '', corrections: {} });
-const field = ref('remote_eligibility');
-const value = ref(props.opportunity.remote_eligibility);
+const field = ref('applicant_scope');
+const value = ref(props.opportunity.applicant_scope);
 const options = computed(() => facts[field.value] || null);
 const pickField = () => { value.value = props.opportunity[field.value] ?? ''; };
 const moderate = () => {
@@ -91,7 +91,7 @@ const submitMerge = () => merge.post(route('imports.opportunities.merge', props.
                 <section class="bg-white border border-line rounded-[18px] p-5">
                     <h2 class="font-display text-[16px] font-semibold mb-3">Facts</h2>
                     <dl class="text-[13.5px] space-y-2">
-                        <div v-for="key in ['remote_eligibility', 'relocation', 'visa_sponsorship', 'country_code']" :key="key" class="flex justify-between gap-3"><dt class="text-muted">{{ labels[key] }}</dt><dd class="font-semibold">{{ opportunity[key] || '—' }}</dd></div>
+                        <div v-for="key in ['applicant_scope', 'remote_eligibility', 'relocation', 'visa_sponsorship', 'country_code']" :key="key" class="flex justify-between gap-3"><dt class="text-muted">{{ labels[key] }}</dt><dd class="font-semibold">{{ opportunity[key] || '—' }}</dd></div>
                     </dl>
                 </section>
                 <section class="bg-white border border-line rounded-[18px] p-5">

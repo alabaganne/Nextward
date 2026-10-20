@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
-import { ArrowUpRight, Banknote, Bookmark, CircleCheck, CircleQuestionMark, MapPin, TriangleAlert } from '@lucide/vue';
+import { ArrowUpRight, Banknote, Bookmark, Globe, MapPin } from '@lucide/vue';
 import CompanyLogo from '@/Components/Ui/CompanyLogo.vue';
 import { openedAt, isSaved, toggleSaved } from '@/composables/useOpportunityActivity';
 import { sitePath } from '@/utils/url';
@@ -31,10 +31,6 @@ const seniorityLabel = computed(() => ({ entry: text('Entry level', 'Débutant')
 const workTypes = computed(() => fr.value ? { remote: 'À distance', hybrid: 'Hybride', onsite: 'Sur site', unknown: 'Mode de travail non précisé' } : { remote: 'Remote', hybrid: 'Hybrid', onsite: 'Onsite', unknown: 'Work mode not specified' });
 const location = computed(() => props.opportunity.location_label || props.opportunity.city?.name || '');
 const paid = computed(() => !!props.opportunity.pay);
-const eligibility = computed(() => ({
-    eligible: { icon: CircleCheck, tone: 'text-green-700', label: text('Explicitly open to work from Tunisia', 'Travail depuis la Tunisie explicitement autorisé') },
-    restricted: { icon: TriangleAlert, tone: 'text-amber-700', label: text('Location restrictions apply', 'Restrictions géographiques applicables') },
-}[props.opportunity.remote_eligibility] || { icon: CircleQuestionMark, tone: 'text-slate-500', label: text('Remote eligibility not confirmed', 'Éligibilité au télétravail non confirmée') }));
 const toggleSave = () => toggleSaved(props.opportunity);
 </script>
 <template>
@@ -51,6 +47,7 @@ const toggleSave = () => toggleSaved(props.opportunity);
         <div class="mt-3 flex flex-wrap gap-1.5 text-xs font-semibold">
             <span class="rounded-md bg-blue-50 text-blue-700 px-2.5 py-1">{{ opportunity.kind === 'job' ? text('Job', 'Emploi') : text('Internship', 'Stage') }}</span>
             <span v-if="opportunity.work_type" class="rounded-md px-2.5 py-1" :class="opportunity.work_type === 'unknown' ? 'bg-paper-2 text-slate-500 font-medium' : 'bg-paper-2 text-ink-700'">{{ workTypes[opportunity.work_type] || opportunity.work_type }}</span>
+            <span v-if="opportunity.applicant_scope === 'anywhere'" class="inline-flex items-center gap-1 rounded-md bg-green-50 text-green-700 px-2.5 py-1"><Globe :size="13" aria-hidden="true" />{{ text('Open worldwide', 'Ouvert au monde entier') }}</span>
             <span v-if="opportunity.seniority" class="rounded-md bg-paper-2 text-ink-700 px-2.5 py-1">{{ seniorityLabel }}</span>
             <span v-if="opportunity.duration_weeks && opportunity.kind !== 'job'" class="rounded-md bg-paper-2 text-ink-700 px-2.5 py-1">{{ opportunity.duration_weeks }} {{ text('weeks', 'semaines') }}</span>
             <span v-if="!opportunity.is_open" class="rounded-md bg-slate-100 text-slate-600 px-2.5 py-1">{{ text('Closed', 'Clôturée') }}</span>
@@ -59,7 +56,6 @@ const toggleSave = () => toggleSaved(props.opportunity);
         </div>
         <ul class="mt-4 space-y-1.5 text-sm">
             <li class="flex items-start gap-2" :class="paid ? 'font-semibold text-ink-700' : 'text-slate-500'"><Banknote :size="16" class="mt-0.5 shrink-0" :class="paid ? 'text-blue-700' : ''" aria-hidden="true" /><span class="min-w-0">{{ payLabel }}</span></li>
-            <li v-if="opportunity.work_type === 'remote'" class="flex items-start gap-2" :class="eligibility.tone"><component :is="eligibility.icon" :size="16" class="mt-0.5 shrink-0" aria-hidden="true" /><span class="min-w-0">{{ eligibility.label }}</span></li>
         </ul>
         <div class="mt-auto pt-5"><div class="flex gap-3 justify-between items-end border-t border-line pt-4"><p class="min-w-0 text-xs text-slate-500"><span class="block truncate">{{ opportunity.posted_at ? text('Posted', 'Publié') : text('Added to Nextward', 'Ajouté sur Nextward') }} {{ displayDate }}</span><span class="block mt-1 truncate">{{ opportunity.origin === 'native' ? text('Employer post on Nextward', 'Offre employeur sur Nextward') : opportunity.source_name || text('Imported opportunity', 'Offre importée') }}</span></p><Link :href="publicUrl" class="shrink-0 inline-flex items-center gap-1 text-sm font-semibold text-blue-700">{{ text('View', 'Voir') }}<span class="sr-only"> {{ opportunity.title }}</span><ArrowUpRight :size="16" aria-hidden="true" /></Link></div></div>
     </article>

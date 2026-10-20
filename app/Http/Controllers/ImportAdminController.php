@@ -91,7 +91,7 @@ class ImportAdminController extends Controller
         $opportunity->load(['company.user', 'sources.importSource']);
         return Inertia::render('Imports/Moderate', [
             'opportunity' => [
-                ...$opportunity->only(['id', 'title', 'description', 'kind', 'location', 'country_code', 'remote_eligibility', 'relocation', 'visa_sponsorship', 'status', 'publication_status', 'origin', 'merged_into_id']),
+                ...$opportunity->only(['id', 'title', 'description', 'kind', 'location', 'country_code', 'applicant_scope', 'remote_eligibility', 'relocation', 'visa_sponsorship', 'status', 'publication_status', 'origin', 'merged_into_id']),
                 'company' => $opportunity->company?->display_name,
                 'public_url' => $opportunity->public_url,
             ],

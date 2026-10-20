@@ -11,14 +11,14 @@ return new class extends Migration
     {
         Schema::table('opportunities', function (Blueprint $table) {
             $table->string('applicant_scope', 20)->default('unknown')->after('remote_eligibility');
-            $table->index(['applicant_scope', 'work_type']);
+            $table->index('applicant_scope');
         });
     }
 
     public function down(): void
     {
         Schema::table('opportunities', function (Blueprint $table) {
-            $table->dropIndex(['applicant_scope', 'work_type']);
+            $table->dropIndex(['applicant_scope']);
             $table->dropColumn('applicant_scope');
         });
     }

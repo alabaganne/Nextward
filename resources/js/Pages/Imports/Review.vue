@@ -84,7 +84,7 @@ const date = (value) => value ? new Date(value).toLocaleString('en-GB', { day: '
                 <details v-if="item.normalized_data" class="mt-3 group">
                     <summary class="text-[13px] font-semibold text-blue-700 cursor-pointer">Facts and description</summary>
                     <div class="mt-3 rounded-[12px] bg-paper-2 p-4">
-                        <p class="text-[12.5px] text-muted">Remote from Tunisia: {{ item.normalized_data.remote_eligibility }} · Relocation: {{ item.normalized_data.relocation }} · Visa: {{ item.normalized_data.visa_sponsorship }}<template v-if="item.normalized_data.field"> · Field: {{ item.normalized_data.field }}</template></p>
+                        <p class="text-[12.5px] text-muted"><template v-if="item.normalized_data.quality">Quality: {{ item.normalized_data.quality }}<template v-if="item.normalized_data.quality_reason"> ({{ item.normalized_data.quality_reason }})</template> · </template>Who can apply: {{ item.normalized_data.applicant_scope || 'unknown' }} · Relocation: {{ item.normalized_data.relocation }} · Visa: {{ item.normalized_data.visa_sponsorship }}<template v-if="item.normalized_data.field"> · Field: {{ item.normalized_data.field }}</template></p>
                         <p class="whitespace-pre-wrap text-[14px] leading-6 mt-3 max-h-[420px] overflow-auto">{{ item.normalized_data.description }}</p>
                     </div>
                 </details>

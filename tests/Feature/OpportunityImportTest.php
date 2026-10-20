@@ -253,12 +253,15 @@ class OpportunityImportTest extends TestCase
         $this->app->instance(OpportunityClassifier::class, new class extends OpportunityClassifier {
             public function enabled(): bool { return true; }
 
-            public function classify(array $data, array $fields): ?array
+            public function classifyMany(array $listings, array $fields, array $skills = []): array
             {
-                $software = ! str_contains($data['title'], 'Trainer');
-                return ['is_software_role' => $software, 'field' => $software ? 'Mobile Development' : 'Other', 'kind' => 'job',
-                    'seniority' => 'senior', 'remote_from_tunisia' => 'eligible', 'relocation' => 'unknown', 'visa_sponsorship' => 'unknown',
-                    'evidence' => 'We hire anywhere in the world.', 'model' => 'test'];
+                return array_map(function ($data) {
+                    $software = ! str_contains($data['title'], 'Trainer');
+                    return ['in_scope' => $software, 'quality' => 'good', 'quality_reason' => '', 'field' => $software ? 'Mobile Development' : 'Other',
+                        'kind' => 'job', 'seniority' => 'senior', 'work_type' => 'remote', 'employment_types' => [], 'program_type' => 'none', 'skills' => [],
+                        'applicant_scope' => 'anywhere', 'eligible_countries' => [], 'excluded_countries' => [], 'relocation' => 'unknown',
+                        'visa_sponsorship' => 'unknown', 'evidence' => 'We hire anywhere in the world.', 'model' => 'test'];
+                }, $listings);
             }
         });
         Field::create(['name' => 'Mobile Development']);
@@ -276,7 +279,7 @@ class OpportunityImportTest extends TestCase
         $this->artisan('opportunities:fetch --focus=tech --count=5 --no-csv')->expectsOutputToContain('1 new opportunity added.')->assertSuccessful();
 
         $role = Opportunity::sole();
-        $this->assertSame(['Flutter Developer', 'Mobile Development', 'senior', 'eligible'], [$role->title, $role->field->name, $role->seniority, $role->remote_eligibility]);
+        $this->assertSame(['Flutter Developer', 'Mobile Development', 'senior', 'eligible', 'anywhere'], [$role->title, $role->field->name, $role->seniority, $role->remote_eligibility, $role->applicant_scope]);
         $this->assertSame('pending', OpportunitySource::where('external_id', '1')->value('state'));
         $this->assertSame('test', OpportunitySource::where('external_id', '2')->first()->ai_review['model']);
     }
@@ -357,8 +360,7 @@ class OpportunityImportTest extends TestCase
     {
         $this->useOpenAi();
         Field::create(['name' => 'Mobile Development']);
-        $review = ['is_software_role' => true, 'field' => 'Mobile Development', 'kind' => 'internship', 'seniority' => 'entry',
-            'remote_from_tunisia' => 'eligible', 'relocation' => 'unknown', 'visa_sponsorship' => 'unknown', 'evidence' => 'Hiring worldwide.'];
+        $review = ['listings' => [$this->review(1, ['kind' => 'internship', 'seniority' => 'entry'])]];
         Http::fake([
             '*/robots.txt' => Http::response('', 404),
             'boards-api.greenhouse.io/v1/boards/acme/jobs*' => Http::response(['jobs' => [$this->greenhouseJob(1, 'Flutter Developer Intern', 'Remote', 1)]]),
@@ -376,6 +378,71 @@ class OpportunityImportTest extends TestCase
         $this->assertSame('gpt-5.4-mini-2026-03-17', OpportunitySource::sole()->ai_review['model']);
         Http::assertSent(fn ($request) => str_ends_with($request->url(), '/responses') && $request['model'] === 'gpt-5.4-mini'
             && $request['text']['format']['type'] === 'json_schema' && $request['reasoning']['effort'] === 'low');
+    }
+
+    public function test_the_ai_reads_new_listings_in_one_batch_and_judges_their_quality(): void
+    {
+        $this->useOpenAi();
+        Field::create(['name' => 'Mobile Development']);
+        Http::fake([
+            '*/robots.txt' => Http::response('', 404),
+            'boards-api.greenhouse.io/v1/boards/acme/jobs*' => Http::response(['jobs' => [
+                $this->greenhouseJob(1, 'Flutter Developer', 'Remote', 1),
+                $this->greenhouseJob(2, 'Crypto Trading Developer', 'Remote', 1),
+                $this->greenhouseJob(3, 'Web Developer', 'Remote', 1),
+            ]]),
+            // No answer comes back for listing 3, so keyword rules sort it.
+            'api.openai.com/v1/responses' => Http::response($this->openAiReply([$this->openAiText(json_encode(['listings' => [
+                $this->review(1, ['skills' => ['Flutter', 'Dart', 'Not A Skill']]),
+                $this->review(2, ['quality' => 'reject', 'quality_reason' => 'Asks candidates to pay a training fee.']),
+            ]]))])),
+        ]);
+        $source = $this->source(['key' => 'greenhouse-acme', 'provider' => 'greenhouse',
+            'url' => 'https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true',
+            'allowed_domains' => ['boards-api.greenhouse.io', 'job-boards.greenhouse.io']]);
+
+        app(OpportunityImporter::class)->run($source, 100);
+
+        $this->assertCount(1, Http::recorded(fn ($request) => str_ends_with($request->url(), '/responses')));
+        $this->assertEqualsCanonicalizing(['Flutter Developer', 'Web Developer'], Opportunity::pluck('title')->all());
+        $flutter = Opportunity::where('title', 'Flutter Developer')->sole();
+        $this->assertSame(['anywhere', 'eligible', 'Mobile Development'], [$flutter->applicant_scope, $flutter->remote_eligibility, $flutter->field->name]);
+        $this->assertEqualsCanonicalizing(['Flutter', 'Dart'], $flutter->skills->pluck('name')->all());
+        $rejected = OpportunitySource::where('external_id', '2')->sole();
+        $this->assertSame(['rejected', 'Low quality: Asks candidates to pay a training fee.'], [$rejected->state, $rejected->error]);
+        $this->assertSame('unknown', Opportunity::where('title', 'Web Developer')->sole()->applicant_scope);
+        $this->assertNull(OpportunitySource::where('external_id', '3')->value('ai_review'));
+    }
+
+    public function test_a_role_that_needs_local_work_rights_is_not_open_to_remote_work_from_tunisia(): void
+    {
+        $data = app(OpportunityImporter::class)->withReview(['title' => 'Backend Engineer', 'description' => 'Build APIs.', 'work_type' => 'remote',
+            'remote_eligibility' => 'unknown', 'relocation' => 'unknown', 'visa_sponsorship' => 'unknown', 'eligibility_evidence' => []],
+            $this->review(1, ['applicant_scope' => 'local', 'eligible_countries' => ['US'], 'evidence' => 'Must be authorized to work in the US.']));
+
+        $this->assertSame(['local', 'restricted', ['US']], [$data['applicant_scope'], $data['remote_eligibility'], $data['eligible_countries']]);
+    }
+
+    public function test_the_review_command_fills_who_can_apply_for_listings_already_online(): void
+    {
+        $this->useOpenAi();
+        Field::create(['name' => 'Mobile Development']);
+        Http::fake([
+            '*/robots.txt' => Http::response('', 404),
+            'boards-api.greenhouse.io/v1/boards/acme/jobs*' => Http::response(['jobs' => [$this->greenhouseJob(1, 'Flutter Developer', 'Remote', 1)]]),
+        ]);
+        config(['importer.ai.enabled' => false]);
+        app(OpportunityImporter::class)->run($this->source(['key' => 'greenhouse-acme', 'provider' => 'greenhouse',
+            'url' => 'https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true',
+            'allowed_domains' => ['boards-api.greenhouse.io', 'job-boards.greenhouse.io']]), 100);
+        $this->assertSame('unknown', Opportunity::sole()->applicant_scope);
+        config(['importer.ai.enabled' => true]);
+        Http::fake(['api.openai.com/v1/responses' => Http::response($this->openAiReply([$this->openAiText(json_encode(['listings' => [$this->review(1)]]))]))]);
+
+        $this->artisan('opportunities:review')->expectsOutputToContain('Read 1 of 1 listing(s).')->assertSuccessful();
+
+        $this->assertSame(['anywhere', 'Mobile Development'], [Opportunity::sole()->applicant_scope, Opportunity::sole()->field->name]);
+        $this->assertEqualsCanonicalizing(['Flutter', 'Dart'], Opportunity::sole()->skills->pluck('name')->all());
     }
 
     public function test_a_bad_openai_key_stops_ai_for_the_run_and_keyword_rules_carry_on(): void
@@ -548,6 +615,14 @@ class OpportunityImportTest extends TestCase
         $this->assertFalse($result['complete']);
         $this->assertSame(1, $source->items()->count());
         $this->assertSame('completed', ImportRun::sole()->status);
+    }
+
+    private function review(int $id, array $answers = []): array
+    {
+        return [...['id' => $id, 'in_scope' => true, 'quality' => 'good', 'quality_reason' => '', 'field' => 'Mobile Development', 'kind' => 'job',
+            'seniority' => 'mid', 'work_type' => 'remote', 'employment_types' => ['FULL_TIME'], 'program_type' => 'none', 'skills' => ['Flutter', 'Dart'],
+            'applicant_scope' => 'anywhere', 'eligible_countries' => [], 'excluded_countries' => [], 'relocation' => 'unknown',
+            'visa_sponsorship' => 'unknown', 'evidence' => 'Hiring worldwide.'], ...$answers];
     }
 
     private function useOpenAi(): void
