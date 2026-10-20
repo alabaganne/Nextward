@@ -8,5 +8,5 @@ class CreditTransaction extends Model
 {
     public const UPDATED_AT = null;
 
-    protected $fillable = ['user_id', 'amount', 'reason', 'application_kit_id', 'payment_id', 'note'];
+    protected $fillable = ['user_id', 'amount', 'reason', 'application_kit_id', 'resume_id', 'payment_id', 'note'];
 }

@@ -34,31 +34,17 @@ class CompanyController extends Controller
 
         return Inertia::render('Companies/Index', [
             'filters' => ['search' => $search, 'hiring' => (bool) ($filters['hiring'] ?? false)],
-            'companies' => Company::whereNull('claimed_by_company_id')
-				->withCount(['opportunities as open_roles_count' => fn ($query) => $query->available()])
-				->with('city', 'user')
-				->when($search !== '', function ($query) use ($search) {
-					$term = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search).'%';
-					$query->where(fn ($query) => $query->where('name', 'like', $term)
-						->orWhereHas('user', fn ($query) => $query->where('name', 'like', $term))
-						->orWhereHas('city', fn ($query) => $query->where('name', 'like', $term)));
-				})
-				->when($filters['hiring'] ?? false, fn ($query) => $query->whereHas('opportunities', fn ($query) => $query->available()))
-				->orderByDesc('open_roles_count')
-				->orderBy('name')
-				->paginate(12)
-				->withQueryString()
-				->through(function ($company) {
-					return [
-						'id' => $company->id,
-						'user_id' => $company->user?->id,
-						'name' => $company->display_name,
-						'image' => $company->logo,
-						'website' => $company->website,
-						'location' => $company->city?->name ?: $company->location,
-						'open_roles_count' => $company->open_roles_count,
-					];
-				}),
+            'companies' => PublicCompanyController::cards(Company::whereNull('claimed_by_company_id')
+                ->when($search !== '', function ($query) use ($search) {
+                    $term = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search).'%';
+                    $query->where(fn ($query) => $query->where('name', 'like', $term)->orWhere('location', 'like', $term)
+                        ->orWhereHas('user', fn ($query) => $query->where('name', 'like', $term))
+                        ->orWhereHas('city', fn ($query) => $query->where('name', 'like', $term)));
+                })
+                ->when($filters['hiring'] ?? false, fn ($query) => $query->whereHas('opportunities', fn ($query) => $query->available())), null, 3)
+                ->paginate(12)
+                ->withQueryString()
+                ->through(fn ($company) => [...PublicCompanyController::card($company, $request), 'href' => route('companies.show', $company->id, false)]),
         ]);
     }
 

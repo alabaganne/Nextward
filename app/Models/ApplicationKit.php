@@ -7,11 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class ApplicationKit extends Model
 {
     protected $fillable = [
-        'candidate_id', 'opportunity_id', 'locale', 'status', 'cv', 'cover_letter', 'error',
+        'candidate_id', 'opportunity_id', 'locale', 'status', 'cv', 'cover_letter', 'style', 'error',
         'model', 'input_tokens', 'output_tokens', 'generations', 'credits_used',
     ];
 
-    protected $casts = ['cv' => 'array'];
+    protected $casts = ['cv' => 'array', 'style' => 'array'];
 
     public function candidate()
     {

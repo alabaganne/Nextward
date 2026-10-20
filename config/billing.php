@@ -1,17 +1,20 @@
 <?php
 
-// Paid credits for tailored CVs and cover letters. Off by default: everything is free until BILLING_ENABLED=true.
+// Credits pay for AI work: a kit (CV and letter for one role), a resume translation or a resume read costs one credit.
+// Exports, themes, downloads and everything else stay free. Set BILLING_ENABLED=false to make AI free again.
 return [
-    'enabled' => (bool) env('BILLING_ENABLED', false),
-    'signup_credits' => (int) env('BILLING_SIGNUP_CREDITS', 1),
-    // Each credit covers the first draft of a kit plus this many rewrites.
+    'enabled' => (bool) env('BILLING_ENABLED', true),
+    'signup_credits' => (int) env('BILLING_SIGNUP_CREDITS', 20),
+    // Added on the 1st of each month to every candidate with a verified email (credits:monthly).
+    'monthly_credits' => (int) env('BILLING_MONTHLY_CREDITS', 5),
+    // Each credit covers the first draft of a kit or a resume translation plus this many rewrites.
     'rewrites_per_kit' => (int) env('BILLING_REWRITES_PER_KIT', 3),
 
     // Prices are set by the owner before billing is turned on. Amounts in the smallest unit (millimes for TND, cents for USD).
     'packs' => [
-        'starter' => ['credits' => 3, 'price_tnd' => env('BILLING_STARTER_TND'), 'price_usd' => env('BILLING_STARTER_USD'), 'lemonsqueezy_variant' => env('LEMONSQUEEZY_VARIANT_STARTER')],
-        'standard' => ['credits' => 10, 'price_tnd' => env('BILLING_STANDARD_TND'), 'price_usd' => env('BILLING_STANDARD_USD'), 'lemonsqueezy_variant' => env('LEMONSQUEEZY_VARIANT_STANDARD')],
-        'pro' => ['credits' => 25, 'price_tnd' => env('BILLING_PRO_TND'), 'price_usd' => env('BILLING_PRO_USD'), 'lemonsqueezy_variant' => env('LEMONSQUEEZY_VARIANT_PRO')],
+        'starter' => ['credits' => 20, 'price_tnd' => env('BILLING_STARTER_TND'), 'price_usd' => env('BILLING_STARTER_USD'), 'lemonsqueezy_variant' => env('LEMONSQUEEZY_VARIANT_STARTER')],
+        'standard' => ['credits' => 60, 'price_tnd' => env('BILLING_STANDARD_TND'), 'price_usd' => env('BILLING_STANDARD_USD'), 'lemonsqueezy_variant' => env('LEMONSQUEEZY_VARIANT_STANDARD')],
+        'pro' => ['credits' => 150, 'price_tnd' => env('BILLING_PRO_TND'), 'price_usd' => env('BILLING_PRO_USD'), 'lemonsqueezy_variant' => env('LEMONSQUEEZY_VARIANT_PRO')],
     ],
 
     'gateways' => [

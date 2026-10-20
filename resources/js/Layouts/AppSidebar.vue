@@ -18,6 +18,7 @@ import {
 	Wallet,
 	Sparkles,
 	UserPlus,
+	Users,
 	X,
 } from '@lucide/vue';
 
@@ -48,6 +49,7 @@ const main = computed(() => [
 	] : []),
 	{ id: 'messages', label: 'Messages', route: 'messages.index', icon: MessageSquare, badge: badges.value.messages },
 	{ id: 'companies', label: 'Companies', route: 'companies.index', icon: Building2 },
+	...(isAdmin.value || isCompany.value ? [{ id: 'talent', label: 'Talent', route: 'talent.index', icon: Users }] : []),
 ]);
 
 const admin = computed(() => [

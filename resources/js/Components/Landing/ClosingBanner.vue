@@ -2,8 +2,8 @@
 defineProps({ title: { type: String, required: true }, body: String, mascot: String });
 </script>
 <template>
-    <div class="closing-band">
-        <div class="closing-inner">
+    <section class="closing-band">
+        <div class="public-container closing-inner">
             <img v-if="mascot" :src="`/nextward-assets/mascots/${mascot}.svg`" alt="" width="768" height="768" loading="lazy" class="closing-art" />
             <div class="closing-copy">
                 <h2 class="section-title">{{ title }}</h2>
@@ -11,5 +11,5 @@ defineProps({ title: { type: String, required: true }, body: String, mascot: Str
             </div>
             <div class="flex flex-wrap gap-3"><slot /></div>
         </div>
-    </div>
+    </section>
 </template>

@@ -37,12 +37,12 @@ const isAdmin = computed(() => !!page.props.auth?.user?.is_admin);
 		</div>
 
 		<ProfileBanner class="mb-6" :name="candidate.name" :headline="candidate.headline || candidate.field?.name || 'Candidate'" :items="[{ icon: icons.pin, label: candidate.city?.name }, { icon: icons.grad, label: candidate.field?.name }]">
-			<Link v-if="isAdmin" class="inline-flex items-center justify-center font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors" :href="route('candidates.edit', candidate.id)">Edit candidate</Link>
+			<Link v-if="isAdmin" class="inline-flex items-center justify-center font-semibold text-sm px-4 py-2.5 rounded-[10px] bg-blue-600 text-white hover:bg-blue-700 transition-colors" :href="route('candidates.edit', candidate.id)">Edit candidate</Link>
 		</ProfileBanner>
 
 		<section v-if="isAdmin && candidate.public_status" class="bg-white border border-line rounded-[18px] mb-[18px] px-[22px] py-[18px]">
 			<h3 class="font-display text-[16.5px] font-semibold">Public profile</h3>
-			<p class="text-[13px] text-muted mt-[3px] mb-3.5">This candidate asked to show their profile on the public site. Their email, phone and resume are never shown there.</p>
+			<p class="text-[13px] text-muted mt-[3px] mb-3.5">This candidate asked to show their profile on the public site. Their email, phone and resume show there only if they chose to share them.</p>
 			<PublicReview :candidate="candidate" />
 		</section>
 

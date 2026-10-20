@@ -84,7 +84,7 @@ class CompanyLogoTest extends TestCase
         $this->get(route('companies.edit', $user->userable))
             ->assertInertia(fn (Assert $page) => $page->where('company.image', $url)->where('company.user_id', $user->id));
         $this->get(route('companies.index'))
-            ->assertInertia(fn (Assert $page) => $page->where('companies.data', fn ($companies) => collect($companies)->contains(fn ($company) => $company['id'] === $user->userable_id && $company['image'] === $url)));
+            ->assertInertia(fn (Assert $page) => $page->where('companies.data', fn ($companies) => collect($companies)->contains(fn ($company) => $company['id'] === $user->userable_id && $company['logo'] === $url)));
 
         $imported = Company::doesntHave('user')->firstOrFail();
         $imported->update(['logo_url' => 'https://cdn.example.com/logo.png']);

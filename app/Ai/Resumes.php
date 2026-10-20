@@ -3,12 +3,16 @@
 namespace App\Ai;
 
 use App\Ai\Agents\ResumeReader;
-use App\Models\Candidate;
+use App\Ai\Agents\ResumeTranslator;
+use App\Models\Resume;
+use App\Support\Cv;
+use App\Support\LanguageGuess;
 use App\Support\ProfileHistory;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Laravel\Ai\Files\Document;
 
-// Turns a candidate's resume PDF into profile suggestions. Nothing is saved here.
+// Reads a resume PDF into profile suggestions (nothing is saved here) and translates resumes.
 class Resumes
 {
     public function __construct(private OpportunityClassifier $ai) {}
@@ -18,16 +22,45 @@ class Resumes
         return $this->ai->enabled();
     }
 
-    public function read(Candidate $candidate): array
+    public function read(Resume $resume): array
     {
         $response = (new ResumeReader)->prompt(
             'Fill in the profile from the attached resume.',
-            attachments: [Document::fromStorage($candidate->resume_path, 'local')],
+            attachments: [Document::fromStorage($resume->path, 'local')],
             provider: $this->ai->provider(),
             model: $this->ai->model('review'),
         );
 
         return $this->clean($response->toArray());
+    }
+
+    // Writes the draft's source resume in the draft's language. Uploaded PDFs are read; resumes made here are sent as text.
+    public function translate(Resume $draft): array
+    {
+        $source = $draft->translatedFrom()->firstOrFail();
+        $language = LanguageGuess::name($draft->locale) ?? 'English';
+        $uploaded = $source->source === 'uploaded';
+        $response = (new ResumeTranslator($draft->locale))->prompt(
+            $uploaded ? "Translate the attached resume into {$language}." : "Translate this resume into {$language}.\n\n".json_encode(Arr::except($source->content ?? [], ['name', 'contact']), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            attachments: $uploaded ? [Document::fromStorage($source->path, 'local')] : [],
+            provider: $this->ai->provider(),
+            model: $this->ai->model('review'),
+        );
+        $data = $response->toArray();
+        $cv = $data['cv'] ?? [];
+        $contact = $uploaded ? ($cv['contact'] ?? []) : ($source->content['contact'] ?? []);
+
+        return [
+            'content' => Cv::clean([
+                ...$cv,
+                'name' => $uploaded ? (($cv['name'] ?? '') ?: $source->candidate?->user?->name) : ($source->content['name'] ?? ''),
+                'contact' => $contact ?: Cv::contact($source->candidate),
+            ]),
+            'source_language' => LanguageGuess::normalize($data['source_language'] ?? null),
+            'model' => $response->meta->model ?? $this->ai->model('review'),
+            'input_tokens' => (int) ($response->usage->inputTokens ?? 0),
+            'output_tokens' => (int) ($response->usage->outputTokens ?? 0),
+        ];
     }
 
     private function clean(array $data): array
@@ -39,6 +72,7 @@ class Resumes
         $country = strtoupper($text($data['country_code'] ?? '', 2));
 
         return [
+            'language' => LanguageGuess::normalize($data['language'] ?? null) ?? '',
             'headline' => $text($data['headline'] ?? ''),
             'about' => $text($data['about'] ?? '', 2000),
             'experience_years' => max(0, min(80, (int) ($data['experience_years'] ?? 0))),

@@ -35,6 +35,7 @@ You read a candidate's resume (attached PDF) for Nextward, a job board, and fill
 - skills: up to 25 tools and skills, as short names.
 - experience, education, projects: newest first. Dates as "YYYY-MM" or "YYYY"; end is "" when current is true. summary: one to three short lines of what they did.
 - website and linkedin_profile_url: full https links, or "".
+- language: the two-letter code of the language the resume is written in, like "en" or "fr".
 PROMPT;
     }
 
@@ -43,6 +44,7 @@ PROMPT;
         $text = fn () => $schema->string()->required();
         $list = fn (array $properties) => $schema->array()->items($schema->object($properties))->required();
         return [
+            'language' => $text(),
             'headline' => $text(),
             'about' => $text(),
             'experience_years' => $schema->integer()->required(),

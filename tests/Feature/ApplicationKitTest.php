@@ -76,6 +76,12 @@ class ApplicationKitTest extends TestCase
         $this->assertSame('Backend developer', $kit->cv['headline']);
         $this->assertSame('Developer', $kit->cv['experience'][0]['title']);
 
+        // The listing page saves the letter alone and keeps the CV.
+        $this->actingAs($candidate)->putJson(route('kits.update', $kit), ['cover_letter' => 'Dear team, edited again.'])->assertOk()->assertJson(['saved' => true]);
+        $kit->refresh();
+        $this->assertSame('Dear team, edited again.', $kit->cover_letter);
+        $this->assertSame('Backend developer', $kit->cv['headline']);
+
         $this->actingAs($candidate)->get(route('kits.cv', $kit))->assertOk()->assertHeader('content-type', 'application/pdf');
         $this->actingAs($candidate)->get(route('kits.letter', $kit))->assertOk()->assertHeader('content-type', 'application/pdf');
         $this->actingAs($candidate)->get('/kits')->assertOk();

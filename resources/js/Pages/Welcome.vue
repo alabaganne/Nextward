@@ -199,12 +199,10 @@ const aiPoints = computed(() => [
                 </div>
             </section>
 
-            <section class="public-container pb-20">
-                <ClosingBanner mascot="01-student-wave" :title="text('Your next step starts with one search.', 'Votre prochaine étape commence par une recherche.')" :body="text('Create a free account to save roles, tailor your CV and follow every application.', 'Créez un compte gratuit pour sauvegarder des offres, adapter votre CV et suivre chaque candidature.')">
-                    <Link :href="`${prefix}/register`" class="cta cta-light focus-ring">{{ text('Create a free account', 'Créer un compte gratuit') }}</Link>
-                    <Link :href="`${prefix}/opportunities`" class="cta cta-ghost focus-ring">{{ text('Browse opportunities', 'Voir les offres') }}<ArrowRight class="action-icon" aria-hidden="true" /></Link>
-                </ClosingBanner>
-            </section>
+            <ClosingBanner mascot="01-student-wave" :title="text('Your next step starts with one search.', 'Votre prochaine étape commence par une recherche.')" :body="text('Create a free account to save roles, tailor your CV and follow every application.', 'Créez un compte gratuit pour sauvegarder des offres, adapter votre CV et suivre chaque candidature.')">
+                <Link :href="`${prefix}/register`" class="cta cta-light focus-ring">{{ text('Create a free account', 'Créer un compte gratuit') }}</Link>
+                <Link :href="`${prefix}/opportunities`" class="cta cta-ghost focus-ring">{{ text('Browse opportunities', 'Voir les offres') }}<ArrowRight class="action-icon" aria-hidden="true" /></Link>
+            </ClosingBanner>
         </div>
     </PublicLayout>
 </template>

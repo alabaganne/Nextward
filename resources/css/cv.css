@@ -1,0 +1,132 @@
+/* Resume and letter themes, from Resume Studio. Inlined into each document; 816px = US Letter, 794px = A4 at 96dpi. */
+html, body { margin: 0; padding: 0; background: #fff; }
+body { -webkit-font-smoothing: antialiased; }
+.tpl {
+  --sans: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --serif: "Newsreader", Georgia, serif;
+  width: 816px;
+  min-height: 1056px;
+  box-sizing: border-box;
+  background: #fff;
+  color: #1a1d1b;
+  padding: 64px 72px;
+  line-height: 1.5;
+  position: relative;
+  overflow-wrap: anywhere;
+}
+.tpl *, .tpl *::before, .tpl *::after { box-sizing: border-box; }
+.tpl.paper-a4 { width: 794px; min-height: 1123px; }
+.tpl a { color: inherit; text-decoration: none; }
+.doc-serif { font-family: var(--serif); }
+.doc-sans { font-family: var(--sans); }
+
+.d-name { margin: 0; font-weight: 500; letter-spacing: -0.01em; font-size: 34px; line-height: 1.05; color: #15171a; }
+.d-headline { color: var(--doc-accent); font-weight: 600; font-size: 14px; margin-top: 6px; }
+.doc-serif .d-headline { font-style: italic; font-weight: 500; font-size: 16px; }
+
+.d-contact, .d-links { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12.5px; color: #555; margin-top: 12px; font-family: var(--sans); }
+.d-contact span, .d-links span { position: relative; }
+.d-contact span + span::before, .d-links span + span::before { content: "·"; position: absolute; left: -11px; color: #bbb; }
+.d-links { color: var(--doc-accent); margin-top: 4px; }
+
+.d-body { margin-top: 30px; }
+.d-sec { margin-top: 26px; }
+.d-sec:first-child { margin-top: 0; }
+.d-sec-title { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #15171a; margin: 0 0 12px; padding-bottom: 7px; border-bottom: 1px solid #e7e7e3; font-family: var(--sans); }
+.d-summary { margin: 0; font-size: 14px; color: #33373a; line-height: 1.6; white-space: pre-line; }
+
+.d-entry { margin-bottom: 16px; }
+.d-entry:last-child { margin-bottom: 0; }
+.d-entry-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+.d-role { font-weight: 700; font-size: 14.5px; color: #15171a; }
+.doc-serif .d-role { font-weight: 600; }
+.d-org { font-size: 13px; color: #555; margin-top: 1px; }
+.d-dates { font-size: 12px; color: #888; white-space: nowrap; font-family: var(--sans); letter-spacing: 0.02em; }
+.d-note { font-size: 13px; color: #555; margin-top: 4px; font-style: italic; }
+.d-proj-link { color: var(--doc-accent); font-weight: 500; font-style: normal; }
+
+.d-bullets { margin: 8px 0 0; padding-left: 18px; list-style: disc; }
+.d-bullets li { font-size: 13.5px; color: #3a3e40; margin-bottom: 4px; line-height: 1.55; }
+.d-bullets li::marker { color: var(--doc-accent); }
+
+.d-skills { display: flex; flex-direction: column; gap: 7px; }
+.d-skill-row { font-size: 13.5px; color: #3a3e40; line-height: 1.6; }
+
+.d-head-center { text-align: center; }
+.d-head-center .d-name { font-size: 40px; }
+.d-head-center .d-contact, .d-head-center .d-links { justify-content: center; }
+
+.d-head-left { display: flex; justify-content: space-between; align-items: flex-start; gap: 32px; }
+.d-head-left .d-contact-col { display: flex; flex-direction: column; gap: 3px; text-align: right; font-size: 12px; color: #666; font-family: var(--sans); }
+.d-head-left .d-contact-col .d-link { color: var(--doc-accent); }
+
+/* Ravenna: editorial */
+.tpl-ravenna { padding: 70px 76px; }
+.tpl-ravenna .d-head-center { padding-bottom: 22px; border-bottom: 2px solid #1a1d1b; }
+.tpl-ravenna .d-name { letter-spacing: 0.01em; }
+.tpl-ravenna .d-sec-title { border: none; text-align: center; letter-spacing: 0.22em; color: #6a6f70; position: relative; margin-bottom: 16px; }
+.tpl-ravenna .d-sec-title::after { content: ""; display: block; width: 26px; height: 2px; background: var(--doc-accent); margin: 9px auto 0; }
+
+/* Halden: modern */
+.tpl-halden .d-name { font-size: 32px; font-weight: 700; }
+.tpl-halden .d-head-left { padding-bottom: 18px; border-bottom: 1px solid #e7e7e3; }
+.tpl-halden .d-sec-title { border: none; padding-left: 13px; position: relative; }
+.tpl-halden .d-sec-title::before { content: ""; position: absolute; left: 0; top: 1px; bottom: 1px; width: 3px; background: var(--doc-accent); border-radius: 2px; }
+
+/* Marlow: minimal */
+.tpl-marlow { padding: 84px 88px; }
+.tpl-marlow .d-name { font-weight: 400; font-size: 36px; letter-spacing: 0; }
+.tpl-marlow .d-headline { color: #888; font-weight: 400; }
+.tpl-marlow .d-body { margin-top: 44px; }
+.tpl-marlow .d-sec { margin-top: 34px; }
+.tpl-marlow .d-sec:first-child { margin-top: 0; }
+.tpl-marlow .d-sec-title { border: none; color: #aaa; font-weight: 600; letter-spacing: 0.2em; font-size: 11px; }
+.tpl-marlow .d-bullets li::marker { color: #ccc; }
+.tpl-marlow .d-head-center { border: none; }
+
+/* Atlas: bold */
+.tpl-atlas { padding: 0; }
+.tpl-atlas .d-head-block { background: var(--doc-accent); color: #fff; padding: 52px 72px 40px; }
+.tpl-atlas .d-name { color: #fff; font-size: 44px; font-weight: 700; }
+.tpl-atlas .d-headline { color: rgba(255, 255, 255, 0.85); font-weight: 500; }
+.tpl-atlas .d-contact { color: rgba(255, 255, 255, 0.85); margin-top: 16px; }
+.tpl-atlas .d-contact span::before { color: rgba(255, 255, 255, 0.45) !important; }
+.tpl-atlas .d-body { margin-top: 0; padding: 40px 72px 64px; }
+.tpl-atlas .d-sec-title { color: var(--doc-accent); border-bottom-color: color-mix(in oklab, var(--doc-accent) 28%, #fff); }
+
+/* Verona: classic */
+.tpl-verona { padding: 64px 80px; }
+.tpl-verona .d-name { font-weight: 600; letter-spacing: 0.02em; }
+.tpl-verona .d-head-center { padding-bottom: 10px; }
+.tpl-verona .d-contact, .tpl-verona .d-links { font-family: inherit; }
+.tpl-verona .d-sec-title { font-family: inherit; letter-spacing: 0.08em; border-bottom: 1.5px solid #1a1d1b; text-transform: none; font-size: 15px; }
+.tpl-verona .d-links { color: #444; }
+
+/* Sören: two columns */
+.tpl-soren { display: grid; grid-template-columns: 256px 1fr; padding: 0; }
+.tpl-soren .d-side { background: oklch(0.965 0.006 160); padding: 52px 30px; }
+.tpl-soren .d-side .d-name { font-size: 26px; }
+.tpl-soren .d-side .d-headline { margin-bottom: 24px; }
+.tpl-soren .d-side-sec { margin-top: 26px; }
+.tpl-soren .d-side-sec h4 { font-family: var(--sans); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--doc-accent); margin: 0 0 10px; font-weight: 700; }
+.tpl-soren .d-side-line { font-size: 12px; color: #555; margin-bottom: 5px; word-break: break-word; }
+.tpl-soren .d-side-skill { margin-bottom: 11px; }
+.tpl-soren .d-side-skill strong { display: block; font-size: 12.5px; color: #1a1d1b; }
+.tpl-soren .d-side-skill span { font-size: 12px; color: #666; }
+.tpl-soren .d-main { padding: 52px 44px; }
+.tpl-soren .d-sec:first-child { margin-top: 0; }
+.tpl-soren .d-sec-title { color: #1a1d1b; }
+
+/* Cover letter */
+.tpl-letter .d-head { margin-bottom: 36px; }
+.tpl-letter .d-date { font-size: 12.5px; color: #888; font-family: var(--sans); margin-bottom: 22px; }
+.tpl-letter .d-letter { font-size: 14px; color: #2a2e30; line-height: 1.7; white-space: pre-line; }
+
+/* Print: padding repeats on every page and blocks don't split */
+.is-print .tpl { width: 100%; }
+.is-print .tpl.paper-letter { min-height: calc(11in - 1px); }
+.is-print .tpl.paper-a4 { min-height: calc(297mm - 1px); }
+.is-print .tpl, .is-print .tpl-atlas > .d-body, .is-print .tpl-soren > .d-side, .is-print .tpl-soren > .d-main { box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.is-print .d-head, .is-print .d-sec-title, .is-print .d-entry-head { break-inside: avoid; break-after: avoid; }
+.is-print .d-bullets li, .is-print .d-skill-row, .is-print .d-summary, .is-print .d-note, .is-print .d-side-skill, .is-print .d-side-line { break-inside: avoid; }
+* { print-color-adjust: exact; -webkit-print-color-adjust: exact; }

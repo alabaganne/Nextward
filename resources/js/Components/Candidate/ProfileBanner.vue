@@ -33,7 +33,7 @@ const shown = computed(() => props.items.filter((item) => item.label));
 					<span v-for="item in shown" :key="item.label"><component :is="item.icon" aria-hidden="true" />{{ item.label }}</span>
 				</div>
 			</div>
-			<div v-if="$slots.default" class="ml-auto flex gap-2.5 flex-wrap max-[760px]:ml-0 max-[760px]:w-full">
+			<div v-if="$slots.default" class="ml-auto flex gap-2 flex-wrap justify-end max-[760px]:ml-0 max-[760px]:justify-start">
 				<slot />
 			</div>
 		</div>

@@ -56,15 +56,19 @@ class ApplicationKitController extends Controller
         abort_if($kit->status === 'queued', 409, 'Your CV and letter are still being written.');
         $data = $request->validate([
             'cover_letter' => 'nullable|string|max:20000',
-            'cv' => 'required|array',
+            'cv' => 'sometimes|array',
             'cv.name' => 'nullable|string|max:150',
             'cv.contact' => 'nullable|array|max:8',
             'cv.contact.*' => 'nullable|string|max:255',
         ]);
+        // The listing page saves the letter alone, without the CV.
         $kit->update([
-            'cv' => ['name' => trim((string) ($data['cv']['name'] ?? '')), 'contact' => array_values(array_filter(array_map('trim', $data['cv']['contact'] ?? []))), ...ApplicationKits::cleanCv($request->input('cv', []))],
             'cover_letter' => trim((string) ($data['cover_letter'] ?? '')),
+            ...(isset($data['cv']) ? ['cv' => ['name' => trim((string) ($data['cv']['name'] ?? '')), 'contact' => array_values(array_filter(array_map('trim', $data['cv']['contact'] ?? []))), ...ApplicationKits::cleanCv($request->input('cv', []))]] : []),
         ]);
+        if ($request->wantsJson()) {
+            return response()->json(['saved' => true]);
+        }
 
         return back()->with('toast', ['type' => 'update', 'message' => 'Your CV and letter are saved.']);
     }

@@ -30,6 +30,7 @@ class ProfileController extends Controller
             'image' => $user->image,
             'linkedin_profile_url' => $user->linkedin_profile_url,
             'is_admin' => $user->isAdmin(),
+            'email_verified' => $user->hasVerifiedEmail(),
             'userable_type' => $user->userable_type,
             'userable_id' => $user->userable_id,
         ];
@@ -63,6 +64,9 @@ class ProfileController extends Controller
                 'experience' => $candidate->experience ?: [],
                 'education' => $candidate->education ?: [],
                 'projects' => $candidate->projects ?: [],
+                'public_status' => $candidate->public_status,
+                'public_url' => parse_url($candidate->publicUrl(), PHP_URL_PATH),
+                'public_contact' => (bool) $candidate->public_contact,
             ];
         }
 
@@ -214,9 +218,6 @@ class ProfileController extends Controller
                 'projects' => $userable->projects ?? [],
                 'email_verified' => $user->hasVerifiedEmail(),
                 'pending_email' => $user->pending_email,
-                'public_status' => $user->isCandidate() ? $userable->public_status : null,
-                'public_url' => $user->isCandidate() ? parse_url($userable->publicUrl(), PHP_URL_PATH) : null,
-                'public_contact' => $user->isCandidate() && $userable->public_contact,
             ],
         ]);
     }

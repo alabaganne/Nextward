@@ -33,7 +33,7 @@ class WorkspaceTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Companies/Index')
-                ->where('companies.data', fn ($companies) => collect($companies)->contains(fn ($company) => $company['id'] === $imported->id && $company['user_id'] === null)));
+                ->where('companies.data', fn ($companies) => collect($companies)->contains(fn ($company) => $company['id'] === $imported->id)));
     }
 
     public function test_companies_can_be_searched_by_name(): void

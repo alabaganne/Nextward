@@ -1,9 +1,9 @@
 <script setup>
-import { Building2, Globe2, MapPin, Search } from '@lucide/vue';
-import { h, reactive, ref, watch } from 'vue';
+import { Building2, Search } from '@lucide/vue';
+import { h, ref, watch } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
-import CompanyLogo from '@/Components/Ui/CompanyLogo.vue';
+import CompanyCard from '@/Components/Company/CompanyCard.vue';
 import PageHeader from '@/Components/Ui/PageHeader.vue';
 import Pagination from '@/Components/Ui/Pagination.vue';
 
@@ -19,7 +19,6 @@ const props = defineProps({
 const page = usePage();
 const search = ref(props.filters.search || '');
 const hiring = ref(!!props.filters.hiring);
-const brokenLogos = reactive(new Set());
 
 let timer;
 const reload = () => {
@@ -35,13 +34,6 @@ watch(search, () => {
 });
 watch(hiring, reload);
 
-const host = (url) => {
-	try {
-		return new URL(url).hostname.replace(/^www\./, '');
-	} catch {
-		return url;
-	}
-};
 </script>
 
 <template>
@@ -66,28 +58,7 @@ const host = (url) => {
 		<p class="text-sm text-muted mb-4">{{ companies.total }} {{ companies.total === 1 ? 'company' : 'companies' }}</p>
 
 		<div v-if="companies.data.length" class="grid grid-cols-3 gap-4 max-[1180px]:grid-cols-2 max-[760px]:grid-cols-1">
-			<Link
-				v-for="company in companies.data"
-				:key="company.id"
-				:href="route('companies.show', company.id)"
-				class="group bg-white border border-line rounded-[16px] p-5 flex flex-col transition-colors hover:border-blue-300 focus-visible:outline-2 focus-visible:outline-blue-500"
-			>
-				<div class="flex items-start gap-3.5">
-					<img v-if="company.image && !brokenLogos.has(company.id)" :src="company.image" alt="" width="48" height="48" loading="lazy" class="size-12 rounded-[12px] border border-line object-contain bg-white shrink-0" @error="brokenLogos.add(company.id)">
-					<CompanyLogo v-else class="size-12 rounded-[12px] text-[17px]" :name="company.name" />
-					<div class="flex-1 min-w-0">
-						<h2 class="font-display text-[17px] font-semibold leading-snug truncate group-hover:text-blue-700">{{ company.name }}</h2>
-						<span v-if="company.location" class="flex items-center gap-1.5 text-[13px] text-muted mt-1"><MapPin class="size-3.5 text-muted-2 shrink-0" aria-hidden="true" /><span class="truncate">{{ company.location }}</span></span>
-					</div>
-				</div>
-				<div class="flex items-center justify-between gap-3 mt-5 pt-4 border-t border-line-2 text-[13px]">
-					<span v-if="company.website" class="flex items-center gap-1.5 text-muted min-w-0"><Globe2 class="size-3.5 text-muted-2 shrink-0" aria-hidden="true" /><span class="truncate">{{ host(company.website) }}</span></span>
-					<span v-else class="text-muted-2">No website listed</span>
-					<span class="shrink-0 font-semibold" :class="company.open_roles_count ? 'text-blue-700' : 'text-muted-2'">
-						{{ company.open_roles_count ? `${company.open_roles_count} open ${company.open_roles_count === 1 ? 'role' : 'roles'}` : 'No open roles' }}
-					</span>
-				</div>
-			</Link>
+			<CompanyCard v-for="company in companies.data" :key="company.id" :company="company" />
 		</div>
 
 		<div v-else class="flex flex-col items-center text-center py-16 px-5 bg-white border border-line rounded-[16px]">

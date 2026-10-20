@@ -94,11 +94,9 @@ const reset = () => { query.value = ''; category.value = ''; };
 				</template>
 			</section>
 
-			<section class="public-container pb-20">
-				<ClosingBanner :title="text('Turn your next read into your next move.', 'Passez de la lecture à l’action.')" :body="text('Browse internships and jobs in Tunisia and worldwide, and check where each application takes place.', 'Consultez les stages et les emplois en Tunisie et à l’international, et vérifiez où se fait chaque candidature.')">
-					<Link :href="`${prefix}/opportunities`" class="cta cta-light focus-ring">{{ text('Browse opportunities', 'Voir les offres') }}<ArrowRight class="action-icon" aria-hidden="true" /></Link>
-				</ClosingBanner>
-			</section>
+			<ClosingBanner :title="text('Turn your next read into your next move.', 'Passez de la lecture à l’action.')" :body="text('Browse internships and jobs in Tunisia and worldwide, and check where each application takes place.', 'Consultez les stages et les emplois en Tunisie et à l’international, et vérifiez où se fait chaque candidature.')">
+				<Link :href="`${prefix}/opportunities`" class="cta cta-light focus-ring">{{ text('Browse opportunities', 'Voir les offres') }}<ArrowRight class="action-icon" aria-hidden="true" /></Link>
+			</ClosingBanner>
 		</div>
 	</PublicLayout>
 </template>

@@ -14,6 +14,7 @@
         "laravel/tinker": "^3.0",
         "pusher/pusher-php-server": "^7.2",
         "resend/resend-php": "^1.16",
+        "spatie/browsershot": "^5.4",
         "symfony/yaml": "^8.1",
         "tightenco/ziggy": "^2.6"
     },

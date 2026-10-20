@@ -93,12 +93,10 @@ const image = computed(() => guideImage(props.post));
 				</div>
 			</section>
 
-			<section class="public-container py-20">
-				<ClosingBanner mascot="01-student-wave" :title="text('Put it into practice on Nextward', 'Passez à l’action sur Nextward')" :body="text('Explore internships and jobs in Tunisia and worldwide, with clear sources and application details.', 'Découvrez des stages et des emplois en Tunisie et à l’international, avec des sources et des conditions claires.')">
-					<Link :href="`${prefix}/opportunities`" class="cta cta-light focus-ring">{{ text('Browse opportunities', 'Voir les offres') }}</Link>
-					<Link v-if="!page.props.auth?.user" :href="`${prefix}/register`" class="cta cta-ghost focus-ring">{{ text('Create account', 'Créer un compte') }}</Link>
-				</ClosingBanner>
-			</section>
+			<ClosingBanner mascot="01-student-wave" :title="text('Put it into practice on Nextward', 'Passez à l’action sur Nextward')" :body="text('Explore internships and jobs in Tunisia and worldwide, with clear sources and application details.', 'Découvrez des stages et des emplois en Tunisie et à l’international, avec des sources et des conditions claires.')">
+				<Link :href="`${prefix}/opportunities`" class="cta cta-light focus-ring">{{ text('Browse opportunities', 'Voir les offres') }}</Link>
+				<Link v-if="!page.props.auth?.user" :href="`${prefix}/register`" class="cta cta-ghost focus-ring">{{ text('Create account', 'Créer un compte') }}</Link>
+			</ClosingBanner>
 		</div>
 	</PublicLayout>
 </template>

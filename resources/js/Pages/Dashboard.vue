@@ -126,7 +126,7 @@ const cards = computed(() => {
 			<section v-if="recommended.length" class="bg-white border border-line rounded-[16px] overflow-hidden">
 				<div class="flex items-center justify-between gap-4 px-5 py-4 border-b border-line-2">
 					<h2 class="font-display text-[17px] font-semibold">Picked for you</h2>
-					<Link class="text-sm font-semibold text-blue-700 hover:underline" :href="route('settings')">Preferences</Link>
+					<Link class="text-sm font-semibold text-blue-700 hover:underline" :href="route('settings', { tab: 'preferences' })">Preferences</Link>
 				</div>
 				<p class="px-5 pt-3.5 text-[13px] text-muted">{{ recommendation_reasons.join('. ') }}</p>
 				<div class="py-1.5">

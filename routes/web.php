@@ -132,6 +132,7 @@ Route::group(['middleware' => 'auth'], function() {
     // Resources
     Route::resource('opportunities', OpportunityController::class)->except(['index', 'show'])->middleware('verified');
     Route::resource('companies', CompanyController::class)->except('index');
+    Route::get('/talent', [PublicCandidateController::class, 'talent'])->name('talent.index');
     Route::get('/candidates/manage', [CandidateController::class, 'index'])->name('candidates.index');
     Route::resource('candidates', CandidateController::class)->except('index')->whereNumber('candidate');
     Route::resource('fields', FieldController::class);

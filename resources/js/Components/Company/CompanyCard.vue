@@ -9,6 +9,8 @@ const page = usePage();
 const fr = computed(() => page.props.locale === 'fr');
 const text = (en, french) => fr.value ? french : en;
 const count = computed(() => props.company.open_roles_count);
+// The workspace links to its own company page; the public site to the public one.
+const href = computed(() => props.company.href || sitePath(props.company.url));
 const openRoles = computed(() => count.value
     ? text(`${count.value} open ${count.value === 1 ? 'role' : 'roles'}`, `${count.value} ${count.value === 1 ? 'offre ouverte' : 'offres ouvertes'}`)
     : text('No open roles right now', 'Aucune offre ouverte'));
@@ -19,7 +21,7 @@ const openRoles = computed(() => count.value
         <div class="flex items-center gap-3.5">
             <CompanyLogo class="size-12 rounded-xl text-base border border-line" :name="company.name" :src="company.logo" />
             <div class="min-w-0">
-                <h3 class="font-display text-[17px] font-semibold leading-snug truncate"><Link :href="sitePath(company.url)" class="hover:text-blue-700">{{ company.name }}</Link></h3>
+                <h3 class="font-display text-[17px] font-semibold leading-snug truncate"><Link :href="href" class="hover:text-blue-700">{{ company.name }}</Link></h3>
                 <p v-if="company.location" class="mt-0.5 flex items-center gap-1 text-xs text-slate-500 min-w-0"><MapPin :size="13" class="shrink-0" aria-hidden="true" /><span class="truncate">{{ company.location }}</span></p>
             </div>
         </div>
@@ -30,7 +32,7 @@ const openRoles = computed(() => count.value
             </li>
         </ul>
         <div class="mt-auto pt-4">
-            <Link :href="sitePath(company.url)" class="flex items-center justify-between gap-3 border-t border-line pt-4 text-sm font-semibold" :class="count ? 'text-blue-700' : 'text-slate-500'">
+            <Link :href="href" class="flex items-center justify-between gap-3 border-t border-line pt-4 text-sm font-semibold" :class="count ? 'text-blue-700' : 'text-slate-500'">
                 {{ openRoles }}<span class="sr-only"> {{ text('at', 'chez') }} {{ company.name }}</span>
                 <ArrowRight :size="16" aria-hidden="true" />
             </Link>

@@ -5,6 +5,7 @@ import { ArrowUpRight, Copy, Download, Plus, RefreshCw, Trash2 } from '@lucide/v
 import axios from 'axios';
 import AppShell from '@/Layouts/AppShell.vue';
 import PageHeader from '@/Components/Ui/PageHeader.vue';
+import { downloadLetterDocx, letterFileName } from '@/utils/letterDocx';
 
 defineOptions({ layout: (_h, page) => h(AppShell, { active: 'kits' }, () => page) });
 const props = defineProps({ kit: { type: Object, required: true } });
@@ -81,6 +82,7 @@ const copyLetter = async () => {
 	setTimeout(() => (copied.value = false), 2000);
 };
 const role = computed(() => kit.value.role || {});
+const letterDocx = () => downloadLetterDocx({ letter: letter.value, name: cv.value.name, contact: lines(contactText.value), locale: kit.value.locale, fileName: letterFileName(cv.value.name, role.value.company, kit.value.locale) });
 const applyHere = computed(() => role.value.is_open && role.value.application_mode === 'internal');
 const useToApply = () => {
 	try { sessionStorage.setItem(`nextward.cover-letter.${role.value.id}`, letter.value); } catch (e) { /* storage may be off */ }
@@ -173,6 +175,7 @@ const removeRow = (list, index) => cv.value[list].splice(index, 1);
 					<div class="flex flex-wrap gap-2.5">
 						<a :href="route('kits.cv', kit.id)" class="cbtn cbtn-secondary"><Download class="w-4 h-4" aria-hidden="true" /> CV (PDF)</a>
 						<a :href="route('kits.letter', kit.id)" class="cbtn cbtn-secondary"><Download class="w-4 h-4" aria-hidden="true" /> Letter (PDF)</a>
+						<button type="button" class="cbtn cbtn-secondary" :disabled="!letter.trim()" @click="letterDocx"><Download class="w-4 h-4" aria-hidden="true" /> Letter (Word)</button>
 						<button type="button" class="cbtn cbtn-secondary" @click="copyLetter"><Copy class="w-4 h-4" aria-hidden="true" /> {{ copied ? 'Copied' : 'Copy letter' }}</button>
 					</div>
 					<div class="flex flex-wrap items-center gap-2.5">

@@ -27,8 +27,12 @@
 		"vue": "^3.5.43"
 	},
 	"dependencies": {
+		"@fontsource/hanken-grotesk": "^5.3.0",
+		"@fontsource/newsreader": "^5.3.0",
 		"@heroicons/vue": "^2.2.0",
-		"vuex": "^4.1.0",
-		"@lucide/vue": "^1.56.0"
+		"@lucide/vue": "^1.56.0",
+		"docx": "^9.13.0",
+		"puppeteer": "^25.15.0",
+		"vuex": "^4.1.0"
 	}
 }

@@ -1,19 +1,32 @@
 <script setup>
-import { computed } from 'vue';
-import { usePage } from '@inertiajs/vue3';
-import { ArrowRight, FileText, MapPin } from '@lucide/vue';
+import { computed, ref, watch } from 'vue';
+import { router, usePage } from '@inertiajs/vue3';
+import { ArrowRight, Search, Users } from '@lucide/vue';
+import CandidateCard from '@/Components/Candidate/CandidateCard.vue';
 import PublicLayout from '@/Layouts/Public.vue';
 import ClosingBanner from '@/Components/Landing/ClosingBanner.vue';
 import Sparkle from '@/Shared/Sparkle.vue';
 
-const props = defineProps({ candidates: { type: Object, required: true } });
+const props = defineProps({
+	candidates: { type: Object, required: true },
+	fields: { type: Array, default: () => [] },
+	filters: { type: Object, default: () => ({}) },
+});
 const page = usePage();
 const fr = computed(() => page.props.locale === 'fr');
 const prefix = computed(() => fr.value ? '/fr' : '');
 const text = (en, french) => fr.value ? french : en;
 const user = computed(() => page.props.auth?.user);
-const initials = (name) => (name || '').split(/\s+/).map((word) => word[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
 const list = computed(() => props.candidates.data || []);
+
+const search = ref(props.filters.search || '');
+watch(() => props.filters.search, (value) => { search.value = value || ''; });
+const visit = (changes) => {
+	const query = { search: search.value.trim(), field: props.filters.field, resume: props.filters.resume ? 1 : null, ...changes };
+	router.get(`${prefix.value}/candidates`, Object.fromEntries(Object.entries(query).filter(([, value]) => value)), { preserveScroll: true, preserveState: true });
+};
+const filtered = computed(() => !!(props.filters.search || props.filters.field || props.filters.resume));
+const chip = (on) => on ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-line hover:border-blue-300';
 </script>
 
 <template>
@@ -35,25 +48,29 @@ const list = computed(() => props.candidates.data || []);
 			</section>
 
 			<section class="public-container py-14" :aria-label="text('All candidate profiles', 'Tous les profils de candidats')">
-				<p v-if="!list.length" class="panel p-8 text-slate-600">{{ text('No public profiles yet. Check back soon.', 'Aucun profil public pour le moment. Revenez bientôt.') }}</p>
+				<form class="flex gap-3 max-w-3xl" role="search" :action="`${prefix}/candidates`" method="get" @submit.prevent="visit({})">
+					<label class="relative flex-1 min-w-0">
+						<span class="sr-only">{{ text('Search candidates', 'Rechercher des candidats') }}</span>
+						<Search class="absolute left-4 top-1/2 -translate-y-1/2 size-[18px] text-slate-400 pointer-events-none" aria-hidden="true" />
+						<input v-model="search" name="search" type="search" maxlength="100" :placeholder="text('Name, role, skill or location', 'Nom, poste, compétence ou lieu')" class="w-full h-12 rounded-xl border-line bg-white pl-11" />
+					</label>
+					<button type="submit" class="cta cta-primary">{{ text('Search', 'Rechercher') }}</button>
+				</form>
+				<div class="mt-5 flex gap-2 py-1 -mx-5 px-5 overflow-x-auto [scrollbar-width:none] sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible" role="group" :aria-label="text('Filter candidates', 'Filtrer les candidats')">
+					<button type="button" class="shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold border" :class="chip(!filters.field)" :aria-pressed="!filters.field" @click="visit({ field: null })">{{ text('All fields', 'Tous les domaines') }}</button>
+					<button v-for="field in fields" :key="field.id" type="button" class="shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold border" :class="chip(filters.field === field.id)" :aria-pressed="filters.field === field.id" @click="visit({ field: field.id })">{{ field.name }}</button>
+					<button type="button" class="shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold border" :class="chip(filters.resume)" :aria-pressed="!!filters.resume" @click="visit({ resume: filters.resume ? null : 1 })">{{ text('Resume shared', 'CV partagé') }}</button>
+				</div>
+				<p class="mt-6 mb-4 text-sm text-slate-600" aria-live="polite">{{ candidates.total }} {{ candidates.total === 1 ? text('profile', 'profil') : text('profiles', 'profils') }}</p>
+
+				<div v-if="!list.length" class="flex flex-col items-center text-center py-16 px-5 bg-white border border-line rounded-[18px]">
+					<Users class="size-8 text-slate-400 mb-3" aria-hidden="true" />
+					<h2 class="font-display text-lg font-semibold">{{ filtered ? text('No candidates found', 'Aucun candidat trouvé') : text('No public profiles yet', 'Aucun profil public pour le moment') }}</h2>
+					<p class="text-slate-600 text-sm mt-1.5">{{ filtered ? text('Try another name, skill or field.', 'Essayez un autre nom, une autre compétence ou un autre domaine.') : text('Check back soon.', 'Revenez bientôt.') }}</p>
+					<Link v-if="filtered" :href="`${prefix}/candidates`" class="mt-4 text-sm font-semibold text-blue-700 hover:underline">{{ text('Clear filters', 'Effacer les filtres') }}</Link>
+				</div>
 				<div v-else class="candidate-grid">
-					<Link v-for="candidate in list" :key="candidate.id" :href="candidate.url" class="candidate-card focus-ring">
-						<div class="flex items-center gap-4">
-							<span class="avatar" aria-hidden="true">{{ initials(candidate.name) }}</span>
-							<div class="min-w-0">
-								<h2 class="font-display text-lg font-semibold leading-tight truncate">{{ candidate.name }}</h2>
-								<p class="text-sm text-slate-600 mt-1 line-clamp-2">{{ candidate.headline || candidate.field || text('Candidate', 'Candidat') }}</p>
-							</div>
-						</div>
-						<p v-if="candidate.location || candidate.has_resume" class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-slate-600">
-							<span v-if="candidate.location" class="inline-flex items-center gap-1.5"><MapPin :size="15" aria-hidden="true" />{{ candidate.location }}</span>
-							<span v-if="candidate.has_resume" class="inline-flex items-center gap-1.5 font-semibold text-blue-700"><FileText :size="15" aria-hidden="true" />{{ text('Resume shared', 'CV partagé') }}</span>
-						</p>
-						<ul v-if="candidate.skills.length" class="mt-4 flex flex-wrap gap-2" :aria-label="text('Skills', 'Compétences')">
-							<li v-for="skill in candidate.skills.slice(0, 5)" :key="skill" class="skill">{{ skill }}</li>
-						</ul>
-						<span class="landing-link mt-auto pt-5">{{ text('View profile', 'Voir le profil') }}<ArrowRight class="action-icon" aria-hidden="true" /></span>
-					</Link>
+					<CandidateCard v-for="candidate in list" :key="candidate.id" :candidate="candidate" />
 				</div>
 
 				<nav v-if="candidates.prev_page_url || candidates.next_page_url" class="mt-10 flex justify-between gap-4" :aria-label="text('Pages', 'Pages')">
@@ -63,21 +80,15 @@ const list = computed(() => props.candidates.data || []);
 				</nav>
 			</section>
 
-			<section class="public-container pb-20">
-				<ClosingBanner :title="text('Want your profile here?', 'Vous voulez apparaître ici ?')" :body="text('Fill in your candidate profile, then ask to show it on Nextward from your settings. We check every profile before it goes live.', 'Complétez votre profil de candidat, puis demandez à l’afficher sur Nextward depuis vos paramètres. Nous vérifions chaque profil avant sa mise en ligne.')">
-					<Link v-if="user" href="/settings" class="cta cta-light focus-ring">{{ text('Open settings', 'Ouvrir les paramètres') }}<ArrowRight class="action-icon" aria-hidden="true" /></Link>
-					<Link v-else :href="`${prefix}/register`" class="cta cta-light focus-ring">{{ text('Create a free account', 'Créer un compte gratuit') }}<ArrowRight class="action-icon" aria-hidden="true" /></Link>
-				</ClosingBanner>
-			</section>
+			<ClosingBanner :title="text('Want your profile here?', 'Vous voulez apparaître ici ?')" :body="text('Fill in your candidate profile, then ask to show it on Nextward from your profile page. We check every profile before it goes live.', 'Complétez votre profil de candidat, puis demandez à l’afficher sur Nextward depuis votre page de profil. Nous vérifions chaque profil avant sa mise en ligne.')">
+				<Link v-if="user" href="/profile" class="cta cta-light focus-ring">{{ text('Open your profile', 'Ouvrir votre profil') }}<ArrowRight class="action-icon" aria-hidden="true" /></Link>
+				<Link v-else :href="`${prefix}/register`" class="cta cta-light focus-ring">{{ text('Create a free account', 'Créer un compte gratuit') }}<ArrowRight class="action-icon" aria-hidden="true" /></Link>
+			</ClosingBanner>
 		</div>
 	</PublicLayout>
 </template>
 
 <style scoped>
 .candidates-stage { width: min(100%, 320px); }
-.candidate-grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
-.candidate-card { display: flex; flex-direction: column; padding: 24px; border: 1px solid var(--color-line); border-radius: 18px; background: #fff; transition: border-color 180ms; }
-.candidate-card:hover { border-color: rgb(37 99 235 / .45); }
-.avatar { display: grid; place-items: center; flex-shrink: 0; width: 56px; height: 56px; border-radius: 16px; background: var(--color-brand); color: #fff; font-family: var(--font-display); font-size: 20px; font-weight: 700; }
-.skill { padding: 4px 10px; border-radius: 999px; background: #eef4ff; color: #1d4ed8; font-size: 12.5px; font-weight: 600; }
+.candidate-grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); }
 </style>

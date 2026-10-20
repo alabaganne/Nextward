@@ -67,6 +67,62 @@ class PublicCandidateProfileTest extends TestCase
         $this->get(str_replace('/candidates/', '/fr/candidates/', $url))->assertOk();
     }
 
+    public function test_profile_page_shows_the_public_status_and_settings_do_not(): void
+    {
+        $this->candidate()->forceFill(['public_status' => 'pending', 'public_contact' => true])->save();
+
+        $this->actingAs($this->candidateUser->fresh())->get('/profile')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->component('Profile/Show')
+            ->where('profile.public_status', 'pending')
+            ->where('profile.public_contact', true)
+            ->where('profile.public_url', parse_url($this->candidate()->publicUrl(), PHP_URL_PATH))
+            ->where('profile.email_verified', true));
+        $this->get('/settings')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->component('Settings')
+            ->missing('settings.public_status'));
+    }
+
+    public function test_public_page_shows_work_history_education_and_projects(): void
+    {
+        $this->candidate()->forceFill([
+            'public_status' => 'approved',
+            'experience' => [['title' => 'Backend developer', 'company' => 'Atlas', 'start' => '2022-01', 'current' => true]],
+            'education' => [['school' => 'ISIM', 'degree' => 'Engineering']],
+            'projects' => [['name' => 'Job board', 'url' => 'https://example.com']],
+        ])->save();
+
+        $this->get($this->candidate()->publicUrl())->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('candidate.experience.0.title', 'Backend developer')
+            ->where('candidate.education.0.school', 'ISIM')
+            ->where('candidate.projects.0.name', 'Job board'));
+    }
+
+    public function test_admins_and_companies_browse_talent_in_the_workspace(): void
+    {
+        $this->candidate()->forceFill(['public_status' => 'approved'])->save();
+        $company = User::where('email', 'company@example.com')->firstOrFail();
+
+        foreach ([$this->admin, $company] as $viewer) {
+            $this->actingAs($viewer)->get('/talent?search=laravel')->assertOk()->assertInertia(fn (Assert $page) => $page
+                ->component('Talent/Index')
+                ->has('candidates.data', 1)
+                ->where('candidates.data.0.name', 'Ala Baganne'));
+        }
+        $this->actingAs($this->admin)->get('/talent?search=nobody-matches-this')->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->has('candidates.data', 0));
+        $this->actingAs(User::where('email', 'professional@example.com')->firstOrFail())->get('/talent')->assertForbidden();
+    }
+
+    public function test_public_directory_can_be_searched(): void
+    {
+        $this->candidate()->forceFill(['public_status' => 'approved'])->save();
+
+        $this->get('/candidates?search=Laravel')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->has('candidates.data', 1)
+            ->where('filters.search', 'Laravel'));
+        $this->get('/candidates?resume=1')->assertOk()->assertInertia(fn (Assert $page) => $page->has('candidates.data', 0));
+    }
+
     public function test_public_page_hides_contact_details_and_resume_by_default(): void
     {
         $this->candidate()->forceFill(['public_status' => 'approved', 'resume_name' => 'cv.pdf'])->save();

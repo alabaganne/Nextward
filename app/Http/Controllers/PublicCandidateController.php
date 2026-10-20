@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Candidate;
+use App\Models\Field;
 use App\Notifications\PublicProfileReviewed;
 use App\Support\PublicSeo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
@@ -15,15 +17,62 @@ class PublicCandidateController extends Controller
     public function index(Request $request)
     {
         $locale = $request->is('fr/*', 'fr') ? 'fr' : 'en';
+        [$candidates, $filters] = $this->search($request, $locale);
+
+        return Inertia::render('Candidates/Directory', [
+            'candidates' => $candidates,
+            'filters' => $filters,
+            'fields' => $this->fields(),
+            'seo' => PublicSeo::candidates(),
+        ]);
+    }
+
+    // The same directory inside the workspace, for admins and companies.
+    public function talent(Request $request)
+    {
+        abort_unless($request->user()->isAdmin() || $request->user()->isCompany(), 403);
+        [$candidates, $filters] = $this->search($request, 'en');
+
+        return Inertia::render('Talent/Index', [
+            'candidates' => $candidates,
+            'filters' => $filters,
+            'fields' => $this->fields(),
+        ]);
+    }
+
+    private function search(Request $request, string $locale): array
+    {
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'field' => ['nullable', 'integer'],
+            'resume' => ['nullable', 'boolean'],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ]);
+        $search = trim($filters['search'] ?? '');
+        $field = isset($filters['field']) ? (int) $filters['field'] : null;
+        $resume = (bool) ($filters['resume'] ?? false);
+
         $candidates = Candidate::publiclyListed()->with('user', 'field', 'city', 'skills')
+            ->when($search !== '', function ($query) use ($search) {
+                $term = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search).'%';
+                $query->where(fn ($query) => $query->where('headline', 'like', $term)->orWhere('location', 'like', $term)
+                    ->orWhere('preferences', 'like', $term)
+                    ->orWhereHas('user', fn ($query) => $query->where('name', 'like', $term))
+                    ->orWhereHas('skills', fn ($query) => $query->where('name', 'like', $term))
+                    ->orWhereHas('field', fn ($query) => $query->where('name', 'like', $term)));
+            })
+            ->when($field, fn ($query) => $query->where('field_id', $field))
+            ->when($resume, fn ($query) => $query->where('public_contact', true)->whereNotNull('resume_path'))
             ->orderByDesc('public_reviewed_at')->orderByDesc('id')
             ->paginate(24)->withQueryString()
             ->through(fn (Candidate $candidate) => $this->card($candidate, $locale));
 
-        return Inertia::render('Candidates/Directory', [
-            'candidates' => $candidates,
-            'seo' => PublicSeo::candidates(),
-        ]);
+        return [$candidates, ['search' => $search, 'field' => $field, 'resume' => $resume]];
+    }
+
+    private function fields()
+    {
+        return Field::whereHas('candidates', fn ($query) => $query->publiclyListed())->orderBy('name')->get(['id', 'name']);
     }
 
     public function show(Request $request, string $candidateSlug)
@@ -38,7 +87,11 @@ class PublicCandidateController extends Controller
         return Inertia::render('Candidates/Public', [
             'candidate' => [
                 ...$this->card($candidate, $locale),
+                'skills' => $candidate->skills->pluck('name')->merge($candidate->preferences['skills'] ?? [])->unique()->values(),
                 'about' => $candidate->about,
+                'experience' => $candidate->experience ?: [],
+                'education' => $candidate->education ?: [],
+                'projects' => $candidate->projects ?: [],
                 'experience_years' => $candidate->experience_years,
                 'languages' => $candidate->languages ?: [],
                 'website' => $candidate->website,
@@ -124,13 +177,18 @@ class PublicCandidateController extends Controller
 
     private function card(Candidate $candidate, string $locale): array
     {
+        $skills = $candidate->skills->pluck('name')->merge($candidate->preferences['skills'] ?? [])->unique()->values();
+
         return [
             'id' => $candidate->id,
             'name' => $candidate->user->name,
             'headline' => $candidate->headline,
             'field' => $candidate->field?->name,
             'location' => $candidate->location ?: (collect([$candidate->city?->name, $candidate->country_code])->filter()->implode(', ') ?: null),
-            'skills' => $candidate->skills->pluck('name')->merge($candidate->preferences['skills'] ?? [])->unique()->values()->take(12),
+            'skills' => $skills->take(12),
+            'skills_count' => $skills->count(),
+            'experience_years' => $candidate->experience_years,
+            'summary' => $candidate->about ? Str::limit(Str::squish($candidate->about), 220) : null,
             'url' => parse_url($candidate->publicUrl($locale), PHP_URL_PATH),
             'has_resume' => $candidate->public_contact && (bool) $candidate->resume_path,
         ];

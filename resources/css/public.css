@@ -151,12 +151,15 @@
 .faq-item[open] .faq-toggle { transform: rotate(45deg); }
 .faq-item > p { max-width: 640px; padding: 0 20px 20px; color: #475569; font-size: 15px; line-height: 1.8; }
 
-/* Flat cobalt closing banner */
-.closing-band { position: relative; overflow: hidden; border-radius: 22px; background: var(--color-brand); color: #fff; }
+/* Flat cobalt closing band, full width and flush with the footer */
+main:has(> .landing > .closing-band) { display: flex; flex-direction: column; }
+main > .landing:has(> .closing-band) { display: flex; flex: 1; flex-direction: column; }
+.landing > .closing-band { margin-top: auto; }
+.closing-band { position: relative; overflow: hidden; background: var(--color-brand); color: #fff; }
 .closing-band .section-title { margin-top: 0; color: #fff; font-size: clamp(28px, 3vw, 38px); }
 .closing-band p { color: #dbe7ff; }
 .closing-band .focus-ring:focus-visible { outline-color: #fff; }
-.closing-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px 40px; padding: 44px 48px; }
+.closing-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px 40px; padding-block: 64px; }
 .closing-copy { flex: 1 1 320px; max-width: 576px; }
 .closing-art { width: 140px; height: 140px; flex-shrink: 0; margin-block: -16px; }
 .cta-ghost { border: 1px solid rgb(255 255 255 / .45); color: #fff; }
@@ -191,8 +194,7 @@
 	.guide-card.is-row { flex-direction: column; }
 	.guide-card.is-row .guide-media { aspect-ratio: 12 / 5; min-height: 0; }
 	.detail-rows > div { grid-template-columns: 1fr; gap: 2px; }
-	.closing-band { border-radius: 18px; }
-	.closing-inner { padding: 32px 24px; }
+	.closing-inner { padding-block: 44px; }
 	.closing-art { width: 104px; height: 104px; margin: 0; }
 }
 @media (prefers-reduced-motion: reduce) {

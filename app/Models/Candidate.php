@@ -21,14 +21,10 @@ class Candidate extends Model
         'languages',
         'preferences',
         'website',
-        'resume_path',
-        'resume_name',
         'experience',
         'education',
         'projects',
     ];
-
-    protected $hidden = ['resume_path'];
 
     protected $casts = [
         'preferences' => 'array',
@@ -66,6 +62,17 @@ class Candidate extends Model
 
     public function city() {
         return $this->belongsTo(City::class);
+    }
+
+    public function resumes()
+    {
+        return $this->hasMany(Resume::class);
+    }
+
+    // The resume shared on the public profile, read to fill the profile and given to the AI for kits.
+    public function mainResume()
+    {
+        return $this->hasOne(Resume::class)->where('is_main', true)->where('status', 'ready');
     }
 
     public function skills() {

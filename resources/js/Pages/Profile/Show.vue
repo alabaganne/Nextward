@@ -1,9 +1,10 @@
 <script setup>
-import { ArrowUpRight, Check, GraduationCap, Link2, Mail, MapPin, Pencil } from '@lucide/vue';
-import { computed, h } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { ArrowUpRight, Check, Eye, GraduationCap, Link2, Mail, MapPin, Pencil } from '@lucide/vue';
+import { computed, h, ref } from 'vue';
+import { Link, router } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
 import ProfileBanner from '@/Components/Candidate/ProfileBanner.vue';
+import SkillList from '@/Components/Candidate/SkillList.vue';
 
 defineOptions({
 	layout: (_h, page) => h(AppShell, { active: 'profile' }, () => page),
@@ -62,16 +63,58 @@ const history = computed(() => [
 const strength = computed(() =>
 	Math.round((checklist.value.filter((item) => item.done).length / checklist.value.length) * 100)
 );
+
+const publicBusy = ref(false);
+const updatePublic = (data) =>
+	router.put(route('profile.public.update'), data, {
+		preserveScroll: true,
+		onStart: () => (publicBusy.value = true),
+		onFinish: () => (publicBusy.value = false),
+	});
+const publicState = computed(() => ({
+	pending: { title: 'Waiting for review', text: 'The Nextward team is checking your profile. It stays private until it is approved.' },
+	approved: { title: 'Your profile is public', text: 'Companies and visitors can find you on the Talent page.' },
+	declined: { title: 'Not approved yet', text: 'Update your profile, then ask again.' },
+}[props.profile.public_status] || { title: 'Let companies find you', text: 'Show your profile on the Talent page so companies can find you. The Nextward team checks each profile first. Your email, phone number and resume stay hidden unless you choose to share them.' }));
 </script>
 
 <template>
 	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-[1120px] mx-auto">
 		<ProfileBanner class="mb-6" :name="profile.name" :headline="headline" :items="bannerItems">
-			<Link class="inline-flex items-center justify-center gap-2 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors [&_svg]:w-4 [&_svg]:h-4" :href="route('settings')">
+			<span v-if="profile.public_status === 'approved'" class="self-center text-xs font-semibold px-3 py-1.5 rounded-full bg-[#dcfce7] text-[#047857]">Public</span>
+			<span v-else-if="profile.public_status === 'pending'" class="self-center text-xs font-semibold px-3 py-1.5 rounded-full bg-[#fef3c7] text-[#b45309]">Under review</span>
+			<Link class="inline-flex items-center justify-center gap-1.5 font-semibold text-sm px-4 py-2.5 rounded-[10px] bg-blue-600 text-white hover:bg-blue-700 transition-colors [&_svg]:w-4 [&_svg]:h-4" :href="route('settings')">
 				<component :is="icons.pencil" aria-hidden="true" />
 				Edit profile
 			</Link>
 		</ProfileBanner>
+
+		<!-- public profile -->
+		<section v-if="isCandidate" class="rounded-[18px] mb-[18px]" :class="profile.public_status === 'approved' ? 'bg-[#ecfdf5]' : 'bg-blue-50'" aria-labelledby="public-profile-title">
+			<div class="px-[22px] py-5 flex items-center justify-between gap-4 flex-wrap">
+				<div class="flex items-start gap-3.5 min-w-0 flex-1">
+					<span class="w-10 h-10 rounded-[12px] grid place-items-center shrink-0 text-white [&_svg]:w-5 [&_svg]:h-5" :class="profile.public_status === 'approved' ? 'bg-[#059669]' : 'bg-blue-600'"><Eye aria-hidden="true" /></span>
+					<div class="min-w-0">
+						<h2 id="public-profile-title" class="font-display text-[17px] font-semibold" role="status">{{ publicState.title }}</h2>
+						<p class="text-[13.5px] text-ink-700 mt-0.5 max-w-[640px]">{{ publicState.text }}</p>
+						<a v-if="profile.public_status" :href="profile.public_url" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-[13.5px] font-semibold text-blue-700 hover:underline mt-1.5">{{ profile.public_status === 'approved' ? 'Open your public page' : 'Preview your public page' }}<ArrowUpRight class="w-3.5 h-3.5" aria-hidden="true" /></a>
+						<p v-if="!profile.public_status && !profile.email_verified" class="text-[13px] text-muted mt-1.5">
+							<Link class="font-semibold text-blue-700 hover:underline" :href="route('settings', { tab: 'security' })">Verify your email</Link> first.
+						</p>
+					</div>
+				</div>
+				<button v-if="profile.public_status === 'pending'" class="cbtn cbtn-secondary" type="button" :disabled="publicBusy" @click="updatePublic({ public: false })">Cancel request</button>
+				<button v-else-if="profile.public_status === 'approved'" class="cbtn cbtn-secondary" type="button" :disabled="publicBusy" @click="updatePublic({ public: false })">Make it private</button>
+				<button v-else class="cbtn bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60" type="button" :disabled="publicBusy || !profile.email_verified" @click="updatePublic({ public: true })">{{ profile.public_status === 'declined' ? 'Ask again' : 'Ask to make it public' }}</button>
+			</div>
+			<label class="px-[22px] py-4 border-t flex items-start gap-3 cursor-pointer" :class="profile.public_status === 'approved' ? 'border-[#d1fae5]' : 'border-blue-100'">
+				<input type="checkbox" class="mt-1 w-4 h-4 accent-blue-600 shrink-0" :checked="profile.public_contact" :disabled="publicBusy" @change="updatePublic({ contact: $event.target.checked })">
+				<span>
+					<b class="text-[14px] font-semibold block">Share my resume, email and phone number</b>
+					<span class="text-[13px] text-muted block mt-0.5">Anyone who opens your public profile can download your resume and contact you. Turn this off at any time.</span>
+				</span>
+			</label>
+		</section>
 
 		<div class="grid grid-cols-[1.65fr_1fr] gap-[18px] items-start max-[980px]:grid-cols-1">
 			<!-- LEFT -->
@@ -99,9 +142,7 @@ const strength = computed(() =>
 						<Link class="inline-flex items-center gap-[7px] text-[13px] font-semibold text-blue-700 bg-blue-50 border border-blue-100 px-3 py-[7px] rounded-[9px] cursor-pointer hover:bg-blue-100 transition-colors [&_svg]:w-3.5 [&_svg]:h-3.5" :href="route('settings')"><component :is="icons.pencil" aria-hidden="true" /> Edit</Link>
 					</div>
 					<div class="px-[22px] py-5">
-						<div v-if="profile.skills?.length" class="flex flex-wrap gap-[9px]">
-							<span v-for="(skill, index) in profile.skills" :key="skill" class="inline-flex items-center text-[13px] font-semibold px-3.5 py-2 rounded-[9px]" :class="index < 3 ? 'text-blue-700 bg-blue-50' : 'text-ink-700 bg-paper-3'">{{ skill }}</span>
-						</div>
+						<SkillList v-if="profile.skills?.length || profile.languages?.length" :skills="profile.skills" :languages="profile.languages" />
 						<p v-else class="text-[14.5px] text-muted leading-[1.7]">No skills added yet.</p>
 					</div>
 				</section>
@@ -111,7 +152,7 @@ const strength = computed(() =>
 					<section v-for="list in history" :key="list.key" class="bg-white border border-line rounded-[18px] mb-[18px]">
 						<div class="flex items-center justify-between px-[22px] py-[18px] border-b border-line-2">
 							<h3 class="font-display text-[16.5px] font-semibold">{{ list.title }}</h3>
-							<Link class="inline-flex items-center gap-[7px] text-[13px] font-semibold text-blue-700 bg-blue-50 border border-blue-100 px-3 py-[7px] rounded-[9px] cursor-pointer hover:bg-blue-100 transition-colors [&_svg]:w-3.5 [&_svg]:h-3.5" :href="route('settings')"><component :is="icons.pencil" aria-hidden="true" /> Edit</Link>
+							<Link class="inline-flex items-center gap-[7px] text-[13px] font-semibold text-blue-700 bg-blue-50 border border-blue-100 px-3 py-[7px] rounded-[9px] cursor-pointer hover:bg-blue-100 transition-colors [&_svg]:w-3.5 [&_svg]:h-3.5" :href="route('settings', { tab: 'resume' })"><component :is="icons.pencil" aria-hidden="true" /> Edit</Link>
 						</div>
 						<ul class="px-[22px] py-2">
 							<li v-for="(row, index) in list.rows" :key="index" class="py-3.5 border-b border-line-2 last:border-b-0">
