@@ -83,6 +83,10 @@ textarea.fld {
 .nav-item.is-active svg {
 	@apply text-blue-300;
 }
+/* Pages inside a sidebar group, lined up with the group label. */
+.nav-child {
+	@apply py-2 pl-[42px] text-[14px];
+}
 .nav-badge {
 	@apply ml-auto min-w-5 h-5 px-1.5 rounded-full grid place-items-center text-[11px] font-bold text-white bg-blue-600;
 }

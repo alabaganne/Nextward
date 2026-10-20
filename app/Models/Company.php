@@ -92,10 +92,16 @@ class Company extends Model
         return !$this->claimed_by_company_id && $this->hasPublicName() && ($openRoles > 0 || mb_strlen(trim((string) $this->about)) >= 300);
     }
 
+    // Companies that can have a public page: not merged into another one, and with a name.
+    public function scopeListed($query)
+    {
+        return $query->whereNull('claimed_by_company_id')
+            ->where(fn ($query) => $query->whereNotNull('name')->where('name', '!=', '')->orWhereHas('user'));
+    }
+
     public function scopePublicIndexable($query)
     {
-        return $query->whereNull('claimed_by_company_id')->with('user')
-            ->where(fn ($query) => $query->whereNotNull('name')->where('name', '!=', '')->orWhereHas('user'))
+        return $query->listed()->with('user')
             ->where(fn ($query) => $query->whereHas('opportunities', fn ($query) => $query->available())->orWhereRaw('LENGTH(about) >= 300'));
     }
 }

@@ -3,12 +3,12 @@
 namespace App\Console\Commands;
 
 use App\Ai\OpportunityClassifier;
+use App\Importing\ImportFocus;
 use App\Importing\OpportunityCsv;
 use App\Importing\OpportunityImporter;
 use App\Models\ImportSource;
 use App\Models\Opportunity;
 use Illuminate\Console\Command;
-use Illuminate\Support\Str;
 
 class FetchOpportunities extends Command
 {
@@ -23,16 +23,9 @@ class FetchOpportunities extends Command
         if (! $count || $count < 1 || $count > 100) { $this->error('Count must be between 1 and 100.'); return self::FAILURE; }
         $sources = ImportSource::where('enabled', true)->where('permission_status', 'approved')
             ->when($this->option('source'), fn ($q) => $q->whereIn('key', $this->option('source')))->orderBy('id')->get();
-        $group = $this->option('focus') ? config('importer.focus.'.$this->option('focus')) : [];
-        if ($this->option('focus') && ! $group) { $this->error('Unknown focus. Add it under focus in config/importer.php.'); return self::FAILURE; }
-        $include = $group['include'] ?? [];
-        if ($this->option('keywords')) {
-            $include = [...$include, ...array_map(fn ($word) => preg_quote(Str::ascii(mb_strtolower(trim($word))), '/'), explode(',', $this->option('keywords')))];
-        }
-        $word = fn (array $words) => '(?<![a-z0-9])(?:'.implode('|', array_filter($words)).')(?![a-z0-9])';
-        // A title must contain an include word and no exclude word, e.g. "business developer" is a sales role.
-        $focus = $include ? '/^'.(! empty($group['exclude']) ? '(?!.*'.$word($group['exclude']).')' : '').'.*'.$word($include).'/' : null;
-        $focusFields = $group['fields'] ?? null;
+        $focus = ImportFocus::for($this->option('focus') ?: null, $this->option('keywords') ? explode(',', $this->option('keywords')) : []);
+        if (! $focus) { $this->error('Unknown focus. Add it under focus in config/importer.php.'); return self::FAILURE; }
+        [$focus, $focusFields] = $focus;
         $ai = app(OpportunityClassifier::class);
         $this->line($ai->enabled() ? $ai->label().' reads each new listing before it is added.' : 'AI is off (no '.$ai->keyName().' or OPPORTUNITY_AI_ENABLED=false); keyword rules sort the listings.');
         if ($sources->isEmpty()) { $this->info('No approved sources are enabled. Run php artisan db:seed --class=ImportSourceSeeder first.'); return self::SUCCESS; }

@@ -18,7 +18,7 @@ class Opportunity extends Model
         'publication_status', 'posted_at', 'first_seen_at', 'last_verified_at',
         'content_updated_at', 'expires_at', 'country_code', 'location', 'locations',
         'employment_types', 'seniority', 'program_type', 'start_date', 'remote_scope',
-        'remote_eligibility', 'relocation', 'visa_sponsorship', 'eligible_countries',
+        'remote_eligibility', 'applicant_scope', 'relocation', 'visa_sponsorship', 'eligible_countries',
         'excluded_countries', 'eligibility_evidence', 'language', 'pay_min', 'pay_max',
         'pay_currency', 'compensation_status', 'moderation_overrides', 'merged_into_id',
     ];
@@ -31,6 +31,7 @@ class Opportunity extends Model
         'status' => 'open',
         'work_type' => 'onsite',
         'remote_eligibility' => 'unknown',
+        'applicant_scope' => 'unknown',
         'relocation' => 'unknown',
         'visa_sponsorship' => 'unknown',
         'compensation_status' => 'unspecified',
@@ -272,6 +273,19 @@ class Opportunity extends Model
             && $item->last_verified_at->gte(now()->subHours($item->importSource->freshnessHours())));
     }
 
+    // remote_eligibility still says whether someone in Tunisia can take a remote role; alerts and recommendations use it.
+    public static function tunisiaEligibility(array $data): ?string
+    {
+        if (($data['work_type'] ?? null) !== 'remote') { return null; }
+        if (in_array('TN', $data['excluded_countries'] ?? [], true)) { return 'restricted'; }
+        if (in_array('TN', $data['eligible_countries'] ?? [], true)) { return 'eligible'; }
+        return match ($data['applicant_scope'] ?? 'unknown') {
+            'anywhere' => 'eligible',
+            'listed', 'local' => 'restricted',
+            default => null,
+        };
+    }
+
     public function isEligibleForCountry(?string $country, bool $includeUnknown = false): bool
     {
         $country = $country ? strtoupper($country) : null;
@@ -370,6 +384,10 @@ class Opportunity extends Model
                     $query->orWhere('remote_eligibility', 'unknown');
                 }
             });
+        }
+        // Open worldwide: anyone can apply from any country. Listings that leave Tunisia out are never shown here.
+        if (! empty($filters['worldwide'])) {
+            $query->where('applicant_scope', 'anywhere')->where(fn ($query) => $query->whereNull('excluded_countries')->orWhereJsonDoesntContain('excluded_countries', 'TN'));
         }
         if (! empty($filters['relocation']) || $category === 'relocation') {
             $query->where('relocation', 'yes')->where('country_code', '!=', 'TN');

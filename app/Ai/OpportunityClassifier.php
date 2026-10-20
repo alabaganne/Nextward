@@ -49,19 +49,31 @@ class OpportunityClassifier
         self::$offReason = null;
     }
 
-    // Returns the AI reading of a listing, or null when AI is off or the call fails, so the keyword rules stay in place.
-    public function classify(array $data, array $fields): ?array
+    // Reads listings in batches and returns the AI answer per key of $listings. Listings left out
+    // (AI off, a failed call or a missing answer) keep the keyword rules.
+    public function classifyMany(array $listings, array $fields, array $skills = []): array
     {
-        if (! $this->enabled()) { return null; }
-        try {
-            $response = (new ListingReviewer($fields))->prompt($this->listing($data), provider: $this->provider(), model: $this->model('review'));
-        } catch (Throwable $e) {
-            $this->stopOn($e);
-            Log::warning('Opportunity classification failed; keyword rules were used.', ['error' => self::$offReason ?? Str::limit($e->getMessage(), 300)]);
-            return null;
+        $reviews = [];
+        foreach (array_chunk($listings, max(1, (int) config('importer.ai.batch_size', 10)), true) as $chunk) {
+            if (! $this->enabled()) { break; }
+            $keys = array_keys($chunk);
+            $prompt = implode("\n\n", array_map(fn ($key, $data) => 'Listing '.(array_search($key, $keys, true) + 1)."\n".$this->listing($data), $keys, $chunk));
+            try {
+                $response = (new ListingReviewer($fields, $skills))->prompt($prompt, provider: $this->provider(), model: $this->model('review'));
+            } catch (Throwable $e) {
+                $this->stopOn($e);
+                Log::warning('Opportunity classification failed; keyword rules were used.', ['error' => self::$offReason ?? Str::limit($e->getMessage(), 300)]);
+                continue;
+            }
+            $model = $response->meta->model ?? $this->model('review');
+            foreach ($response->toArray()['listings'] ?? [] as $review) {
+                $key = $keys[($review['id'] ?? 0) - 1] ?? null;
+                if ($key === null || isset($reviews[$key]) || ! in_array($review['field'] ?? null, $fields, true)) { continue; }
+                unset($review['id']);
+                $reviews[$key] = [...$review, 'model' => $model];
+            }
         }
-        $review = $response->toArray();
-        return in_array($review['field'] ?? null, $fields, true) ? [...$review, 'model' => $response->meta->model ?? $this->model('review')] : null;
+        return $reviews;
     }
 
     private function stopOn(Throwable $e): void
@@ -83,7 +95,8 @@ class OpportunityClassifier
             'Employment types: '.(implode(', ', $data['employment_types'] ?? []) ?: 'not given'),
             '',
             'Description:',
-            $data['description'],
+            // The start of a listing is enough to sort it.
+            Str::limit($data['description'], 12000),
         ]);
     }
 }

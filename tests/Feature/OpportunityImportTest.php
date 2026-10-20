@@ -32,6 +32,8 @@ class OpportunityImportTest extends TestCase
         SourceHttp::$resolveUsing = fn () => ['93.184.216.34'];
         config(['importer.csv_path' => sys_get_temp_dir().'/nextward-test-'.uniqid().'.csv']);
         Field::create(['name' => 'Web Development']);
+        // Most tests here cover other rules with any kind of title; the scope tests turn it back on.
+        config(['importer.scope' => null]);
     }
 
     protected function tearDown(): void
@@ -277,6 +279,78 @@ class OpportunityImportTest extends TestCase
         $this->assertSame(['Flutter Developer', 'Mobile Development', 'senior', 'eligible'], [$role->title, $role->field->name, $role->seniority, $role->remote_eligibility]);
         $this->assertSame('pending', OpportunitySource::where('external_id', '1')->value('state'));
         $this->assertSame('test', OpportunitySource::where('external_id', '2')->first()->ai_review['model']);
+    }
+
+    public function test_every_import_keeps_to_the_it_scope_and_rejects_the_rest_for_good(): void
+    {
+        config(['importer.scope' => 'tech']);
+        foreach (['Software Engineering', 'DevOps & Cloud', 'Data Science & AI'] as $name) { Field::create(['name' => $name]); }
+        Http::fake([
+            '*/robots.txt' => Http::response('', 404),
+            'boards-api.greenhouse.io/v1/boards/acme/jobs*' => Http::response(['jobs' => [
+                $this->greenhouseJob(1, 'Account Executive', 'Remote', 1),
+                $this->greenhouseJob(2, 'DevOps Engineer', 'Remote', 1),
+                $this->greenhouseJob(3, 'Data Engineer', 'Remote', 2),
+                $this->greenhouseJob(4, 'Mechanical Engineer', 'Remote', 2),
+                $this->greenhouseJob(5, 'IT Recruiter', 'Remote', 3),
+            ]]),
+        ]);
+        $source = $this->source(['key' => 'greenhouse-acme', 'provider' => 'greenhouse',
+            'url' => 'https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true',
+            'allowed_domains' => ['boards-api.greenhouse.io', 'job-boards.greenhouse.io']]);
+
+        app(OpportunityImporter::class)->run($source, 100);
+
+        $this->assertEqualsCanonicalizing(['DevOps Engineer', 'Data Engineer'], Opportunity::pluck('title')->all());
+        $this->assertSame('DevOps & Cloud', Opportunity::where('title', 'DevOps Engineer')->sole()->field->name);
+        foreach (['1', '4', '5'] as $id) {
+            $item = OpportunitySource::where('external_id', $id)->sole();
+            $this->assertSame(['rejected', 'Outside IT scope.'], [$item->state, $item->error]);
+        }
+        // Titles outside the scope are rejected before the listing is read.
+        $this->assertNull(OpportunitySource::where('external_id', '4')->value('last_verified_at'));
+        $this->assertNotNull(OpportunitySource::where('external_id', '5')->value('last_verified_at'));
+
+        $this->travel(1)->days();
+        app(OpportunityImporter::class)->run($source->fresh(), 100);
+        $this->assertSame(2, Opportunity::count());
+    }
+
+    public function test_a_board_link_without_a_title_is_read_before_the_scope_decides(): void
+    {
+        config(['importer.scope' => 'tech']);
+        Http::fake([
+            '*/robots.txt' => Http::response('', 404),
+            'www.tanitjobs.com/sitemap.xml' => Http::response($this->sitemap(['https://www.tanitjobs.com/job/11/', 'https://www.tanitjobs.com/job/12/'])),
+            'www.tanitjobs.com/job/11/*' => Http::response($this->jobPage('Développeur Web Laravel', 'ACME SARL', null, 'https://www.tanitjobs.com/job/11/')),
+            'www.tanitjobs.com/job/12/*' => Http::response($this->jobPage('Comptable', 'ACME SARL', null, 'https://www.tanitjobs.com/job/12/')),
+        ]);
+        $source = $this->source(['key' => 'tanitjobs', 'url' => 'https://www.tanitjobs.com/sitemap.xml',
+            'allowed_domains' => ['www.tanitjobs.com'], 'settings' => ['job_path_prefix' => '/job/']]);
+
+        app(OpportunityImporter::class)->run($source, 100);
+
+        $this->assertSame(['Développeur Web Laravel'], Opportunity::pluck('title')->all());
+        $this->assertSame('Outside IT scope.', OpportunitySource::where('external_id', hash('sha256', 'https://www.tanitjobs.com/job/12/'))->value('error'));
+    }
+
+    public function test_an_admin_can_still_publish_a_listing_outside_the_scope(): void
+    {
+        config(['importer.scope' => 'tech']);
+        Http::fake([
+            '*/robots.txt' => Http::response('', 404),
+            'boards-api.greenhouse.io/v1/boards/acme/jobs*' => Http::response(['jobs' => [$this->greenhouseJob(1, 'Developer Advocate', 'Remote', 1)]]),
+        ]);
+        $source = $this->source(['key' => 'greenhouse-acme', 'provider' => 'greenhouse',
+            'url' => 'https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true',
+            'allowed_domains' => ['boards-api.greenhouse.io', 'job-boards.greenhouse.io']]);
+        app(OpportunityImporter::class)->run($source, 100);
+        $item = OpportunitySource::sole();
+        $this->assertSame(['rejected', 'Outside IT scope.'], [$item->state, $item->error]);
+
+        app(OpportunityImporter::class)->publish($item->fresh());
+
+        $this->assertSame('Developer Advocate', Opportunity::sole()->title);
     }
 
     public function test_openai_reads_each_new_listing_through_the_ai_package(): void

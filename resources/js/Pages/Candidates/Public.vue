@@ -1,8 +1,9 @@
 <script setup>
 import { computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
-import { ArrowUpRight, Briefcase, GraduationCap, MapPin } from '@lucide/vue';
+import { ArrowUpRight, Briefcase, FileText, GraduationCap, Mail, MapPin, Phone } from '@lucide/vue';
 import PublicLayout from '@/Layouts/Public.vue';
+import ProfileBanner from '@/Components/Candidate/ProfileBanner.vue';
 
 const props = defineProps({
 	candidate: { type: Object, required: true },
@@ -13,7 +14,6 @@ const page = usePage();
 const fr = computed(() => page.props.locale === 'fr');
 const prefix = computed(() => fr.value ? '/fr' : '');
 const text = (en, french) => fr.value ? french : en;
-const initials = computed(() => (props.candidate.name || '').split(/\s+/).map((word) => word[0]).filter(Boolean).slice(0, 2).join('').toUpperCase());
 const experience = computed(() => {
 	const years = props.candidate.experience_years;
 	if (years === null || years === undefined) return null;
@@ -33,24 +33,19 @@ const preview = computed(() => ({
 
 			<p v-if="status !== 'approved'" class="mt-6 rounded-xl bg-[#fef3c7] px-5 py-3.5 text-sm font-semibold text-[#92400e]" role="status">{{ preview }}</p>
 
-			<header class="mt-6 bg-white border border-line rounded-2xl p-6 sm:p-8">
-				<div class="flex items-start gap-5 max-sm:flex-col">
-					<span class="avatar" aria-hidden="true">{{ initials }}</span>
-					<div class="min-w-0">
-						<h1 class="font-display text-3xl sm:text-4xl font-semibold leading-tight">{{ candidate.name }}</h1>
-						<p class="mt-2 text-lg text-slate-700">{{ candidate.headline || candidate.field || text('Candidate', 'Candidat') }}</p>
-						<p class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-slate-600">
-							<span v-if="candidate.field" class="inline-flex items-center gap-1.5"><GraduationCap :size="16" aria-hidden="true" />{{ candidate.field }}</span>
-							<span v-if="candidate.location" class="inline-flex items-center gap-1.5"><MapPin :size="16" aria-hidden="true" />{{ candidate.location }}</span>
-							<span v-if="experience" class="inline-flex items-center gap-1.5"><Briefcase :size="16" aria-hidden="true" />{{ experience }}</span>
-						</p>
-						<p v-if="candidate.website || candidate.linkedin_profile_url" class="mt-4 flex flex-wrap gap-x-5 gap-y-2">
-							<a v-if="candidate.website" :href="candidate.website" target="_blank" rel="noopener noreferrer nofollow" class="inline-flex items-center gap-1.5 font-semibold text-blue-700">{{ text('Website or portfolio', 'Site ou portfolio') }}<ArrowUpRight :size="16" aria-hidden="true" /></a>
-							<a v-if="candidate.linkedin_profile_url" :href="candidate.linkedin_profile_url" target="_blank" rel="noopener noreferrer nofollow" class="inline-flex items-center gap-1.5 font-semibold text-blue-700">LinkedIn<ArrowUpRight :size="16" aria-hidden="true" /></a>
-						</p>
-					</div>
-				</div>
-			</header>
+			<ProfileBanner class="mt-6" :name="candidate.name" :headline="candidate.headline || candidate.field || text('Candidate', 'Candidat')" :items="[{ icon: GraduationCap, label: candidate.field }, { icon: MapPin, label: candidate.location }, { icon: Briefcase, label: experience }]">
+				<a v-if="candidate.contact?.resume_url" :href="candidate.contact.resume_url" target="_blank" rel="noopener nofollow" class="inline-flex items-center justify-center gap-1.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors"><FileText :size="16" aria-hidden="true" />{{ text('Resume', 'CV') }}</a>
+				<a v-if="candidate.website" :href="candidate.website" target="_blank" rel="noopener noreferrer nofollow" class="inline-flex items-center justify-center gap-1.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-navy-900 hover:bg-[#eef2f7] transition-colors">{{ text('Portfolio', 'Portfolio') }}<ArrowUpRight :size="16" aria-hidden="true" /></a>
+				<a v-if="candidate.linkedin_profile_url" :href="candidate.linkedin_profile_url" target="_blank" rel="noopener noreferrer nofollow" class="inline-flex items-center justify-center gap-1.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-navy-900 hover:bg-[#eef2f7] transition-colors">LinkedIn<ArrowUpRight :size="16" aria-hidden="true" /></a>
+			</ProfileBanner>
+
+			<section v-if="candidate.contact" class="mt-6 bg-white border border-line rounded-2xl p-6 sm:p-8" aria-labelledby="contact-title">
+				<h2 id="contact-title" class="font-display text-xl font-semibold">{{ text('Contact', 'Contact') }}</h2>
+				<ul class="mt-4 flex flex-wrap gap-x-8 gap-y-3 text-slate-700">
+					<li><a :href="`mailto:${candidate.contact.email}`" class="inline-flex items-center gap-2 font-semibold text-blue-700 hover:underline"><Mail :size="17" aria-hidden="true" />{{ candidate.contact.email }}</a></li>
+					<li v-if="candidate.contact.phone_number"><a :href="`tel:${candidate.contact.phone_number.replace(/\s+/g, '')}`" class="inline-flex items-center gap-2 font-semibold text-blue-700 hover:underline"><Phone :size="17" aria-hidden="true" />{{ candidate.contact.phone_number }}</a></li>
+				</ul>
+			</section>
 
 			<section v-if="candidate.about" class="mt-6 bg-white border border-line rounded-2xl p-6 sm:p-8" aria-labelledby="about-title">
 				<h2 id="about-title" class="font-display text-xl font-semibold">{{ text('About', 'À propos') }}</h2>
@@ -72,6 +67,5 @@ const preview = computed(() => ({
 </template>
 
 <style scoped>
-.avatar { display: grid; place-items: center; flex-shrink: 0; width: 80px; height: 80px; border-radius: 22px; background: var(--color-brand); color: #fff; font-family: var(--font-display); font-size: 28px; font-weight: 700; }
 .skill { padding: 5px 12px; border-radius: 999px; background: #eef4ff; color: #1d4ed8; font-size: 13.5px; font-weight: 600; }
 </style>

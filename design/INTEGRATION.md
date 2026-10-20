@@ -126,6 +126,12 @@ replace `<a href>` with `<Link :href>`; mark the active item with
 `:class="{ 'bg-blue-600 text-white': item.id === active }"`. Badges, the user
 footer block, and the topbar search/actions all translate 1:1.
 
+An item can carry `children` to make a group (the admin Imports group). The group
+button opens and closes it, it opens on its own when `active` is one of its pages
+(`imports.sources`, `imports.review` and so on), and it shows the summed badge
+while closed. Child links use `.nav-child`: indented under the group label, the
+same flat tint when active, no side bars.
+
 ### `Public.vue` and `Guest.vue`
 
 Public pages use `Public.vue`; auth pages use `Guest.vue`. Their approved structure,

@@ -3,6 +3,7 @@ import { ArrowUpRight, Check, GraduationCap, Link2, Mail, MapPin, Pencil } from 
 import { computed, h } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
+import ProfileBanner from '@/Components/Candidate/ProfileBanner.vue';
 
 defineOptions({
 	layout: (_h, page) => h(AppShell, { active: 'profile' }, () => page),
@@ -15,29 +16,21 @@ const props = defineProps({
 const icons = {
 	pencil: Pencil,
 	check: Check,
-	pin: MapPin,
-	grad: GraduationCap,
-	mail: Mail,
 	external: ArrowUpRight,
 };
 
 const isCandidate = computed(() => props.profile.userable_type === 'candidate');
 const isCompany = computed(() => props.profile.userable_type === 'company');
-const initials = computed(() =>
-	props.profile.name
-		.split(/\s+/)
-		.map((word) => word[0])
-		.filter(Boolean)
-		.slice(0, 2)
-		.join('')
-		.toUpperCase()
-);
-
 const headline = computed(() =>
 	isCandidate.value
 		? props.profile.headline || props.profile.field?.name || 'Candidate'
 		: isCompany.value ? 'Company' : 'Administrator'
 );
+const bannerItems = computed(() => [
+	{ icon: MapPin, label: [props.profile.location || props.profile.city?.name, props.profile.country_code].filter(Boolean).join(', ') },
+	{ icon: GraduationCap, label: isCandidate.value ? props.profile.field?.name : null },
+	{ icon: Mail, label: props.profile.email },
+]);
 
 // Honest completeness: computed from what's actually filled in.
 const checklist = computed(() => {
@@ -73,36 +66,12 @@ const strength = computed(() =>
 
 <template>
 	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-[1120px] mx-auto">
-		<div class="flex items-end justify-between flex-wrap gap-4 mb-6">
-			<div>
-				<h1 class="font-display text-[28px] font-semibold tracking-[-.02em] leading-tight">Your profile</h1>
-				<p class="text-muted text-[15px] mt-1.5">{{ isCandidate ? 'Keep your background, skills, and interests up to date.' : isCompany ? 'This is how candidates see your company on Nextward.' : 'Manage your administrator profile and account details.' }}</p>
-			</div>
-			<Link class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors [&_svg]:w-[17px] [&_svg]:h-[17px]" :href="route('settings')">
+		<ProfileBanner class="mb-6" :name="profile.name" :headline="headline" :items="bannerItems">
+			<Link class="inline-flex items-center justify-center gap-2 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors [&_svg]:w-4 [&_svg]:h-4" :href="route('settings')">
 				<component :is="icons.pencil" aria-hidden="true" />
 				Edit profile
 			</Link>
-		</div>
-
-		<!-- IDENTITY -->
-		<section class="bg-white border border-line rounded-[18px] overflow-hidden mb-[18px]">
-			<div class="h-[104px] relative bg-gradient-to-r from-navy-800 to-blue-700 after:content-[''] after:absolute after:inset-0 after:[background-image:linear-gradient(rgba(255,255,255,.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.06)_1px,transparent_1px)] after:[background-size:34px_34px] after:[mask-image:radial-gradient(420px_200px_at_78%_-30%,#000,transparent_75%)] after:[-webkit-mask-image:radial-gradient(420px_200px_at_78%_-30%,#000,transparent_75%)]"></div>
-			<div class="px-[26px] pb-6 flex gap-[22px] items-end max-[680px]:flex-col max-[680px]:items-start max-[680px]:gap-3.5">
-				<div class="w-[108px] h-[108px] rounded-[24px] bg-gradient-to-br from-blue-300 to-blue-700 grid place-items-center text-white font-bold font-display text-[40px] -mt-[46px] border-4 border-white shrink-0 relative">{{ initials }}</div>
-				<div class="flex-1 min-w-0 pt-3.5">
-					<h2 class="font-display text-[25px] font-semibold flex items-center gap-2.5">
-						{{ profile.name }}
-
-					</h2>
-					<div class="text-[15px] text-ink-700 font-medium mt-[3px]">{{ headline }}</div>
-					<div class="flex flex-wrap gap-4 mt-3 [&_span]:flex [&_span]:items-center [&_span]:gap-1.5 [&_span]:text-[13.5px] [&_span]:text-muted [&_span]:font-medium [&_svg]:w-[15px] [&_svg]:h-[15px] [&_svg]:text-muted-2">
-						<span v-if="profile.location || profile.city?.name || profile.country_code"><component :is="icons.pin" aria-hidden="true" />{{ [profile.location || profile.city?.name, profile.country_code].filter(Boolean).join(', ') }}</span>
-						<span v-if="isCandidate && profile.field?.name"><component :is="icons.grad" aria-hidden="true" />{{ profile.field.name }}</span>
-						<span><component :is="icons.mail" aria-hidden="true" />{{ profile.email }}</span>
-					</div>
-				</div>
-			</div>
-		</section>
+		</ProfileBanner>
 
 		<div class="grid grid-cols-[1.65fr_1fr] gap-[18px] items-start max-[980px]:grid-cols-1">
 			<!-- LEFT -->

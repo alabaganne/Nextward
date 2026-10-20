@@ -8,7 +8,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->call([CitySeeder::class, FieldSeeder::class, OpportunitySeeder::class, ImportSourceSeeder::class]);
+        $this->call([CitySeeder::class, FieldSeeder::class, SkillSeeder::class, OpportunitySeeder::class, ImportSourceSeeder::class]);
         if (app()->environment('local')) {
             $this->call(OwnerProfileSeeder::class);
         }

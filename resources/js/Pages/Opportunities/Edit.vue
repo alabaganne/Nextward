@@ -19,7 +19,7 @@ const formData = (role) => ({
 	seniority: role.seniority || '', language: role.language || '',
 	pay_min: role.pay_min == null ? null : Math.round(Number(role.pay_min)), pay_max: role.pay_max == null ? null : Math.round(Number(role.pay_max)), pay_currency: role.pay_currency || '', pay_unit: role.pay_unit || '',
 	compensation_status: role.compensation_status || 'unspecified', remote_scope: role.remote_scope || '',
-	remote_eligibility: role.remote_eligibility || 'unknown', relocation: role.relocation || 'unknown', visa_sponsorship: role.visa_sponsorship || 'unknown',
+	applicant_scope: role.applicant_scope || 'unknown', relocation: role.relocation || 'unknown', visa_sponsorship: role.visa_sponsorship || 'unknown',
 	eligible_countries: role.eligible_countries || [], excluded_countries: role.excluded_countries || [],
 	status: role.status || 'open', publication_status: role.publication_status || 'published', attachment_files: [],
 	remove_attachments: false, skills: (role.skills || []).map((skill) => skill.id),
@@ -83,17 +83,17 @@ const employmentTypes = { FULL_TIME: 'Full-time', PART_TIME: 'Part-time', CONTRA
 				<h2 class="font-display text-lg font-semibold pt-3">Location and work arrangement</h2>
 				<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
 					<label class="text-sm font-semibold">Work arrangement<select v-model="form.work_type" class="fld mt-2"><option value="onsite">On-site</option><option value="hybrid">Hybrid</option><option value="remote">Fully remote</option></select></label>
-					<label class="text-sm font-semibold">Country code<input v-model="form.country_code" class="fld mt-2" maxlength="2" placeholder="TN, FR, US..."></label>
+					<label class="text-sm font-semibold">Country code<input v-model="form.country_code" class="fld mt-2" maxlength="2" placeholder="FR, US, TN..."></label>
 					<label class="text-sm font-semibold">Location<input v-model="form.location" class="fld mt-2" maxlength="255" placeholder="City, region, or office location"></label>
-					<label class="text-sm font-semibold">Tunisian city, if relevant<select v-model="form.city_id" class="fld mt-2"><option :value="null">Not specified</option><option v-for="city in cities" :key="city.id" :value="city.id">{{ city.name }}</option></select></label>
-					<label class="text-sm font-semibold">Eligible applicant countries<input v-model="eligibleCountries" class="fld mt-2" placeholder="TN, FR, DE"><span class="text-xs font-normal text-muted">Country codes separated by commas. Leave empty if unspecified.</span></label>
+					<label class="text-sm font-semibold">City, optional<select v-model="form.city_id" class="fld mt-2"><option :value="null">Not specified</option><option v-for="city in cities" :key="city.id" :value="city.id">{{ city.name }}</option></select></label>
+					<label class="text-sm font-semibold">Eligible applicant countries<input v-model="eligibleCountries" class="fld mt-2" placeholder="FR, DE, US"><span class="text-xs font-normal text-muted">Country codes separated by commas. Leave empty if unspecified.</span></label>
 					<label class="text-sm font-semibold">Excluded applicant countries<input v-model="excludedCountries" class="fld mt-2" placeholder="Country codes, if any"></label>
 					<label v-if="form.work_type === 'remote'" class="text-sm font-semibold">Remote scope<input v-model="form.remote_scope" class="fld mt-2" maxlength="255" placeholder="e.g. Worldwide, or only specific countries"></label>
-					<label v-if="form.work_type === 'remote'" class="text-sm font-semibold">Can someone work remotely from Tunisia?<select v-model="form.remote_eligibility" class="fld mt-2"><option value="unknown">Not specified</option><option value="eligible">Yes</option><option value="restricted">No</option></select></label>
+					<label class="text-sm font-semibold">Who can apply?<select v-model="form.applicant_scope" class="fld mt-2"><option value="unknown">Not specified</option><option value="anywhere">Anyone, from any country</option><option value="listed">Only people in the eligible countries</option><option value="local">Only people already allowed to work there</option></select></label>
 					<label class="text-sm font-semibold">Relocation assistance<select v-model="form.relocation" class="fld mt-2"><option value="unknown">Not specified</option><option value="yes">Provided</option><option value="no">Not provided</option></select></label>
 					<label class="text-sm font-semibold">Visa sponsorship<select v-model="form.visa_sponsorship" class="fld mt-2"><option value="unknown">Not specified</option><option value="yes">Provided</option><option value="no">Not provided</option></select></label>
 				</div>
-				<p class="text-sm text-muted">Only confirm remote eligibility, relocation, or sponsorship that your team can provide.</p>
+				<p class="text-sm text-muted">Only confirm who can apply, relocation, or sponsorship that your team can provide.</p>
 				<h2 class="font-display text-lg font-semibold pt-3">Timing</h2>
 				<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
 					<label class="text-sm font-semibold">Application deadline, optional<input v-model="form.closing_at" class="fld mt-2" type="date"></label>

@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Notifications\PublicProfileReviewed;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -66,7 +67,7 @@ class PublicCandidateProfileTest extends TestCase
         $this->get(str_replace('/candidates/', '/fr/candidates/', $url))->assertOk();
     }
 
-    public function test_public_page_never_shows_contact_details_or_resume(): void
+    public function test_public_page_hides_contact_details_and_resume_by_default(): void
     {
         $this->candidate()->forceFill(['public_status' => 'approved', 'resume_name' => 'cv.pdf'])->save();
 
@@ -75,6 +76,28 @@ class PublicCandidateProfileTest extends TestCase
         $this->assertStringNotContainsString('student@example.com', $html);
         $this->assertStringNotContainsString('50101959', $html);
         $this->assertStringNotContainsString('cv.pdf', $html);
+    }
+
+    public function test_shared_resume_and_contact_show_to_every_visitor(): void
+    {
+        Storage::fake('local');
+        Storage::disk('local')->put('resumes/cv.pdf', '%PDF-1.4');
+        $this->candidate()->forceFill(['public_status' => 'approved', 'resume_path' => 'resumes/cv.pdf', 'resume_name' => 'cv.pdf'])->save();
+        $url = $this->candidate()->publicUrl();
+
+        $this->get("{$url}/resume")->assertNotFound();
+        $this->actingAs($this->candidateUser->fresh())->put('/profile/public', ['contact' => true])->assertRedirect();
+        $this->assertTrue($this->candidate()->public_contact);
+        auth()->logout();
+
+        $this->get($url)->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('candidate.contact.email', 'student@example.com')
+            ->where('candidate.contact.resume_url', parse_url($url, PHP_URL_PATH).'/resume'));
+        $this->get('/candidates')->assertInertia(fn (Assert $page) => $page->where('candidates.data.0.has_resume', true));
+        $this->get("{$url}/resume")->assertOk()->assertHeader('X-Robots-Tag', 'noindex');
+
+        $this->candidate()->forceFill(['public_status' => null])->save();
+        $this->get("{$url}/resume")->assertNotFound();
     }
 
     public function test_candidate_can_make_their_profile_private_again(): void

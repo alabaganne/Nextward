@@ -35,7 +35,7 @@ class SeoFilesController extends Controller
             '- Website: '.$base,
             '- Audience: everyone looking for work, from students (PFE and summer internships, graduate programmes, first jobs) to experienced people (full-time, part-time, contract and remote roles).',
             '- Price: browsing, saving, applying, alerts and tracking are free. AI tools that fill a profile from a resume and tailor a CV and cover letter to a role are free while Nextward launches.',
-            '- Coverage: Tunisia, remote roles that accept candidates in Tunisia, and roles abroad with relocation support.',
+            '- Coverage: internships and jobs around the world. Each listing says who can apply when the source does, and an "Open worldwide" filter shows roles anyone can apply to.',
             '- Sources: employers publish directly on Nextward; other listings come from approved public sources, are checked daily, and always link to the original listing and application page.',
             '- Open listings right now: '.(int) ($open['internship'] ?? 0).' internships and '.(int) ($open['job'] ?? 0).' jobs.',
             '- Languages: every page and every listing in French and English; listings keep their original text too.',
@@ -46,9 +46,7 @@ class SeoFilesController extends Controller
             $link('All internships and jobs', '/opportunities', $copy['opportunities']['description']),
             $link('Internships', '/opportunities/internships', $copy['internships']['description']),
             $link('Jobs', '/opportunities/jobs', $copy['jobs']['description']),
-            $link('Internships and jobs in Tunisia', '/opportunities/tunisia', $copy['tunisia']['description']),
-            $link('Remote jobs open to candidates in Tunisia', '/opportunities/remote-from-tunisia', $copy['remote-from-tunisia']['description']),
-            $link('Jobs abroad with relocation support', '/opportunities/relocation', $copy['relocation']['description']),
+            $link('Open worldwide', '/opportunities?worldwide=1', 'Internships and jobs that people in any country can apply to.'),
             $link('Version française', '/fr', PublicSeo::copy('fr')['home']['description']),
         ];
         foreach (['en' => 'Career guides (English)', 'fr' => 'Guides carrière (français)'] as $locale => $heading) {

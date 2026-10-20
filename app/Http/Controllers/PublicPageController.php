@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\OpportunityResource;
+use App\Models\Company;
 use App\Models\Opportunity;
 use App\Support\Blog;
 use Illuminate\Http\Request;
@@ -19,6 +20,9 @@ class PublicPageController extends Controller
             'opportunities' => OpportunityResource::collection($this->recent()->limit(6)->get()),
             'posts' => $this->posts($request, ['students', 'professionals', 'all']),
             'shortcuts' => $this->shortcuts(),
+            'companies' => PublicCompanyController::cards(Company::listed()->whereHas('opportunities', fn ($query) => $query->available()))
+                ->limit(8)->get()->map(fn ($company) => PublicCompanyController::card($company, $request)),
+            'hiringCount' => Company::listed()->whereHas('opportunities', fn ($query) => $query->available())->count(),
             'faqs' => config('nextward_public.faq.'.$locale),
         ]);
     }
@@ -31,9 +35,8 @@ class PublicPageController extends Controller
             'pfe' => ['category' => 'internships', 'program_type' => 'pfe'],
             'graduate' => ['program_type' => 'graduate'],
             'jobs' => ['category' => 'jobs'],
-            'tunisia' => ['category' => 'tunisia'],
-            'remote-from-tunisia' => ['category' => 'remote-from-tunisia'],
-            'relocation' => ['category' => 'relocation'],
+            'remote' => ['work_type' => 'remote'],
+            'worldwide' => ['worldwide' => 1],
         ];
 
         return collect($shortcuts)->map(fn ($filters, $key) => [

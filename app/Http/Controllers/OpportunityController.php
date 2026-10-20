@@ -20,13 +20,7 @@ class OpportunityController extends Controller
 {
     public function index(Request $request, ?string $category = null)
     {
-        $categories = [
-            'internships' => 'Internships',
-            'jobs' => 'Jobs',
-            'tunisia' => 'Opportunities in Tunisia',
-            'remote-from-tunisia' => 'Remote opportunities from Tunisia',
-            'relocation' => 'Opportunities abroad with relocation',
-        ];
+        $categories = ['internships' => 'Internships', 'jobs' => 'Jobs'];
         abort_if($category && ! array_key_exists($category, $categories), 404);
         $filters = $this->browseFilters($request);
         $request->query->replace($filters);
@@ -38,15 +32,6 @@ class OpportunityController extends Controller
             ->paginate(20)->withQueryString();
         abort_if($results->currentPage() > $results->lastPage(), 404);
 
-        $companyFilters = array_diff_key($queryFilters, ['companies' => true]);
-        $companies = Company::with('user')
-            ->whereHas('opportunities', fn ($query) => $query->available()->searchFilters($companyFilters))
-            ->withCount(['opportunities' => fn ($query) => $query->available()->searchFilters($companyFilters)])
-            ->orderBy('name')->limit(50)->get()->map(fn ($company) => [
-                'id' => $company->id,
-                'name' => $company->display_name,
-                'opportunities_count' => $company->opportunities_count,
-            ]);
         $countries = Opportunity::available()->whereNotNull('country_code')->distinct()->orderBy('country_code')
             ->pluck('country_code')->map(fn ($code) => [
                 'code' => $code,
@@ -59,10 +44,7 @@ class OpportunityController extends Controller
             'category' => $category,
             'categoryLabel' => $categories[$category] ?? 'Explore opportunities',
             'countries' => $countries,
-            'companies' => $companies,
             'fields' => Field::withCount(['opportunities' => fn ($query) => $query->available()->searchFilters(array_diff_key($queryFilters, ['fields' => true, 'field' => true]))])->orderBy('name')->get(),
-            'cities' => City::withCount(['opportunities' => fn ($query) => $query->available()->searchFilters(array_diff_key($queryFilters, ['cities' => true]))])
-                ->orderByDesc('opportunities_count')->orderBy('name')->limit(60)->get(),
             'seo' => PublicSeo::browse($request, $category, $results->total()),
         ]);
     }
@@ -107,6 +89,7 @@ class OpportunityController extends Controller
             'duration_max' => 'nullable|integer|min:1|max:104',
             'start_after' => 'nullable|date_format:Y-m-d',
             'audience' => 'nullable|in:students,professionals,both',
+            'worldwide' => 'nullable|boolean',
             'remote_from_tunisia' => 'nullable|boolean',
             'include_unknown_remote' => 'nullable|boolean',
             'relocation' => 'nullable|boolean',
@@ -264,10 +247,13 @@ class OpportunityController extends Controller
         } elseif (($data['pay_min'] ?? 0) > 0 || ($data['pay_max'] ?? 0) > 0) {
             $data['compensation_status'] = 'paid';
         }
-        foreach (['work_type', 'remote_eligibility', 'relocation', 'visa_sponsorship', 'compensation_status'] as $field) {
+        foreach (['work_type', 'applicant_scope', 'relocation', 'visa_sponsorship', 'compensation_status'] as $field) {
             if (array_key_exists($field, $data) && $data[$field] === null) {
                 unset($data[$field]);
             }
+        }
+        if (array_key_exists('applicant_scope', $data)) {
+            $data['remote_eligibility'] = Opportunity::tunisiaEligibility($data) ?? 'unknown';
         }
         return $data;
     }

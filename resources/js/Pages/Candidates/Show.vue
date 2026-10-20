@@ -3,6 +3,7 @@ import { ArrowUpRight, ChevronRight, GraduationCap, Mail, MapPin, Phone } from '
 import { computed, h } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
+import ProfileBanner from '@/Components/Candidate/ProfileBanner.vue';
 import PublicReview from '@/Components/Candidate/PublicReview.vue';
 
 defineOptions({
@@ -25,15 +26,6 @@ const icons = {
 const page = usePage();
 const isAdmin = computed(() => !!page.props.auth?.user?.is_admin);
 
-const initials = computed(() =>
-	(props.candidate.name || '')
-		.split(/\s+/)
-		.map((word) => word[0])
-		.filter(Boolean)
-		.slice(0, 2)
-		.join('')
-		.toUpperCase()
-);
 </script>
 
 <template>
@@ -44,24 +36,9 @@ const initials = computed(() =>
 			<span class="text-ink-700 font-semibold">{{ candidate.name }}</span>
 		</div>
 
-		<!-- IDENTITY -->
-		<section class="bg-white border border-line rounded-[18px] overflow-hidden mb-[18px]">
-			<div class="h-[104px] relative bg-gradient-to-r from-navy-800 to-blue-700 after:content-[''] after:absolute after:inset-0 after:[background-image:linear-gradient(rgba(255,255,255,.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.06)_1px,transparent_1px)] after:[background-size:34px_34px] after:[mask-image:radial-gradient(420px_200px_at_78%_-30%,#000,transparent_75%)] after:[-webkit-mask-image:radial-gradient(420px_200px_at_78%_-30%,#000,transparent_75%)]"></div>
-			<div class="px-[26px] pb-6 flex gap-[22px] items-end max-[680px]:flex-col max-[680px]:items-start max-[680px]:gap-3.5">
-				<div class="w-[108px] h-[108px] rounded-[24px] bg-gradient-to-br from-blue-300 to-blue-700 grid place-items-center text-white font-bold font-display text-[40px] -mt-[46px] border-4 border-white shrink-0">{{ initials }}</div>
-				<div class="flex-1 min-w-0 pt-3.5">
-					<h2 class="font-display text-[25px] font-semibold">{{ candidate.name }}</h2>
-					<div class="text-[15px] text-ink-700 font-medium mt-[3px]">{{ candidate.headline || candidate.field?.name || 'Candidate' }}</div>
-					<div class="flex flex-wrap gap-4 mt-3 [&_span]:flex [&_span]:items-center [&_span]:gap-1.5 [&_span]:text-[13.5px] [&_span]:text-muted [&_span]:font-medium [&_svg]:w-[15px] [&_svg]:h-[15px] [&_svg]:text-muted-2">
-						<span v-if="candidate.city?.name"><component :is="icons.pin" aria-hidden="true" />{{ candidate.city.name }}</span>
-						<span v-if="candidate.field?.name"><component :is="icons.grad" aria-hidden="true" />{{ candidate.field.name }}</span>
-					</div>
-				</div>
-				<div class="flex gap-2.5 pt-3.5">
-					<Link v-if="isAdmin" class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[18px] h-10 rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all" :href="route('candidates.edit', candidate.id)">Edit</Link>
-				</div>
-			</div>
-		</section>
+		<ProfileBanner class="mb-6" :name="candidate.name" :headline="candidate.headline || candidate.field?.name || 'Candidate'" :items="[{ icon: icons.pin, label: candidate.city?.name }, { icon: icons.grad, label: candidate.field?.name }]">
+			<Link v-if="isAdmin" class="inline-flex items-center justify-center font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors" :href="route('candidates.edit', candidate.id)">Edit candidate</Link>
+		</ProfileBanner>
 
 		<section v-if="isAdmin && candidate.public_status" class="bg-white border border-line rounded-[18px] mb-[18px] px-[22px] py-[18px]">
 			<h3 class="font-display text-[16.5px] font-semibold">Public profile</h3>

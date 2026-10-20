@@ -19,48 +19,104 @@ use Inertia\Inertia;
 
 class ImportAdminController extends Controller
 {
-    public function index(Request $request)
+    public function index()
+    {
+        return redirect()->route('imports.review');
+    }
+
+    public function sources()
+    {
+        return Inertia::render('Imports/Sources', [
+            'sources' => ImportSource::withCount(['items', 'items as pending_count' => fn ($query) => $query->whereIn('state', ['pending', 'review'])])->orderBy('name')->get(),
+        ]);
+    }
+
+    public function review(Request $request)
     {
         $filters = $request->validate([
             'source_id' => 'nullable|integer|exists:import_sources,id',
-            'state' => 'nullable|in:pending,review,published,closed,rejected',
+            'state' => 'nullable|in:all,pending,review,published,closed,rejected',
             'page' => 'nullable|integer|min:1|max:10000',
         ]);
-        $items = OpportunitySource::with(['importSource', 'opportunity.company.user'])
-            ->when($filters['source_id'] ?? null, fn ($query, $source) => $query->where('import_source_id', $source))
-            ->when($filters['state'] ?? null, fn ($query, $state) => $query->where('state', $state))
-            ->latest()->paginate(15)->withQueryString();
-        return Inertia::render('Imports/Index', [
-            'sources' => ImportSource::withCount(['items', 'items as pending_count' => fn ($query) => $query->whereIn('state', ['pending', 'review'])])->orderBy('name')->get(),
-            'runs' => ImportRun::with('importSource')->latest()->limit(20)->get(),
+        $filters['state'] ??= 'review';
+        $bySource = fn ($query) => $query->when($filters['source_id'] ?? null, fn ($query, $source) => $query->where('import_source_id', $source));
+        $items = OpportunitySource::with(['importSource', 'opportunity.company.user'])->tap($bySource)
+            ->when($filters['state'] !== 'all', fn ($query) => $query->where('state', $filters['state']))
+            ->latest()->paginate(20)->withQueryString();
+        return Inertia::render('Imports/Review', [
             'items' => $items->through(fn ($item) => [
-                'id' => $item->id, 'source_id' => $item->import_source_id, 'source_name' => $item->importSource->name,
+                'id' => $item->id, 'source_name' => $item->importSource->name,
                 'source_url' => $item->source_url, 'state' => $item->state, 'error' => $item->error,
                 'last_verified_at' => $item->last_verified_at?->toIso8601String(),
                 'normalized_data' => $item->normalized_data,
                 'opportunity' => $item->opportunity ? [
                     'id' => $item->opportunity_id, 'title' => $item->opportunity->title,
                     'public_url' => $item->opportunity->public_url, 'publication_status' => $item->opportunity->publication_status,
-                    'company' => $item->opportunity->company->display_name,
-                    'remote_eligibility' => $item->opportunity->remote_eligibility,
-                    'relocation' => $item->opportunity->relocation, 'visa_sponsorship' => $item->opportunity->visa_sponsorship,
                 ] : null,
             ]),
+            'counts' => OpportunitySource::query()->tap($bySource)->selectRaw('state, count(*) as total')->groupBy('state')->pluck('total', 'state'),
+            'sources' => ImportSource::orderBy('name')->get(['id', 'name']),
             'filters' => $filters,
+        ]);
+    }
+
+    public function reports()
+    {
+        return Inertia::render('Imports/Reports', [
             'reports' => DB::table('opportunity_reports')->join('opportunities', 'opportunities.id', '=', 'opportunity_reports.opportunity_id')
-                ->where('opportunity_reports.status', 'open')->select('opportunity_reports.*', 'opportunities.title')->orderBy('opportunity_reports.id')->limit(50)->get(),
+                ->where('opportunity_reports.status', 'open')->select('opportunity_reports.*', 'opportunities.title')->orderBy('opportunity_reports.id')->limit(100)->get(),
+        ]);
+    }
+
+    public function claims()
+    {
+        return Inertia::render('Imports/Claims', [
             'claims' => DB::table('company_claims')->join('users', 'users.id', '=', 'company_claims.user_id')->leftJoin('companies', 'companies.id', '=', 'company_claims.company_id')
-                ->where('company_claims.status', 'pending')->select('company_claims.*', 'users.name as claimant_name', 'users.email as claimant_email', 'companies.name as company_name')->limit(30)->get(),
+                ->where('company_claims.status', 'pending')->select('company_claims.*', 'users.name as claimant_name', 'users.email as claimant_email', 'companies.name as company_name')
+                ->orderBy('company_claims.id')->limit(100)->get(),
+        ]);
+    }
+
+    public function runs()
+    {
+        return Inertia::render('Imports/Runs', [
+            'runs' => ImportRun::with('importSource:id,name')->latest()->paginate(25),
             'deliveryHealth' => DB::table('opportunity_deliveries')->selectRaw('status, count(*) as total')->groupBy('status')->get(),
             'uncertainDeliveries' => DB::table('opportunity_deliveries')->where('status', 'uncertain')->select('batch_id', 'saved_search_id', 'last_error', 'attempted_at')->distinct()->limit(20)->get(),
         ]);
+    }
+
+    public function opportunity(Opportunity $opportunity)
+    {
+        $opportunity->load(['company.user', 'sources.importSource']);
+        return Inertia::render('Imports/Moderate', [
+            'opportunity' => [
+                ...$opportunity->only(['id', 'title', 'description', 'kind', 'location', 'country_code', 'remote_eligibility', 'relocation', 'visa_sponsorship', 'status', 'publication_status', 'origin', 'merged_into_id']),
+                'company' => $opportunity->company?->display_name,
+                'public_url' => $opportunity->public_url,
+            ],
+            'sources' => $opportunity->sources->map(fn ($item) => [
+                'id' => $item->id, 'source_name' => $item->importSource?->name, 'source_url' => $item->source_url, 'state' => $item->state,
+            ]),
+            'reports' => DB::table('opportunity_reports')->where('opportunity_id', $opportunity->id)->where('status', 'open')->orderBy('id')->get(['id', 'reason', 'details', 'created_at']),
+        ]);
+    }
+
+    public function createSource()
+    {
+        return Inertia::render('Imports/SourceForm');
+    }
+
+    public function editSource(ImportSource $source)
+    {
+        return Inertia::render('Imports/SourceForm', ['source' => $source]);
     }
 
     public function storeSource(Request $request)
     {
         $source = ImportSource::create($this->sourceData($request));
         $this->audit($request, 'source.created', null, $source->id, ['permission_status' => $source->permission_status]);
-        return back()->with('toast', ['type' => 'store', 'message' => 'Source configuration saved.']);
+        return redirect()->route('imports.sources.index')->with('toast', ['type' => 'store', 'message' => 'Source configuration saved.']);
     }
 
     public function updateSource(Request $request, ImportSource $source)
@@ -79,7 +135,8 @@ class ImportAdminController extends Controller
             }
             $this->audit($request, 'source.updated', null, $source->id, ['permission_status' => $source->permission_status, 'enabled' => $source->enabled]);
         });
-        return back()->with('toast', ['type' => 'update', 'message' => 'Source updated.']);
+        $fromEditPage = url()->previous() === route('imports.sources.edit', $source);
+        return ($fromEditPage ? redirect()->route('imports.sources.index') : back())->with('toast', ['type' => 'update', 'message' => 'Source updated.']);
     }
 
     private function sourceData(Request $request, ?ImportSource $source = null): array
@@ -167,6 +224,7 @@ class ImportAdminController extends Controller
             'corrections.country_code' => 'nullable|string|regex:/^[A-Z]{2}$/',
             'corrections.location' => 'nullable|string|max:255',
             'corrections.remote_eligibility' => 'sometimes|required|in:eligible,restricted,unknown',
+            'corrections.applicant_scope' => 'sometimes|required|in:anywhere,listed,local,unknown',
             'corrections.relocation' => 'sometimes|required|in:yes,no,unknown',
             'corrections.visa_sponsorship' => 'sometimes|required|in:yes,no,unknown',
         ]);
@@ -187,7 +245,7 @@ class ImportAdminController extends Controller
                 $overrides['status'] = 'closed';
                 $opportunity->update(['status' => 'closed', 'moderation_overrides' => $overrides]);
             } else {
-                $corrections = collect($data['corrections'] ?? [])->only(['title', 'description', 'kind', 'country_code', 'location', 'remote_eligibility', 'relocation', 'visa_sponsorship'])->all();
+                $corrections = collect($data['corrections'] ?? [])->only(['title', 'description', 'kind', 'country_code', 'location', 'remote_eligibility', 'applicant_scope', 'relocation', 'visa_sponsorship'])->all();
                 abort_unless($corrections, 422, 'Choose a fact to correct.');
                 $opportunity->update([...$corrections, 'moderation_overrides' => array_merge($overrides, $corrections)]);
             }

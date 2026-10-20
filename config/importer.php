@@ -11,15 +11,28 @@ return [
     // New listings older than this are skipped; imported listings older than the retention window are closed.
     'max_age_days' => (int) env('OPPORTUNITY_MAX_AGE_DAYS', 30),
     'retention_days' => (int) env('OPPORTUNITY_RETENTION_DAYS', 60),
-    // Title keyword groups for `opportunities:fetch --focus=`. Lowercase, no accents, regex alternatives.
+    // Nextward is for IT roles: every import keeps only listings in this focus group. Empty takes every field.
+    'scope' => env('OPPORTUNITY_SCOPE', 'tech'),
+    // Title keyword groups for the scope and `opportunities:fetch --focus=`. Lowercase, no accents, regex alternatives.
     'focus' => [
         'tech' => ['include' => [
             'software', 'developer', 'developpeur', 'programmer', 'programmeur', 'full ?stack', 'front ?end', 'back ?end',
             'web', 'mobile', 'android', 'ios', 'flutter', 'react( native)?', 'angular', 'vue(js)?', 'node(js)?', 'laravel',
             'symfony', 'php', 'java', 'javascript', 'typescript', 'python', 'django', 'golang', 'kotlin', 'swift', 'ruby',
             'rails', 'asp\\.?net', 'dotnet', '\\.net', 'wordpress', 'integrateur', 'ingenieur (logiciel|developpement|informatique)',
-        ], 'fields' => ['Software Engineering', 'Web Development', 'Mobile Development'], 'exclude' => [
+            'informatique', 'informaticien\\w*', 'it', 'data', 'machine learning', 'deep learning', 'ai', 'ia', 'ml', 'llm', 'nlp',
+            'computer vision', 'bi', 'power bi', 'business intelligence', 'analytics engineer', 'database', 'dba', 'sql',
+            'devops', 'devsecops', 'mlops', 'cloud', 'sre', 'site reliability', 'platform', 'infrastructure', 'kubernetes',
+            'cyber\\w*', 'security', 'securite informatique', 'soc', 'pentest\\w*', 'infosec', 'network', 'reseaux?', 'telecom\\w*',
+            'sysadmin', 'system administrator', 'systems? engineer', 'administrateur (systemes?|reseaux?|bases? de donnees)',
+            'help ?desk', 'it support', 'support (informatique|it)', 'technicien informatique', 'qa', 'quality assurance',
+            'test automation', 'testeur', 'tester', 'ux', 'ui', 'product designer', 'embedded', 'embarque\\w*', 'firmware', 'iot',
+        ], 'fields' => [
+            'Software Engineering', 'Web Development', 'Mobile Development', 'Data Science & AI', 'DevOps & Cloud', 'Cybersecurity',
+            'Network & Systems', 'UI/UX Design', 'Embedded Systems', 'Business Intelligence',
+        ], 'exclude' => [
             'business ?develop\\w*', 'commercial\\w*', 'sales', 'vente', 'marketing', 'teleconseill\\w*', 'call ?cent\\w*', 'seo', 'referenceur\\w*',
+            'data ?entry', 'saisie', 'security (guard|officer)', 'agent de securite',
         ]],
     ],
     // Skills tagged on imported listings, matched as whole words. A plain name matches itself in any case;
@@ -50,11 +63,46 @@ return [
         'MATLAB', 'Selenium', 'Cypress' => '(?-i:Cypress)', 'Playwright',
         'Jest' => '(?-i:Jest)', 'JUnit', 'PHPUnit', 'Postman', 'Jira', 'Confluence' => '(?-i:Confluence)', 'Scrum',
         'Agile' => 'agile methodolog\\w*|m[ée]thod\\w* agiles?|(?-i:Agile)(?= ?/ ?scrum)', 'Figma', 'Adobe XD', 'Photoshop', 'Illustrator' => '(?-i:Illustrator)',
-        'InDesign', 'UI/UX' => 'ui ?/ ?ux|ux ?/ ?ui', 'UX Research' => 'ux research|user research', 'SEO' => '(?-i:SEO)|r[ée]f[ée]rencement naturel',
-        'Google Analytics', 'Google Ads', 'HubSpot', 'Salesforce', 'SAP' => '(?-i:SAP)', 'Odoo', 'Sage' => '(?-i:Sage)', 'ServiceNow', 'ITIL',
-        'Camunda', 'QGIS', 'AutoCAD', 'SolidWorks', 'CATIA', 'LabVIEW', 'Arduino', 'Raspberry Pi', 'VHDL', 'FPGA', 'Unity' => '(?-i:Unity)(?: ?3D)?',
+        'UI/UX' => 'ui ?/ ?ux|ux ?/ ?ui', 'UX Research' => 'ux research|user research', 'SEO' => '(?-i:SEO)|r[ée]f[ée]rencement naturel',
+        'Google Analytics', 'Salesforce', 'SAP' => '(?-i:SAP)', 'Odoo', 'ServiceNow', 'ITIL',
+        'Camunda', 'QGIS', 'LabVIEW', 'Arduino', 'Raspberry Pi', 'VHDL', 'FPGA', 'Unity' => '(?-i:Unity)(?: ?3D)?',
         'Unreal Engine' => '(?-i:Unreal)(?: engine)?', 'Penetration Testing' => 'penetration testing|pentest(?:ing)?|tests? d.intrusion',
-        'Project Management' => 'project management|gestion de projets?', 'Business Analysis' => 'business analysis', 'IFRS' => '(?-i:IFRS)',
+        'Project Management' => 'project management|gestion de projets?', 'Business Analysis' => 'business analysis',
+        // Front end and back end
+        'Svelte', 'SvelteKit' => 'svelte ?kit', 'Nuxt' => 'nuxt(?:\\.?js)?', 'Redux', 'Webpack', 'Vite' => 'vite\\.?js|(?-i:Vite)(?= ?(?:[,/)]| (?:and|or|et|ou)\\b))', 'Three.js' => 'three\\.js',
+        'Alpine.js' => 'alpine\\.?js', 'HTMX', 'Inertia.js' => 'inertia\\.?js', 'Livewire' => '(?-i:Livewire)', 'Storybook' => '(?-i:Storybook)',
+        'Quarkus', 'Micronaut', 'Gradle', 'Maven' => '(?-i:Maven)', 'Deno' => '(?-i:Deno)', 'Bun' => '(?-i:Bun)(?= ?(?:[,/)]| (?:and|or|et|ou)\\b))',
+        'Keycloak', 'WebSockets' => 'web ?sockets?', 'WebRTC', 'OAuth' => 'oauth ?2?(?:\\.0)?', 'JWT' => '(?-i:JWT)', 'OpenAPI' => 'openapi|swagger',
+        'SOAP' => '(?-i:SOAP)', 'Protobuf' => 'protobuf|protocol buffers', 'Strapi', 'Haskell', 'Clojure', 'F#' => 'f#', 'Perl' => '(?-i:Perl)',
+        'Lua' => '(?-i:Lua)', 'COBOL' => '(?-i:COBOL)', 'Assembly' => 'assembly language|langage assembleur', 'Solidity', 'Blockchain', 'Web3' => 'web ?3',
+        // Mobile and desktop
+        'Jetpack Compose' => 'jetpack compose', 'SwiftUI' => '(?-i:SwiftUI)', 'Kotlin Multiplatform' => 'kotlin multiplatform|(?-i:KMP)',
+        'Expo' => 'expo (?:go|router|sdk|eas)|react native ?/ ?expo|(?-i:Expo)(?= ?(?:[,/)]| (?:and|or|et|ou)\\b))', 'Electron' => 'electron\\.?js|(?-i:Electron)',
+        'Godot',
+        // Data and AI
+        'BigQuery' => 'big ?query', 'Redshift' => '(?-i:Redshift)', 'dbt' => '(?-i:dbt)', 'Cassandra' => '(?-i:Cassandra)', 'DynamoDB' => 'dynamo ?db',
+        'Neo4j', 'ClickHouse' => 'click ?house', 'Keras', 'OpenCV', 'XGBoost', 'MLflow' => 'ml ?flow', 'MLOps' => 'ml ?ops', 'LangChain' => 'lang ?chain',
+        'LlamaIndex' => 'llama ?index', 'Hugging Face' => 'hugging ?face', 'RAG' => '(?-i:RAG)|retrieval[- ]augmented generation',
+        'OpenAI API' => 'openai(?: api)?', 'Prompt Engineering' => 'prompt engineering',
+        // Cloud, DevOps and IT
+        'Helm' => 'helm charts?|(?-i:Helm)', 'Argo CD' => 'argo ?cd', 'Pulumi', 'CloudFormation' => 'cloud ?formation', 'AWS Lambda' => 'aws lambda',
+        'Serverless', 'OpenShift' => 'open ?shift', 'Istio', 'Datadog' => 'data ?dog', 'Sentry' => '(?-i:Sentry)', 'OpenTelemetry' => 'open ?telemetry',
+        'ELK' => '(?-i:ELK)|elastic stack', 'Kibana', 'Logstash', 'SonarQube' => 'sonar ?qube', 'Azure DevOps' => 'azure devops', 'Bitbucket',
+        'Vagrant' => '(?-i:Vagrant)', 'Puppet' => '(?-i:Puppet)', 'Zabbix', 'Nagios', 'Proxmox', 'Hyper-V' => 'hyper-?v', 'Cloudflare', 'Vercel',
+        'Netlify', 'Heroku', 'DigitalOcean' => 'digital ?ocean', 'TCP/IP' => 'tcp ?/ ?ip', 'DNS' => '(?-i:DNS)', 'VPN' => '(?-i:VPN)',
+        'Microsoft 365' => 'microsoft 365|office 365|(?-i:M365|O365)', 'Intune', 'SharePoint' => 'share ?point', 'Power Automate' => 'power automate',
+        'Power Apps' => 'power ?apps', 'Dynamics 365' => 'dynamics 365',
+        // Security
+        'Splunk', 'SIEM' => '(?-i:SIEM)', 'SOC' => '(?-i:SOC)', 'OWASP', 'Burp Suite' => 'burp suite', 'Metasploit', 'Wireshark', 'Nmap',
+        'Kali Linux' => 'kali linux', 'Fortinet' => 'fortinet|fortigate', 'pfSense', 'Firewalls' => 'firewalls?|pare-feux?', 'ISO 27001' => 'iso ?/? ?(?:iec )?27001',
+        'IAM' => '(?-i:IAM)', 'Okta' => '(?-i:Okta)', 'Zero Trust' => 'zero ?trust', 'CISSP' => '(?-i:CISSP)', 'CEH' => '(?-i:CEH)', 'OSCP' => '(?-i:OSCP)',
+        // Embedded and IoT
+        'Embedded C' => 'embedded c(?![+#])|c embarqu[ée]', 'RTOS' => '(?-i:RTOS)|free ?rtos', 'STM32' => 'stm32\\w*', 'ESP32' => 'esp32|esp8266', 'Yocto',
+        'Embedded Linux' => 'embedded linux|linux embarqu[ée]', 'MQTT', 'IoT' => '(?-i:IoT)|internet of things|internet des objets',
+        'CAN bus' => 'can ?bus|(?-i:CAN) protocol',
+        // Testing
+        'Appium', 'JMeter', 'k6' => '(?-i:k6)', 'Pytest', 'Vitest', 'Mockito', 'Cucumber' => '(?-i:Cucumber)', 'TestNG', 'Robot Framework' => 'robot framework',
+        'SoapUI' => 'soap ?ui', 'TDD' => '(?-i:TDD)|test[- ]driven development', 'BDD' => '(?-i:BDD)|behaviou?r[- ]driven development',
     ],
     'indexing_enabled' => (bool) env('GOOGLE_INDEXING_ENABLED', false),
     'google_credentials' => env('GOOGLE_INDEXING_CREDENTIALS'),
@@ -73,11 +121,15 @@ return [
                 'letter' => env('OPPORTUNITY_OPENAI_LETTER_MODEL', 'gpt-5.5'),
             ],
             'anthropic' => [
-                'review' => env('OPPORTUNITY_AI_MODEL', 'claude-opus-5-5'),
+                'review' => env('OPPORTUNITY_AI_REVIEW_MODEL', 'claude-sonnet-5-5'),
                 'discovery' => env('OPPORTUNITY_AI_MODEL', 'claude-opus-5-5'),
                 'letter' => env('OPPORTUNITY_AI_MODEL', 'claude-opus-5-5'),
             ],
         ],
+        // Listings read per AI call; one call for several listings costs far less than one each.
+        'batch_size' => (int) env('OPPORTUNITY_AI_BATCH', 10),
+        // Translation packs listings into one call up to this many characters of source text.
+        'translate_batch_chars' => (int) env('OPPORTUNITY_AI_TRANSLATE_BATCH_CHARS', 12000),
         'effort' => env('OPPORTUNITY_AI_EFFORT', 'low'),
         'discovery_effort' => env('OPPORTUNITY_AI_DISCOVERY_EFFORT', 'medium'),
     ],

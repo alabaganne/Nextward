@@ -113,7 +113,7 @@ const cards = computed(() => {
 
 				<div v-if="!applications.length" class="px-5 py-8 text-[14.5px] text-muted">
 					<div v-if="isAdmin" class="flex flex-wrap gap-x-6 gap-y-3">
-						<Link class="font-semibold text-blue-700 hover:underline" :href="route('imports.index')">Sources and imports</Link>
+						<Link class="font-semibold text-blue-700 hover:underline" :href="route('imports.review')">Review queue</Link>
 						<Link class="font-semibold text-blue-700 hover:underline" :href="route('companies.index')">Companies</Link>
 						<Link class="font-semibold text-blue-700 hover:underline" :href="route('candidates.index')">Candidates</Link>
 						<Link class="font-semibold text-blue-700 hover:underline" :href="route('fields.index')">Fields</Link>

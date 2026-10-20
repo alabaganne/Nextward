@@ -216,6 +216,7 @@ class ProfileController extends Controller
                 'pending_email' => $user->pending_email,
                 'public_status' => $user->isCandidate() ? $userable->public_status : null,
                 'public_url' => $user->isCandidate() ? parse_url($userable->publicUrl(), PHP_URL_PATH) : null,
+                'public_contact' => $user->isCandidate() && $userable->public_contact,
             ],
         ]);
     }

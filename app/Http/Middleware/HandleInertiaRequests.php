@@ -5,7 +5,9 @@ namespace App\Http\Middleware;
 use App\Http\Resources\NotificationResource;
 use App\Models\Message;
 use App\Models\Candidate;
+use App\Models\OpportunitySource;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -81,6 +83,9 @@ class HandleInertiaRequests extends Middleware
             'badges' => fn () => [
                 'messages' => $user->receivedMessages()->whereNull('read_at')->count(),
                 'public_profiles' => $user->isAdmin() ? Candidate::where('public_status', 'pending')->count() : null,
+                'imports_review' => $user->isAdmin() ? OpportunitySource::where('state', 'review')->count() : null,
+                'reports' => $user->isAdmin() ? DB::table('opportunity_reports')->where('status', 'open')->count() : null,
+                'claims' => $user->isAdmin() ? DB::table('company_claims')->where('status', 'pending')->count() : null,
             ],
 
             'toast' => Session::has('toast') ? Session::get('toast') : null,

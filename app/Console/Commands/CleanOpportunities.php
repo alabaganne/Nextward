@@ -31,6 +31,8 @@ class CleanOpportunities extends Command
             $input = $source ? ($readers[$source->id] ??= new SourceReader(new SourceHttp($source)))->saved($source, $item) : null;
             $old = $item->normalized_data;
             $data = $normalizer->clean($old, $input);
+            // The AI answers stay on top of the cleaned keyword guesses.
+            if ($item->ai_review) { $data = $importer->withReview($data, $item->ai_review); }
             $changes = array_filter([...OpportunityNormalizer::CLEANED, ...OpportunityNormalizer::REMOTE_FACTS], fn ($key) => ($old[$key] ?? null) != ($data[$key] ?? null));
             if (! $changes) { continue; }
             $listings++;
@@ -51,10 +53,11 @@ class CleanOpportunities extends Command
         }
 
         $skillLists = 0;
-        $roles = Opportunity::where('origin', 'imported')->with('skills')
+        $roles = Opportunity::where('origin', 'imported')->with('skills', 'sources')
             ->when($this->option('source'), fn ($query, $key) => $query->whereHas('sources.importSource', fn ($query) => $query->where('key', $key)));
         foreach ($roles->lazyById(100) as $role) {
-            if (array_key_exists('skills', $role->moderation_overrides ?? [])) { continue; }
+            // Skills picked by the AI or by a moderator are kept.
+            if (array_key_exists('skills', $role->moderation_overrides ?? []) || $role->sources->contains(fn ($item) => ! empty($item->ai_review['skills']))) { continue; }
             $names = $normalizer->skills($role->title, (string) $role->description);
             $current = $role->skills->pluck('name')->all();
             if ($this->sameNames($names, $current)) { continue; }

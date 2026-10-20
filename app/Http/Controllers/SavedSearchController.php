@@ -128,6 +128,7 @@ class SavedSearchController extends Controller
             'duration_max' => 'nullable|integer|min:1|max:104',
             'start_after' => 'nullable|date_format:Y-m-d',
             'audience' => 'nullable|in:students,professionals,both',
+            'worldwide' => 'nullable|boolean',
             'remote_from_tunisia' => 'nullable|boolean',
             'include_unknown_remote' => 'nullable|boolean',
             'relocation' => 'nullable|boolean',

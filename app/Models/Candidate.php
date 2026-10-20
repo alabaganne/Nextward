@@ -38,6 +38,7 @@ class Candidate extends Model
         'projects' => 'array',
         'experience_years' => 'integer',
         'public_reviewed_at' => 'datetime',
+        'public_contact' => 'boolean',
     ];
 
     public function scopePubliclyListed($query)

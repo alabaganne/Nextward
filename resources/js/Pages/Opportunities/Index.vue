@@ -5,28 +5,28 @@ export default { layout: opportunityLayout };
 <script setup>
 import { computed, reactive, ref, watch } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
-import { Bell, ChevronDown, Search, SlidersHorizontal, X } from '@lucide/vue';
+import { Bell, ChevronDown, Globe, Search, X } from '@lucide/vue';
 import RoleCard from '@/Components/Opportunity/RoleCard.vue';
 import Pagination from '@/Components/Ui/Pagination.vue';
-const props = defineProps({ opportunities: Object, fields: Array, cities: Array, companies: Array, countries: Array, filters: { type: Object, default: () => ({}) }, category: String, categoryLabel: String });
+const props = defineProps({ opportunities: Object, fields: Array, countries: Array, filters: { type: Object, default: () => ({}) }, category: String, categoryLabel: String });
 const page = usePage();
 const guest = computed(() => !page.props.auth?.user);
 const fr = computed(() => page.props.locale === 'fr');
 const prefix = computed(() => fr.value ? '/fr' : '');
 const text = (en, french) => fr.value ? french : en;
-const categories = computed(() => [{ key: '', label: text('All opportunities', 'Toutes les opportunités') }, { key: 'internships', label: text('Internships', 'Stages') }, { key: 'jobs', label: text('Jobs', 'Emplois') }, { key: 'tunisia', label: text('In Tunisia', 'En Tunisie') }, { key: 'remote-from-tunisia', label: text('Remote from Tunisia', 'À distance depuis la Tunisie') }, { key: 'relocation', label: text('Relocation', 'Mobilité internationale') }]);
+const categories = computed(() => [{ key: '', label: text('All opportunities', 'Toutes les opportunités') }, { key: 'internships', label: text('Internships', 'Stages') }, { key: 'jobs', label: text('Jobs', 'Emplois') }]);
 const heading = computed(() => props.category ? categories.value.find((item) => item.key === props.category)?.label : text('Browse opportunities', 'Explorer les opportunités'));
 const action = computed(() => `${prefix.value}/opportunities${props.category ? `/${props.category}` : ''}`);
 const savedSearchUrl = computed(() => '/saved-searches?' + new URLSearchParams(Object.entries(props.filters).flatMap(([key, value]) => Array.isArray(value) ? value.map((item) => [`${key}[]`, item]) : [[key, value]])).toString() + (props.category ? `&category=${props.category}` : ''));
 
 const listKeys = ['fields', 'cities', 'companies'];
-const formKeys = ['search', 'kind', 'country', 'work_type', 'seniority', 'posted_within', 'employment_type', 'fields', 'cities', 'companies', 'compensation_status', 'program_type', 'include_unknown_remote'];
+const formKeys = ['search', 'kind', 'country', 'work_type', 'seniority', 'posted_within', 'fields', 'worldwide'];
 const first = (value) => String((Array.isArray(value) ? value[0] : value) ?? '');
 const isOn = (value) => [true, 1, '1', 'true'].includes(value);
 function toForm(filters) {
     const values = Object.fromEntries(formKeys.map((key) => [key, first(filters[key])]));
     values.fields = [filters.fields ?? filters.field ?? []].flat().map(String);
-    values.include_unknown_remote = isOn(filters.include_unknown_remote);
+    values.worldwide = isOn(filters.worldwide);
     return values;
 }
 const form = reactive(toForm(props.filters));
@@ -46,26 +46,17 @@ const options = computed(() => ({
     posted_within: [option('1', 'Last 24 hours', 'Dernières 24 heures'), option('7', 'Last 7 days', '7 derniers jours'), option('30', 'Last 30 days', '30 derniers jours')],
     employment_type: [option('FULL_TIME', 'Full time', 'Temps plein'), option('PART_TIME', 'Part time', 'Temps partiel'), option('CONTRACTOR', 'Contract / freelance', 'Contrat / freelance'), option('TEMPORARY', 'Temporary', 'Temporaire')],
     fields: counted(props.fields, 'fields'),
-    cities: counted(props.cities, 'cities'),
-    companies: counted(props.companies, 'companies'),
+    // Older links and saved searches can still carry these; they show as chips.
     compensation_status: [option('paid', 'Paid', 'Rémunéré'), option('unpaid', 'Unpaid', 'Non rémunéré'), option('unspecified', 'Pay not specified', 'Rémunération non précisée')],
     program_type: [option('pfe', 'PFE'), option('summer', 'Summer internship', 'Stage d’été'), option('apprenticeship', 'Apprenticeship', 'Alternance')],
 }));
 const quickFilters = computed(() => [
     { key: 'kind', label: text('Type', 'Type'), any: text('All types', 'Tous les types'), show: !['internships', 'jobs'].includes(props.category) },
-    { key: 'country', label: text('Country', 'Pays'), any: text('Worldwide', 'Monde entier'), show: props.category !== 'tunisia' },
-    { key: 'work_type', label: text('Work mode', 'Mode de travail'), any: text('Any work mode', 'Tous les modes'), show: props.category !== 'remote-from-tunisia' },
+    { key: 'country', label: text('Country', 'Pays'), any: text('Any country', 'Tous les pays') },
+    { key: 'work_type', label: text('Work mode', 'Mode de travail'), any: text('Any work mode', 'Tous les modes') },
     { key: 'seniority', label: text('Experience', 'Expérience'), any: text('Any experience', 'Tous les niveaux') },
     { key: 'posted_within', label: text('Posted', 'Publication'), any: text('Any date', 'Toutes les dates') },
 ].filter((item) => item.show !== false && options.value[item.key].length));
-const moreFilters = computed(() => [
-    { key: 'employment_type', label: text('Contract', 'Contrat'), any: text('Any contract', 'Tous les contrats') },
-    { key: 'cities', label: text('City in Tunisia', 'Ville en Tunisie'), any: text('Any city', 'Toutes les villes') },
-    { key: 'companies', label: text('Employer', 'Employeur'), any: text('Any employer', 'Tous les employeurs') },
-    { key: 'compensation_status', label: text('Pay', 'Rémunération'), any: text('Any pay', 'Toutes') },
-    { key: 'program_type', label: text('Internship programme', 'Programme de stage'), any: text('Any programme', 'Tous les programmes'), show: props.category !== 'jobs' && form.kind !== 'job' },
-].filter((item) => item.show !== false && options.value[item.key].length));
-const moreCount = computed(() => moreFilters.value.filter((item) => form[item.key]).length);
 const fieldsLabel = computed(() => form.fields.length > 1 ? text(`${form.fields.length} fields`, `${form.fields.length} domaines`) : form.fields.length ? optionLabel('fields', form.fields[0]) : text('Any field', 'Tous les domaines'));
 
 const units = computed(() => ({ hour: text('hour', 'heure'), day: text('day', 'jour'), week: text('week', 'semaine'), month: text('month', 'mois'), year: text('year', 'an') }));
@@ -77,8 +68,12 @@ const chips = computed(() => {
     const applied = toForm(props.filters);
     const f = props.filters;
     // Filters already visible as controls don't need a chip.
-    const shown = ['fields', ...quickFilters.value.map((item) => item.key), ...(panel.value === 'more' ? moreFilters.value.map((item) => item.key) : [])];
-    const list = Object.keys(options.value).filter((key) => applied[key] && !shown.includes(key)).map((key) => ({ keys: [key], label: optionLabel(key, applied[key]) }));
+    const shown = ['fields', ...quickFilters.value.map((item) => item.key)];
+    const list = Object.keys(options.value).filter((key) => key !== 'fields' && first(f[key]) && !shown.includes(key)).map((key) => ({ keys: [key], label: optionLabel(key, first(f[key])) }));
+    for (const [key, en, french] of [['cities', 'City', 'Ville'], ['companies', 'Employer', 'Employeur']]) {
+        const count = [f[key] ?? []].flat().length;
+        if (count) list.push({ keys: [key], label: count > 1 ? `${text(en, french)} (${count})` : text(en, french) });
+    }
     // The field button only names one field, so list each one when several are picked.
     if (applied.fields.length > 1 && panel.value !== 'fields') list.unshift(...applied.fields.map((value) => ({ keys: [`fields-${value}`], label: optionLabel('fields', value), changes: { fields: applied.fields.filter((item) => item !== value) } })));
     if (f.min_pay != null) list.push({ keys: ['min_pay', 'currency', 'pay_unit'], label: `${text('Pay from', 'À partir de')} ${f.min_pay} ${f.currency || ''}${f.pay_unit ? ` / ${units.value[f.pay_unit] || f.pay_unit}` : ''}` });
@@ -86,7 +81,7 @@ const chips = computed(() => {
     if (f.duration_max) list.push({ keys: ['duration_max'], label: text(`Up to ${f.duration_max} weeks`, `${f.duration_max} semaines max.`) });
     if (f.start_after) list.push({ keys: ['start_after'], label: `${text('Starts from', 'Début dès le')} ${date(f.start_after)}` });
     if (['students', 'professionals'].includes(f.audience)) list.push({ keys: ['audience'], label: f.audience === 'students' ? text('For students', 'Pour les étudiants') : text('For professionals', 'Pour les professionnels') });
-    if (isOn(f.remote_from_tunisia)) list.push({ keys: ['remote_from_tunisia'], label: text('Remote from Tunisia', 'À distance depuis la Tunisie') });
+    if (isOn(f.remote_from_tunisia)) list.push({ keys: ['remote_from_tunisia', 'include_unknown_remote'], label: text('Remote from Tunisia', 'À distance depuis la Tunisie') });
     if (isOn(f.relocation)) list.push({ keys: ['relocation'], label: text('With relocation', 'Avec mobilité') });
     return list;
 });
@@ -116,16 +111,12 @@ const remove = (chip) => apply(chip.changes ?? Object.fromEntries(chip.keys.map(
             <div class="relative flex items-center gap-2 mt-2 py-1 -mx-5 px-5 overflow-x-auto [scrollbar-width:none] sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible">
                 <button v-if="options.fields.length" type="button" class="shrink-0 whitespace-nowrap h-10 inline-flex items-center gap-2 rounded-full border pl-4 pr-3 text-sm font-semibold" :class="panel === 'fields' || form.fields.length ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-line bg-white text-navy hover:border-blue-300'" :aria-expanded="panel === 'fields'" aria-controls="field-filters" @click="toggle('fields')"><span class="sr-only">{{ text('Field', 'Domaine') }}: </span>{{ fieldsLabel }}<ChevronDown class="size-4 transition-transform" :class="panel === 'fields' && 'rotate-180'" aria-hidden="true" /></button>
                 <label v-for="item in quickFilters" :key="item.key" class="shrink-0"><span class="sr-only">{{ item.label }}</span><select v-model="form[item.key]" :name="listKeys.includes(item.key) ? `${item.key}[]` : item.key" class="h-10 max-w-full rounded-full pl-4 pr-9 text-sm font-semibold" :class="form[item.key] ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-line bg-white text-navy hover:border-blue-300'" @change="apply()"><option value="">{{ item.any }}</option><option v-for="choice in options[item.key]" :key="choice.value" :value="choice.value">{{ choice.label }}</option></select></label>
-                <label v-if="category === 'remote-from-tunisia'" class="shrink-0 whitespace-nowrap h-10 inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 text-sm font-semibold"><input v-model="form.include_unknown_remote" name="include_unknown_remote" type="checkbox" value="1" class="rounded" @change="apply()" />{{ text('Include unconfirmed eligibility', 'Inclure l’éligibilité non confirmée') }}</label>
-                <button v-if="moreFilters.length" type="button" class="shrink-0 whitespace-nowrap h-10 inline-flex items-center gap-2 rounded-full border px-4 text-sm font-semibold" :class="panel === 'more' || moreCount ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-line bg-white text-navy hover:border-blue-300'" :aria-expanded="panel === 'more'" aria-controls="more-filters" @click="toggle('more')"><SlidersHorizontal class="size-4" aria-hidden="true" />{{ text('More filters', 'Plus de filtres') }}<span v-if="moreCount" class="grid place-items-center min-w-5 h-5 px-1 rounded-full bg-blue-600 text-white text-xs">{{ moreCount }}</span></button>
+                <label class="shrink-0 whitespace-nowrap h-10 inline-flex items-center gap-2 rounded-full border px-4 text-sm font-semibold cursor-pointer has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-600" :class="form.worldwide ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-line bg-white text-navy hover:border-blue-300'" :title="text('Roles people in any country can apply to', 'Offres accessibles depuis n’importe quel pays')"><input v-model="form.worldwide" name="worldwide" type="checkbox" value="1" class="sr-only" @change="apply()" /><Globe class="size-4" aria-hidden="true" />{{ text('Open worldwide', 'Ouvert au monde entier') }}</label>
                 <Link v-if="hasFilters" :href="action" preserve-scroll class="shrink-0 whitespace-nowrap px-2 text-sm font-semibold text-blue-700 hover:underline">{{ text('Clear all', 'Tout effacer') }}</Link>
             </div>
             <div v-show="panel === 'fields'" id="field-filters" role="group" aria-labelledby="field-filters-label" class="mt-3 rounded-2xl border border-line bg-white p-5">
                 <div class="flex items-center justify-between gap-3"><p id="field-filters-label" class="text-sm font-semibold">{{ text('Field', 'Domaine') }} <span class="font-normal text-slate-500">{{ text('· pick one or more', '· un ou plusieurs') }}</span></p><button v-if="form.fields.length" type="button" class="text-sm font-semibold text-blue-700 hover:underline" @click="apply({ fields: [] })">{{ text('Clear', 'Effacer') }}</button></div>
                 <div class="flex flex-wrap gap-2 mt-3"><label v-for="choice in options.fields" :key="choice.value" class="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium cursor-pointer" :class="form.fields.includes(choice.value) ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-line bg-white text-navy hover:border-blue-300'"><input v-model="form.fields" name="fields[]" type="checkbox" :value="choice.value" class="rounded" @change="apply()" />{{ choice.label }}<span class="text-xs text-slate-500">{{ choice.count }}</span></label></div>
-            </div>
-            <div v-show="panel === 'more'" id="more-filters" class="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 rounded-2xl border border-line bg-white p-5">
-                <label v-for="item in moreFilters" :key="item.key" class="block text-sm font-semibold">{{ item.label }}<select v-model="form[item.key]" :name="listKeys.includes(item.key) ? `${item.key}[]` : item.key" class="w-full rounded-lg border-line mt-2 font-normal" @change="apply()"><option value="">{{ item.any }}</option><option v-for="choice in options[item.key]" :key="choice.value" :value="choice.value">{{ choice.label }}<template v-if="choice.count != null"> ({{ choice.count }})</template></option></select></label>
             </div>
         </form>
         <div v-if="chips.length" class="flex flex-wrap items-center gap-2 mt-4">

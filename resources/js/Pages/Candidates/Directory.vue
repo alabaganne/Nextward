@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
-import { ArrowRight, MapPin } from '@lucide/vue';
+import { ArrowRight, FileText, MapPin } from '@lucide/vue';
 import PublicLayout from '@/Layouts/Public.vue';
 import ClosingBanner from '@/Components/Landing/ClosingBanner.vue';
 import Sparkle from '@/Shared/Sparkle.vue';
@@ -24,7 +24,7 @@ const list = computed(() => props.candidates.data || []);
 					<div>
 						<p class="landing-label">{{ text('Candidate profiles', 'Profils de candidats') }}</p>
 						<h1 id="candidates-title" class="hero-title">{{ text('Candidates', 'Des candidats') }} <span class="accent">{{ text('ready for their next role.', 'prêts pour leur prochain poste.') }}</span></h1>
-						<p class="hero-lead">{{ text('Each candidate chose to share this profile, and the Nextward team checked it before it went live. Email addresses, phone numbers and resumes stay private.', 'Chaque candidat a choisi de partager ce profil, et l’équipe Nextward l’a vérifié avant sa mise en ligne. Les adresses e-mail, les numéros de téléphone et les CV restent privés.') }}</p>
+						<p class="hero-lead">{{ text('Each candidate chose to share this profile, and the Nextward team checked it before it went live. Some also share their resume and contact details, so you can reach out directly.', 'Chaque candidat a choisi de partager ce profil, et l’équipe Nextward l’a vérifié avant sa mise en ligne. Certains partagent aussi leur CV et leurs coordonnées pour que vous puissiez les contacter directement.') }}</p>
 					</div>
 					<figure class="hero-stage candidates-stage">
 						<img src="/nextward-assets/mascots/10-portfolio-laptop.svg" alt="" width="768" height="768" fetchpriority="high" />
@@ -45,7 +45,10 @@ const list = computed(() => props.candidates.data || []);
 								<p class="text-sm text-slate-600 mt-1 line-clamp-2">{{ candidate.headline || candidate.field || text('Candidate', 'Candidat') }}</p>
 							</div>
 						</div>
-						<p v-if="candidate.location" class="mt-4 inline-flex items-center gap-1.5 text-sm text-slate-600"><MapPin :size="15" aria-hidden="true" />{{ candidate.location }}</p>
+						<p v-if="candidate.location || candidate.has_resume" class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-slate-600">
+							<span v-if="candidate.location" class="inline-flex items-center gap-1.5"><MapPin :size="15" aria-hidden="true" />{{ candidate.location }}</span>
+							<span v-if="candidate.has_resume" class="inline-flex items-center gap-1.5 font-semibold text-blue-700"><FileText :size="15" aria-hidden="true" />{{ text('Resume shared', 'CV partagé') }}</span>
+						</p>
 						<ul v-if="candidate.skills.length" class="mt-4 flex flex-wrap gap-2" :aria-label="text('Skills', 'Compétences')">
 							<li v-for="skill in candidate.skills.slice(0, 5)" :key="skill" class="skill">{{ skill }}</li>
 						</ul>

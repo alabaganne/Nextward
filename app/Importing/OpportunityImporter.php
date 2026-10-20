@@ -22,6 +22,7 @@ class OpportunityImporter
     // $onlyNew reads the source now and looks only at listings never checked before; $maxNew stops after that many new roles.
     // $focus is a full title regex: only matching listings are checked, the rest wait for the daily import.
     // $focusFields then keeps only listings sorted into those fields; the others also wait for the daily import.
+    // Every run also keeps to importer.scope: new listings outside it are rejected for good.
     public function run(ImportSource $source, int $limit = 40, bool $dryRun = false, bool $recheck = false, bool $onlyNew = false, ?int $maxNew = null, ?string $focus = null, ?array $focusFields = null): array
     {
         if (! $source->isApproved()) { throw new RuntimeException('Source must be enabled with approved reuse permission.'); }
@@ -43,7 +44,7 @@ class OpportunityImporter
         $deadline = $clock + config('importer.max_run_seconds');
         $http = new SourceHttp($source, $deadline); $reader = new SourceReader($http);
         $normalizer = new OpportunityNormalizer();
-        $classifier = app(OpportunityClassifier::class);
+        [$scopeTitle, $scopeFields] = ImportFocus::scope();
         $stats = ['status' => 'completed', 'complete' => false, 'discovered' => 0, 'processed' => 0, 'published' => 0, 'closed' => 0, 'rejected' => 0, 'requests' => 0];
         $run = null;
         try {
@@ -102,12 +103,32 @@ class OpportunityImporter
             }))->where(function ($query) use ($cycle) {
                 $query->where('state', '!=', 'closed')->orWhere('last_discovered_at', '>=', $cycle);
             })->orderByRaw('CASE WHEN last_verified_at IS NULL THEN 0 ELSE 1 END')->orderBy('last_verified_at')->orderBy('id');
-            $items = $focus
-                ? $items->cursor()->filter(fn ($item) => $this->matchesFocus($item, $focus))->take(max(1, min($limit, 100)))->collect()
+            // A board title outside the scope is rejected before any page is read; a URL slug alone is not enough to reject.
+            $outOfScope = [];
+            $items = $focus || $scopeTitle
+                ? $items->cursor()->filter(function ($item) use ($focus, $scopeTitle, &$outOfScope) {
+                    $title = $this->focusTitle($item, slug: false);
+                    if ($scopeTitle && ! $item->opportunity_id && $title !== null && ! preg_match($scopeTitle, $title)) {
+                        $outOfScope[] = $item->id;
+                        return false;
+                    }
+                    return ! $focus || preg_match($focus, $this->focusTitle($item));
+                })->take(max(1, min($limit, 100)))->collect()
                 : $items->limit(max(1, min($limit, 100)))->get();
+            if ($outOfScope && ! $dryRun) {
+                OpportunitySource::whereIn('id', $outOfScope)->update(['state' => 'rejected', 'error' => 'Outside IT scope.']);
+            }
+            $stats['rejected'] += count($outOfScope);
 
             $newIds = [];
+            // Listings that pass the cheap checks wait here so the AI can read them in one batch.
+            $waiting = [];
+            $batch = max(1, (int) config('importer.ai.batch_size', 10));
             foreach ($items as $item) {
+                if ($waiting && ($maxNew && count($newIds) + count($waiting) >= $maxNew)) {
+                    $this->finish($waiting, $source, $scopeFields, $focusFields, $stats, $newIds);
+                    $waiting = [];
+                }
                 if (microtime(true) > $deadline || $http->requests >= $source->max_requests - 2 || ($maxNew && count($newIds) >= $maxNew)) { break; }
                 try {
                     $data = $normalizer->normalize($reader->read($source, $item));
@@ -128,22 +149,10 @@ class OpportunityImporter
                         $item->update(['state' => 'rejected', 'error' => 'Added before and removed later.']);
                         $stats['rejected']++;
                     } else {
-                        // Claude reads each listing once, before it is first published; the answer is kept for later refreshes.
-                        if (! $item->ai_review && ! $item->opportunity_id && $classifier->enabled()) {
-                            $item->ai_review = $classifier->classify($data, $this->fieldNames());
-                        }
-                        if ($item->ai_review) {
-                            $data = $this->withReview($data, $item->ai_review);
-                            $item->update(['ai_review' => $item->ai_review, 'normalized_data' => $data]);
-                        }
-                        if ($focusFields && ! $item->opportunity_id && ! $this->inFocus($data, $focusFields)) {
-                            $stats['rejected']++;
-                        } elseif ($source->publication_mode === 'automatic' || $item->opportunity_id) {
-                            $role = $this->publish($item);
-                            if ($role->wasRecentlyCreated) { $newIds[] = $role->id; }
-                            $stats['published']++;
-                        } else {
-                            $item->update(['state' => 'review']);
+                        $waiting[] = [$item, $data];
+                        if (count($waiting) >= $batch) {
+                            $this->finish($waiting, $source, $scopeFields, $focusFields, $stats, $newIds);
+                            $waiting = [];
                         }
                     }
                 } catch (SourceBudgetException) {
@@ -163,6 +172,7 @@ class OpportunityImporter
                     $stats['rejected']++;
                 }
             }
+            $this->finish($waiting, $source, $scopeFields, $focusFields, $stats, $newIds);
             if ($discover && $stats['complete'] && $snapshot['authoritative']) {
                 $missing = $source->items()->where('last_discovered_at', '<', $started)->whereNotIn('state', ['closed', 'rejected'])->get();
                 foreach ($missing as $item) {
@@ -201,6 +211,47 @@ class OpportunityImporter
             throw $e;
         } finally {
             if (! $dryRun) { $lock->release(); }
+        }
+    }
+
+    // The AI reads every listing in $waiting that it has not read before in one batch, then each one is checked and published.
+    // The answer is kept with the listing, so later refreshes do not ask again.
+    private function finish(array $waiting, ImportSource $source, ?array $scopeFields, ?array $focusFields, array &$stats, array &$newIds): void
+    {
+        if (! $waiting) { return; }
+        $classifier = app(OpportunityClassifier::class);
+        $ask = array_filter($waiting, fn ($pair) => ! $pair[0]->ai_review && ! $pair[0]->opportunity_id);
+        $reviews = $ask && $classifier->enabled()
+            ? $classifier->classifyMany(array_map(fn ($pair) => $pair[1], $ask), $this->fieldNames(), $this->skillNames())
+            : [];
+        foreach ($waiting as $key => [$item, $data]) {
+            try {
+                if (isset($reviews[$key])) { $item->ai_review = $reviews[$key]; }
+                if ($item->ai_review) {
+                    $data = $this->withReview($data, $item->ai_review);
+                    $item->update(['ai_review' => $item->ai_review, 'normalized_data' => $data]);
+                }
+                if (! $item->opportunity_id && ($data['quality'] ?? null) === 'reject') {
+                    $item->update(['state' => 'rejected', 'error' => Str::limit('Low quality: '.($data['quality_reason'] ?: 'no reason given'), 1000)]);
+                    $stats['rejected']++;
+                } elseif ($scopeFields && ! $item->opportunity_id && ! $this->inFocus($data, $scopeFields)) {
+                    $item->update(['state' => 'rejected', 'error' => 'Outside IT scope.']);
+                    $stats['rejected']++;
+                } elseif ($focusFields && ! $item->opportunity_id && ! $this->inFocus($data, $focusFields)) {
+                    $stats['rejected']++;
+                } elseif ($source->publication_mode === 'automatic' || $item->opportunity_id) {
+                    $role = $this->publish($item);
+                    if ($role->wasRecentlyCreated) { $newIds[] = $role->id; }
+                    $stats['published']++;
+                } else {
+                    $item->update(['state' => 'review']);
+                }
+            } catch (\Illuminate\Database\QueryException $e) {
+                throw $e;
+            } catch (Throwable $e) {
+                $item->update(['state' => 'review', 'error' => Str::limit($e->getMessage(), 1000)]);
+                $stats['rejected']++;
+            }
         }
     }
 
@@ -253,10 +304,27 @@ class OpportunityImporter
                 // Preserve an already verified employer link when refreshing a merged source.
                 if ($opportunity->exists) { unset($fields['company_id'], $fields['field_id'], $fields['city_id']); }
                 $opportunity->fill($fields)->save();
-                if (! array_key_exists('skills', $overrides)) { $opportunity->skills()->sync($this->skillIds($data['title'], $data['description'])); }
+                if (! array_key_exists('skills', $overrides)) { $opportunity->skills()->sync($this->skillIdsFor($data)); }
             }
             $item->update(['opportunity_id' => $opportunity->id, 'state' => 'published', 'content_hash' => $hash, 'error' => null]);
             return $opportunity;
+        });
+    }
+
+    // Applies a new AI answer to a published listing; facts a moderator corrected stay as they are.
+    public function applyReview(Opportunity $opportunity, OpportunitySource $item, array $review): void
+    {
+        $data = $this->withReview($item->normalized_data, $review);
+        $overrides = $opportunity->moderation_overrides ?? [];
+        DB::transaction(function () use ($opportunity, $item, $review, $data, $overrides) {
+            $item->update(['ai_review' => $review, 'normalized_data' => $data]);
+            foreach (['kind', 'seniority', 'work_type', 'employment_types', 'program_type', 'applicant_scope', 'eligible_countries',
+                'excluded_countries', 'remote_eligibility', 'relocation', 'visa_sponsorship', 'eligibility_evidence'] as $key) {
+                if (array_key_exists($key, $data) && ! array_key_exists($key, $overrides)) { $opportunity->{$key} = $data[$key]; }
+            }
+            $opportunity->field_id = $this->classify($data);
+            $opportunity->save();
+            if (! array_key_exists('skills', $overrides)) { $opportunity->skills()->sync($this->skillIdsFor($data)); }
         });
     }
 
@@ -346,12 +414,11 @@ class OpportunityImporter
         return Str::squish(preg_replace('/[^a-z0-9]+/', ' ', $title));
     }
 
-    // Checks the title before any page is fetched: board payloads carry it, and board job URLs end with a title slug.
-    private function matchesFocus(OpportunitySource $item, string $focus): bool
+    // The title known before any page is fetched: board payloads carry it, and board job URLs end with a title slug.
+    private function focusTitle(OpportunitySource $item, bool $slug = true): ?string
     {
-        $title = $item->payload['title'] ?? $item->payload['text'] ?? rawurldecode((string) parse_url($item->source_url, PHP_URL_PATH));
-        $title = Str::ascii(mb_strtolower(str_replace(['-', '_', '/'], ' ', (string) $title)));
-        return (bool) preg_match($focus, $title);
+        $title = $item->payload['title'] ?? $item->payload['text'] ?? ($slug ? rawurldecode((string) parse_url($item->source_url, PHP_URL_PATH)) : null);
+        return $title === null ? null : ImportFocus::title((string) $title);
     }
 
     private function olderThan(array $data, OpportunitySource $item, int $days): bool
@@ -375,20 +442,40 @@ class OpportunityImporter
         return null;
     }
 
-    private function fieldNames(): array
+    public function fieldNames(): array
     {
         Field::firstOrCreate(['name' => 'Other']);
         return Field::orderBy('name')->pluck('name')->all();
     }
 
-    // Claude's answers replace the keyword guesses; "unknown" keeps whatever the rules found.
-    private function withReview(array $data, array $review): array
+    public function skillNames(): array
+    {
+        return collect(config('importer.skills', []))->map(fn ($pattern, $name) => is_int($name) ? $pattern : $name)->values()->all();
+    }
+
+    // The AI answers replace the keyword guesses; "unknown" keeps whatever the rules found.
+    // Answers saved before the batch reviewer (is_software_role, remote_from_tunisia) still work.
+    public function withReview(array $data, array $review): array
     {
         $data['kind'] = $review['kind'];
         $data['field'] = $review['field'];
-        $data['is_software_role'] = $review['is_software_role'];
+        $data['is_software_role'] = $review['in_scope'] ?? $review['is_software_role'] ?? true;
+        if (isset($review['quality'])) { [$data['quality'], $data['quality_reason']] = [$review['quality'], $review['quality_reason'] ?? '']; }
         if ($review['seniority'] !== 'unspecified') { $data['seniority'] = $review['seniority']; }
-        if ($data['work_type'] === 'remote' && $review['remote_from_tunisia'] !== 'unknown') {
+        if (($review['work_type'] ?? 'unknown') !== 'unknown') { $data['work_type'] = $review['work_type']; }
+        if (! empty($review['employment_types'])) { $data['employment_types'] = array_values(array_unique($review['employment_types'])); }
+        if (($review['program_type'] ?? 'none') !== 'none') { $data['program_type'] = $review['program_type']; }
+        if (! empty($review['skills'])) { $data['skills'] = array_values(array_intersect(array_unique($review['skills']), $this->skillNames())); }
+        if (isset($review['applicant_scope'])) {
+            foreach (['eligible_countries', 'excluded_countries'] as $key) {
+                if ($review[$key]) { $data[$key] = array_values(array_unique(array_map('strtoupper', $review[$key]))); }
+            }
+            if ($review['applicant_scope'] !== 'unknown') {
+                $data['applicant_scope'] = $review['applicant_scope'];
+                if ($review['evidence'] !== '') { $data['eligibility_evidence']['remote'] = Str::limit($review['evidence'], 400); }
+            }
+            $data['remote_eligibility'] = Opportunity::tunisiaEligibility($data) ?? $data['remote_eligibility'];
+        } elseif ($data['work_type'] === 'remote' && ($review['remote_from_tunisia'] ?? 'unknown') !== 'unknown') {
             $data['remote_eligibility'] = $review['remote_from_tunisia'];
             if ($review['evidence'] !== '') { $data['eligibility_evidence']['remote'] = Str::limit($review['evidence'], 400); }
         }
@@ -408,6 +495,13 @@ class OpportunityImporter
     }
 
     // Only skills from importer.skills are tagged, so words like "product" in a description never become skills.
+    // Skills the AI picked from the catalogue, or the keyword matches when there is no AI answer.
+    public function skillIdsFor(array $data): array
+    {
+        if (empty($data['skills'])) { return $this->skillIds($data['title'], $data['description']); }
+        return array_map(fn ($name) => Skill::firstOrCreate(['name' => $name])->id, array_slice($data['skills'], 0, 15));
+    }
+
     public function skillIds(string $title, string $description): array
     {
         return array_map(fn ($name) => Skill::firstOrCreate(['name' => $name])->id, (new OpportunityNormalizer())->skills($title, $description));
@@ -421,12 +515,12 @@ class OpportunityImporter
         $patterns = [
             'Mobile Development' => 'mobile (?:develop|engineer|app)|(?:engineer|developer|intern)\\W+mobile|d[ée]velopp\\w* mobile|application mobile|android|ios\\b|flutter|react native|kotlin|swift',
             'Web Development' => 'web develop|d[ée]velopp\\w* web|front.?end|int[ée]grateur web|php|symfony|laravel|angular|react|vue(?:js)?|javascript|typescript|wordpress',
-            'Software Engineering' => 'software|ing[ée]nieur (?:logiciel|d[ée]veloppement|informatique)|d[ée]veloppeur|developer|programm(?:er|eur)|back.?end|full.?stack|\\.net|java|spring|python|golang|c#|c\\+\\+',
-            'Data Science & AI' => 'data scien|machine learning|intelligence artificielle|\\bai\\b|\\bia\\b|llm',
-            'DevOps & Cloud' => 'devops|cloud engineer|site reliability',
-            'Cybersecurity' => 'cybersecurity|cybersécurité|security engineer|sécurité informatique',
-            'Embedded Systems' => 'embedded|embarqué|firmware',
-            'Network & Systems' => 'network engineer|administrateur (?:système|réseau)|systems engineer',
+            'Software Engineering' => 'software|ing[ée]nieur (?:logiciel|d[ée]veloppement|informatique)|d[ée]veloppeur|developer|programm(?:er|eur)|back.?end|full.?stack|\\.net|java|spring|python|golang|c#|c\\+\\+|qa\\b|quality assurance|test automation|testeur',
+            'Data Science & AI' => 'data (?:scien|engineer|analyst)|analyste (?:de )?donn|machine learning|deep learning|intelligence artificielle|\\bai\\b|\\bia\\b|llm|nlp|computer vision|mlops',
+            'DevOps & Cloud' => 'devops|cloud engineer|site reliability|sre\\b|platform engineer|infrastructure engineer|kubernetes',
+            'Cybersecurity' => 'cybersecurity|cybersécurité|security engineer|sécurité informatique|pentest|soc analyst|infosec|devsecops',
+            'Embedded Systems' => 'embedded|embarqué|firmware|\\biot\\b',
+            'Network & Systems' => 'network engineer|administrateur (?:système|réseau)|systems engineer|sysadmin|system administrator|help ?desk|it support|support informatique|t[ée]l[ée]com',
             'UI/UX Design' => 'ux design|ui design|product design|designer ux|designer ui',
             'Business Intelligence' => 'business intelligence|bi analyst|analyste bi',
             'Digital Marketing' => 'digital marketing|marketing digital|seo\\b|r[ée]f[ée]renceur|growth marketing',

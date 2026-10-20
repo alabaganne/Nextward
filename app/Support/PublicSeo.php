@@ -12,7 +12,7 @@ class PublicSeo
 {
     public static function isPublic(Request $request): bool
     {
-        return $request->routeIs('home', 'about', 'contact', 'privacy', 'terms', 'blog.*', 'opportunities.index', 'opportunities.category', 'opportunities.show', 'companies.public', 'candidates.public.*', 'fr.*')
+        return $request->routeIs('home', 'about', 'contact', 'privacy', 'terms', 'blog.*', 'opportunities.index', 'opportunities.category', 'opportunities.show', 'companies.public', 'companies.index', 'candidates.public.*', 'fr.*')
             && ! $request->routeIs('fr.login*', 'fr.register*', 'fr.password.*');
     }
 
@@ -137,6 +137,21 @@ class PublicSeo
     }
 
     // Candidate pages hold personal data, so they stay out of search engines.
+    // Only the plain directory is indexed; searches and filters are not.
+    public static function companies(Request $request, int $total): array
+    {
+        $copy = self::copy($request->is('fr', 'fr/*') ? 'fr' : 'en')['companies'];
+        $filters = collect($request->query())->except('page')->reject(fn ($value) => $value === '' || $value === null);
+        $seo = self::base($request, $copy['title'], $copy['description'], $filters->isEmpty() && $total > 0);
+        if ($request->integer('page', 1) > 1) {
+            $seo['title'] .= ' | Page '.$request->integer('page');
+        }
+        if ($filters->isEmpty()) {
+            $seo['alternates'] = self::alternates('/companies', $request->integer('page', 1));
+        }
+        return $seo;
+    }
+
     public static function candidates(): array
     {
         $fr = request()->is('fr', 'fr/*');

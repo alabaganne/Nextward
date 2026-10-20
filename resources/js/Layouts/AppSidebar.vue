@@ -1,11 +1,12 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, reactive, watch } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import {
 	Bookmark,
 	BookOpen,
 	Briefcase,
 	Building2,
+	ChevronDown,
 	Compass,
 	Database,
 	FileText,
@@ -20,7 +21,7 @@ import {
 	X,
 } from '@lucide/vue';
 
-defineProps({
+const props = defineProps({
 	active: { type: String, default: '' },
 	mobileOpen: { type: Boolean, default: false },
 });
@@ -50,12 +51,28 @@ const main = computed(() => [
 ]);
 
 const admin = computed(() => [
-	{ id: 'imports', label: 'Sources and imports', route: 'imports.index', icon: Database },
+	{ id: 'imports', label: 'Imports', icon: Database, children: [
+		{ id: 'imports.sources', label: 'Sources', route: 'imports.sources.index' },
+		{ id: 'imports.review', label: 'Review queue', route: 'imports.review', badge: badges.value.imports_review },
+		{ id: 'imports.reports', label: 'Reports', route: 'imports.reports', badge: badges.value.reports },
+		{ id: 'imports.claims', label: 'Employer claims', route: 'imports.claims', badge: badges.value.claims },
+		{ id: 'imports.runs', label: 'Runs & health', route: 'imports.runs' },
+	] },
 	{ id: 'signups', label: 'Sign-up sources', route: 'signups.index', icon: UserPlus },
 	{ id: 'candidates', label: 'Candidates', route: 'candidates.index', icon: GraduationCap, badge: badges.value.public_profiles },
 	{ id: 'fields', label: 'Fields', route: 'fields.index', icon: BookOpen },
 	{ id: 'skills', label: 'Skills', route: 'skills.index', icon: Sparkles },
 ]);
+
+// A group opens on its own when one of its pages is active, and stays as the person leaves it.
+const open = reactive({});
+const inGroup = (group, id = props.active) => !!id?.startsWith(`${group.id}.`);
+watch(() => props.active, (id) => {
+	for (const group of admin.value.filter((item) => item.children)) {
+		if (inGroup(group, id)) open[group.id] = true;
+	}
+}, { immediate: true });
+const total = (group) => group.children.reduce((sum, child) => sum + (child.badge || 0), 0);
 </script>
 
 <template>
@@ -94,19 +111,49 @@ const admin = computed(() => [
 		<template v-if="isAdmin">
 			<div class="text-xs text-[#6b7894] font-semibold px-3 pt-6 pb-2">Admin</div>
 			<nav class="flex flex-col gap-0.5" aria-label="Admin">
-				<Link
-					v-for="item in admin"
-					:key="item.id"
-					class="nav-item"
-					:class="{ 'is-active': item.id === active }"
-					:href="item.href || route(item.route)"
-					:aria-current="item.id === active ? 'page' : undefined"
-					@click="$emit('close')"
-				>
-					<component :is="item.icon" class="size-[18px] shrink-0" aria-hidden="true" />
-					<span class="truncate">{{ item.label }}</span>
-					<span v-if="item.badge" class="nav-badge" :aria-label="`${item.badge} waiting for review`">{{ item.badge > 99 ? '99+' : item.badge }}</span>
-				</Link>
+				<template v-for="item in admin" :key="item.id">
+					<template v-if="item.children">
+						<button
+							type="button"
+							class="nav-item w-full text-left"
+							:class="{ 'is-active': !open[item.id] && inGroup(item) }"
+							:aria-expanded="!!open[item.id]"
+							:aria-controls="`nav-group-${item.id}`"
+							@click="open[item.id] = !open[item.id]"
+						>
+							<component :is="item.icon" class="size-[18px] shrink-0" aria-hidden="true" />
+							<span class="truncate">{{ item.label }}</span>
+							<span v-if="!open[item.id] && total(item)" class="nav-badge" :aria-label="`${total(item)} waiting for review`">{{ total(item) > 99 ? '99+' : total(item) }}</span>
+							<ChevronDown class="size-4 shrink-0 transition-transform" :class="[open[item.id] ? 'rotate-180' : '', !open[item.id] && total(item) ? '' : 'ml-auto']" aria-hidden="true" />
+						</button>
+						<div v-show="open[item.id]" :id="`nav-group-${item.id}`" class="flex flex-col gap-0.5">
+							<Link
+								v-for="child in item.children"
+								:key="child.id"
+								class="nav-item nav-child"
+								:class="{ 'is-active': child.id === active }"
+								:href="route(child.route)"
+								:aria-current="child.id === active ? 'page' : undefined"
+								@click="$emit('close')"
+							>
+								<span class="truncate">{{ child.label }}</span>
+								<span v-if="child.badge" class="nav-badge" :aria-label="`${child.badge} waiting for review`">{{ child.badge > 99 ? '99+' : child.badge }}</span>
+							</Link>
+						</div>
+					</template>
+					<Link
+						v-else
+						class="nav-item"
+						:class="{ 'is-active': item.id === active }"
+						:href="item.href || route(item.route)"
+						:aria-current="item.id === active ? 'page' : undefined"
+						@click="$emit('close')"
+					>
+						<component :is="item.icon" class="size-[18px] shrink-0" aria-hidden="true" />
+						<span class="truncate">{{ item.label }}</span>
+						<span v-if="item.badge" class="nav-badge" :aria-label="`${item.badge} waiting for review`">{{ item.badge > 99 ? '99+' : item.badge }}</span>
+					</Link>
+				</template>
 			</nav>
 		</template>
 

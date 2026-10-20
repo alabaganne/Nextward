@@ -61,8 +61,9 @@ Route::permanentRedirect('/fr/for-professionals', '/fr');
 Route::prefix('fr')->name('fr.')->group(function () {
     Route::get('/', [PublicPageController::class, 'home'])->name('home');
     Route::get('/opportunities', [OpportunityController::class, 'index'])->name('opportunities');
-    Route::get('/opportunities/{category}', [OpportunityController::class, 'index'])->whereIn('category', ['internships', 'jobs', 'tunisia', 'remote-from-tunisia', 'relocation'])->name('category');
+    Route::get('/opportunities/{category}', [OpportunityController::class, 'index'])->whereIn('category', ['internships', 'jobs'])->name('category');
     Route::get('/opportunities/{opportunity}', [OpportunityController::class, 'publicShow'])->where('opportunity', '[0-9]+(?:-[a-z0-9-]+)?')->name('opportunity');
+    Route::get('/companies', [PublicCompanyController::class, 'index'])->name('companies');
     Route::get('/companies/{companySlug}', [PublicCompanyController::class, 'show'])->where('companySlug', '[0-9]+-[a-z0-9-]+')->name('company');
     Route::get('/candidates', [PublicCandidateController::class, 'index'])->name('candidates');
     Route::get('/candidates/{candidateSlug}', [PublicCandidateController::class, 'show'])->where('candidateSlug', '[0-9]+-[a-z0-9-]+')->name('candidate');
@@ -88,14 +89,23 @@ foreach (['' => '', 'fr' => 'fr.'] as $prefix => $name) {
 
 Route::get('/opportunities', [OpportunityController::class, 'index'])->name('opportunities.index');
 Route::get('/opportunities/{category}', [OpportunityController::class, 'index'])
-    ->whereIn('category', ['internships', 'jobs', 'tunisia', 'remote-from-tunisia', 'relocation'])->name('opportunities.category');
+    ->whereIn('category', ['internships', 'jobs'])->name('opportunities.category');
+// The Tunisia and relocation pages became filters on the main list.
+foreach (['' => '', '/fr' => '/fr'] as $prefix) {
+    foreach (['tunisia' => ['country' => 'TN'], 'remote-from-tunisia' => ['work_type' => 'remote'], 'relocation' => ['relocation' => 1]] as $old => $filter) {
+        Route::get($prefix.'/opportunities/'.$old, fn (\Illuminate\Http\Request $request) => redirect($prefix.'/opportunities?'.\Illuminate\Support\Arr::query([...$request->except(array_keys($filter)), ...$filter]), 301));
+    }
+}
 Route::get('/opportunities/{opportunity}', [OpportunityController::class, 'publicShow'])
     ->where('opportunity', '[0-9]+(?:-[a-z0-9-]+)?')->name('opportunities.show');
+Route::get('/companies', [PublicCompanyController::class, 'index'])->name('companies.index');
 Route::get('/companies/{companySlug}', [PublicCompanyController::class, 'show'])
     ->where('companySlug', '[0-9]+-[a-z0-9-]+')->name('companies.public');
 Route::get('/candidates', [PublicCandidateController::class, 'index'])->name('candidates.public.index');
 Route::get('/candidates/{candidateSlug}', [PublicCandidateController::class, 'show'])
     ->where('candidateSlug', '[0-9]+-[a-z0-9-]+')->name('candidates.public.show');
+Route::get('/candidates/{candidateSlug}/resume', [PublicCandidateController::class, 'resume'])
+    ->where('candidateSlug', '[0-9]+-[a-z0-9-]+')->name('candidates.public.resume');
 Route::get('/internships', function (\Illuminate\Http\Request $request) {
     $query = $request->only('search', 'fields', 'cities', 'companies', 'page', 'work_type', 'country');
     return redirect('/opportunities/internships'.($query ? '?'.http_build_query($query) : ''), 301);
@@ -121,7 +131,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::put('/password', [\App\Http\Controllers\Auth\PasswordController::class, 'update'])->name('password.change');
     // Resources
     Route::resource('opportunities', OpportunityController::class)->except(['index', 'show'])->middleware('verified');
-    Route::resource('companies', CompanyController::class);
+    Route::resource('companies', CompanyController::class)->except('index');
     Route::get('/candidates/manage', [CandidateController::class, 'index'])->name('candidates.index');
     Route::resource('candidates', CandidateController::class)->except('index')->whereNumber('candidate');
     Route::resource('fields', FieldController::class);

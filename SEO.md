@@ -24,6 +24,7 @@ The goal is for Nextward to show up on Google (most searches from Tunisia are in
   - Title, meta description, `JobPosting` and breadcrumb follow the page language. The sitemap lists each language version with `xhtml:link` hreflang alternates.
   - The Google Indexing API gets the page in the listing's own language.
 - **Public company pages:** `/companies/{id}-{slug}`. Pages with no open roles and a short "about" text are kept out of Google (`noindex`).
+- **Companies directory:** `/companies` and `/fr/companies`, in the pages sitemap. Only the plain list is indexed; searches, field filters and "All companies" are `noindex`.
 - **Public candidate profiles:** `/candidates` and `/candidates/{id}-{slug}` (also under `/fr`). They hold personal data, so they are always `noindex` and are not in the sitemap.
 
 ## Writing a blog post

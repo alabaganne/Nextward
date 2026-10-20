@@ -25,6 +25,8 @@ class OpportunityCleanupTest extends TestCase
         parent::setUp();
         $this->travelTo(Carbon::parse('2026-10-15 10:00:00', 'UTC'));
         SourceHttp::$resolveUsing = fn () => ['93.184.216.34'];
+        // These tests cover cleaning, not the IT scope.
+        config(['importer.scope' => null]);
     }
 
     protected function tearDown(): void

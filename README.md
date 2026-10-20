@@ -29,10 +29,11 @@ Set `APP_URL` and `DB_*` for a local database, then run:
 php artisan migrate
 php artisan db:seed --class=CitySeeder
 php artisan db:seed --class=FieldSeeder
+php artisan db:seed --class=SkillSeeder
 php artisan storage:link
 ```
 
-The city and field catalogues support optional profile choices and filters. Worldwide profiles can use their country and location without a Tunisian city. `storage:link` exposes public company/profile media, not new application attachments.
+The city and field catalogues support optional profile choices and filters. `SkillSeeder` fills the skills catalogue from the skills listings are tagged with (`skills` in `config/importer.php`); `php artisan db:seed` runs it too. Worldwide profiles can use their country and location without a Tunisian city. `storage:link` exposes public company/profile media, not new application attachments.
 
 Pages only load company logos from Nextward. A logo from another site (`companies.logo_url`) is downloaded once by `php artisan companies:logos`, which the scheduler runs every hour: PNG, JPEG, GIF or WebP up to 1 MB, from public hosts only, saved under `company-logos/imported` on the public disk. Until the copy exists, or when the download fails, pages show the initials badge. Failed downloads are tried again after a week. An uploaded logo always wins.
 
@@ -57,6 +58,8 @@ These hand-checked listings stay public for 14 days after the check. An older sn
 
 `ImportSourceSeeder` adds the sources the scheduler reads every day at 05:00 Tunis time: Tanitjobs and Keejob for Tunisia, and employer job boards on Greenhouse, Lever and Ashby for worldwide roles. Only listings posted in the last 30 days are added (`OPPORTUNITY_MAX_AGE_DAYS`). Imported listings posted more than 60 days ago are closed (`OPPORTUNITY_RETENTION_DAYS`). Worldwide boards keep internships, plus jobs that are in Tunisia, remote without a country limit, or offer relocation or visa help. The same role found on both Tanitjobs and Keejob is shown once. Check each site's terms of use before a public launch; sources can be paused in Imports.
 
+Nextward is for IT roles, so every import (scheduled runs, Run import in admin, `opportunities:import` and `opportunities:fetch`) keeps only IT listings: software, web and mobile development, data and AI, DevOps and cloud, security, networks and systems, IT support, QA, UI/UX, embedded and BI. A board title with no IT word is rejected before the page is read; after reading, a listing the AI (or the keyword rules) does not place in an IT field is rejected too. Both show as "Outside IT scope." in the review queue, and an admin can still approve one by hand. The title words and fields live under `focus.tech` in `config/importer.php`; `OPPORTUNITY_SCOPE=` (empty) turns the rule off.
+
 To add new listings right away, without waiting for the schedule, run either of these on your machine or on the server:
 
 ```bash
@@ -64,11 +67,11 @@ composer scrape
 npm run scrape
 ```
 
-It reads the sources now and stops after adding 10 software, web or mobile development opportunities that were never added before: about half from Tunisian boards and half from worldwide boards. The title keywords live under `focus.tech` in `config/importer.php`; add words for one run with `--keywords=flutter,react`, or drop `--focus=tech` from the script to take every field. Listings already in the database, listings found earlier on another board, listings removed by an admin, and listings that are too old or not open to Tunisia are skipped. Pass a different number with `composer scrape -- --count=20` or `npm run scrape -- --count=20`, or call `php artisan opportunities:fetch --focus=tech --count=20` directly. Listings that don't match the focus are left for the daily import. On a server, run it as the user that owns the app (for example `sudo -u www-data composer scrape`) so cache and log files keep the right owner.
+It reads the sources now and stops after adding 10 IT opportunities that were never added before: about half from Tunisian boards and half from worldwide boards. The title keywords live under `focus.tech` in `config/importer.php`; add words for one run with `--keywords=flutter,react`. Listings outside IT are never added, with or without `--focus`. Listings already in the database, listings found earlier on another board, listings removed by an admin, and listings that are too old or not open to Tunisia are skipped. Pass a different number with `composer scrape -- --count=20` or `npm run scrape -- --count=20`, or call `php artisan opportunities:fetch --focus=tech --count=20` directly. IT listings that don't match the focus are left for the daily import. On a server, run it as the user that owns the app (for example `sudo -u www-data composer scrape`) so cache and log files keep the right owner.
 
 ### AI
 
-AI reads each new listing once before it is published and sets its field, internship or job, seniority, and whether someone in Tunisia can take a remote role, relocate or get a visa. It runs on OpenAI or Claude through the `laravel/ai` package; pick one with `OPPORTUNITY_AI_PROVIDER=openai` (default) or `anthropic` and set its key (`OPENAI_API_KEY` or `ANTHROPIC_API_KEY`). Models are set per provider under `ai.models` in `config/importer.php` (`OPPORTUNITY_OPENAI_MODEL`, default `gpt-5.4-mini`, and `OPPORTUNITY_OPENAI_DISCOVERY_MODEL`, default `gpt-5.5`; `OPPORTUNITY_AI_MODEL`, default `claude-opus-5-5`, for Claude). The answer is kept with the listing, so daily refreshes do not call it again. With a focus such as `--focus=tech`, only listings the AI places in software, web or mobile development are added; the others wait for the daily import. If the key is missing, the account has no credit, or a call fails, the keyword rules are used instead and the run carries on. Set `OPPORTUNITY_AI_ENABLED=false` to turn it off.
+AI reads each new listing once before it is published and sets its field, internship or job, seniority, and whether someone in Tunisia can take a remote role, relocate or get a visa. It runs on OpenAI or Claude through the `laravel/ai` package; pick one with `OPPORTUNITY_AI_PROVIDER=openai` (default) or `anthropic` and set its key (`OPENAI_API_KEY` or `ANTHROPIC_API_KEY`). Models are set per provider under `ai.models` in `config/importer.php` (`OPPORTUNITY_OPENAI_MODEL`, default `gpt-5.4-mini`, and `OPPORTUNITY_OPENAI_DISCOVERY_MODEL`, default `gpt-5.5`; `OPPORTUNITY_AI_MODEL`, default `claude-opus-5-5`, for Claude). The answer is kept with the listing, so daily refreshes do not call it again. Only listings the AI places in an IT field, as an IT role, are added; the others are rejected as outside the IT scope. If the key is missing, the account has no credit, or a call fails, the keyword rules are used instead and the run carries on. Set `OPPORTUNITY_AI_ENABLED=false` to turn it off.
 
 Every published listing also gets an English and a French version. When a listing is published or its text changes, a queued job asks the AI (`review` model) for the missing version; the original stays untouched and shows in a fold-out on the translated page. `php artisan opportunities:translate` (hourly, 200 listings a run, newest first) fills in older open listings and retries failures. Use `--sync --limit=20` to run it now, and `OPPORTUNITY_AI_TRANSLATE=false` to turn it off. After a first deploy with many listings, run it a few times with a bigger `--limit` to catch up faster.
 
@@ -182,7 +185,7 @@ Run `php artisan opportunities:health` from an external monitor. Add `--public` 
 
 ## Approved sources and import operation
 
-Admins manage sources, run history, staged records, reports, duplicate merges and company claims at `/admin/imports`. Supported adapters are sitemap/JSON-LD, Greenhouse, Lever and Ashby. There are no automatically approved third-party boards or guaranteed live-source coverage.
+Admins work in the Imports group of the sidebar: Sources (`/admin/imports/sources`, with add and edit pages), Review queue (`/admin/imports/review`), Reports, Employer claims, and Runs & health. Correcting, hiding, closing or merging a listing happens on its own page (`/admin/imports/opportunities/{id}`), opened from the review queue or a report. Supported adapters are sitemap/JSON-LD, Greenhouse, Lever and Ashby. There are no automatically approved third-party boards or guaranteed live-source coverage.
 
 Record the source URL, exact allowed domains, provider, permission evidence, cadence and request limits. A source must have approved permission and be enabled before fetching. Public access or robots permission alone does not establish republication rights. Start with review mode and inspect attribution, employer identity, application links, dates, location, remote eligibility and description quality. Enable automatic publication only after the source is approved and its output is consistently correct. Invalid or incomplete items can still require review.
 
@@ -206,6 +209,19 @@ php artisan opportunities:reconcile
 | `--due` | Select sources whose next run is due. |
 
 Without `--sync` or `--dry-run`, eligible sources are queued. No approved, enabled sources means no import work. Review source errors and staged records before increasing coverage or request volume.
+
+### Deleting listings
+
+`php artisan opportunities:purge` deletes imported listings for good, with everything tied to them: applications and their files, saves, views, alert deliveries, reports, translations, kits, skills, source records and the notifications about those applications. Imported companies left with no listings and no account go too (`--keep-companies` keeps them). Kits' credit history is kept. Pages already sent to Google get a "deleted" notice through the indexing reconcile.
+
+```bash
+php artisan opportunities:purge --dry-run          # count what would go
+php artisan opportunities:purge                    # asks before deleting
+php artisan opportunities:purge --source=tanitjobs # only one source
+php artisan opportunities:purge --origin=all       # company posts too
+```
+
+Without `--remember` the source records are deleted, so the scraper may add the same roles again later. With it, they stay and those roles are never imported again. Back up the database before running it on production.
 
 ## Email
 

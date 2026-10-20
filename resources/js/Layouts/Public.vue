@@ -8,6 +8,8 @@ const fr = computed(() => page.props.locale === 'fr');
 const prefix = computed(() => fr.value ? '/fr' : '');
 const links = computed(() => [
     { label: fr.value ? 'Opportunités' : 'Opportunities', href: `${prefix.value}/opportunities` },
+    { label: fr.value ? 'Entreprises' : 'Companies', href: `${prefix.value}/companies` },
+    { label: fr.value ? 'Talents' : 'Talent', href: `${prefix.value}/candidates` },
     { label: fr.value ? 'Guides carrière' : 'Career guides', href: `${prefix.value}/blog` },
     { label: fr.value ? 'À propos' : 'About', href: `${prefix.value}/about` },
 ]);
@@ -22,7 +24,7 @@ const languageOptions = computed(() => {
         return [{ code: 'en', label: 'English', href: en }, { code: 'fr', label: 'Français', href: french }];
     }
     const path = currentPath.value.replace(/^\/fr(?=\/|$)/, '') || '/';
-    const translatedPaths = ['/', '/about', '/contact', '/privacy', '/terms', '/blog', '/opportunities', '/candidates', ...['internships', 'jobs', 'tunisia', 'remote-from-tunisia', 'relocation'].map((category) => `/opportunities/${category}`)];
+    const translatedPaths = ['/', '/about', '/contact', '/privacy', '/terms', '/blog', '/opportunities', '/companies', '/candidates', ...['internships', 'jobs'].map((category) => `/opportunities/${category}`)];
     if (!translatedPaths.includes(path)) return [];
     const suffix = page.url.slice(currentPath.value.length);
     return [
@@ -94,11 +96,10 @@ onBeforeUnmount(() => {
             <div class="public-container grid gap-10 py-14 md:grid-cols-[1.2fr_1fr]">
                 <div class="max-w-md">
                     <Link :href="prefix || '/'" class="focus-ring brand-link"><BrandLogo size="sm" class="[&>img]:!h-9 [&>img]:!w-9" /><span>Nextward</span></Link>
-                    <p class="mt-4 text-sm leading-6 text-slate-300">{{ fr ? 'Stages et emplois pour étudiants et professionnels, en Tunisie et à l’international. Des sources claires pour préparer votre prochaine candidature.' : 'Internships and jobs for students and professionals, in Tunisia and around the world. Clear sources and practical details for your next application.' }}</p>
+                    <p class="mt-4 text-sm leading-6 text-slate-300">{{ fr ? 'Stages et emplois pour étudiants et professionnels, partout dans le monde. Des sources claires pour préparer votre prochaine candidature.' : 'Internships and jobs for students and professionals, around the world. Clear sources and practical details for your next application.' }}</p>
                 </div>
                 <nav :aria-label="fr ? 'Pied de page' : 'Footer'" class="grid grid-cols-2 content-start gap-x-8 gap-y-3 text-sm font-medium">
                     <Link v-for="link in links" :key="link.href" :href="link.href" class="focus-ring footer-link">{{ link.label }}</Link>
-                    <Link :href="`${prefix}/candidates`" class="focus-ring footer-link">{{ fr ? 'Profils de candidats' : 'Candidate profiles' }}</Link>
                     <Link :href="`${prefix}/contact`" class="focus-ring footer-link">Contact</Link>
                     <Link :href="`${prefix}/register?account=company`" class="focus-ring footer-link">{{ fr ? 'Publier une offre' : 'Post an opportunity' }}</Link>
                 </nav>

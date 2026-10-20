@@ -4,9 +4,11 @@ import { statusPill } from '@/utils/status';
 
 const props = defineProps({
 	status: { type: String, default: null },
+	// "import" uses the admin Imports colours and labels.
+	set: { type: String, default: 'application' },
 });
 
-const pill = computed(() => statusPill(props.status));
+const pill = computed(() => statusPill(props.status, props.set));
 </script>
 
 <template>

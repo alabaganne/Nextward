@@ -55,7 +55,7 @@ class OpportunityRequest extends FormRequest
             'pay_unit' => 'nullable|required_with:pay_min,pay_max|in:hour,day,week,month,year',
             'compensation_status' => 'nullable|in:paid,unpaid,unspecified',
             'remote_scope' => 'nullable|string|max:255',
-            'remote_eligibility' => 'nullable|in:eligible,restricted,unknown',
+            'applicant_scope' => 'nullable|in:anywhere,listed,local,unknown',
             'relocation' => 'nullable|in:yes,no,unknown',
             'visa_sponsorship' => 'nullable|in:yes,no,unknown',
             'eligible_countries' => 'nullable|array|max:250',

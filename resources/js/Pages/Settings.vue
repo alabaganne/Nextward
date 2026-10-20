@@ -173,6 +173,12 @@ const setPublic = (value) =>
 		onStart: () => (publicBusy.value = true),
 		onFinish: () => (publicBusy.value = false),
 	});
+const setContact = (value) =>
+	router.put(route('profile.public.update'), { contact: value }, {
+		preserveScroll: true,
+		onStart: () => (publicBusy.value = true),
+		onFinish: () => (publicBusy.value = false),
+	});
 const publicText = computed(() => ({
 	pending: 'Waiting for review. Your profile is still private.',
 	approved: 'Your profile is public.',
@@ -409,7 +415,7 @@ const deleteAccount = () =>
 								<fieldset class="mb-5"><legend class="text-sm font-semibold mb-2">Work arrangements</legend><div class="flex flex-wrap gap-5"><label v-for="mode in ['onsite', 'hybrid', 'remote']" :key="mode" class="flex gap-2 items-center capitalize"><input v-model="accountForm.preferences.work_types" type="checkbox" :value="mode"> {{ mode }}</label></div><p v-if="accountError('preferences.work_types')" data-error class="text-xs text-[#dc2626] mt-[7px]">{{ accountError('preferences.work_types') }}</p></fieldset>
 								<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
 									<label class="text-sm font-semibold">Target countries<input v-model="targetCountries" class="fld mt-2" placeholder="TN, FR, DE"><span class="text-xs font-normal text-muted">Comma-separated country codes. Leave empty to explore all locations.</span><span v-if="accountError('preferences.countries')" data-error class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('preferences.countries') }}</span></label>
-									<label class="text-sm font-semibold">Skills to match<input v-model="skillsText" class="fld mt-2" placeholder="Python, sales, design"><span class="text-xs font-normal text-muted">Comma-separated skills.</span><span v-if="accountError('preferences.skills')" data-error class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('preferences.skills') }}</span></label>
+									<label class="text-sm font-semibold">Skills to match<input v-model="skillsText" class="fld mt-2" placeholder="Python, React, Docker"><span class="text-xs font-normal text-muted">Comma-separated skills.</span><span v-if="accountError('preferences.skills')" data-error class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('preferences.skills') }}</span></label>
 									<label class="text-sm font-semibold">Fields of interest<select v-model="accountForm.preferences.fields" class="fld mt-2" multiple><option v-for="field in fields" :key="field.id" :value="field.id">{{ field.name }}</option></select><span v-if="accountError('preferences.fields')" data-error class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('preferences.fields') }}</span></label>
 									<label class="text-sm font-semibold">Experience levels<select v-model="accountForm.preferences.seniority" class="fld mt-2" multiple><option v-for="level in ['entry','graduate','mid','senior','lead','executive']" :key="level" :value="level">{{ level }}</option></select><span v-if="accountError('preferences.seniority')" data-error class="block text-xs font-normal text-[#dc2626] mt-[7px]">{{ accountError('preferences.seniority') }}</span></label>
 								</div>
@@ -427,7 +433,7 @@ const deleteAccount = () =>
 					<div v-if="isCandidate" class="bg-white border border-line rounded-[18px] mb-[18px]">
 						<div class="px-[22px] py-[18px] border-b border-line-2">
 							<h3 class="font-display text-[16.5px] font-semibold">Public profile</h3>
-							<p class="text-[13px] text-muted mt-[3px]">Show your profile on Nextward's public candidate page so companies can find you. The Nextward team checks each profile first. Your email, phone number and resume are never shown.</p>
+							<p class="text-[13px] text-muted mt-[3px]">Show your profile on Nextward's public candidate page so companies can find you. The Nextward team checks each profile first. Your email, phone number and resume stay hidden unless you choose to share them below.</p>
 						</div>
 						<div class="px-[22px] py-[22px] flex items-center justify-between gap-4 flex-wrap">
 							<div class="min-w-0">
@@ -438,6 +444,13 @@ const deleteAccount = () =>
 							<button v-if="['pending', 'approved'].includes(settings.public_status)" class="cbtn cbtn-secondary" type="button" :disabled="publicBusy" @click="setPublic(false)">Make it private</button>
 							<button v-else class="cbtn bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60" type="button" :disabled="publicBusy || !settings.email_verified" @click="setPublic(true)">Ask to make it public</button>
 						</div>
+						<label class="px-[22px] py-[18px] border-t border-line-2 flex items-start gap-3 cursor-pointer">
+							<input type="checkbox" class="mt-1 w-4 h-4 accent-blue-600 shrink-0" :checked="settings.public_contact" :disabled="publicBusy" @change="setContact($event.target.checked)">
+							<span>
+								<b class="text-[14.5px] font-semibold block">Share my resume, email and phone number</b>
+								<span class="text-[13px] text-muted block mt-0.5">Anyone who opens your public profile can download your resume and contact you. Turn this off at any time.</span>
+							</span>
+						</label>
 					</div>
 				</section>
 

@@ -6,6 +6,7 @@ use App\Models\Candidate;
 use App\Notifications\PublicProfileReviewed;
 use App\Support\PublicSeo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
@@ -27,12 +28,7 @@ class PublicCandidateController extends Controller
 
     public function show(Request $request, string $candidateSlug)
     {
-        abort_unless(preg_match('/^([1-9][0-9]*)-/', $candidateSlug, $matches), 404);
-        $candidate = Candidate::with('user', 'field', 'city', 'skills')->findOrFail($matches[1]);
-        $viewer = $request->user();
-        // The candidate and admins can preview a profile that is not live yet.
-        $canPreview = $viewer && ($viewer->isAdmin() || ($viewer->isCandidate() && $viewer->userable_id === $candidate->id));
-        abort_unless($candidate->user && ($candidate->isPubliclyListed() || $canPreview), 404);
+        $candidate = $this->visible($request, $candidateSlug);
 
         $locale = $request->is('fr/*') ? 'fr' : 'en';
         if ($candidateSlug !== basename(parse_url($candidate->publicUrl($locale), PHP_URL_PATH))) {
@@ -47,6 +43,12 @@ class PublicCandidateController extends Controller
                 'languages' => $candidate->languages ?: [],
                 'website' => $candidate->website,
                 'linkedin_profile_url' => $candidate->user->linkedin_profile_url,
+                // Only when the candidate chose to share them.
+                'contact' => $candidate->public_contact ? [
+                    'email' => $candidate->user->email,
+                    'phone_number' => $candidate->user->phone_number,
+                    'resume_url' => $candidate->resume_path ? route('candidates.public.resume', $candidateSlug, false) : null,
+                ] : null,
             ],
             'status' => $candidate->public_status,
             'seo' => PublicSeo::candidate($candidate),
@@ -54,12 +56,30 @@ class PublicCandidateController extends Controller
         ]);
     }
 
+    public function resume(Request $request, string $candidateSlug)
+    {
+        $candidate = $this->visible($request, $candidateSlug);
+        abort_unless($candidate->public_contact && $candidate->resume_path && Storage::disk('local')->exists($candidate->resume_path), 404);
+
+        return Storage::disk('local')->response($candidate->resume_path, $candidate->resume_name ?: 'resume.pdf', [
+            'Content-Type' => 'application/pdf',
+            'X-Robots-Tag' => 'noindex',
+        ]);
+    }
+
     public function update(Request $request)
     {
         $user = $request->user();
         abort_unless($user->isCandidate(), 403);
-        $data = $request->validate(['public' => 'required|boolean']);
+        $data = $request->validate(['public' => 'required_without:contact|boolean', 'contact' => 'sometimes|boolean']);
         $candidate = $user->userable;
+
+        if (array_key_exists('contact', $data)) {
+            $candidate->forceFill(['public_contact' => $data['contact']])->save();
+            return back()->with('toast', ['type' => 'update', 'message' => $data['contact']
+                ? 'Your resume, email and phone number will show on your public profile.'
+                : 'Your resume, email and phone number are hidden from your public profile.']);
+        }
 
         if (! $data['public']) {
             $candidate->forceFill(['public_status' => null, 'public_reviewed_at' => null])->save();
@@ -90,6 +110,18 @@ class PublicCandidateController extends Controller
         return back()->with('toast', ['type' => 'update', 'message' => $status === 'approved' ? 'Profile approved. It is now public.' : 'Profile declined. It stays private.']);
     }
 
+    private function visible(Request $request, string $candidateSlug): Candidate
+    {
+        abort_unless(preg_match('/^([1-9][0-9]*)-/', $candidateSlug, $matches), 404);
+        $candidate = Candidate::with('user', 'field', 'city', 'skills')->findOrFail($matches[1]);
+        $viewer = $request->user();
+        // The candidate and admins can preview a profile that is not live yet.
+        $canPreview = $viewer && ($viewer->isAdmin() || ($viewer->isCandidate() && $viewer->userable_id === $candidate->id));
+        abort_unless($candidate->user && ($candidate->isPubliclyListed() || $canPreview), 404);
+
+        return $candidate;
+    }
+
     private function card(Candidate $candidate, string $locale): array
     {
         return [
@@ -100,6 +132,7 @@ class PublicCandidateController extends Controller
             'location' => $candidate->location ?: (collect([$candidate->city?->name, $candidate->country_code])->filter()->implode(', ') ?: null),
             'skills' => $candidate->skills->pluck('name')->merge($candidate->preferences['skills'] ?? [])->unique()->values()->take(12),
             'url' => parse_url($candidate->publicUrl($locale), PHP_URL_PATH),
+            'has_resume' => $candidate->public_contact && (bool) $candidate->resume_path,
         ];
     }
 }
