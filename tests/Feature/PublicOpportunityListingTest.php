@@ -281,6 +281,20 @@ class PublicOpportunityListingTest extends TestCase
                 ->missing('placements_count'));
     }
 
+    public function test_the_listing_page_shows_the_full_description_on_the_site_and_in_the_app()
+    {
+        $opportunity = $this->opportunity($this->company('Atlas Cloud'), 'Backend intern', now()->addMonth());
+        $description = str_repeat('You will build and test our payment services with the team. ', 20);
+        $opportunity->update(['description' => $description]);
+
+        $this->followingRedirects()->get("/opportunities/{$opportunity->id}")->assertInertia(fn (Assert $page) => $page
+            ->where('opportunity.description', $description));
+        $this->actingAs($this->candidate())->followingRedirects()->get("/app/opportunities/{$opportunity->id}")->assertInertia(fn (Assert $page) => $page
+            ->where('opportunity.description', $description));
+        $this->get('/opportunities')->assertInertia(fn (Assert $page) => $page
+            ->where('opportunities.data.0.description', fn ($excerpt) => mb_strlen($excerpt) <= 323));
+    }
+
     private function company(string $name): Company
     {
         $company = Company::create(['website' => 'https://example.com', 'about' => 'A company used in tests.', 'city_id' => $this->city->id]);

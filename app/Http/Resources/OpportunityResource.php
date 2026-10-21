@@ -11,7 +11,7 @@ class OpportunityResource extends JsonResource
     public function toArray($request)
     {
         $user = $request->user();
-        $detail = $request->routeIs('opportunities.show', 'fr.opportunity');
+        $detail = $request->routeIs('opportunities.show', 'app.opportunities.show', 'fr.opportunity');
         $locale = $request->is('fr', 'fr/*') ? 'fr' : 'en';
         $candidate = $user && $user->isCandidate() ? $user->userable : null;
         $application = $candidate && $this->relationLoaded('candidateApplications')

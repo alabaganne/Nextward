@@ -52,7 +52,8 @@ class ApplicationPolicy
     {
         $opportunity = Route::current()->opportunity;
 
-        if(!$user->isCandidate() || !$opportunity || $opportunity->application_mode !== 'internal' || !$opportunity->company?->user || ! $opportunity->isOpen() || Application::where('opportunity_id', $opportunity->id)->where('candidate_id', $user->userable_id)->exists()) {
+        // Admins are candidates too; their profile is made when they first apply.
+        if((!$user->isCandidate() && !$user->isAdmin()) || !$opportunity || $opportunity->application_mode !== 'internal' || !$opportunity->company?->user || ! $opportunity->isOpen() || ($user->userable_id && Application::where('opportunity_id', $opportunity->id)->where('candidate_id', $user->userable_id)->exists())) {
             return false;
         }
 
@@ -73,7 +74,9 @@ class ApplicationPolicy
 
     public function reply(User $user, Application $application)
     {
-        return $application->channel === 'internal' && ($user->isAdmin() || ($user->isCompany() && $user->userable_id === $application->company_id));
+        $own = $user->isCandidate() && $user->userable_id === $application->candidate_id;
+
+        return $application->channel === 'internal' && (($user->isAdmin() && ! $own) || ($user->isCompany() && $user->userable_id === $application->company_id));
     }
 
     /**

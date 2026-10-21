@@ -31,7 +31,8 @@ const icons = {
 
 const page = usePage();
 const user = computed(() => page.props.auth?.user);
-const isCandidate = computed(() => user.value?.userable_type === 'candidate');
+// Admins are candidates too, so this is about whose application it is.
+const isCandidate = computed(() => user.value?.userable_type === 'candidate' && user.value?.userable_id === props.application.candidate?.id);
 const isExternal = computed(() => props.application.channel === 'external');
 // Legacy boolean statuses map onto the enum introduced with the redesign.
 const normalizedStatus = computed(() => {
@@ -44,7 +45,7 @@ const normalizedStatus = computed(() => {
 const open = computed(() => !['offer', 'closed'].includes(normalizedStatus.value));
 
 const canReply = computed(
-	() => !isExternal.value && (user.value?.userable_type === 'company' || user.value?.is_admin) && open.value
+	() => !isExternal.value && !isCandidate.value && (user.value?.userable_type === 'company' || user.value?.is_admin) && open.value
 );
 
 const STAGES = {

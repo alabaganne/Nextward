@@ -126,4 +126,39 @@ class ApplyFlowTest extends TestCase
 
         $this->assertDatabaseHas('applications', ['id' => $application->id, 'status' => 'closed']);
     }
+
+    public function test_admins_can_apply_on_nextward_and_track_outside_applications(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $internal = Opportunity::where('application_mode', 'internal')->firstOrFail();
+        $external = Opportunity::where('application_mode', 'external')->whereNotNull('application_url')->get()->first(fn ($opportunity) => $opportunity->isOpen());
+
+        $this->actingAs($admin)->get(route('applications.create', $internal))->assertOk();
+        $this->actingAs($admin)
+            ->post(route('applications.store', $internal), [
+                'cover_letter' => str_repeat('I care about this role and can contribute from week one. ', 5),
+            ])
+            ->assertRedirect(route('applications.index'));
+
+        $admin->refresh();
+        $this->assertTrue($admin->isAdmin() && $admin->isCandidate());
+        $this->assertDatabaseHas('applications', ['candidate_id' => $admin->userable_id, 'opportunity_id' => $internal->id, 'channel' => 'internal']);
+
+        $this->actingAs($admin)->post(route('applications.track', $external))->assertRedirect();
+        $this->assertDatabaseHas('applications', ['candidate_id' => $admin->userable_id, 'opportunity_id' => $external->id, 'channel' => 'external']);
+    }
+
+    public function test_admins_cannot_move_their_own_application(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $candidate = $admin->ensureCandidateProfile();
+        $opportunity = Opportunity::where('application_mode', 'internal')->firstOrFail();
+        $application = Application::create([
+            'candidate_id' => $candidate->id, 'opportunity_id' => $opportunity->id, 'company_id' => $opportunity->company_id,
+            'cover_letter' => str_repeat('I would love to join your team. ', 10), 'channel' => 'internal', 'status' => 'submitted', 'applied_at' => today(),
+        ]);
+
+        $this->actingAs($admin)->post(route('applications.reply', $application), ['status' => 'offer'])->assertForbidden();
+        $this->assertSame('submitted', $application->fresh()->status);
+    }
 }

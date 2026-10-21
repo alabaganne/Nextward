@@ -76,12 +76,13 @@ class ApplicationController extends Controller
     {
         return Inertia::render('Applications/Edit', [
             'opportunity' => new OpportunityResource($opportunity),
-            ...$this->resumeChoices($request->user()->userable, $opportunity->id),
+            ...$this->resumeChoices($request->user()->ensureCandidateProfile(), $opportunity->id),
         ]);
     }
 
     public function store(Opportunity $opportunity, ApplicationRequest $request)
     {
+        $request->user()->ensureCandidateProfile() ?? abort(403);
         $application = DB::transaction(function () use ($request, $opportunity) {
             $request->user()->userable()->lockForUpdate()->first();
             abort_if(Application::where('candidate_id', $request->user()->userable_id)->where('opportunity_id', $opportunity->id)->exists(), 409, 'You already have an application for this opportunity.');
@@ -249,7 +250,7 @@ class ApplicationController extends Controller
 
     public function track(Opportunity $opportunity, Request $request)
     {
-        abort_unless($request->user()->isCandidate() && $opportunity->application_mode === 'external' && $opportunity->isOpen(), 403);
+        abort_unless($opportunity->application_mode === 'external' && $opportunity->isOpen() && $request->user()->ensureCandidateProfile(), 403);
         $data = $request->validate([
             'applied_at' => 'nullable|date|before_or_equal:today',
             'candidate_notes' => 'nullable|string|max:10000',
