@@ -107,7 +107,7 @@ const saveTracking = () => trackingForm.patch(route('applications.tracking.updat
 		</div>
 
 		<!-- STATUS BANNER -->
-		<div class="flex items-center gap-4 bg-white border border-line border-l-4 rounded-[18px] px-6 py-[18px] mb-[22px]" :style="{ borderLeftColor: stage.border }">
+		<div class="flex items-center gap-4 bg-white border border-line rounded-[18px] px-6 py-[18px] mb-[22px]">
 			<div class="w-11 h-11 rounded-[12px] grid place-items-center shrink-0 [&_svg]:w-[22px] [&_svg]:h-[22px]" :style="{ background: stage.bg, color: stage.color }"><component :is="icons.calendarCheck" aria-hidden="true" /></div>
 			<div>
 				<b class="text-base font-display font-semibold block">{{ stage.title }}</b>
