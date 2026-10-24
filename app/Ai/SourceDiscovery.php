@@ -56,6 +56,7 @@ class SourceDiscovery
         } elseif ($provider === 'sitemap') {
             $host = strtolower((string) parse_url($board, PHP_URL_HOST));
             if (! str_starts_with($board, 'https://') || ! $host) { return ['skipped', $board, 'Rejected: give the full https sitemap URL.']; }
+            if (str_ends_with($host, '.tn')) { return ['skipped', $board, 'Rejected: Nextward no longer reads Tunisian job sites.']; }
             $key = 'site-'.Str::slug(preg_replace('/^www\./', '', $host));
             $url = $board;
         } else {
@@ -110,11 +111,13 @@ class SourceDiscovery
     private function prompt(int $max, string $existing): string
     {
         return <<<PROMPT
-Find up to {$max} new places where Nextward can read software engineering, web development and mobile development jobs and internships for people in Tunisia.
+Find up to {$max} new places where Nextward can read IT jobs and internships abroad: software engineering, web and mobile development, and data science and AI.
 
 Good finds:
-- Companies that hire developers in Tunisia, or hire remotely worldwide or in Africa, MENA or EMEA, and publish their jobs on Greenhouse, Lever or Ashby. Give the board token from the board URL: boards.greenhouse.io/<token>, job-boards.greenhouse.io/<token>, jobs.lever.co/<token>, or jobs.ashbyhq.com/<token>.
-- Tunisian job sites or Tunisian employer career sites whose job pages carry JobPosting structured data. Give the https URL of the sitemap that lists the job pages, and the path that every job page starts with (for example /jobs/).
+- Companies that hire for these roles remotely worldwide, or in Europe, North America, the Gulf or Asia with relocation or visa help, and publish their jobs on Greenhouse, Lever or Ashby. Give the board token from the board URL: boards.greenhouse.io/<token>, job-boards.greenhouse.io/<token>, jobs.lever.co/<token>, or jobs.ashbyhq.com/<token>.
+- Employer career sites outside Tunisia whose job pages carry JobPosting structured data. Give the https URL of the sitemap that lists the job pages, and the path that every job page starts with (for example /jobs/).
+
+Do not suggest Tunisian job sites or sites on a .tn domain.
 
 Use web search to confirm each find is real and currently hiring. Call suggest_source once per find; it checks the board and tells you whether it was saved. Do not suggest anything already in this list:
 {$existing}

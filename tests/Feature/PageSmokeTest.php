@@ -163,7 +163,20 @@ class PageSmokeTest extends TestCase
                 ->has('opportunities.data')
                 ->has('fields')
                 ->has('countries')
+                ->has('counts.open')
+                ->has('counts.archived')
                 ->missing('cities'));
+    }
+
+    public function test_opportunities_index_counts_open_and_archived_listings(): void
+    {
+        $open = Opportunity::available()->count();
+        $archived = Opportunity::available()->latest('id')->firstOrFail();
+        $archived->update(['status' => 'closed']);
+
+        $this->get('/opportunities')->assertInertia(fn (Assert $page) => $page
+            ->where('counts.open', $open - 1)
+            ->where('counts.archived', Opportunity::published()->count() - ($open - 1)));
     }
 
     public function test_company_edit_uses_the_company_route_identifier(): void

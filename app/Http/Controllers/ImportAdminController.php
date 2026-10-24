@@ -35,7 +35,7 @@ class ImportAdminController extends Controller
     {
         $filters = $request->validate([
             'source_id' => 'nullable|integer|exists:import_sources,id',
-            'state' => 'nullable|in:all,pending,review,published,closed,rejected',
+            'state' => 'nullable|in:all,pending,review,unmatched,published,closed,rejected',
             'page' => 'nullable|integer|min:1|max:10000',
         ]);
         $filters['state'] ??= 'review';

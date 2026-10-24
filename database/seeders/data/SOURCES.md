@@ -29,7 +29,7 @@ This is a manually checked snapshot, not an enabled recurring scraper. Each sour
 
 Nothing re-checks these pages automatically, so the curated sources use a **14-day freshness window** (`settings.freshness_hours`) in place of the 48-hour rule used by automatic imports. If the snapshot is older than that when first seeded, its new opportunities are saved as drafts and Artisan prints a warning. Reconciliation moves them to draft once the window passes, and closes any imported listing posted more than 60 days ago. Rerunning the seed never advances `last_verified_at`, republishes an edited record or reopens a closed one.
 
-The daily import itself comes from the sources in `ImportSourceSeeder`: Tanitjobs and Keejob for Tunisia, plus employer job boards on Greenhouse, Lever and Ashby.
+The daily import itself comes from the sources in `ImportSourceSeeder`: employer job boards on Greenhouse, Lever and Ashby. Tunisian job sites (Tanitjobs, Keejob) are no longer read.
 
 Before a later launch, revisit each original page and its application action. Update or replace unavailable roles, record the actual check time, and review the existing records through the import workflow. Enable recurring imports only after checking source reuse requirements and confirming the provider can read the page. For repeatable deployment checks, do not replace the fixed timestamp with `now()`.
 

@@ -9,7 +9,7 @@ import { Bell, ChevronDown, Globe, Search, X } from '@lucide/vue';
 import RoleCard from '@/Components/Opportunity/RoleCard.vue';
 import Pagination from '@/Components/Ui/Pagination.vue';
 import { isAppPath } from '@/utils/url';
-const props = defineProps({ opportunities: Object, fields: Array, skills: { type: Array, default: () => [] }, countries: Array, filters: { type: Object, default: () => ({}) }, category: String, categoryLabel: String });
+const props = defineProps({ opportunities: Object, fields: Array, skills: { type: Array, default: () => [] }, countries: Array, filters: { type: Object, default: () => ({}) }, category: String, categoryLabel: String, counts: { type: Object, default: () => ({ open: 0, archived: 0 }) } });
 const page = usePage();
 const guest = computed(() => !page.props.auth?.user);
 const fr = computed(() => page.props.locale === 'fr');
@@ -17,6 +17,7 @@ const inApp = computed(() => isAppPath(page.url));
 const prefix = computed(() => inApp.value ? '/app' : fr.value ? '/fr' : '');
 const publicPrefix = computed(() => fr.value ? '/fr' : '');
 const text = (en, french) => fr.value ? french : en;
+const number = (value) => new Intl.NumberFormat(fr.value ? 'fr-FR' : 'en-US').format(value || 0);
 const categories = computed(() => [{ key: '', label: text('All opportunities', 'Toutes les opportunités') }, { key: 'internships', label: text('Internships', 'Stages') }, { key: 'jobs', label: text('Jobs', 'Emplois') }]);
 const heading = computed(() => props.category ? categories.value.find((item) => item.key === props.category)?.label : text('Browse opportunities', 'Explorer les opportunités'));
 const action = computed(() => `${prefix.value}/opportunities${props.category ? `/${props.category}` : ''}`);
@@ -117,7 +118,7 @@ function apply(changes = {}) {
 const remove = (chip) => apply(chip.changes ?? Object.fromEntries(chip.keys.map((key) => [key, ''])));
 </script>
 <template>
-    <section :class="inApp ? '' : 'bg-white border-b border-line'"><div class="public-container pt-10 pb-7"><p v-if="!inApp" class="text-sm text-blue-700 font-semibold uppercase tracking-widest">{{ text('Students and professionals', 'Étudiants et professionnels') }}</p><h1 class="font-display text-4xl font-semibold tracking-tight mt-3">{{ heading }}</h1><p v-if="!inApp" class="text-slate-600 leading-7 mt-4 max-w-3xl">{{ page.props.seo?.description }}</p><nav class="flex gap-2 mt-6 py-1 -mx-5 px-5 overflow-x-auto [scrollbar-width:none] sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible" :aria-label="text('Opportunity categories', 'Catégories d’opportunités')"><Link v-for="item in categories" :key="item.key" :href="`${prefix}/opportunities${item.key ? `/${item.key}` : ''}`" class="shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold border" :class="(category || '') === item.key ? 'bg-blue-600 text-white border-blue-600' : 'border-line hover:border-blue-300'">{{ item.label }}</Link></nav></div></section>
+    <section :class="inApp ? '' : 'bg-white border-b border-line'"><div class="public-container pt-10 pb-7"><p v-if="!inApp" class="text-sm text-blue-700 font-semibold uppercase tracking-widest">{{ text('Students and professionals', 'Étudiants et professionnels') }}</p><h1 class="font-display text-4xl font-semibold tracking-tight mt-3">{{ heading }}</h1><p v-if="!inApp" class="text-slate-600 leading-7 mt-4 max-w-3xl">{{ page.props.seo?.description }}</p><p class="flex flex-wrap gap-2 mt-4 text-sm"><span class="rounded-full bg-blue-50 text-blue-700 px-3 py-1.5"><strong class="font-semibold">{{ number(counts.open) }}</strong> {{ text('open now', 'ouvertes') }}</span><span class="rounded-full bg-slate-100 text-slate-700 px-3 py-1.5" :title="text(`Closed listings and listings posted more than ${counts.days || 60} days ago`, `Offres fermées ou publiées il y a plus de ${counts.days || 60} jours`)"><strong class="font-semibold">{{ number(counts.archived) }}</strong> {{ text('older ones archived', 'anciennes archivées') }}</span></p><nav class="flex gap-2 mt-6 py-1 -mx-5 px-5 overflow-x-auto [scrollbar-width:none] sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible" :aria-label="text('Opportunity categories', 'Catégories d’opportunités')"><Link v-for="item in categories" :key="item.key" :href="`${prefix}/opportunities${item.key ? `/${item.key}` : ''}`" class="shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold border" :class="(category || '') === item.key ? 'bg-blue-600 text-white border-blue-600' : 'border-line hover:border-blue-300'">{{ item.label }}</Link></nav></div></section>
     <div class="public-container py-8">
         <form :action="action" method="get" role="search" @submit.prevent="apply()">
             <div class="flex gap-3">

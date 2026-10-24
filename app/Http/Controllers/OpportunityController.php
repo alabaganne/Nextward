@@ -12,6 +12,7 @@ use App\Models\Opportunity;
 use App\Models\Skill;
 use App\Support\PublicSeo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
@@ -42,6 +43,13 @@ class OpportunityController extends Controller
             ])->values();
 
         $seo = PublicSeo::browse($request, $category, $results->total());
+        // Open listings next to the older ones that closed and stay archived, for the current tab.
+        $kind = ['internships' => 'internship', 'jobs' => 'job'][$category] ?? null;
+        $counts = Cache::remember('opportunities:counts:'.($kind ?? 'all'), now()->addMinutes(10), function () use ($kind) {
+            $published = Opportunity::published()->when($kind, fn ($query) => $query->where('kind', $kind));
+            $open = (clone $published)->available()->count();
+            return ['open' => $open, 'archived' => (clone $published)->count() - $open];
+        });
 
         return Inertia::render('Opportunities/Index', [
             'filters' => $filters,
@@ -49,6 +57,7 @@ class OpportunityController extends Controller
             'category' => $category,
             'categoryLabel' => $categories[$category] ?? 'Explore opportunities',
             'countries' => $countries,
+            'counts' => $counts + ['days' => config('importer.retention_days')],
             'fields' => Field::withCount(['opportunities' => fn ($query) => $query->available()->searchFilters(array_diff_key($queryFilters, ['fields' => true, 'field' => true]))])->orderBy('name')->get(),
             'skills' => $this->skillCounts(array_diff_key($queryFilters, ['skills' => true]), $filters['skills'] ?? []),
             'seo' => $app ? PublicSeo::workspace($seo) : $seo,

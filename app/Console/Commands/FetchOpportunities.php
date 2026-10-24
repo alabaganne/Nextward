@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Ai\OpportunityClassifier;
+use App\Importing\CandidateProfiles;
 use App\Importing\ImportFocus;
 use App\Importing\OpportunityCsv;
 use App\Importing\OpportunityImporter;
@@ -14,8 +15,10 @@ class FetchOpportunities extends Command
 {
     protected $signature = 'opportunities:fetch {--count=10 : How many new opportunities to add} {--source=* : Only use these source keys}
         {--focus= : Keyword group from config/importer.php, such as tech} {--keywords= : Comma-separated title words, such as flutter,react}
+        {--days= : Only listings posted in the last this many days (default importer.fetch_max_age_days)}
+        {--everyone : Add IT listings even when no candidate profile wants them}
         {--no-csv : Do not add the new opportunities to the CSV file}';
-    protected $description = 'Read the import sources now and add a set number of opportunities that were never added before';
+    protected $description = 'Read candidate profiles, then the import sources, and add a set number of recent opportunities they want';
 
     public function handle(OpportunityImporter $importer): int
     {
@@ -26,39 +29,36 @@ class FetchOpportunities extends Command
         $focus = ImportFocus::for($this->option('focus') ?: null, $this->option('keywords') ? explode(',', $this->option('keywords')) : []);
         if (! $focus) { $this->error('Unknown focus. Add it under focus in config/importer.php.'); return self::FAILURE; }
         [$focus, $focusFields] = $focus;
+        $days = filter_var($this->option('days') ?? config('importer.fetch_max_age_days'), FILTER_VALIDATE_INT);
+        if (! $days || $days < 1) { $this->error('Days must be a whole number above 0.'); return self::FAILURE; }
+        $profiles = $this->option('everyone') ? new CandidateProfiles() : CandidateProfiles::load();
+        if ($profiles->isEmpty()) {
+            $this->line($this->option('everyone') ? 'Adding IT listings for everyone.' : 'No candidate profile has fields or skills yet, so any IT listing can be added. Read a resume with php artisan opportunities:profile.');
+        } else {
+            $summary = $profiles->summary();
+            $this->line(sprintf('Matching listings posted in the last %d days against %d candidate %s.', $days, count($profiles->profiles), str('profile')->plural(count($profiles->profiles))));
+            $this->line('Fields: '.(collect($summary['fields'])->map(fn ($n, $name) => "{$name} ({$n})")->implode(', ') ?: 'none'));
+            $this->line('Top skills: '.(implode(', ', $summary['skills']) ?: 'none'));
+        }
         $ai = app(OpportunityClassifier::class);
         $this->line($ai->enabled() ? $ai->label().' reads each new listing before it is added.' : 'AI is off (no '.$ai->keyName().' or OPPORTUNITY_AI_ENABLED=false); keyword rules sort the listings.');
         if ($sources->isEmpty()) { $this->info('No approved sources are enabled. Run php artisan db:seed --class=ImportSourceSeeder first.'); return self::SUCCESS; }
 
-        // Alternate Tunisian boards and worldwide employer boards so the new set mixes both.
-        [$tunisia, $worldwide] = $sources->partition(fn ($source) => $source->provider === 'jsonld');
-        [$tunisia, $worldwide] = [$tunisia->values(), $worldwide->shuffle()->values()];
-        $ordered = collect(range(0, max($tunisia->count(), $worldwide->count()) - 1))
-            ->flatMap(fn ($i) => [$tunisia->get($i), $worldwide->get($i)])->filter()->values();
-
         $added = [];
-        $quota = ['tunisia' => (int) ceil($count / 2), 'worldwide' => intdiv($count, 2)];
-        // The first pass splits the target between Tunisian and worldwide sources; the second fills any gap from either.
-        foreach ([true, false] as $split) {
-            foreach ($ordered as $source) {
-                $side = $source->provider === 'jsonld' ? 'tunisia' : 'worldwide';
-                $limit = min($count - count($added), $split ? $quota[$side] : PHP_INT_MAX);
-                if (count($added) >= $count) { break 2; }
-                if ($limit < 1) { continue; }
-                try {
-                    $result = $importer->run($source->fresh(), 100, onlyNew: true, maxNew: $limit, focus: $focus, focusFields: $focusFields);
-                } catch (\Throwable $e) {
-                    $this->warn($source->key.': skipped, '.$e->getMessage());
-                    continue;
-                }
-                $new = $result['new'] ?? [];
-                $added = [...$added, ...$new];
-                $quota[$side] -= count($new);
-                if (($result['status'] ?? null) === 'locked') {
-                    $this->line($source->key.': busy with a scheduled run, skipped');
-                } elseif ($new || $this->output->isVerbose()) {
-                    $this->line(sprintf('%s: %d new, %d skipped (old, out of scope or already added)', $source->key, count($new), $result['rejected'] ?? 0));
-                }
+        foreach ($sources->shuffle() as $source) {
+            if (count($added) >= $count) { break; }
+            try {
+                $result = $importer->run($source->fresh(), 100, onlyNew: true, maxNew: $count - count($added), focus: $focus, focusFields: $focusFields, profiles: $profiles, maxAgeDays: $days);
+            } catch (\Throwable $e) {
+                $this->warn($source->key.': skipped, '.$e->getMessage());
+                continue;
+            }
+            $new = $result['new'] ?? [];
+            $added = [...$added, ...$new];
+            if (($result['status'] ?? null) === 'locked') {
+                $this->line($source->key.': busy with a scheduled run, skipped');
+            } elseif ($new || $this->output->isVerbose()) {
+                $this->line(sprintf('%s: %d new, %d skipped (old, out of scope, not wanted by a profile or already added)', $source->key, count($new), $result['rejected'] ?? 0));
             }
         }
 
@@ -66,7 +66,7 @@ class FetchOpportunities extends Command
             $this->warn($ai->label().' stopped during this run, so keyword rules sorted the rest: '.$reason);
         }
         if (! $added) {
-            $this->info('No new opportunities found. Everything the sources list right now is already added, too old or out of scope.');
+            $this->info('No new opportunities found. Everything the sources list right now is already added, too old, out of scope or not wanted by a profile.');
             return self::SUCCESS;
         }
         $this->table(['Title', 'Company', 'Kind', 'Location', 'Link'], Opportunity::with('company.user')->whereIn('id', $added)->get()

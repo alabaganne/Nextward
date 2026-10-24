@@ -2,6 +2,22 @@
 
 Unfinished work, small fixes and chores that are not on the roadmap (`FUTURE_PLANS.md`).
 
+## Match imports to the owner's job search (do on 25 October 2026)
+
+Update `CandidateProfiles` and the resume profile so imports favour the roles the owner would actually take. Today a profile only checks kind, level, field, skills and a plain country list; it doesn't know about visas or remote from Tunisia.
+
+What the owner wants:
+- **Places:** Europe in general, above all Germany, France, Italy, Spain, Belgium, Romania, Poland, Denmark and Switzerland; and the USA in general (first choice).
+- **Visa:** the owner lives in Tunisia and can't work in the US or Europe without visa sponsorship. Hybrid and on-site roles there only count when the listing offers visa sponsorship (or relocation with a visa).
+- **Fully remote from Tunisia:** any company that hires fully remote people in Tunisia, like Retain Health, Inc. (Boston, USA), where the owner has worked remotely from Tunisia for over 5 years. Remote roles count when someone in Tunisia can apply (`applicant_scope` `anywhere`, or a region that includes Tunisia, and TN not in `excluded_countries`).
+- Fields stay the same: software engineering, web, mobile, general software development, and data science and AI.
+
+To do:
+- Give profiles the preferred countries above (Europe plus US) and a rule: on-site or hybrid needs `visa_sponsorship`; remote needs the role to be reachable from Tunisia (`remote_eligibility`).
+- Let `opportunities:profile` save these preferences (`--wants` text or new options) and set them on the owner's resume profile.
+- Add sources for US and European employers that sponsor visas or hire fully remote worldwide (Greenhouse, Lever and Ashby boards), and point source discovery at them.
+- Tests for the new place and visa rules, then update `AGENTS.md` ("Profiles decide what is added") and `README.md`.
+
 ## Finish resumes, themes and credits (done)
 
 The plan: candidates keep up to 10 resumes (uploaded PDFs, exports of their profile, AI translations) with one main resume; resumes and kit CVs use the six Resume Studio themes, printed by headless Chrome; kits are written in the listing's own language; credits are on (20 at sign-up, 5 a month, 1 credit per AI call).

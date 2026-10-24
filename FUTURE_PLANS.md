@@ -6,7 +6,7 @@ Nextward now supports students and professionals, internships and jobs, Tunisia 
 
 - [ ] Rehearse the production database upgrade and private attachment migration on a restored copy, with database and storage backups.
 - [ ] Deploy the Node.js 24 SSR service, database queue worker and scheduler; monitor rendered public HTML and failed jobs.
-- [ ] Secure permission and republication evidence for initial Tunisian and international sources. Do not assume access to Tanitjobs, Keejob or another board grants scraping or republication rights.
+- [ ] Secure permission and republication evidence for the international sources. Do not assume access to a board grants scraping or republication rights.
 - [ ] Start approved sources in review mode, check field quality and attribution, then allow automatic publication source by source.
 - [ ] Measure real inventory coverage, freshness, duplicate rates and source failures before expanding the catalogue or making coverage claims.
 - [ ] Verify the production domain and sitemaps in Search Console. Review detail-page structured data, canonical URLs and indexing coverage.

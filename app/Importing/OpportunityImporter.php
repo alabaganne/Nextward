@@ -23,7 +23,9 @@ class OpportunityImporter
     // $focus is a full title regex: only matching listings are checked, the rest wait for the daily import.
     // $focusFields then keeps only listings sorted into those fields; the others also wait for the daily import.
     // Every run also keeps to importer.scope: new listings outside it are rejected for good.
-    public function run(ImportSource $source, int $limit = 40, bool $dryRun = false, bool $recheck = false, bool $onlyNew = false, ?int $maxNew = null, ?string $focus = null, ?array $focusFields = null): array
+    // New listings no candidate profile wants wait as "unmatched" and are checked again on each refresh; $profiles
+    // defaults to the profiles in the system. $maxAgeDays skips listings older than that without rejecting them.
+    public function run(ImportSource $source, int $limit = 40, bool $dryRun = false, bool $recheck = false, bool $onlyNew = false, ?int $maxNew = null, ?string $focus = null, ?array $focusFields = null, ?CandidateProfiles $profiles = null, ?int $maxAgeDays = null): array
     {
         if (! $source->isApproved()) { throw new RuntimeException('Source must be enabled with approved reuse permission.'); }
         if ($source->next_run_at?->isFuture() && ! $dryRun && ! $recheck && ! $onlyNew) {
@@ -45,6 +47,8 @@ class OpportunityImporter
         $http = new SourceHttp($source, $deadline); $reader = new SourceReader($http);
         $normalizer = new OpportunityNormalizer();
         [$scopeTitle, $scopeFields] = ImportFocus::scope();
+        $profiles ??= CandidateProfiles::forImports();
+        if ($profiles->isEmpty()) { $profiles = null; }
         $stats = ['status' => 'completed', 'complete' => false, 'discovered' => 0, 'processed' => 0, 'published' => 0, 'closed' => 0, 'rejected' => 0, 'requests' => 0];
         $run = null;
         try {
@@ -97,7 +101,7 @@ class OpportunityImporter
             // These providers are read from the saved list payload, so only items still on the board are current.
             $items = $source->items()->where('state', '!=', 'rejected')
             ->when(in_array($source->provider, ['greenhouse', 'lever', 'ashby'], true), fn ($q) => $q->where('last_discovered_at', '>=', $cycle))
-            ->when($onlyNew, fn ($query) => $query->whereNull('last_verified_at'), fn ($query) => $query->where(function ($query) use ($refreshBefore, $refreshOperator, $recheck) {
+            ->when($onlyNew, fn ($query) => $query->where(fn ($query) => $query->whereNull('last_verified_at')->orWhere('state', 'unmatched')), fn ($query) => $query->where(function ($query) use ($refreshBefore, $refreshOperator, $recheck) {
                 $query->whereNull('last_verified_at')->orWhere('state', 'pending');
                 $query->orWhere('last_verified_at', $refreshOperator, $recheck ? now()->addSecond() : $refreshBefore);
             }))->where(function ($query) use ($cycle) {
@@ -126,7 +130,7 @@ class OpportunityImporter
             $batch = max(1, (int) config('importer.ai.batch_size', 10));
             foreach ($items as $item) {
                 if ($waiting && ($maxNew && count($newIds) + count($waiting) >= $maxNew)) {
-                    $this->finish($waiting, $source, $scopeFields, $focusFields, $stats, $newIds);
+                    $this->finish($waiting, $source, $scopeFields, $focusFields, $profiles, $stats, $newIds);
                     $waiting = [];
                 }
                 if (microtime(true) > $deadline || $http->requests >= $source->max_requests - 2 || ($maxNew && count($newIds) >= $maxNew)) { break; }
@@ -144,6 +148,8 @@ class OpportunityImporter
                         $this->closeSource($item);
                         $item->update(['state' => 'rejected', 'error' => 'Posted more than '.config('importer.retention_days').' days ago.']);
                         $stats['closed']++;
+                    } elseif ($maxAgeDays && ! $item->opportunity_id && $this->olderThan($data, $item, $maxAgeDays)) {
+                        $stats['rejected']++;
                     } elseif (! $item->opportunity_id && $item->content_hash) {
                         // It was published before and its listing was deleted since, so it stays out.
                         $item->update(['state' => 'rejected', 'error' => 'Added before and removed later.']);
@@ -151,7 +157,7 @@ class OpportunityImporter
                     } else {
                         $waiting[] = [$item, $data];
                         if (count($waiting) >= $batch) {
-                            $this->finish($waiting, $source, $scopeFields, $focusFields, $stats, $newIds);
+                            $this->finish($waiting, $source, $scopeFields, $focusFields, $profiles, $stats, $newIds);
                             $waiting = [];
                         }
                     }
@@ -172,7 +178,7 @@ class OpportunityImporter
                     $stats['rejected']++;
                 }
             }
-            $this->finish($waiting, $source, $scopeFields, $focusFields, $stats, $newIds);
+            $this->finish($waiting, $source, $scopeFields, $focusFields, $profiles, $stats, $newIds);
             if ($discover && $stats['complete'] && $snapshot['authoritative']) {
                 $missing = $source->items()->where('last_discovered_at', '<', $started)->whereNotIn('state', ['closed', 'rejected'])->get();
                 foreach ($missing as $item) {
@@ -216,7 +222,7 @@ class OpportunityImporter
 
     // The AI reads every listing in $waiting that it has not read before in one batch, then each one is checked and published.
     // The answer is kept with the listing, so later refreshes do not ask again.
-    private function finish(array $waiting, ImportSource $source, ?array $scopeFields, ?array $focusFields, array &$stats, array &$newIds): void
+    private function finish(array $waiting, ImportSource $source, ?array $scopeFields, ?array $focusFields, ?CandidateProfiles $profiles, array &$stats, array &$newIds): void
     {
         if (! $waiting) { return; }
         $classifier = app(OpportunityClassifier::class);
@@ -238,6 +244,9 @@ class OpportunityImporter
                     $item->update(['state' => 'rejected', 'error' => 'Outside IT scope.']);
                     $stats['rejected']++;
                 } elseif ($focusFields && ! $item->opportunity_id && ! $this->inFocus($data, $focusFields)) {
+                    $stats['rejected']++;
+                } elseif ($profiles && ! $item->opportunity_id && ! $profiles->wants($data, $this->fieldName($data), $data['skills'] ?? (new OpportunityNormalizer())->skills($data['title'], $data['description']))) {
+                    $item->update(['state' => 'unmatched', 'error' => 'No candidate profile wants it.']);
                     $stats['rejected']++;
                 } elseif ($source->publication_mode === 'automatic' || $item->opportunity_id) {
                     $role = $this->publish($item);
@@ -494,8 +503,12 @@ class OpportunityImporter
 
     private function inFocus(array $data, array $fields): bool
     {
-        $field = $data['field'] ?? Field::find($this->classify($data))?->name;
-        return in_array($field, $fields, true) && ($data['is_software_role'] ?? true);
+        return in_array($this->fieldName($data), $fields, true) && ($data['is_software_role'] ?? true);
+    }
+
+    private function fieldName(array $data): ?string
+    {
+        return $data['field'] ?? Field::find($this->classify($data))?->name;
     }
 
     // Only skills from importer.skills are tagged, so words like "product" in a description never become skills.

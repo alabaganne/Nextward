@@ -11,6 +11,14 @@ return [
     // New listings older than this are skipped; imported listings older than the retention window are closed.
     'max_age_days' => (int) env('OPPORTUNITY_MAX_AGE_DAYS', 30),
     'retention_days' => (int) env('OPPORTUNITY_RETENTION_DAYS', 60),
+    // `opportunities:fetch` only adds listings posted in the last this many days.
+    'fetch_max_age_days' => (int) env('OPPORTUNITY_FETCH_MAX_AGE_DAYS', 14),
+    // Imports only add listings a candidate profile or a resume profile (`opportunities:profile`) wants.
+    // Accounts on these email domains (seeded demo accounts) are left out.
+    'profiles' => [
+        'enabled' => (bool) env('OPPORTUNITY_MATCH_PROFILES', true),
+        'ignore_domains' => ['example.com'],
+    ],
     // Nextward is for IT roles: every import keeps only listings in this focus group. Empty takes every field.
     'scope' => env('OPPORTUNITY_SCOPE', 'tech'),
     // Title keyword groups for the scope and `opportunities:fetch --focus=`. Lowercase, no accents, regex alternatives.

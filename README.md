@@ -60,9 +60,21 @@ These hand-checked listings stay public for 14 days after the check. An older sn
 
 ## Daily import
 
-`ImportSourceSeeder` adds the sources the scheduler reads every day at 05:00 Tunis time: Tanitjobs and Keejob for Tunisia, and employer job boards on Greenhouse, Lever and Ashby for worldwide roles. Only listings posted in the last 30 days are added (`OPPORTUNITY_MAX_AGE_DAYS`). Imported listings posted more than 60 days ago are closed (`OPPORTUNITY_RETENTION_DAYS`). Worldwide boards keep internships, plus jobs that are in Tunisia, remote without a country limit, or offer relocation or visa help. The same role found on both Tanitjobs and Keejob is shown once. Check each site's terms of use before a public launch; sources can be paused in Imports.
+`ImportSourceSeeder` adds the sources the scheduler reads every day at 05:00 Tunis time: employer job boards on Greenhouse, Lever and Ashby for roles abroad. Nextward no longer reads Tunisian job sites: Tanitjobs, Keejob and any `.tn` source were turned off by the `2026_10_23_100000` migration, and their open listings were closed, so they now count as archived. Only listings posted in the last 30 days are added (`OPPORTUNITY_MAX_AGE_DAYS`). Imported listings posted more than 60 days ago are closed (`OPPORTUNITY_RETENTION_DAYS`). Worldwide boards keep internships, plus jobs that are in Tunisia, remote without a country limit, or offer relocation or visa help. The same role found on two boards is shown once. Check each site's terms of use before a public launch; sources can be paused in Imports.
 
 Nextward is for IT roles, so every import (scheduled runs, Run import in admin, `opportunities:import` and `opportunities:fetch`) keeps only IT listings: software, web and mobile development, data and AI, DevOps and cloud, security, networks and systems, IT support, QA, UI/UX, embedded and BI. A board title with no IT word is rejected before the page is read; after reading, a listing the AI (or the keyword rules) does not place in an IT field is rejected too. Both show as "Outside IT scope." in the review queue, and an admin can still approve one by hand. The title words and fields live under `focus.tech` in `config/importer.php`; `OPPORTUNITY_SCOPE=` (empty) turns the rule off.
+
+### Profiles decide what is added
+
+Before a listing is added, imports check what people on Nextward are looking for. Every signed-up candidate counts (their field, preferred fields, skills, opportunity types, levels and countries from Settings), plus profiles read from resumes:
+
+```bash
+php artisan opportunities:profile ~/Downloads/resume.pdf --wants="AI and data science roles"
+php artisan opportunities:profile --list
+php artisan opportunities:profile --forget="resume"
+```
+
+The AI reads the PDF and saves the fields, catalogue skills, kinds and levels it fits in the `search_profiles` table (nothing else from the resume is kept). A listing is added when one profile takes its kind, level and place and shares its field or at least two of its skills. The others wait as "No profile wants it" (`unmatched`) in the review queue and are checked again on each daily refresh, so they are added once someone wants them. Accounts on `example.com` (the seeded demo accounts) are left out. With no profile at all, every IT listing is added as before. `OPPORTUNITY_MATCH_PROFILES=false` turns the rule off.
 
 To add new listings right away, without waiting for the schedule, run either of these on your machine or on the server:
 
@@ -71,7 +83,7 @@ composer scrape
 npm run scrape
 ```
 
-It reads the sources now and stops after adding 10 IT opportunities that were never added before: about half from Tunisian boards and half from worldwide boards. The title keywords live under `focus.tech` in `config/importer.php`; add words for one run with `--keywords=flutter,react`. Listings outside IT are never added, with or without `--focus`. Listings already in the database, listings found earlier on another board, listings removed by an admin, and listings that are too old or not open to Tunisia are skipped. Pass a different number with `composer scrape -- --count=20` or `npm run scrape -- --count=20`, or call `php artisan opportunities:fetch --focus=tech --count=20` directly. IT listings that don't match the focus are left for the daily import. On a server, run it as the user that owns the app (for example `sudo -u www-data composer scrape`) so cache and log files keep the right owner.
+It prints the profiles it matches against, reads the sources now and stops after adding 10 IT opportunities that were never added before, that a profile wants and that were posted in the last 14 days (`--days=30` for another window, `OPPORTUNITY_FETCH_MAX_AGE_DAYS` for the default; older listings are left for the daily import). `--everyone` skips the profile check. The title keywords live under `focus.tech` in `config/importer.php`; add words for one run with `--keywords=flutter,react`. Listings outside IT are never added, with or without `--focus`. Listings already in the database, listings found earlier on another board, listings removed by an admin, and listings that are too old or not open to Tunisia are skipped. Pass a different number with `composer scrape -- --count=20` or `npm run scrape -- --count=20`, or call `php artisan opportunities:fetch --focus=tech --count=20` directly. IT listings that don't match the focus are left for the daily import. On a server, run it as the user that owns the app (for example `sudo -u www-data composer scrape`) so cache and log files keep the right owner.
 
 ### AI
 
@@ -105,7 +117,7 @@ The AI tools use credits; everything else is free. Credits are on by default (`B
 - With billing on, candidates see their balance in the top bar; hovering it shows what a credit pays for and a **Buy more credits** link to the **Credits** page with packs and history.
 - Beta: while `BILLING_BETA=true` (the default), payments are locked. The Credits page shows the packs and payment methods greyed out under a lock, checkout is refused, and candidates with a verified email can get `BILLING_BETA_CREDITS` (default 100) free credits as often as they like, from the top bar panel or the Credits page (10 requests a minute at most). Set `BILLING_BETA=false` when payments open. Add or remove credits by hand with `php artisan credits:grant email@example.com 5 --note="Bank transfer"`.
 
-`composer discover` (or `php artisan opportunities:discover`) asks the AI to search the web for new places to read developer jobs: employer boards on Greenhouse, Lever or Ashby, and Tunisian sites with job sitemaps. Each suggestion is checked against the board itself and saved switched off, waiting for approval in Imports. The scheduler also runs it every Monday at 06:00 Tunis time.
+`composer discover` (or `php artisan opportunities:discover`) asks the AI to search the web for new places to read developer jobs: employer boards on Greenhouse, Lever or Ashby, and career sites with job sitemaps outside Tunisia, for software, web, mobile and data and AI roles abroad. Sites on a `.tn` domain are turned down. Each suggestion is checked against the board itself and saved switched off, waiting for approval in Imports. The scheduler also runs it every Monday at 06:00 Tunis time.
 
 ### Moving opportunities to another server with a CSV file
 
@@ -121,7 +133,7 @@ Use a clean production database. The seed preserves existing data, including any
 
 ## Public pages and search visibility
 
-`/opportunities` is the main catalogue: All / Internships / Jobs tabs and one row of filters (field, skills, type, country, work mode, experience, date, Open worldwide). Signed-in users get the same list inside the workspace at `/app/opportunities`; every signed-in page lives under `/app`, and old paths like `/dashboard` redirect there. The old `/opportunities/tunisia`, `/remote-from-tunisia` and `/relocation` pages redirect to the matching filters with a 301. The home page speaks to everyone; the old `/for-students` and `/for-professionals` pages redirect to it. Opportunity details have stable IDs and readable slugs. Legacy internship URLs redirect to their canonical opportunity URLs.
+`/opportunities` is the main catalogue: All / Internships / Jobs tabs and one row of filters (field, skills, type, country, work mode, experience, date, Open worldwide). Under the heading it shows how many listings in the tab are open now and how many older ones are archived (closed, expired or past the 60-day window), counted every 10 minutes. Signed-in users get the same list inside the workspace at `/app/opportunities`; every signed-in page lives under `/app`, and old paths like `/dashboard` redirect there. The old `/opportunities/tunisia`, `/remote-from-tunisia` and `/relocation` pages redirect to the matching filters with a 301. The home page speaks to everyone; the old `/for-students` and `/for-professionals` pages redirect to it. Opportunity details have stable IDs and readable slugs. Legacy internship URLs redirect to their canonical opportunity URLs.
 
 Public HTML includes the listing text, metadata and canonical links. Eligible detail pages include `JobPosting` structured data based on visible, supported facts. Missing application or location evidence can prevent rich-result markup without making an otherwise useful detail page private. Closed, suppressed, stale or duplicate listings have separate availability and indexing behavior. Search and arbitrary filter combinations are kept out of the index; curated landing pages provide crawlable entry points.
 

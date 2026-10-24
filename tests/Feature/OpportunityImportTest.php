@@ -4,9 +4,11 @@ namespace Tests\Feature;
 
 use App\Ai\OpportunityClassifier;
 use App\Ai\SourceDiscovery;
+use App\Importing\CandidateProfiles;
 use App\Importing\OpportunityImporter;
 use App\Importing\OpportunityNormalizer;
 use App\Importing\SourceHttp;
+use App\Models\Candidate;
 use App\Models\City;
 use App\Models\Company;
 use App\Models\Field;
@@ -65,9 +67,85 @@ class OpportunityImportTest extends TestCase
         $this->seed(ImportSourceSeeder::class);
 
         $enabled = ImportSource::where('enabled', true)->where('permission_status', 'approved')->pluck('key');
-        $this->assertContains('tanitjobs', $enabled);
-        $this->assertContains('keejob', $enabled);
+        $this->assertNotContains('tanitjobs', $enabled);
+        $this->assertNotContains('keejob', $enabled);
+        $this->assertFalse(ImportSource::where('provider', 'jsonld')->exists());
         $this->assertTrue($enabled->contains(fn ($key) => str_starts_with($key, 'greenhouse-')));
+    }
+
+    public function test_imports_only_add_listings_a_profile_wants_and_add_the_rest_once_one_does(): void
+    {
+        Http::fake([
+            '*/robots.txt' => Http::response('', 404),
+            'boards-api.greenhouse.io/v1/boards/acme/jobs*' => Http::response(['jobs' => [
+                $this->greenhouseJob(1, 'Mobile Developer Intern', 'Paris, France', 1),
+                $this->greenhouseJob(2, 'Data Engineer Intern', 'Berlin, Germany', 2),
+            ]]),
+        ]);
+        $this->source(['key' => 'greenhouse-acme', 'provider' => 'greenhouse',
+            'url' => 'https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true',
+            'allowed_domains' => ['boards-api.greenhouse.io', 'job-boards.greenhouse.io'], 'settings' => ['scope' => 'reachable']]);
+        Field::create(['name' => 'Mobile Development']);
+        Field::create(['name' => 'Data Science & AI']);
+        CandidateProfiles::save('Resume', ['fields' => ['Mobile Development'], 'kinds' => ['internship']]);
+        // Seeded demo accounts never count as profiles.
+        Candidate::create(['field_id' => Field::where('name', 'Data Science & AI')->value('id')])->user()
+            ->create(['name' => 'Demo', 'email' => 'demo@example.com', 'password' => 'password']);
+
+        $this->artisan('opportunities:fetch --count=5 --no-csv')->expectsOutputToContain('against 1 candidate profile.')
+            ->expectsOutputToContain('1 new opportunity added.')->assertSuccessful();
+        $this->assertSame(['Mobile Developer Intern'], Opportunity::pluck('title')->all());
+        $this->assertSame('unmatched', OpportunitySource::where('external_id', '2')->value('state'));
+
+        CandidateProfiles::save('Data', ['fields' => ['Data Science & AI']]);
+        $this->artisan('opportunities:fetch --count=5 --no-csv')->expectsOutputToContain('1 new opportunity added.')->assertSuccessful();
+        $this->assertSame(2, Opportunity::count());
+
+        $this->assertTrue(CandidateProfiles::forget('Data'));
+        $this->assertSame(['Resume'], array_keys(CandidateProfiles::saved()));
+    }
+
+    public function test_a_candidate_profile_matches_by_shared_skills_and_respects_kind_and_level(): void
+    {
+        $profiles = new CandidateProfiles([['name' => 'A', 'fields' => [], 'skills' => ['Laravel', 'Vue'], 'kinds' => ['job'],
+            'seniority' => ['mid'], 'countries' => [], 'country' => 'TN']]);
+        $job = ['kind' => 'job', 'seniority' => 'mid', 'excluded_countries' => []];
+
+        $this->assertTrue($profiles->wants($job, 'Web Development', ['laravel', 'Vue', 'Docker']));
+        $this->assertFalse($profiles->wants($job, 'Web Development', ['Laravel']));
+        $this->assertFalse($profiles->wants(['kind' => 'internship'] + $job, null, ['Laravel', 'Vue']));
+        $this->assertFalse($profiles->wants(['seniority' => 'senior'] + $job, null, ['Laravel', 'Vue']));
+        $this->assertFalse($profiles->wants(['excluded_countries' => ['TN']] + $job, null, ['Laravel', 'Vue']));
+    }
+
+    public function test_fetch_only_adds_recent_listings_and_leaves_older_ones_for_the_daily_import(): void
+    {
+        Http::fake([
+            '*/robots.txt' => Http::response('', 404),
+            'boards-api.greenhouse.io/v1/boards/acme/jobs*' => Http::response(['jobs' => [
+                $this->greenhouseJob(1, 'Backend Intern', 'Paris, France', 3),
+                $this->greenhouseJob(2, 'Frontend Intern', 'Paris, France', 20),
+            ]]),
+        ]);
+        $this->source(['key' => 'greenhouse-acme', 'provider' => 'greenhouse',
+            'url' => 'https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true',
+            'allowed_domains' => ['boards-api.greenhouse.io', 'job-boards.greenhouse.io'], 'settings' => ['scope' => 'reachable']]);
+
+        $this->artisan('opportunities:fetch --count=5 --no-csv --days=14')->expectsOutputToContain('1 new opportunity added.')->assertSuccessful();
+        $this->assertSame(['Backend Intern'], Opportunity::pluck('title')->all());
+        $this->assertSame('pending', OpportunitySource::where('external_id', '2')->value('state'));
+
+        $this->travel(1)->days();
+        app(OpportunityImporter::class)->run(ImportSource::sole(), 100);
+        $this->assertSame(2, Opportunity::count());
+    }
+
+    public function test_discovery_turns_down_tunisian_sites(): void
+    {
+        $result = app(SourceDiscovery::class)->store(['provider' => 'sitemap', 'board' => 'https://www.example.tn/sitemap.xml', 'company' => 'Example']);
+
+        $this->assertSame(['skipped', 'Rejected: Nextward no longer reads Tunisian job sites.'], [$result[0], $result[2]]);
+        $this->assertFalse(ImportSource::exists());
     }
 
     public function test_board_import_keeps_recent_reachable_roles_and_reads_the_list_payload(): void
