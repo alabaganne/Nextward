@@ -8,6 +8,7 @@ import { usePage } from '@inertiajs/vue3';
 import { ArrowUpRight, MapPin } from '@lucide/vue';
 import CompanyLogo from '@/Components/Ui/CompanyLogo.vue';
 import RoleCard from '@/Components/Opportunity/RoleCard.vue';
+import VerifiedBadge from '@/Components/Company/VerifiedBadge.vue';
 const props = defineProps({ company: { type: Object, required: true }, opportunities: { type: [Object, Array], default: () => ({ data: [] }) }, translation: { type: String, default: null } });
 const page = usePage();
 const fr = computed(() => page.props.locale === 'fr');
@@ -15,6 +16,11 @@ const prefix = computed(() => fr.value ? '/fr' : '');
 const text = (en, french) => fr.value ? french : en;
 const roles = computed(() => Array.isArray(props.opportunities) ? props.opportunities : props.opportunities?.data || []);
 const logo = computed(() => props.company.logo && /^https?:\/\//.test(props.company.logo) ? props.company.logo : null);
+const facts = computed(() => [
+    { startup: text('Startup', 'Start-up'), established: text('Established company', 'Entreprise établie') }[props.company.stage],
+    props.company.size && text(`${props.company.size} people`, `${props.company.size} personnes`),
+    props.company.founded_year && text(`Founded in ${props.company.founded_year}`, `Fondée en ${props.company.founded_year}`),
+].filter(Boolean));
 </script>
 
 <template>
@@ -25,11 +31,18 @@ const logo = computed(() => props.company.logo && /^https?:\/\//.test(props.comp
                 <img v-if="logo" :src="logo" :alt="company.name" width="64" height="64" class="h-16 w-16 shrink-0 rounded-2xl border border-line object-contain bg-white" />
                 <CompanyLogo v-else class="h-16 w-16 shrink-0 rounded-2xl text-2xl" :name="company.name" />
                 <div class="min-w-0">
-                    <h1 class="font-display text-3xl sm:text-4xl font-semibold leading-tight">{{ company.name }}</h1>
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+                        <h1 class="font-display text-3xl sm:text-4xl font-semibold leading-tight">{{ company.name }}</h1>
+                        <VerifiedBadge v-if="company.verified" class="text-xs!" />
+                    </div>
                     <p class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-slate-600">
                         <span v-if="company.location" class="inline-flex items-center gap-1.5"><MapPin :size="16" />{{ company.location }}</span>
                         <a v-if="company.website" :href="company.website" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 font-semibold text-blue-700">{{ text('Employer website', 'Site de l’employeur') }}<ArrowUpRight :size="16" /></a>
+                        <a v-if="company.linkedin_url" :href="company.linkedin_url" target="_blank" rel="noopener noreferrer nofollow" class="inline-flex items-center gap-1.5 font-semibold text-blue-700">LinkedIn<ArrowUpRight :size="16" /></a>
                     </p>
+                    <ul v-if="facts.length" class="mt-3 flex flex-wrap gap-2 text-sm text-ink-700">
+                        <li v-for="fact in facts" :key="fact" class="rounded-lg bg-paper-2 px-2.5 py-1">{{ fact }}</li>
+                    </ul>
                 </div>
             </div>
             <p v-if="company.about" class="mt-6 whitespace-pre-line text-slate-700 leading-8" dir="auto">{{ company.about }}</p>

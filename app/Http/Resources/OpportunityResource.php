@@ -104,6 +104,7 @@ class OpportunityResource extends JsonResource
                 'name' => $company?->display_name ?? 'Employer not specified',
                 'public_url' => $company?->hasPublicName() ? $company->publicUrl($locale) : null,
                 'website' => $company?->website,
+                'verified' => (bool) $company?->verified_at,
                 'country_code' => $company?->country_code,
                 'location' => $company?->location,
                 'email' => $detail ? $companyUser?->email : null,

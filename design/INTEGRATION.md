@@ -270,8 +270,10 @@ pills render consistently.
 5. `public_url` values carry the `APP_URL` host (for SEO and emails). When one feeds an
    in-app `<Link>`, pass it through `sitePath()` from `utils/url.js`, so links keep
    working when the site is opened on another host (say `localhost` vs `127.0.0.1`).
-6. Verify responsive layouts, form errors, icon labels, and reduced-motion behaviour.
-7. Run `npm run build` and the relevant `php artisan test` checks.
+6. Company names on cards and pages show `Components/Company/VerifiedBadge.vue` when the
+   company prop has `verified: true` (`compact` for an icon only on cards, `dark` on navy).
+7. Verify responsive layouts, form errors, icon labels, and reduced-motion behaviour.
+8. Run `npm run build` and the relevant `php artisan test` checks.
 
 Keep changes focused enough to review against the current implemented screen and
 approved direction, rather than treating historical prototype markup as immutable.

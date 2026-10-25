@@ -32,6 +32,7 @@
         <env name="ANTHROPIC_API_KEY" value=""/>
         <env name="OPENAI_API_KEY" value=""/>
         <env name="OPPORTUNITY_AI_ENABLED" value="false"/>
+        <env name="OPPORTUNITY_VERIFY_COMPANIES" value="false"/>
         <env name="CV_PDF_FAKE" value="true"/>
         <env name="BILLING_ENABLED" value="false"/>
         <env name="BILLING_BETA" value="false"/>

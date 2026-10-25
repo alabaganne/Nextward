@@ -4,6 +4,7 @@ import { computed, h, ref } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
 import Pagination from '@/Components/Ui/Pagination.vue';
+import VerifiedBadge from '@/Components/Company/VerifiedBadge.vue';
 import { gradientFor } from '@/utils/brand';
 import { appPath } from '@/utils/url';
 
@@ -31,6 +32,11 @@ const pagination = computed(() => props.company.opportunities?.meta);
 const totalRoles = computed(() => pagination.value?.total ?? opportunities.value.length);
 const page = usePage();
 const logoFailed = ref(false);
+const facts = computed(() => [
+    { startup: 'Startup', established: 'Established company' }[props.company.stage],
+    props.company.size && `${props.company.size} people`,
+    props.company.founded_year && `Founded in ${props.company.founded_year}`,
+].filter(Boolean));
 const ownsCompany = computed(() => page.props.auth?.user?.id === props.company.user_id);
 const canEdit = computed(() => ownsCompany.value || page.props.auth?.user?.is_admin);
 const canManageRole = (role) => canEdit.value && (page.props.auth?.user?.is_admin || role.origin === 'native');
@@ -68,10 +74,14 @@ const roleInitials = (title) =>
 				<img v-if="company.image && !logoFailed" :src="company.image" :alt="`${company.name} logo`" width="78" height="78" class="w-[78px] h-[78px] rounded-[20px] object-contain bg-white shrink-0" @error="logoFailed = true">
 				<div v-else class="w-[78px] h-[78px] rounded-[20px] grid place-items-center text-white font-bold font-display text-[30px] shrink-0" :style="{ background: gradientFor(company.name) }">{{ company.name.slice(0, 1).toUpperCase() }}</div>
 				<div>
-					<h1 class="font-display text-white text-[30px] font-semibold leading-[1.1]">{{ company.name }}</h1>
+					<div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+						<h1 class="font-display text-white text-[30px] font-semibold leading-[1.1]">{{ company.name }}</h1>
+						<VerifiedBadge v-if="company.verified" dark class="text-xs!" />
+					</div>
 					<div class="flex items-center gap-3.5 flex-wrap mt-2.5 text-[#aebfdd] text-sm [&_span]:inline-flex [&_span]:items-center [&_span]:gap-1.5 [&_svg]:w-[15px] [&_svg]:h-[15px] [&_svg]:opacity-80">
 						<span v-if="company.city?.name"><component :is="icons.pin" aria-hidden="true" />{{ company.city.name }}</span>
 						<span v-if="company.website"><component :is="icons.globe" aria-hidden="true" />{{ company.website }}</span>
+						<span v-for="fact in facts" :key="fact">{{ fact }}</span>
 					</div>
 				</div>
 				<div class="ml-auto flex gap-2.5 max-[760px]:ml-0 max-[760px]:w-full">
@@ -148,6 +158,7 @@ const roleInitials = (title) =>
 					<h3 class="text-sm tracking-[.04em] text-muted font-bold font-display mb-4">CONTACT</h3>
 					<div v-if="company.email" class="flex items-center gap-[13px] py-3 text-sm text-ink-700 [&_svg]:w-[17px] [&_svg]:h-[17px] [&_svg]:text-muted-2 [&_svg]:shrink-0"><component :is="icons.mail" aria-hidden="true" />{{ company.email }}</div>
 					<div v-if="company.website" class="flex items-center gap-[13px] py-3 text-sm text-ink-700 border-t border-line-2 [&_svg]:w-[17px] [&_svg]:h-[17px] [&_svg]:text-muted-2 [&_svg]:shrink-0"><component :is="icons.globe" aria-hidden="true" /><a class="text-blue-700 font-semibold" :href="company.website" target="_blank" rel="noopener">{{ company.website }}</a></div>
+					<div v-if="company.linkedin_url" class="flex items-center gap-[13px] py-3 text-sm text-ink-700 border-t border-line-2 [&_svg]:w-[17px] [&_svg]:h-[17px] [&_svg]:text-muted-2 [&_svg]:shrink-0"><component :is="icons.globe" aria-hidden="true" /><a class="text-blue-700 font-semibold" :href="company.linkedin_url" target="_blank" rel="noopener nofollow">LinkedIn</a></div>
 					<div v-if="company.phone_number" class="flex items-center gap-[13px] py-3 text-sm text-ink-700 border-t border-line-2 [&_svg]:w-[17px] [&_svg]:h-[17px] [&_svg]:text-muted-2 [&_svg]:shrink-0"><component :is="icons.phone" aria-hidden="true" />{{ company.phone_number }}</div>
 					<div v-if="company.city?.name" class="flex items-center gap-[13px] py-3 text-sm text-ink-700 border-t border-line-2 [&_svg]:w-[17px] [&_svg]:h-[17px] [&_svg]:text-muted-2 [&_svg]:shrink-0"><component :is="icons.pin" aria-hidden="true" />{{ company.city.name }}</div>
 				</section>

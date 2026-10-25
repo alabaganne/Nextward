@@ -3,6 +3,7 @@
 namespace App\Importing;
 
 use App\Ai\OpportunityClassifier;
+use App\Jobs\ResearchCompany;
 use App\Models\Company;
 use App\Models\Field;
 use App\Models\ImportRun;
@@ -266,6 +267,11 @@ class OpportunityImporter
                     $stats['rejected']++;
                 } elseif ($source->publication_mode === 'leads') {
                     $item->update(['state' => 'lead', 'error' => null]);
+                } elseif (! $item->opportunity_id && ($check = $this->companyCheck($source, $item, $data))) {
+                    if ($check === 'rejected') {
+                        $item->update(['state' => 'rejected', 'error' => 'Company website not found.']);
+                        $stats['rejected']++;
+                    }
                 } elseif ($source->publication_mode === 'automatic' || $item->opportunity_id) {
                     $role = $this->publish($item);
                     if ($role->wasRecentlyCreated) { $newIds[] = $role->id; }
@@ -280,6 +286,37 @@ class OpportunityImporter
                 $stats['rejected']++;
             }
         }
+    }
+
+    // A new imported listing waits until its company's own website is found and checked; after two failed tries it is rejected.
+    private function companyCheck(ImportSource $source, OpportunitySource $item, array $data): ?string
+    {
+        if (! config('importer.verify_companies')) { return null; }
+        $company = $source->company ?? DB::transaction(fn () => $this->employer($source, $data));
+        if ($company->claimed_by_company_id) { $company = Company::find($company->claimed_by_company_id) ?? $company; }
+        if ($company->verified_at || $company->user()->exists()) { return null; }
+        if ($company->research_attempts >= 2) { return 'rejected'; }
+        $item->update(['state' => 'waiting', 'error' => 'Company website not checked yet.', 'company_id' => $company->id]);
+        if (! $company->researched_at || $company->researched_at->lt(now()->subHours(20))) { ResearchCompany::dispatch($company->id); }
+        return 'waiting';
+    }
+
+    // Listings that waited for this company's check: published (or sent to review) when it passed, rejected after two failed tries.
+    public function release(Company $company): void
+    {
+        $company->refresh();
+        $verified = $company->verified_at || Company::whereKey($company->claimed_by_company_id)->whereNotNull('verified_at')->exists();
+        OpportunitySource::where('state', 'waiting')->where('company_id', $company->id)->with('importSource')->get()->each(function (OpportunitySource $item) use ($company, $verified) {
+            if ($verified) {
+                try {
+                    $item->importSource->publication_mode === 'automatic' ? $this->publish($item) : $item->update(['state' => 'review', 'error' => null]);
+                } catch (Throwable $e) {
+                    $item->update(['state' => 'review', 'error' => Str::limit($e->getMessage(), 1000)]);
+                }
+            } elseif ($company->research_attempts >= 2) {
+                $item->update(['state' => 'rejected', 'error' => 'Company website not found.']);
+            }
+        });
     }
 
     public function publish(OpportunitySource $item): Opportunity

@@ -23,7 +23,7 @@ class Company extends Model
         'location',
     ];
 
-    protected $casts = ['logo_fetched_at' => 'datetime'];
+    protected $casts = ['logo_fetched_at' => 'datetime', 'verified_at' => 'datetime', 'researched_at' => 'datetime', 'verification' => 'array'];
 
     protected static function booted(): void
     {

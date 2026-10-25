@@ -14,6 +14,9 @@ class CompanyLogos
     public const MAX_BYTES = 1024 * 1024;
     private const TYPES = [IMAGETYPE_PNG => 'png', IMAGETYPE_JPEG => 'jpg', IMAGETYPE_GIF => 'gif', IMAGETYPE_WEBP => 'webp'];
 
+    // The address the last download ended on, after redirects.
+    public ?string $lastUrl = null;
+
     // Keeps the last good copy when the download or the image check fails.
     public function fetch(Company $company): bool
     {
@@ -39,20 +42,21 @@ class CompanyLogos
         return true;
     }
 
-    private function download(string $url, int $redirects = 0): string
+    // Fetches a public URL of at most $max bytes, following up to 3 redirects and never reaching a private address.
+    public function download(string $url, int $redirects = 0, int $max = self::MAX_BYTES): string
     {
         $parts = parse_url($url) ?: [];
         $host = strtolower(rtrim($parts['host'] ?? '', '.'));
         if (! in_array(strtolower($parts['scheme'] ?? ''), ['http', 'https'], true) || isset($parts['user']) || isset($parts['pass'])
             || (isset($parts['port']) && ! in_array($parts['port'], [80, 443], true))
             || filter_var($host, FILTER_VALIDATE_IP) || ! str_contains($host, '.')) {
-            throw new RuntimeException('Not a public image URL.');
+            throw new RuntimeException('Not a public URL.');
         }
         $addresses = SourceHttp::$resolveUsing ? (SourceHttp::$resolveUsing)($host) : array_values(array_filter(array_map(
             fn ($record) => $record['ip'] ?? $record['ipv6'] ?? null, dns_get_record($host, DNS_A | DNS_AAAA) ?: []
         )));
         if (! $addresses || array_filter($addresses, fn ($address) => ! filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_GLOBAL_RANGE))) {
-            throw new RuntimeException('Logo host is not public.');
+            throw new RuntimeException('Host is not public.');
         }
         if (! extension_loaded('curl')) {
             throw new RuntimeException('The curl extension is required.');
@@ -66,14 +70,14 @@ class CompanyLogos
             // Pin the checked address and skip any proxy, so the request goes to the host we checked.
             'curl' => [CURLOPT_RESOLVE => [$host.':'.$port.':'.$address]],
             'proxy' => '',
-            'on_headers' => function ($response) {
-                if ((int) $response->getHeaderLine('Content-Length') > self::MAX_BYTES) {
-                    throw new RuntimeException('Logo is too large.');
+            'on_headers' => function ($response) use ($max) {
+                if ((int) $response->getHeaderLine('Content-Length') > $max) {
+                    throw new RuntimeException('File is too large.');
                 }
             },
-            'progress' => function ($total, $downloaded) {
-                if ($downloaded > self::MAX_BYTES) {
-                    throw new RuntimeException('Logo is too large.');
+            'progress' => function ($total, $downloaded) use ($max) {
+                if ($downloaded > $max) {
+                    throw new RuntimeException('File is too large.');
                 }
             },
         ])->get($url);
@@ -82,11 +86,12 @@ class CompanyLogos
             if ($redirects >= 3) {
                 throw new RuntimeException('Too many redirects.');
             }
-            return $this->download(SourceHttp::resolveUrl($url, $response->header('Location')), $redirects + 1);
+            return $this->download(SourceHttp::resolveUrl($url, $response->header('Location')), $redirects + 1, $max);
         }
-        if (! $response->successful() || strlen($response->body()) > self::MAX_BYTES) {
-            throw new RuntimeException('Logo download failed.');
+        if (! $response->successful() || strlen($response->body()) > $max) {
+            throw new RuntimeException('Download failed.');
         }
+        $this->lastUrl = $url;
         return $response->body();
     }
 }

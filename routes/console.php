@@ -14,6 +14,7 @@ Schedule::command('opportunities:reconcile')->everyFifteenMinutes()->withoutOver
 Schedule::command('opportunities:digests')->hourly()->withoutOverlapping();
 Schedule::command('opportunities:indexing --limit=100')->hourly()->withoutOverlapping();
 Schedule::command('companies:logos')->hourly()->withoutOverlapping();
+Schedule::command('companies:research')->hourly()->withoutOverlapping();
 Schedule::command('opportunities:discover')->weeklyOn(1, '06:00')->timezone('Africa/Tunis')->withoutOverlapping();
 Schedule::command('seo:indexnow')->hourly()->withoutOverlapping();
 Schedule::command('opportunities:translate --limit=200')->everyTenMinutes()->withoutOverlapping();

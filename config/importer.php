@@ -14,6 +14,8 @@ return [
     // A listing at the same company with a title this close (0 to 1), first seen within these days, is the same job.
     'dedupe_days' => 90,
     'same_title' => 0.9,
+    // New imported listings wait until their company's website is found and checked.
+    'verify_companies' => (bool) env('OPPORTUNITY_VERIFY_COMPANIES', true),
     // `opportunities:fetch` only adds listings posted in the last this many days.
     'fetch_max_age_days' => (int) env('OPPORTUNITY_FETCH_MAX_AGE_DAYS', 14),
     // Imports only add listings a candidate profile or a resume profile (`opportunities:profile`) wants.

@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { ArrowRight, MapPin } from '@lucide/vue';
 import CompanyLogo from '@/Components/Ui/CompanyLogo.vue';
+import VerifiedBadge from '@/Components/Company/VerifiedBadge.vue';
 import { appPath, isAppPath, sitePath } from '@/utils/url';
 const props = defineProps({ company: { type: Object, required: true } });
 const page = usePage();
@@ -22,7 +23,10 @@ const openRoles = computed(() => count.value
         <div class="flex items-center gap-3.5">
             <CompanyLogo class="size-12 rounded-xl text-base border border-line" :name="company.name" :src="company.logo" />
             <div class="min-w-0">
-                <h3 class="font-display text-[17px] font-semibold leading-snug truncate"><Link :href="href" class="hover:text-blue-700">{{ company.name }}</Link></h3>
+                <div class="flex items-center gap-1.5 min-w-0">
+                    <h3 class="font-display text-[17px] font-semibold leading-snug truncate"><Link :href="href" class="hover:text-blue-700">{{ company.name }}</Link></h3>
+                    <VerifiedBadge v-if="company.verified" compact />
+                </div>
                 <p v-if="company.location" class="mt-0.5 flex items-center gap-1 text-xs text-slate-500 min-w-0"><MapPin :size="13" class="shrink-0" aria-hidden="true" /><span class="truncate">{{ company.location }}</span></p>
             </div>
         </div>

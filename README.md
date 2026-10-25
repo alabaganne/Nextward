@@ -2,7 +2,7 @@
 
 Nextward helps students and professionals everywhere find internships and jobs around the world. The public catalogue combines employer posts with opportunities imported from approved sources. Students can look for internships, PFE projects and graduate roles; professionals can explore jobs by experience, location and work arrangement.
 
-Candidates can save opportunities, set interests, receive optional search digests, apply to employers on Nextward, and keep their own record of applications made elsewhere. An external application opens the original application page. Clicking it does not claim that an application was submitted; candidates confirm and update their tracking themselves. Employers manage their own posts and internal applications. Imported company profiles do not imply a verified employer account.
+Candidates can save opportunities, set interests, receive optional search digests, apply to employers on Nextward, and keep their own record of applications made elsewhere. An external application opens the original application page. Clicking it does not claim that an application was submitted; candidates confirm and update their tracking themselves. Employers manage their own posts and internal applications. Imported companies get a Verified badge only after Nextward finds and checks their own website; the badge does not mean the employer has an account on Nextward.
 
 ## Stack
 
@@ -35,6 +35,8 @@ php artisan storage:link
 ```
 
 The city and field catalogues support optional profile choices and filters. `SkillSeeder` fills the skills catalogue from the skills listings are tagged with (`skills` in `config/importer.php`, about 700 IT skills); `php artisan db:seed` runs it too, and running it again after the list grows only adds the new skills. Worldwide profiles can use their country and location without a Tunisian city. `storage:link` exposes public company/profile media, not new application attachments.
+
+New imported listings wait until their company is checked (`OPPORTUNITY_VERIFY_COMPANIES=true`, the default). A queued job asks the AI to find the company's own website and public facts with web search (up to 5 searches, the discovery model), then opens the site: it must be a web page that shows the company name or links to its job board, and not a social network, job board or directory. A passed company is marked verified, shows the Verified badge, and gets its empty fields filled (website, about, head office, size, founding year, startup or established, LinkedIn page, careers page and icon). Its waiting listings are then published; after two failed tries a day apart they are rejected as "Company website not found." With the AI off, only a website the listing already gave can be checked. `php artisan companies:research --limit=20` checks companies with waiting listings first, then companies with open listings and no badge yet; the scheduler runs it every hour. `--company=ID` checks one company.
 
 Pages only load company logos from Nextward. A logo from another site (`companies.logo_url`) is downloaded once by `php artisan companies:logos`, which the scheduler runs every hour: PNG, JPEG, GIF or WebP up to 1 MB, from public hosts only, saved under `company-logos/imported` on the public disk. Until the copy exists, or when the download fails, pages show the initials badge. Failed downloads are tried again after a week. An uploaded logo always wins.
 

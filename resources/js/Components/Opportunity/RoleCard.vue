@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { ArrowUpRight, Banknote, Bookmark, Globe, MapPin } from '@lucide/vue';
 import CompanyLogo from '@/Components/Ui/CompanyLogo.vue';
+import VerifiedBadge from '@/Components/Company/VerifiedBadge.vue';
 import { openedAt, isSaved, toggleSaved } from '@/composables/useOpportunityActivity';
 import { appPath, isAppPath, sitePath } from '@/utils/url';
 const props = defineProps({ opportunity: { type: Object, required: true } });
@@ -41,7 +42,10 @@ const toggleSave = () => toggleSaved(props.opportunity);
         <div class="flex gap-3 items-center">
             <CompanyLogo class="w-11 h-11 rounded-xl text-base shrink-0" :name="opportunity.company?.name || 'Company'" :src="opportunity.company?.image" />
             <div class="min-w-0 flex-1">
-                <p class="text-sm font-semibold text-ink-700 truncate" :title="opportunity.company?.name">{{ opportunity.company?.name }}</p>
+                <div class="flex items-center gap-1 min-w-0">
+                    <p class="text-sm font-semibold text-ink-700 truncate" :title="opportunity.company?.name">{{ opportunity.company?.name }}</p>
+                    <VerifiedBadge v-if="opportunity.company?.verified" compact />
+                </div>
                 <p v-if="location" class="mt-0.5 flex items-center gap-1 text-xs text-slate-500 min-w-0" :title="location"><MapPin :size="13" class="shrink-0" aria-hidden="true" /><span class="truncate">{{ location }}</span></p>
             </div>
             <button v-if="candidate || !user" type="button" :aria-label="saved ? text('Remove from saved', 'Retirer des favoris') : text('Save opportunity', 'Sauvegarder l’offre')" :aria-pressed="saved" class="focus-ring w-10 h-10 shrink-0 rounded-xl border grid place-items-center" :class="saved ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-line text-slate-500'" @click="toggleSave"><Bookmark :size="18" :fill="saved ? 'currentColor' : 'none'" /></button>

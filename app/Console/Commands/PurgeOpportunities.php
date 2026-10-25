@@ -138,6 +138,8 @@ class PurgeOpportunities extends Command
         foreach (array_chunk($ids, 500) as $chunk) {
             Company::whereIn('id', $chunk)->whereNotNull('import_identity')
                 ->whereDoesntHave('opportunities')->whereDoesntHave('user')
+                // Listings still waiting for this company's website check need it.
+                ->whereNotExists(fn ($query) => $query->selectRaw('1')->from('opportunity_sources')->whereColumn('opportunity_sources.company_id', 'companies.id')->where('state', 'waiting'))
                 ->whereNotExists(fn ($query) => $query->selectRaw('1')->from('applications')->whereColumn('applications.company_id', 'companies.id'))
                 ->whereNotExists(fn ($query) => $query->selectRaw('1')->from('company_claims')->whereColumn('company_claims.company_id', 'companies.id'))
                 ->whereNotExists(fn ($query) => $query->selectRaw('1')->from('import_sources')->whereColumn('import_sources.company_id', 'companies.id'))
