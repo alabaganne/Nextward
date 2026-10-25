@@ -273,6 +273,7 @@ pills render consistently.
 6. `Pages/Leads/Index.vue` (admin only) lists job leads with `Components/Leads/LeadCard.vue`:
    eligibility, score, reasons, the true posting date, status, applied date, notes and contacts.
    Tabs are Today (with Hidden today), All leads and Left out.
+   Connect Gmail is a plain `<a>` (it leaves the site for Google); Read now and Disconnect use the router.
 7. Company names on cards and pages show `Components/Company/VerifiedBadge.vue` when the
    company prop has `verified: true` (`compact` for an icon only on cards, `dark` on navy).
 8. Verify responsive layouts, form errors, icon labels, and reduced-motion behaviour.

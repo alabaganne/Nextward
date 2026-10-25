@@ -45,6 +45,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $hidden = [
         'password',
         'remember_token',
+        'gmail_token',
     ];
 
     /**
@@ -53,6 +54,8 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var array
      */
     protected $casts = [
+        'gmail_token' => 'encrypted',
+        'gmail_synced_at' => 'datetime',
         'email_verified_at' => 'datetime',
         'terms_accepted_at' => 'datetime',
     ];

@@ -1,7 +1,7 @@
 <script setup>
 import { computed, h, ref } from 'vue';
 import { router, useForm } from '@inertiajs/vue3';
-import { EyeOff, Plus, Upload } from '@lucide/vue';
+import { EyeOff, Mail, Plus, Upload } from '@lucide/vue';
 import AppShell from '@/Layouts/AppShell.vue';
 import PageHeader from '@/Components/Ui/PageHeader.vue';
 import Pagination from '@/Components/Ui/Pagination.vue';
@@ -10,7 +10,7 @@ import LeadCard from '@/Components/Leads/LeadCard.vue';
 defineOptions({ layout: (_h, page) => h(AppShell, { active: 'leads' }, () => page) });
 const props = defineProps({
 	filters: Object, day: String, leads: Object, skips: Object, hidden: Array,
-	counts: Object, reasons: Object, statuses: Array, canSuggest: Boolean,
+	counts: Object, reasons: Object, statuses: Array, canSuggest: Boolean, gmail: Object,
 });
 
 const statusLabels = { to_apply: 'To apply', opened: 'Opened', applied: 'Applied', interviewing: 'Interviewing', offer: 'Offer', rejected: 'Rejected', skipped: 'Skipped' };
@@ -32,6 +32,10 @@ const adding = ref(false);
 const form = useForm({ company: '', title: '', url: '', status: 'applied', applied_at: new Date().toISOString().slice(0, 10), notes: '' });
 const add = () => form.post(route('leads.store'), { preserveScroll: true, onSuccess: () => { form.reset(); adding.value = false; } });
 
+const gmailRead = computed(() => props.gmail?.synced_at ? `Last read ${new Date(props.gmail.synced_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}.` : 'Not read yet.');
+const readGmail = () => router.post(route('leads.gmail.sync'), {}, { preserveScroll: true });
+const disconnectGmail = () => { if (confirm('Disconnect Gmail? Leads already added stay.')) router.delete(route('leads.gmail.disconnect'), { preserveScroll: true }); };
+
 const upload = useForm({ file: null });
 const importFile = (event) => {
 	upload.file = event.target.files[0];
@@ -51,7 +55,20 @@ const importFile = (event) => {
 			</template>
 		</PageHeader>
 		<p v-if="upload.errors.file" class="-mt-4 mb-5 text-[13.5px] text-[#dc2626]" role="alert">{{ upload.errors.file }}</p>
-		<p class="-mt-4 mb-6 text-[13px] text-muted">Import takes jobs.json from your old tracker, a Tsenta or LinkedIn export (Job Applications.csv), or any CSV or JSON with company and role columns.</p>
+		<p class="-mt-4 text-[13px] text-muted">Import takes jobs.json from your old tracker, a Tsenta or LinkedIn export (Job Applications.csv), or any CSV or JSON with company and role columns.</p>
+		<div class="mt-2 mb-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px]">
+			<Mail class="size-4 text-muted" aria-hidden="true" />
+			<template v-if="gmail.connected">
+				<span class="text-ink-700">Gmail connected, read only ({{ gmail.email }}). {{ gmailRead }}</span>
+				<button type="button" class="font-semibold text-blue-700 hover:underline" @click="readGmail">Read now</button>
+				<button type="button" class="font-semibold text-ink-700 hover:underline" @click="disconnectGmail">Disconnect</button>
+			</template>
+			<template v-else-if="gmail.ready">
+				<span class="text-muted">Connect Gmail to add applications from confirmation emails. Nextward only reads them.</span>
+				<a :href="route('leads.gmail.connect')" class="font-semibold text-blue-700 hover:underline">Connect Gmail</a>
+			</template>
+			<span v-else class="text-muted">Gmail can add applications from confirmation emails once GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are set.</span>
+		</div>
 
 		<form v-if="adding" class="mb-6 bg-white border border-line rounded-[18px] p-5 grid gap-3 sm:grid-cols-2" @submit.prevent="add">
 			<label class="text-[13px] font-semibold text-ink-700">Company<input v-model="form.company" class="fld mt-1.5" required maxlength="191"></label>

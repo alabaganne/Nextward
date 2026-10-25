@@ -35,6 +35,13 @@ return [
         ],
     ],
 
+    // Read-only Gmail access for job leads (an OAuth client from Google Cloud).
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI'),
+    ],
+
     'indexnow' => [
         'key' => env('INDEXNOW_KEY'),
     ],

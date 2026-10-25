@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Ai\Agents\ContactFinder;
 use App\Ai\OpportunityClassifier;
+use App\Leads\GmailImport;
 use App\Leads\LeadImport;
 use App\Models\Candidate;
 use App\Models\Lead;
@@ -66,6 +67,8 @@ class LeadController extends Controller
             'reasons' => LeadSkip::where('candidate_id', $candidate->id)->selectRaw('reason, COUNT(*) as total')->groupBy('reason')->pluck('total', 'reason'),
             'statuses' => Lead::STATUSES,
             'canSuggest' => app(OpportunityClassifier::class)->enabled(),
+            'gmail' => ['ready' => GmailImport::configured(), 'email' => $request->user()->gmail_email, 'connected' => (bool) $request->user()->gmail_token,
+                'synced_at' => $request->user()->gmail_synced_at?->toIso8601String()],
         ]);
     }
 
