@@ -111,8 +111,9 @@ class CompanyController extends Controller
                 'country_code' => $company->country_code,
                 'location' => $company->location,
 				'website' => $company->website,
-				...$company->only('stage', 'size', 'founded_year', 'linkedin_url'),
+				...$company->only('stage', 'size', 'founded_year', 'linkedin_url', 'careers_url'),
 				'verified' => (bool) $company->verified_at,
+				...PublicCompanyController::profile($company),
 				'claimed_by_company_id' => $company->claimed_by_company_id,
 				'city' => [
 					'name' => $company->city?->name,

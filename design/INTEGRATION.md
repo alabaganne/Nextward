@@ -276,6 +276,9 @@ pills render consistently.
    Connect Gmail is a plain `<a>` (it leaves the site for Google); Read now and Disconnect use the router.
 7. Company names on cards and pages show `Components/Company/VerifiedBadge.vue` when the
    company prop has `verified: true` (`compact` for an icon only on cards, `dark` on navy).
+   Both company pages reuse `Components/Candidate/ProfileBanner.vue` (its `avatar` slot takes the
+   logo, `badge` the Verified badge) and share `CompanyHiring.vue` and `CompanyFacts.vue` for the
+   side column, fed by `PublicCompanyController::profile()`.
 8. Verify responsive layouts, form errors, icon labels, and reduced-motion behaviour.
 9. Run `npm run build` and the relevant `php artisan test` checks.
 

@@ -25,9 +25,14 @@ const shown = computed(() => props.items.filter((item) => item.label));
 	<div class="relative bg-gradient-to-br from-navy-800 to-navy-900 rounded-[26px] px-[34px] py-8 max-[680px]:px-6 max-[680px]:py-6 overflow-hidden">
 		<div class="absolute inset-0 bg-[radial-gradient(560px_240px_at_12%_-40%,rgba(59,130,246,.32),transparent_70%)]"></div>
 		<div class="relative z-[1] flex items-center gap-5 flex-wrap">
-			<div class="w-[78px] h-[78px] rounded-[20px] bg-gradient-to-br from-blue-400 to-blue-700 grid place-items-center text-white font-bold font-display text-[28px] shrink-0" aria-hidden="true">{{ initials }}</div>
+			<slot name="avatar">
+				<div class="w-[78px] h-[78px] rounded-[20px] bg-gradient-to-br from-blue-400 to-blue-700 grid place-items-center text-white font-bold font-display text-[28px] shrink-0" aria-hidden="true">{{ initials }}</div>
+			</slot>
 			<div class="min-w-0 flex-1">
-				<component :is="tag" class="font-display text-white text-[30px] max-[680px]:text-[25px] font-semibold leading-[1.1]">{{ name }}</component>
+				<div class="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+					<component :is="tag" class="font-display text-white text-[30px] max-[680px]:text-[25px] font-semibold leading-[1.1]">{{ name }}</component>
+					<slot name="badge" />
+				</div>
 				<p v-if="headline" class="text-[#dbe6fb] text-[15px] font-medium mt-1.5">{{ headline }}</p>
 				<div v-if="shown.length" class="flex items-center gap-x-3.5 gap-y-1.5 flex-wrap mt-2.5 text-[#aebfdd] text-sm [&_span]:inline-flex [&_span]:items-center [&_span]:gap-1.5 [&_span]:min-w-0 [&_svg]:w-[15px] [&_svg]:h-[15px] [&_svg]:opacity-80 [&_svg]:shrink-0">
 					<span v-for="item in shown" :key="item.label"><component :is="item.icon" aria-hidden="true" />{{ item.label }}</span>

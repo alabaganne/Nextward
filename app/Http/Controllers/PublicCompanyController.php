@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Resources\OpportunityResource;
 use App\Models\Company;
 use App\Models\Field;
+use App\Support\Countries;
 use App\Support\PublicSeo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class PublicCompanyController extends Controller
@@ -49,7 +51,9 @@ class PublicCompanyController extends Controller
         $open ??= fn ($query) => $query->available();
 
         return $query->with(['user', 'city'])
-            ->withCount(['opportunities as open_roles_count' => $open])
+            ->withCount(['opportunities as open_roles_count' => $open,
+                'opportunities as open_jobs_count' => fn ($query) => $open($query)->where('kind', 'job'),
+                'opportunities as open_internships_count' => fn ($query) => $open($query)->where('kind', 'internship')])
             ->when($roles, fn ($query) => $query->with(['opportunities' => fn ($query) => $open($query)
                 ->with('translations')->orderByRaw('COALESCE(posted_at, first_seen_at, created_at) DESC')->orderByDesc('id')->limit($roles)]))
             ->orderByDesc('open_roles_count')->orderBy('name');
@@ -65,8 +69,13 @@ class PublicCompanyController extends Controller
             'logo' => $company->logo,
             'verified' => (bool) $company->verified_at,
             'location' => $company->city?->name ?: $company->location,
+            'about' => Str::limit(trim(preg_replace('/\s+/', ' ', (string) $company->about)), 240) ?: null,
+            'stage' => $company->stage,
+            'size' => $company->size,
             'url' => $company->publicUrl($locale),
             'open_roles_count' => $company->open_roles_count,
+            'open_jobs_count' => $company->open_jobs_count,
+            'open_internships_count' => $company->open_internships_count,
             'roles' => $company->relationLoaded('opportunities') ? $company->opportunities->map(fn ($opportunity) => [
                 'id' => $opportunity->id,
                 'title' => $opportunity->titleFor($locale),
@@ -102,12 +111,41 @@ class PublicCompanyController extends Controller
                 'website' => $model->website,
                 'location' => $model->city?->name ?: $model->location,
                 'managed' => (bool) $model->user,
-                ...$model->only('stage', 'size', 'founded_year', 'linkedin_url'),
+                ...$model->only('stage', 'size', 'founded_year', 'linkedin_url', 'careers_url'),
                 'verified' => (bool) $model->verified_at,
+                ...self::profile($model, $locale),
             ],
             'opportunities' => OpportunityResource::collection($opportunities),
             'seo' => PublicSeo::company($model, $opportunities->count()),
             'translation' => parse_url($model->publicUrl($locale === 'fr' ? 'en' : 'fr'), PHP_URL_PATH),
         ]);
+    }
+
+    // Facts and hiring numbers shown on both company pages.
+    public static function profile(Company $company, string $locale = 'en'): array
+    {
+        $roles = $company->opportunities()->available()->with(['skills' => fn ($query) => $query->select('skills.id', 'skills.name'), 'field:id,name'])
+            ->get(['id', 'kind', 'work_type', 'field_id', 'country_code']);
+        $top = fn ($values, int $limit) => $values->filter()->countBy()->sortDesc()->take($limit)
+            ->map(fn ($count, $name) => ['name' => $name, 'count' => $count])->values();
+        $site = $company->website ? preg_replace('/^www\./', '', (string) parse_url($company->website, PHP_URL_HOST)) : null;
+
+        return [
+            'facts' => [
+                'location' => $company->city?->name ?: $company->location,
+                'country' => Countries::name($company->country_code, $locale),
+                'site' => $site ?: null,
+                'checked_at' => $company->verified_at?->toDateString(),
+            ],
+            'hiring' => [
+                'open' => $roles->count(),
+                'jobs' => $roles->where('kind', 'job')->count(),
+                'internships' => $roles->where('kind', 'internship')->count(),
+                'work_types' => $roles->countBy('work_type'),
+                'skills' => $top($roles->flatMap(fn ($role) => $role->skills->pluck('name')), 12),
+                'fields' => $top($roles->map(fn ($role) => $role->field?->name), 4),
+                'countries' => $top($roles->map(fn ($role) => Countries::name($role->country_code, $locale)), 5),
+            ],
+        ];
     }
 }

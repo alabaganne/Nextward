@@ -6,6 +6,7 @@ use App\Models\City;
 use App\Models\Company;
 use App\Models\Field;
 use App\Models\Opportunity;
+use App\Models\Skill;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -54,6 +55,35 @@ class PublicCompanyDirectoryTest extends TestCase
             ->where('companies.data.1.name', $quiet->name)
             ->where('companies.data.1.open_roles_count', 0)
             ->where('seo.robots', 'noindex, follow'));
+    }
+
+    public function test_cards_and_company_pages_show_job_counts_the_description_and_hiring_facts()
+    {
+        $atlas = Company::create(['name' => 'Atlas Cloud', 'city_id' => $this->city->id, 'about' => 'Atlas Cloud builds hosting tools for small teams.', 'website' => 'https://www.atlas.example']);
+        $atlas->forceFill(['stage' => 'startup', 'size' => '51-200', 'founded_year' => 2018, 'careers_url' => 'https://www.atlas.example/careers', 'verified_at' => now()])->save();
+        $react = Skill::create(['name' => 'React']);
+        foreach (['Frontend Engineer', 'Backend Engineer'] as $title) {
+            tap($this->opportunity($atlas, $title))->forceFill(['kind' => 'job', 'work_type' => 'remote'])->save();
+        }
+        $this->opportunity($atlas, 'Web Intern')->skills()->attach($react);
+        Company::create(['name' => 'Quiet Labs']);
+
+        $this->get('/companies?show=all')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('companies.data.0.open_jobs_count', 2)
+            ->where('companies.data.0.open_internships_count', 1)
+            ->where('companies.data.0.about', 'Atlas Cloud builds hosting tools for small teams.')
+            ->where('companies.data.1.about', null));
+
+        $this->get($atlas->publicUrl())->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->component('Companies/Public')
+            ->where('company.hiring.open', 3)
+            ->where('company.hiring.jobs', 2)
+            ->where('company.hiring.internships', 1)
+            ->where('company.hiring.work_types.remote', 2)
+            ->where('company.hiring.fields.0', ['name' => 'Web Development', 'count' => 3])
+            ->where('company.hiring.skills.0.name', 'React')
+            ->where('company.facts.site', 'atlas.example')
+            ->where('company.careers_url', 'https://www.atlas.example/careers'));
     }
 
     public function test_guests_can_search_and_filter_by_field()

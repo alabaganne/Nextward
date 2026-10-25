@@ -28,7 +28,7 @@ const filtered = computed(() => !!(props.filters.search || props.filters.field |
         <div class="public-container pt-10 pb-8">
             <p class="text-sm text-blue-700 font-semibold uppercase tracking-widest">{{ text('Companies', 'Entreprises') }}</p>
             <h1 class="font-display text-4xl font-semibold tracking-tight mt-3">{{ text('Companies hiring in IT', 'Les entreprises qui recrutent en informatique') }}</h1>
-            <p class="text-slate-600 leading-7 mt-4 max-w-3xl">{{ text('Find an employer and see every internship and job it has open on Nextward, in Tunisia and worldwide.', 'Trouvez un employeur et voyez tous les stages et emplois qu’il propose sur Nextward, en Tunisie et dans le monde.') }}</p>
+            <p class="text-slate-600 leading-7 mt-4 max-w-3xl">{{ text('Find an employer, read what it does and see every internship and job it has open on Nextward.', 'Trouvez un employeur, découvrez ce qu’il fait et voyez tous les stages et emplois qu’il propose sur Nextward.') }}</p>
             <form class="flex gap-3 mt-7 max-w-3xl" role="search" :action="`${prefix}/companies`" method="get" @submit.prevent="visit({})">
                 <label class="relative flex-1 min-w-0">
                     <span class="sr-only">{{ text('Search companies', 'Rechercher une entreprise') }}</span>
