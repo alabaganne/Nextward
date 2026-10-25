@@ -21,6 +21,7 @@ Operational commands, environment switches and deployment steps are documented i
 
 ## Product improvements after observing real usage
 
+- [ ] Open Job leads (`/app/leads`) to every candidate, using their own profile, places and visa needs instead of the owner's settings in `config/leads.php`.
 - [ ] Expand source coverage using approved feeds and employer integrations, guided by unmet demand from students and professionals.
 - [ ] Improve remote eligibility evidence and country coverage without treating an unknown restriction as worldwide availability.
 - [ ] Refine recommendations from candidate feedback and preference quality before adding more complex matching.

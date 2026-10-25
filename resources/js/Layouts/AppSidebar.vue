@@ -16,6 +16,7 @@ import {
 	MessageSquare,
 	SearchCheck,
 	Sparkles,
+	Target,
 	UserPlus,
 	Users,
 	X,
@@ -51,6 +52,7 @@ const main = computed(() => [
 ]);
 
 const admin = computed(() => [
+	{ id: 'leads', label: 'Job leads', route: 'leads.index', icon: Target },
 	{ id: 'imports', label: 'Imports', icon: Database, children: [
 		{ id: 'imports.sources', label: 'Sources', route: 'imports.sources.index' },
 		{ id: 'imports.review', label: 'Review queue', route: 'imports.review', badge: badges.value.imports_review },

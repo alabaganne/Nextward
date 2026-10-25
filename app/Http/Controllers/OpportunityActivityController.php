@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Lead;
 use App\Models\Opportunity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -20,6 +21,9 @@ class OpportunityActivityController extends Controller
             'opportunity_id' => $opportunity->id,
             'viewed_at' => now(),
         ]], ['candidate_id', 'opportunity_id'], ['viewed_at']);
+        if (Lead::enabledFor($request->user())) {
+            rescue(fn () => Lead::where('candidate_id', $request->user()->userable_id)->where('opportunity_id', $opportunity->id)->get()->each(fn ($lead) => $lead->advance('opened')->save()));
+        }
 
         return response()->noContent();
     }

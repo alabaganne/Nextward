@@ -12,3 +12,4 @@ require __DIR__.'/saved_searches.php';
 if (is_file(__DIR__.'/import_admin.php')) {
     require __DIR__.'/import_admin.php';
 }
+require __DIR__.'/leads.php';

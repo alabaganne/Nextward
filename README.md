@@ -134,6 +134,28 @@ It needs the same sources there (`php artisan db:seed --class=ImportSourceSeeder
 
 Use a clean production database. The seed preserves existing data, including any demo data already present. The old complete demo dataset lives in `tests/Fixtures/DemoSeeder.php` for explicit workflow tests. Never deploy a demo database or run the standalone demo account/activity seeders in production.
 
+## Job leads
+
+Admins get a Job leads page (`/app/leads`): a daily list of software roles the owner can take from Monastir, Tunisia. `php artisan leads:daily` runs at 07:00 Tunis time for every admin with a candidate profile (`--user=` for one, `--date=` for another day). It looks at listings first seen in the last 3 days and at the private job board finds (state `lead`), then leaves out, with the reason saved in `lead_skips`:
+
+- reposts: a job first posted more than 30 days ago, or marked `reposted_at`;
+- levels: junior, intern, graduate, staff, principal, director and roles asking for 8 or more years;
+- roles someone in Tunisia can't take (`App\Leads\Eligibility`: remote only when Tunisia can apply, visa when on-site or hybrid abroad offers sponsorship or relocation; the employer's words beat a board's "worldwide" label, and the quote is kept);
+- jobs already applied to, roles at a company applied to in the last 60 days (shown under Hidden today with an Already applied badge) and roles close to an earlier lead (same company, title 85% alike, last 90 days);
+- roles that are not frontend, full stack, applied AI or backend work (`leads.groups`, `leads.min_score`).
+
+The rest is scored (role, skills, remote +4, visa +2, posted today +2) and the best 12 become the day's leads (`LEADS_DAILY_CAP`); the others wait for the next day while they are fresh. One job is one lead: `leads` is unique by candidate and job key (company without legal suffixes or aliases, title without levels, work modes or places). Set `LEADS_DIGEST_EMAIL=true` to get the day's leads by email.
+
+Statuses are To apply, Opened, Applied, Interviewing, Offer, Rejected and Skipped. Opening a posting from the list (`/app/leads/{id}/open`) marks it Opened, and applying or tracking an application on Nextward marks it Applied; on their own they never move back, but the page can set any status. Notes, the applied date and contacts are kept per lead; contacts belong to the company, so every lead there shows them, with a Contacted tick and date. Suggest a contact asks the AI (web search, public pages only) for one person, such as the engineering manager for the role; it is only saved when you keep it. Nothing reads or automates LinkedIn.
+
+To bring in applications made elsewhere, use Import on the page or `php artisan leads:import path/to/file`:
+
+- `jobs.json` from the old tracker: `id` is kept as the lead's reference (`external_ref`), `list` becomes the status (words like applied, interview, offer, rejected, skip or to apply), `elig` and `eligLabel` the eligibility, and `leadName`, `leadTitle`, `leadUrl`, `leadNote` and `mutual` a contact;
+- LinkedIn's data export `Job Applications.csv` and Tsenta's CSV export (name the file with "tsenta" or pass `--origin=tsenta`): every row is an application;
+- any CSV or JSON with company and role columns (status, date, link and notes are read when present).
+
+Rows are merged with the lead for the same job, so importing a file twice changes nothing.
+
 ## Public pages and search visibility
 
 `/opportunities` is the main catalogue: All / Internships / Jobs tabs and one row of filters (field, skills, type, country, work mode, experience, date, Open worldwide). Under the heading it shows how many listings in the tab are open now and how many older ones are archived (closed, expired or past the 60-day window), counted every 10 minutes. Signed-in users get the same list inside the workspace at `/app/opportunities`; every signed-in page lives under `/app`, and old paths like `/dashboard` redirect there. The old `/opportunities/tunisia`, `/remote-from-tunisia` and `/relocation` pages redirect to the matching filters with a 301. The home page speaks to everyone; the old `/for-students` and `/for-professionals` pages redirect to it. Opportunity details have stable IDs and readable slugs. Legacy internship URLs redirect to their canonical opportunity URLs.

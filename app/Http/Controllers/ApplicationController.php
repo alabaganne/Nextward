@@ -8,6 +8,7 @@ use App\Http\Resources\OpportunityResource;
 use App\Models\Application;
 use App\Models\ApplicationKit;
 use App\Models\Candidate;
+use App\Models\Lead;
 use App\Models\Opportunity;
 use App\Models\Resume;
 use App\Models\User;
@@ -102,6 +103,7 @@ class ApplicationController extends Controller
         });
 
         $this->notifySafely($application->company->user, new ApplicationSubmitted($application));
+        rescue(fn () => Lead::fromApplication($application));
 
         return Redirect::route('applications.index')->with('toast', [
             'type' => 'store',
@@ -269,6 +271,8 @@ class ApplicationController extends Controller
                 'candidate_notes' => $data['candidate_notes'] ?? null,
             ]);
         });
+
+        rescue(fn () => Lead::fromApplication($application));
 
         return redirect()->route('applications.show', $application)->with('toast', [
             'type' => 'store', 'message' => 'Saved to your tracker. This does not submit an application to the employer.',
