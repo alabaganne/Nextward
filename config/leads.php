@@ -25,7 +25,9 @@ return [
     'groups' => [
         'frontend' => ['label' => 'Frontend', 'weight' => 3, 'title' => '/\b(?:front.?end|react|next\.?js|vue|ui engineer|web developer|javascript|typescript)\b/',
             'skills' => ['React', 'Next.js', 'TypeScript', 'React Native', 'Vue', 'JavaScript', 'Tailwind']],
+        // A plain "Software Engineer" counts as full stack unless the title names another kind of work.
         'fullstack' => ['label' => 'Full stack', 'weight' => 2, 'title' => '/\b(?:full.?stack|product engineer|software engineer|software developer)\b/',
+            'not_title' => '/\b(?:android|ios|swift|kotlin|embedded|firmware|hardware|data|security|devops|sre|site reliability|qa|test|sdk|infrastructure|manager)\b/',
             'skills' => ['Node.js', 'NestJS', 'FastAPI', 'Laravel', 'PostgreSQL', 'Supabase', 'GraphQL']],
         'ai' => ['label' => 'Applied AI', 'weight' => 2, 'title' => '/\b(?:ai|llm|genai|machine learning|ml)\b/',
             'skills' => ['LLM', 'RAG', 'OpenAI', 'LangChain', 'embeddings', 'AI agents']],

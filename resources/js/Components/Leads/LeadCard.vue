@@ -75,7 +75,7 @@ const keepSuggestion = () => {
 					<span v-if="lead.external_ref">Tracker #{{ lead.external_ref }}</span>
 				</p>
 			</div>
-			<a v-if="lead.url" :href="lead.open_url" target="_blank" rel="noopener noreferrer" class="cbtn cbtn-primary !text-[14px] !px-4 !py-2.5 shrink-0" @click="refreshSoon">
+			<a v-if="lead.url" :href="lead.open_url" target="_blank" rel="noopener noreferrer" class="cbtn cbtn-primary !text-[14px] !px-4 !py-2.5 shrink-0 max-sm:w-full max-sm:justify-center" @click="refreshSoon">
 				Open posting <ExternalLink class="size-4" aria-hidden="true" />
 			</a>
 		</div>
@@ -83,7 +83,7 @@ const keepSuggestion = () => {
 		<div class="mt-4 flex flex-wrap items-center gap-2 text-[12.5px]">
 			<span v-if="lead.eligibility" class="rounded-lg px-2.5 py-1 font-semibold" :class="eligibility[lead.eligibility][1]">{{ eligibility[lead.eligibility][0] }}</span>
 			<span v-if="lead.score" class="rounded-lg bg-paper-2 px-2.5 py-1 font-semibold text-ink-700">Score {{ lead.score }}</span>
-			<span v-for="reason in lead.reasons" :key="reason" class="rounded-lg bg-paper-2 px-2.5 py-1 text-ink-700">{{ reason }}</span>
+			<span v-for="reason in lead.reasons.filter((reason) => reason !== eligibility[lead.eligibility]?.[0])" :key="reason" class="rounded-lg bg-paper-2 px-2.5 py-1 text-ink-700">{{ reason }}</span>
 		</div>
 		<p v-if="lead.eligibility_quote" class="mt-2 text-[13px] text-muted leading-relaxed" dir="auto">“{{ lead.eligibility_quote }}”</p>
 

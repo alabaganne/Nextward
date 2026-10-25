@@ -17,7 +17,7 @@ class Scorer
         $reasons = [];
         $best = 0;
         foreach (config('leads.groups') as $group) {
-            if (preg_match($group['title'], $title) && $group['weight'] > $best) {
+            if (preg_match($group['title'], $title) && ! preg_match($group['not_title'] ?? '/$^/', $title) && $group['weight'] > $best) {
                 $best = $group['weight'];
                 $reasons['title'] = $group['label'].' role';
             }

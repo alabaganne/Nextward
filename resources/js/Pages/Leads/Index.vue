@@ -44,7 +44,7 @@ const importFile = (event) => {
 </script>
 
 <template>
-	<div>
+	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-wrap mx-auto">
 		<PageHeader title="Job leads" description="New software roles you can take from Tunisia, picked every morning at 07:00. A job never shows twice, and roles at companies you applied to stay hidden for 60 days.">
 			<template #actions>
 				<label class="cbtn cbtn-secondary !text-[14px] !px-4 !py-2.5" :class="{ 'opacity-60': upload.processing }">
@@ -56,8 +56,9 @@ const importFile = (event) => {
 		</PageHeader>
 		<p v-if="upload.errors.file" class="-mt-4 mb-5 text-[13.5px] text-[#dc2626]" role="alert">{{ upload.errors.file }}</p>
 		<p class="-mt-4 text-[13px] text-muted">Import takes jobs.json from your old tracker, a Tsenta or LinkedIn export (Job Applications.csv), or any CSV or JSON with company and role columns.</p>
-		<div class="mt-2 mb-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px]">
-			<Mail class="size-4 text-muted" aria-hidden="true" />
+		<div class="mt-2 mb-6 flex items-start gap-2 text-[13px]">
+			<Mail class="size-4 mt-0.5 shrink-0 text-muted" aria-hidden="true" />
+			<div class="flex flex-wrap gap-x-3 gap-y-1">
 			<template v-if="gmail.connected">
 				<span class="text-ink-700">Gmail connected, read only ({{ gmail.email }}). {{ gmailRead }}</span>
 				<button type="button" class="font-semibold text-blue-700 hover:underline" @click="readGmail">Read now</button>
@@ -68,6 +69,7 @@ const importFile = (event) => {
 				<a :href="route('leads.gmail.connect')" class="font-semibold text-blue-700 hover:underline">Connect Gmail</a>
 			</template>
 			<span v-else class="text-muted">Gmail can add applications from confirmation emails once GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are set.</span>
+			</div>
 		</div>
 
 		<form v-if="adding" class="mb-6 bg-white border border-line rounded-[18px] p-5 grid gap-3 sm:grid-cols-2" @submit.prevent="add">

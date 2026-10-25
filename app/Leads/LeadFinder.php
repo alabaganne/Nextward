@@ -25,7 +25,7 @@ class LeadFinder
     public function run(Candidate $candidate, ?Carbon $date = null): array
     {
         $date ??= today(config('importer.timezone', 'Africa/Tunis'));
-        $since = now()->subDays(config('leads.lookback_days'));
+        $since = $date->copy()->endOfDay()->min(now())->subDays(config('leads.lookback_days'));
         // Jobs applied to elsewhere (imports, Gmail, the manual form) are not marked seen, so a listing for them is logged as applied once.
         $seen = array_flip([
             ...Lead::where('candidate_id', $candidate->id)->where(fn ($query) => $query->whereNotIn('status', ['applied', 'interviewing', 'offer', 'rejected'])
@@ -96,7 +96,7 @@ class LeadFinder
                 return ['duplicate', 'Same role as lead #'.$lead['id'].': '.$lead['label'].'.'];
             }
         }
-        [$score, $reasons, $fit] = $this->scorer->score($job['title'], (string) ($job['data']['description'] ?? ''), $class, $job['posted']);
+        [$score, $reasons, $fit] = $this->scorer->score($job['title'], str_ireplace($job['company'], '', (string) ($job['data']['description'] ?? '')), $class, $job['posted']);
         $job += ['score' => $score, 'reasons' => $reasons, 'eligibility' => $class, 'eligibility_quote' => $quote];
         if ($fit < config('leads.min_score')) { return ['low_score', 'Not close to the roles you look for (score '.$score.').']; }
         return [null, null];
