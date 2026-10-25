@@ -68,7 +68,7 @@ Nextward is for IT roles, so every import (scheduled runs, Run import in admin, 
 
 ### Profiles decide what is added
 
-Before a listing is added, imports check what people on Nextward are looking for. Every signed-up candidate counts (their field, preferred fields, skills, opportunity types, levels and countries from Settings), plus profiles read from resumes:
+Before a listing is added, imports check what people on Nextward are looking for. Nextward is the owner's job search for now, so only admins' candidate profiles count: their field, preferred fields, skills, opportunity types, levels, countries and the "I need a visa to work abroad" box from Settings > Job preferences. Set `OPPORTUNITY_PROFILES_FROM=everyone` to count every signed-up candidate again. Profiles read from resumes count too:
 
 ```bash
 php artisan opportunities:profile ~/Downloads/resume.pdf --wants="AI and data science roles"
@@ -276,6 +276,7 @@ php artisan opportunities:purge --dry-run          # count what would go
 php artisan opportunities:purge                    # asks before deleting
 php artisan opportunities:purge --source=tanitjobs # only one source
 php artisan opportunities:purge --origin=all       # company posts too
+php artisan opportunities:purge --kind=internship --remember # only internships, kept out for good
 ```
 
 Without `--remember` the source records are deleted, so the scraper may add the same roles again later. With it, they stay and those roles are never imported again. Back up the database before running it on production.

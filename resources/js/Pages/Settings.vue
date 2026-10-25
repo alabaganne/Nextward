@@ -65,6 +65,7 @@ const accountForm = useForm({
 		skills: props.settings.preferences?.skills || [],
 		seniority: props.settings.preferences?.seniority || [],
 		include_unknown_eligibility: props.settings.preferences?.include_unknown_eligibility || false,
+		needs_visa: props.settings.preferences?.needs_visa || false,
 	},
 });
 
@@ -468,6 +469,8 @@ const deleteAccount = () =>
 							</div>
 							<label class="flex gap-2 items-start mt-5 text-sm"><input v-model="accountForm.preferences.include_unknown_eligibility" type="checkbox" class="mt-1"> Include remote roles whose eligibility from Tunisia is unknown. Check the employer's requirements before applying.</label>
 							<p v-if="accountError('preferences.include_unknown_eligibility')" data-error class="text-xs text-[#dc2626] mt-[7px]">{{ accountError('preferences.include_unknown_eligibility') }}</p>
+							<label class="flex gap-2 items-start mt-3 text-sm"><input v-model="accountForm.preferences.needs_visa" type="checkbox" class="mt-1"> I need a visa to work abroad. On-site and hybrid roles in other countries then only count when they offer visa sponsorship or relocation, and remote roles must be open to people in my country.</label>
+							<p v-if="accountError('preferences.needs_visa')" data-error class="text-xs text-[#dc2626] mt-[7px]">{{ accountError('preferences.needs_visa') }}</p>
 						</div>
 					</div>
 

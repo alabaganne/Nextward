@@ -113,10 +113,10 @@ class SourceDiscovery
     private function prompt(int $max, string $existing): string
     {
         return <<<PROMPT
-Find up to {$max} new places where Nextward can read IT jobs and internships abroad: software engineering, web and mobile development, and data science and AI.
+Find up to {$max} new places where Nextward can read IT jobs abroad (jobs, not internships): software engineering, web and mobile development, and data science and AI.
 
 Good finds:
-- Companies that hire for these roles remotely worldwide, or in Europe, North America, the Gulf or Asia with relocation or visa help, and publish their jobs on Greenhouse, Lever, Ashby, Workable or Recruitee. Give the board token from the board URL: boards.greenhouse.io/<token>, job-boards.greenhouse.io/<token>, jobs.lever.co/<token>, jobs.ashbyhq.com/<token>, apply.workable.com/<token> or <token>.recruitee.com.
+- Companies that hire for these roles fully remote from anywhere, including Tunisia, or on site and hybrid in Europe or the USA with visa sponsorship or relocation help, above all in Germany, the USA, France, Italy, Spain, Poland, Belgium and Romania, and publish their jobs on Greenhouse, Lever, Ashby, Workable or Recruitee. Give the board token from the board URL: boards.greenhouse.io/<token>, job-boards.greenhouse.io/<token>, jobs.lever.co/<token>, jobs.ashbyhq.com/<token>, apply.workable.com/<token> or <token>.recruitee.com.
 - Employer career sites outside Tunisia whose job pages carry JobPosting structured data. Give the https URL of the sitemap that lists the job pages, and the path that every job page starts with (for example /jobs/).
 
 Do not suggest Tunisian job sites or sites on a .tn domain.

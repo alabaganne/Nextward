@@ -23,7 +23,9 @@ class CandidateProfiles
     {
         $fields = Field::pluck('name', 'id');
         $ignored = array_map('strtolower', config('importer.profiles.ignore_domains', []));
-        $profiles = Candidate::with('skills', 'user')->whereHas('user')->get()
+        // Nextward is the owner's job search for now, so by default only admins' profiles count.
+        $admins = config('importer.profiles.from', 'admins') === 'admins';
+        $profiles = Candidate::with('skills', 'user')->whereHas('user', fn ($query) => $query->when($admins, fn ($query) => $query->where('is_admin', true)))->get()
             ->reject(fn ($candidate) => in_array(strtolower(substr(strrchr((string) $candidate->user->email, '@') ?: '', 1)), $ignored, true))
             ->map(function ($candidate) use ($fields) {
                 $preferences = $candidate->preferences ?: [];

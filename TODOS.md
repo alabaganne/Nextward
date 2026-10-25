@@ -18,7 +18,7 @@ To do:
 - Add sources for US and European employers that sponsor visas or hire fully remote worldwide (Greenhouse, Lever and Ashby boards), and point source discovery at them.
 - Tests for the new place and visa rules, then update `AGENTS.md` ("Profiles decide what is added") and `README.md`.
 
-Done: `needs_visa` and countries on profiles (`opportunities:profile --countries= --needs-visa`, rule in `App\Leads\Eligibility`), Workable and Recruitee boards plus 14 new employer boards in `ImportSourceSeeder`, and source discovery can suggest Workable and Recruitee boards.
+Done: `needs_visa` and countries on profiles (`opportunities:profile --countries= --needs-visa`, rule in `App\Leads\Eligibility`), Workable and Recruitee boards plus 14 new employer boards in `ImportSourceSeeder`, and source discovery can suggest Workable and Recruitee boards. Then (25 October 2026): only admins' profiles count for imports, Settings > Job preferences has an "I need a visa to work abroad" box, the owner's profile is set to jobs only in Europe and the USA with a visa needed, and discovery asks for jobs, not internships, in those countries.
 
 ## Set up job leads (owner)
 

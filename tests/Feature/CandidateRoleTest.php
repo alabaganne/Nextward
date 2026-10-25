@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Importing\CandidateProfiles;
 use App\Models\Candidate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -54,5 +55,27 @@ class CandidateRoleTest extends TestCase
         $this->assertSame('https://example.com', $admin->userable->website);
         $this->assertSame('TN', $admin->userable->country_code);
         $this->assertSame('Monastir', $admin->userable->location);
+    }
+
+    public function test_imports_follow_the_owner_profile_with_its_visa_preference(): void
+    {
+        // Factory emails can be on example.com, which imports leave out.
+        $admin = User::factory()->create(['is_admin' => true, 'email' => 'owner@nextward.test']);
+        $this->actingAs($admin)->get('/app/settings')->assertOk();
+        $this->actingAs($admin)->put('/app/profile', [
+            'name' => $admin->name,
+            'email' => $admin->email,
+            'preferences' => ['kinds' => ['job'], 'countries' => ['DE', 'US'], 'skills' => ['React', 'Laravel'], 'needs_visa' => true],
+        ])->assertRedirect(route('profile.show'));
+        $other = Candidate::factory()->create(['preferences' => ['kinds' => ['internship'], 'skills' => ['Java', 'Spring']]]);
+        $other->user()->save(User::factory()->make(['email' => 'friend@nextward.test']));
+
+        $profiles = CandidateProfiles::load()->profiles;
+        $this->assertSame([$admin->name], array_column($profiles, 'name'));
+        $this->assertTrue($profiles[0]['needs_visa']);
+        $this->assertSame(['DE', 'US'], $profiles[0]['countries']);
+
+        config(['importer.profiles.from' => 'everyone']);
+        $this->assertCount(2, CandidateProfiles::load()->profiles);
     }
 }

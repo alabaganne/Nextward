@@ -19,9 +19,11 @@ return [
     // `opportunities:fetch` only adds listings posted in the last this many days.
     'fetch_max_age_days' => (int) env('OPPORTUNITY_FETCH_MAX_AGE_DAYS', 14),
     // Imports only add listings a candidate profile or a resume profile (`opportunities:profile`) wants.
+    // `from` picks whose candidate profiles count: admins (the owner, the default) or everyone.
     // Accounts on these email domains (seeded demo accounts) are left out.
     'profiles' => [
         'enabled' => (bool) env('OPPORTUNITY_MATCH_PROFILES', true),
+        'from' => env('OPPORTUNITY_PROFILES_FROM', 'admins'),
         'ignore_domains' => ['example.com'],
     ],
     // Nextward is for IT roles: every import keeps only listings in this focus group. Empty takes every field.

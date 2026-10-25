@@ -275,7 +275,8 @@ pills render consistently.
    Tabs are Today (with Hidden today), All leads and Left out.
    Connect Gmail is a plain `<a>` (it leaves the site for Google); Read now and Disconnect use the router.
 7. Company names on cards and pages show `Components/Company/VerifiedBadge.vue` when the
-   company prop has `verified: true` (`compact` for an icon only on cards, `dark` on navy).
+   company prop has `verified: true`: a solid blue seal with a white tick (`compact` for the seal alone on cards,
+   `dark` for a white seal on navy).
    Both company pages reuse `Components/Candidate/ProfileBanner.vue` (its `avatar` slot takes the
    logo, `badge` the Verified badge) and share `CompanyHiring.vue` and `CompanyFacts.vue` for the
    side column, fed by `PublicCompanyController::profile()`.

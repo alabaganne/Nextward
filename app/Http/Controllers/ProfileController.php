@@ -107,7 +107,7 @@ class ProfileController extends Controller
             'location' => 'nullable|string|max:255',
             'languages' => 'nullable|array|max:20',
             'languages.*' => 'string|max:50',
-            'preferences' => 'nullable|array:kinds,countries,work_types,fields,skills,seniority,include_unknown_eligibility',
+            'preferences' => 'nullable|array:kinds,countries,work_types,fields,skills,seniority,include_unknown_eligibility,needs_visa',
             'preferences.kinds' => 'nullable|array|max:2',
             'preferences.kinds.*' => 'in:internship,job',
             'preferences.countries' => 'nullable|array|max:30',
@@ -121,6 +121,7 @@ class ProfileController extends Controller
             'preferences.seniority' => 'nullable|array|max:10',
             'preferences.seniority.*' => 'in:entry,graduate,mid,senior,lead,executive',
             'preferences.include_unknown_eligibility' => 'nullable|boolean',
+            'preferences.needs_visa' => 'nullable|boolean',
             ...ProfileHistory::rules(),
             // Only candidates have a public profile, so only they pick a username.
             'username' => $user->isCandidate() ? Username::rules($user->id) : 'prohibited',

@@ -25,7 +25,7 @@ class SourceScout implements Agent, HasProviderOptions, HasTools
 
     public function instructions(): string
     {
-        return 'You find new places where Nextward, an IT job board, can read software, web, mobile and data and AI jobs and internships abroad.';
+        return 'You find new places where Nextward, an IT job board, can read software, web, mobile and data and AI jobs abroad, mostly in Europe and the USA.';
     }
 
     public function tools(): iterable

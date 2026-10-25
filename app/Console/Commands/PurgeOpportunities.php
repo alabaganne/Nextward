@@ -16,6 +16,7 @@ class PurgeOpportunities extends Command
     protected $signature = 'opportunities:purge
         {--origin=imported : imported, native (posted by companies) or all}
         {--source=* : Only listings found on these source keys}
+        {--kind= : Only internships or only jobs (internship or job)}
         {--remember : Keep the source records, so these listings are never imported again}
         {--keep-companies : Keep imported companies left with no listings}
         {--dry-run : Count what would be deleted and delete nothing}
@@ -35,9 +36,15 @@ class PurgeOpportunities extends Command
             $this->error('--origin must be imported, native or all.');
             return self::INVALID;
         }
+        $kind = $this->option('kind');
+        if ($kind !== null && ! in_array($kind, ['internship', 'job'], true)) {
+            $this->error('--kind must be internship or job.');
+            return self::INVALID;
+        }
 
         $ids = Opportunity::query()
             ->when($origin !== 'all', fn ($query) => $query->where('origin', $origin))
+            ->when($kind, fn ($query) => $query->where('kind', $kind))
             ->when($this->option('source'), fn ($query, $keys) => $query->whereHas('sources.importSource', fn ($query) => $query->whereIn('key', $keys)))
             ->pluck('id')->all();
         // Duplicates merged into a deleted listing go too, or they would show again.

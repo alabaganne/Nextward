@@ -88,6 +88,17 @@ class PurgeOpportunitiesTest extends TestCase
         $this->assertSame([$kept->id], Opportunity::pluck('id')->all());
     }
 
+    public function test_kind_option_only_touches_that_kind(): void
+    {
+        $job = $this->imported(['kind' => 'job']);
+        $this->imported(['kind' => 'internship']);
+
+        $this->artisan('opportunities:purge --kind=intern --force')->assertExitCode(2);
+        $this->artisan('opportunities:purge --kind=internship --force')->assertSuccessful();
+
+        $this->assertSame([$job->id], Opportunity::pluck('id')->all());
+    }
+
     private function imported(array $attributes = [], ?ImportSource $source = null): Opportunity
     {
         $company = Company::forceCreate(['name' => 'Imported Co', 'import_identity' => Str::random(12)]);
