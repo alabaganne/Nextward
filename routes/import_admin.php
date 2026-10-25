@@ -15,6 +15,7 @@ Route::middleware(['auth', 'admin'])->prefix('app/admin/imports')->group(functio
     Route::post('/sources', [ImportAdminController::class, 'storeSource'])->name('imports.sources.store');
     Route::get('/sources/{source}/edit', [ImportAdminController::class, 'editSource'])->name('imports.sources.edit');
     Route::put('/sources/{source}', [ImportAdminController::class, 'updateSource'])->name('imports.sources.update');
+    Route::post('/fetch', [ImportAdminController::class, 'fetch'])->middleware('throttle:6,1,import-fetch')->name('imports.fetch');
     Route::post('/sources/{source}/run', [ImportAdminController::class, 'runSource'])->middleware('throttle:10,1,import-run')->name('imports.sources.run');
     Route::post('/items/{item}/publish', [ImportAdminController::class, 'publish'])->name('imports.items.publish');
     Route::post('/items/{item}/reject', [ImportAdminController::class, 'reject'])->name('imports.items.reject');

@@ -328,6 +328,18 @@ class OpportunityImporter
         if ($source->publication_mode === 'leads') { throw new RuntimeException('Job board listings only show in job leads.'); }
         $data = $item->normalized_data;
         if ($this->expired($data)) { throw new RuntimeException('This opportunity has expired.'); }
+        // Two runs adding the same new job at once would each miss the other's copy, so new listings are added one at a time.
+        $lock = $item->opportunity_id ? null : Cache::lock('opportunity-publish', 30);
+        $lock?->block(20);
+        try {
+            return $this->save($item, $source, $data);
+        } finally {
+            $lock?->release();
+        }
+    }
+
+    private function save(OpportunitySource $item, ImportSource $source, array $data): Opportunity
+    {
         return DB::transaction(function () use ($item, $source, $data) {
             $company = $source->company ?? $this->employer($source, $data);
             if ($company->claimed_by_company_id) { $company = Company::findOrFail($company->claimed_by_company_id); }
@@ -344,6 +356,7 @@ class OpportunityImporter
                         $opportunity = $candidate->opportunity; break;
                     }
                 }
+                $opportunity ??= $this->sameLink($item, $data);
             }
             $opportunity ??= $this->sameRole($company, $item, $data) ?? new Opportunity();
             $hash = hash('sha256', json_encode($data, JSON_THROW_ON_ERROR));
@@ -463,15 +476,31 @@ class OpportunityImporter
     private function sameRole(Company $company, OpportunitySource $item, array $data): ?Opportunity
     {
         $title = JobKey::title($data['title'], $data['location']);
+        // Every role in the window is checked, newest first, so big employers' older roles are still found.
         return Opportunity::where('company_id', $company->id)->where('origin', 'imported')->where('kind', $data['kind'])
             ->whereNull('merged_into_id')->where('first_seen_at', '>=', now()->subDays(config('importer.dedupe_days')))
-            ->with('sources:id,opportunity_id,import_source_id')->latest('id')->limit(50)->get()
+            ->select('id', 'title', 'location', 'country_code', 'work_type', 'status')
+            ->with('sources:id,opportunity_id,import_source_id')->lazyByIdDesc(200)
             ->first(function ($role) use ($item, $data, $title) {
                 if ($role->status === 'open' && $role->sources->contains('import_source_id', $item->import_source_id)) { return false; }
                 $place = $role->country_code === $data['country_code'] || ! $role->country_code || ! $data['country_code']
                     || in_array('remote', [$role->work_type, $data['work_type']], true);
                 return $place && JobKey::similar(JobKey::title($role->title, $role->location), $title) >= config('importer.same_title');
-            });
+            })?->fresh();
+    }
+
+    // The same posting link once tracking is taken off (JobKey::url), with the same title and place, so a job a board
+    // links to twice is one listing.
+    private function sameLink(OpportunitySource $item, array $data): ?Opportunity
+    {
+        if (! $item->url_key) { return null; }
+        $title = JobKey::title($data['title'], $data['location']);
+        return OpportunitySource::where('url_key', $item->url_key)->where('id', '!=', $item->id)->whereNotNull('opportunity_id')
+            ->with('opportunity')->limit(20)->get()
+            ->first(fn ($other) => $other->opportunity?->origin === 'imported' && ! $other->opportunity->merged_into_id
+                && ($other->normalized_data['location'] ?? null) === $data['location']
+                && JobKey::similar(JobKey::title((string) ($other->normalized_data['title'] ?? ''), $data['location']), $title) >= config('importer.same_title'))
+            ?->opportunity;
     }
 
     // Keeps the first date the job was posted. An employer ATS date beats a board date, and a later date for a job

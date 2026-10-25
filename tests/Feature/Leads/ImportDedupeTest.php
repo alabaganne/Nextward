@@ -96,6 +96,43 @@ class ImportDedupeTest extends TestCase
         $this->assertSame(2, Opportunity::count());
     }
 
+    public function test_a_job_on_another_board_is_found_even_when_its_company_has_many_newer_roles(): void
+    {
+        $jobs = [$this->greenhouse(1, 'Platform Engineer', 'Remote', 6)];
+        foreach (range(2, 61) as $id) { $jobs[] = $this->greenhouse($id, "Backend Engineer Team {$id}", 'Remote', 5); }
+        Http::fake([
+            '*/robots.txt' => Http::response('', 404),
+            'boards-api.greenhouse.io/v1/boards/acme/jobs*' => Http::response(['jobs' => $jobs]),
+            'remote-board.example/sitemap.xml' => Http::response('<?xml version="1.0"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://remote-board.example/jobs/1</loc></url></urlset>'),
+            'remote-board.example/jobs/1' => Http::response($this->page('Platform Engineer - Remote', 'Acme Inc', now()->subDay()->toDateString())),
+        ]);
+        app(OpportunityImporter::class)->run($this->source(['key' => 'greenhouse-acme', 'provider' => 'greenhouse', 'url' => 'https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true',
+            'allowed_domains' => ['boards-api.greenhouse.io', 'job-boards.greenhouse.io']]), 100);
+        $this->assertSame(61, Opportunity::count());
+
+        app(OpportunityImporter::class)->run($this->source(['key' => 'board', 'url' => 'https://remote-board.example/sitemap.xml', 'allowed_domains' => ['remote-board.example']]));
+
+        $this->assertSame(61, Opportunity::count());
+        $this->assertSame(2, Opportunity::where('title', 'Platform Engineer')->sole()->sources()->count());
+    }
+
+    public function test_one_posting_linked_twice_on_a_board_is_one_listing(): void
+    {
+        $page = $this->page('Frontend Engineer', 'Acme', now()->subDay()->toDateString(), url: null);
+        Http::fake([
+            '*/robots.txt' => Http::response('', 404),
+            'remote-board.example/careers' => Http::response('<html><body><a href="/jobs/1">Frontend Engineer</a> <a href="/jobs/1?utm_source=feed#apply">Apply</a></body></html>'),
+            'remote-board.example/jobs/1*' => Http::response($page),
+        ]);
+        $source = $this->source(['key' => 'board', 'url' => 'https://remote-board.example/careers', 'allowed_domains' => ['remote-board.example'], 'settings' => ['job_path_prefix' => '/jobs/']]);
+
+        app(OpportunityImporter::class)->run($source);
+
+        $this->assertSame(2, $source->items()->count());
+        $this->assertSame(1, Opportunity::count());
+        $this->assertSame(2, Opportunity::sole()->sources()->count());
+    }
+
     public function test_years_of_experience_are_read_from_the_description(): void
     {
         $normalizer = new OpportunityNormalizer();
@@ -133,11 +170,11 @@ class ImportDedupeTest extends TestCase
             'absolute_url' => "https://job-boards.greenhouse.io/acme/jobs/{$id}", 'first_published' => now()->subDays($daysAgo)->toIso8601String()];
     }
 
-    private function page(string $title, string $employer, string $posted): string
+    private function page(string $title, string $employer, string $posted, ?string $url = 'https://remote-board.example/jobs/1/apply'): string
     {
-        $posting = ['@context' => 'https://schema.org', '@type' => 'JobPosting', 'title' => $title, 'url' => 'https://remote-board.example/jobs/1/apply',
+        $posting = array_filter(['@context' => 'https://schema.org', '@type' => 'JobPosting', 'title' => $title, 'url' => $url,
             'description' => '<p>'.str_repeat('You will build and ship React product features with the team. ', 3).'</p>',
-            'datePosted' => $posted, 'jobLocationType' => 'TELECOMMUTE', 'hiringOrganization' => ['@type' => 'Organization', 'name' => $employer]];
+            'datePosted' => $posted, 'jobLocationType' => 'TELECOMMUTE', 'hiringOrganization' => ['@type' => 'Organization', 'name' => $employer]]);
         return '<html><head><script type="application/ld+json">'.json_encode($posting).'</script></head><body></body></html>';
     }
 }

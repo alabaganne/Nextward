@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Importing\OpportunityImporter;
 use App\Importing\SourceHttp;
 use App\Importing\SourceReader;
+use App\Jobs\FetchNewOpportunities;
 use App\Jobs\ImportOpportunitySource;
 use App\Models\Company;
 use App\Models\ImportRun;
@@ -29,7 +30,33 @@ class ImportAdminController extends Controller
     {
         return Inertia::render('Imports/Sources', [
             'sources' => ImportSource::withCount(['items', 'items as pending_count' => fn ($query) => $query->whereIn('state', ['pending', 'review'])])->orderBy('name')->get(),
+            'fetch' => $this->fetchState(),
         ]);
+    }
+
+    public function fetch(Request $request)
+    {
+        $data = $request->validate(['count' => 'required|integer|min:1|max:100']);
+        if (FetchNewOpportunities::running()) {
+            throw ValidationException::withMessages(['count' => 'A fetch is already running. Wait for it to finish.']);
+        }
+        if (! FetchNewOpportunities::start($data['count'], $request->user()->name)) {
+            throw ValidationException::withMessages(['count' => 'No approved source is enabled.']);
+        }
+        $this->audit($request, 'fetch.queued', null, null, ['count' => $data['count']]);
+        return back()->with('toast', ['type' => 'update', 'message' => 'Fetching new listings. Progress shows on this page.']);
+    }
+
+    private function fetchState(): ?array
+    {
+        if (! ($state = FetchNewOpportunities::state())) { return null; }
+        return [...collect($state)->only(['count', 'sources', 'read', 'failed', 'by', 'started_at', 'finished_at'])->all(),
+            'days' => (int) config('importer.fetch_max_age_days'),
+            'running' => FetchNewOpportunities::running(),
+            'stopped' => $state['status'] === 'running' && ! FetchNewOpportunities::running(),
+            'added' => Opportunity::with('company.user')->whereIn('id', $state['added'])->latest('id')->get()
+                ->map(fn ($role) => ['id' => $role->id, 'title' => $role->title, 'company' => $role->company?->display_name, 'kind' => $role->kind, 'public_url' => $role->public_url]),
+        ];
     }
 
     public function review(Request $request)
