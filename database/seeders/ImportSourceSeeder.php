@@ -26,9 +26,16 @@ class ImportSourceSeeder extends Seeder
             'duolingo' => ['careers.duolingo.com'], 'gitlab' => ['job-boards.greenhouse.io'], 'grafanalabs' => ['job-boards.greenhouse.io'],
             'mozilla' => ['job-boards.greenhouse.io'], 'wikimedia' => ['job-boards.greenhouse.io'], 'discord' => ['job-boards.greenhouse.io'],
             'robinhood' => ['boards.greenhouse.io'], 'airbnb' => ['careers.airbnb.com'],
+            // Hire fully remote across EMEA or worldwide, or help with visas and relocation in Europe.
+            'automatticcareers' => ['job-boards.greenhouse.io'], 'elastic' => ['job-boards.greenhouse.io'], 'vercel' => ['job-boards.greenhouse.io'],
+            'getyourguide' => ['job-boards.greenhouse.io'], 'contentful' => ['job-boards.greenhouse.io'], 'adyen' => ['job-boards.greenhouse.io'],
+            'n26' => ['job-boards.greenhouse.io'], 'wolt' => ['job-boards.greenhouse.io'], 'celonis' => ['job-boards.greenhouse.io'],
         ];
         $lever = ['spotify' => 'Spotify', 'toptal' => 'Toptal', 'binance' => 'Binance'];
-        $ashby = ['ramp' => 'Ramp', 'notion' => 'Notion', 'linear' => 'Linear', 'posthog' => 'PostHog', 'supabase' => 'Supabase', 'zapier' => 'Zapier', 'replit' => 'Replit'];
+        $ashby = ['ramp' => 'Ramp', 'notion' => 'Notion', 'linear' => 'Linear', 'posthog' => 'PostHog', 'supabase' => 'Supabase', 'zapier' => 'Zapier', 'replit' => 'Replit',
+            'n8n' => 'n8n', 'resend' => 'Resend', 'sanity' => 'Sanity'];
+        $workable = ['huggingface' => 'Hugging Face'];
+        $recruitee = ['bunq' => 'bunq'];
 
         $sources = [];
         foreach ($greenhouse as $token => $domains) {
@@ -48,6 +55,34 @@ class ImportSourceSeeder extends Seeder
                 'url' => "https://api.ashbyhq.com/posting-api/job-board/{$token}?includeCompensation=true", 'allowed_domains' => ['api.ashbyhq.com', 'jobs.ashbyhq.com'],
                 'permission_notes' => self::BOARD_NOTE, 'settings' => ['employer_name' => $name, 'scope' => 'reachable', 'authoritative_employer' => true],
                 'request_delay_ms' => 1000, 'max_requests' => 20];
+        }
+        foreach ($workable as $token => $name) {
+            $sources[] = ['key' => 'workable-'.$token, 'name' => $name.' (Workable)', 'provider' => 'workable',
+                'url' => "https://apply.workable.com/api/v1/widget/accounts/{$token}?details=true", 'allowed_domains' => ['apply.workable.com'],
+                'permission_notes' => self::BOARD_NOTE, 'settings' => ['employer_name' => $name, 'scope' => 'reachable', 'authoritative_employer' => true],
+                'request_delay_ms' => 1000, 'max_requests' => 20];
+        }
+        foreach ($recruitee as $token => $name) {
+            $sources[] = ['key' => 'recruitee-'.$token, 'name' => $name.' (Recruitee)', 'provider' => 'recruitee',
+                'url' => "https://{$token}.recruitee.com/api/offers", 'allowed_domains' => ["{$token}.recruitee.com"],
+                'permission_notes' => self::BOARD_NOTE, 'settings' => ['employer_name' => $name, 'scope' => 'reachable', 'authoritative_employer' => true],
+                'request_delay_ms' => 1000, 'max_requests' => 20];
+        }
+        // Remote job boards feed the owner's job leads only; their listings never show on the public site.
+        $note = 'Remote job board read for private job leads only: listings are never published, shown to visitors or sent to other sites, and each lead links back to the board. Checked on 2026-10-25.';
+        $boards = [
+            ['himalayas', 'Himalayas', 'https://himalayas.app/jobs/api?limit=20', ['himalayas.app'], 6, 15, ['pages' => 10]],
+            ['remoteok', 'Remote OK', 'https://remoteok.com/api', ['remoteok.com'], 12, 3, []],
+            ['remotive', 'Remotive', 'https://remotive.com/api/remote-jobs?category=software-dev', ['remotive.com'], 24, 2, []],
+            ['wwr-full-stack', 'We Work Remotely: full-stack', 'https://weworkremotely.com/categories/remote-full-stack-programming-jobs.rss', ['weworkremotely.com'], 12, 2, []],
+            ['wwr-front-end', 'We Work Remotely: front-end', 'https://weworkremotely.com/categories/remote-front-end-programming-jobs.rss', ['weworkremotely.com'], 12, 2, []],
+            ['wwr-back-end', 'We Work Remotely: back-end', 'https://weworkremotely.com/categories/remote-back-end-programming-jobs.rss', ['weworkremotely.com'], 12, 2, []],
+            ['hn-who-is-hiring', 'Hacker News: Who is hiring', 'https://hn.algolia.com/api/v1/search_by_date?tags=story,author_whoishiring&hitsPerPage=5', ['hn.algolia.com', 'news.ycombinator.com'], 24, 4, []],
+        ];
+        foreach ($boards as [$key, $name, $url, $domains, $cadence, $requests, $settings]) {
+            $sources[] = ['key' => $key, 'name' => $name, 'provider' => explode('-', $key)[0], 'url' => $url,
+                'allowed_domains' => $domains, 'permission_notes' => $note, 'publication_mode' => 'leads', 'cadence_hours' => $cadence,
+                'settings' => $settings + ['scope' => 'all'], 'request_delay_ms' => 1500, 'max_requests' => $requests];
         }
         return $sources;
     }

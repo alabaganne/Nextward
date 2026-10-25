@@ -16,6 +16,7 @@ const states = computed(() => [
     { key: 'pending', label: 'Not read yet' },
     { key: 'published', label: 'Published' },
     { key: 'unmatched', label: 'No profile wants it' },
+    { key: 'lead', label: 'Job leads only' },
     { key: 'rejected', label: 'Rejected' },
     { key: 'closed', label: 'Closed' },
     { key: 'all', label: 'All' },

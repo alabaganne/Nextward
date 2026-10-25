@@ -12,22 +12,33 @@ class SourceReader
 {
     public function __construct(private SourceHttp $http) {}
 
+    // Job boards whose jobs only show in the owner's job leads, never on the public site (see publication_mode "leads").
+    public const BOARDS = ['himalayas', 'remoteok', 'remotive', 'wwr', 'hn'];
+    // Providers read from the saved list payload, so a listing gone from the list is gone from the board.
+    public const FROM_LIST = ['greenhouse', 'lever', 'ashby', 'workable', 'recruitee', ...self::BOARDS];
+
     public function discover(ImportSource $source): array
     {
+        if ($source->provider === 'himalayas') { return $this->himalayas($source); }
+        if ($source->provider === 'hn') { return $this->hackerNews($source); }
         $body = $this->http->get($source->url);
         if ($source->provider === 'jsonld') {
             return $this->sitemap($source, $body);
         }
-        $data = json_decode($body, true, 64, JSON_THROW_ON_ERROR);
+        $data = $source->provider === 'wwr' ? $this->rss($body) : json_decode($body, true, 64, JSON_THROW_ON_ERROR);
         $records = match ($source->provider) {
-            'greenhouse', 'ashby' => $data['jobs'] ?? null,
-            'lever' => array_is_list($data) ? $data : null,
+            'greenhouse', 'ashby', 'remotive' => $data['jobs'] ?? null,
+            'workable' => isset($data['jobs']) ? array_map(fn ($job) => $job + ['_employer' => $data['name'] ?? null], $data['jobs']) : null,
+            'recruitee' => $data['offers'] ?? null,
+            // The first Remote OK item is the API terms, not a job.
+            'remoteok' => array_is_list($data) ? array_values(array_filter($data, fn ($job) => isset($job['id'], $job['position']))) : null,
+            'lever', 'wwr' => array_is_list($data) ? $data : null,
             default => null,
         };
         if (! is_array($records)) {
             throw new RuntimeException('The provider response does not contain a complete job array.');
         }
-        $complete = true;
+        $complete = ! in_array($source->provider, self::BOARDS, true);
         if ($source->provider === 'lever') {
             // An unpaginated documented endpoint returns the whole board; reject user-limited URLs.
             parse_str(parse_url($source->url, PHP_URL_QUERY) ?: '', $query);
@@ -36,14 +47,19 @@ class SourceReader
         if ($source->provider === 'greenhouse' && isset($data['meta']['total'])) {
             $complete = count($records) === (int) $data['meta']['total'];
         }
+        return $this->items($source, $records, $complete);
+    }
+
+    private function items(ImportSource $source, array $records, bool $complete): array
+    {
         if (count($records) > config('importer.max_discoveries')) {
             throw new RuntimeException('The board exceeds the configured discovery limit.');
         }
         $items = [];
         foreach ($records as $record) {
             if ($source->provider === 'ashby' && ($record['isListed'] ?? true) === false) { continue; }
-            $url = $record['absolute_url'] ?? $record['hostedUrl'] ?? $record['jobUrl'] ?? null;
-            $id = $record['id'] ?? null;
+            $url = $record['absolute_url'] ?? $record['hostedUrl'] ?? $record['jobUrl'] ?? $record['careers_url'] ?? $record['guid'] ?? $record['link'] ?? $record['url'] ?? null;
+            $id = $record['shortcode'] ?? $record['id'] ?? $record['guid'] ?? $record['link'] ?? $record['objectID'] ?? null;
             if (! $url || $id === null) { $complete = false; continue; }
             try {
                 $this->http->validate($url);
@@ -53,7 +69,56 @@ class SourceReader
             }
             $items[] = ['external_id' => (string) $id, 'source_url' => $url, 'payload' => $record];
         }
-        return ['items' => $items, 'complete' => $complete, 'authoritative' => true];
+        return ['items' => $items, 'complete' => $complete, 'authoritative' => ! in_array($source->provider, self::BOARDS, true)];
+    }
+
+    // Himalayas lists the newest jobs first, 20 a page; a few pages per run cover what was posted since the last one.
+    private function himalayas(ImportSource $source): array
+    {
+        $records = []; $cursor = null;
+        for ($page = 0; $page < (int) ($source->settings['pages'] ?? 10); $page++) {
+            $data = json_decode($this->http->get($source->url.($cursor ? (str_contains($source->url, '?') ? '&' : '?').'cursor='.rawurlencode($cursor) : '')), true, 64, JSON_THROW_ON_ERROR);
+            $records = [...$records, ...($data['jobs'] ?? [])];
+            $cursor = $data['nextCursor'] ?? null;
+            if (! $cursor || ! ($data['jobs'] ?? [])) { break; }
+        }
+        return $this->items($source, $records, false);
+    }
+
+    // The latest "Ask HN: Who is hiring?" thread; each top-level comment is one company.
+    private function hackerNews(ImportSource $source): array
+    {
+        $stories = json_decode($this->http->get($source->url), true, 64, JSON_THROW_ON_ERROR)['hits'] ?? [];
+        $story = collect($stories)->first(fn ($hit) => str_starts_with((string) ($hit['title'] ?? ''), 'Ask HN: Who is hiring'));
+        if (! $story) { throw new RuntimeException('No "Who is hiring" thread was found.'); }
+        $id = (int) $story['objectID'];
+        $comments = json_decode($this->http->get('https://hn.algolia.com/api/v1/search_by_date?tags=comment,story_'.$id.'&hitsPerPage=1000'), true, 64, JSON_THROW_ON_ERROR)['hits'] ?? [];
+        $records = [];
+        foreach ($comments as $comment) {
+            if ((int) ($comment['parent_id'] ?? 0) !== $id || empty($comment['comment_text'])) { continue; }
+            $first = trim(html_entity_decode(strip_tags(preg_split('~<p>~i', $comment['comment_text'])[0]), ENT_QUOTES | ENT_HTML5));
+            $records[] = array_merge($comment, ['title' => $first, 'url' => 'https://news.ycombinator.com/item?id='.$comment['objectID']]);
+        }
+        return $this->items($source, $records, false);
+    }
+
+    private function rss(string $body): array
+    {
+        if (preg_match('/<!DOCTYPE|<!ENTITY/i', $body)) { throw new RuntimeException('External XML declarations are not accepted.'); }
+        $document = new DOMDocument();
+        $previous = libxml_use_internal_errors(true);
+        $loaded = $document->loadXML($body, LIBXML_NONET);
+        libxml_clear_errors(); libxml_use_internal_errors($previous);
+        if (! $loaded) { throw new RuntimeException('The feed is not valid RSS.'); }
+        $items = [];
+        foreach ((new DOMXPath($document))->query('//item') as $node) {
+            $item = [];
+            foreach ($node->childNodes as $child) {
+                if ($child->nodeType === XML_ELEMENT_NODE) { $item[$child->localName] = trim($child->textContent); }
+            }
+            $items[] = $item;
+        }
+        return $items;
     }
 
     private function sitemap(ImportSource $source, string $initial): array
@@ -187,6 +252,86 @@ class SourceReader
                 'application_url' => $data['applyUrl'] ?? $item->source_url,
             ];
         }
+        if ($source->provider === 'workable') {
+            return [
+                'title' => $data['title'] ?? '', 'description' => $data['description'] ?? '',
+                'employer' => $source->settings['employer_name'] ?? $data['_employer'] ?? $source->company?->display_name,
+                'posted_at' => $data['published_on'] ?? $data['created_at'] ?? null,
+                'location' => implode(', ', array_filter([$data['city'] ?? null, $data['state'] ?? null, $data['country'] ?? null])) ?: null,
+                'locations' => array_map(fn ($place) => ['address' => array_filter(['addressLocality' => $place['city'] ?? null,
+                    'addressRegion' => $place['region'] ?? null, 'addressCountry' => $place['countryCode'] ?? $place['country'] ?? null])], $data['locations'] ?? []),
+                'work_type' => ($data['telecommuting'] ?? false) ? 'remote' : null,
+                'employment_types' => [$data['employment_type'] ?? ''],
+                'application_url' => $data['application_url'] ?? $data['url'] ?? $item->source_url,
+            ];
+        }
+        if ($source->provider === 'recruitee') {
+            return [
+                'title' => $data['title'] ?? '', 'description' => ($data['description'] ?? '')."\n".($data['requirements'] ?? ''),
+                'employer' => $data['company_name'] ?? $source->settings['employer_name'] ?? $source->company?->display_name,
+                'posted_at' => $data['published_at'] ?? $data['created_at'] ?? null,
+                'location' => $data['location'] ?? null, 'country_code' => $data['country_code'] ?? null,
+                'work_type' => ! empty($data['remote']) ? 'remote' : (! empty($data['hybrid']) ? 'hybrid' : (! empty($data['on_site']) ? 'onsite' : null)),
+                'employment_types' => [$data['employment_type_code'] ?? ''],
+                'application_url' => $data['careers_apply_url'] ?? $data['careers_url'] ?? $item->source_url,
+            ];
+        }
+        // Remote boards: every job is remote. Their "worldwide" or "all countries" label is a default, not the employer's
+        // word, so only a real place limit is kept; who can apply comes from the employer's text.
+        $limit = fn ($place) => is_string($place) && trim($place) !== '' && ! preg_match('/\b(?:worldwide|anywhere|global|all countries|any country)\b/i', $place) ? trim($place) : null;
+        if ($source->provider === 'himalayas') {
+            $places = array_values(array_filter((array) ($data['locationRestrictions'] ?? []), 'is_string'));
+            return [
+                'title' => $data['title'] ?? '', 'description' => $data['description'] ?? '', 'employer' => $data['companyName'] ?? null,
+                'posted_at' => isset($data['pubDate']) ? gmdate('c', (int) $data['pubDate']) : null,
+                'expires_at' => isset($data['expiryDate']) ? gmdate('c', (int) $data['expiryDate']) : null,
+                'location' => $places ? implode(', ', $places) : null, 'applicant_locations' => $places,
+                'work_type' => 'remote', 'employment_types' => [$data['employmentType'] ?? ''],
+                'application_url' => $data['applicationLink'] ?? $item->source_url,
+            ];
+        }
+        if ($source->provider === 'remoteok') {
+            return [
+                'title' => $data['position'] ?? '', 'description' => $data['description'] ?? '', 'employer' => $data['company'] ?? null,
+                'posted_at' => $data['date'] ?? null, 'location' => $limit($data['location'] ?? null), 'work_type' => 'remote',
+                'application_url' => $data['apply_url'] ?? $data['url'] ?? $item->source_url,
+                'salary' => ! empty($data['salary_max']) ? ['currency' => 'USD', 'value' => ['minValue' => $data['salary_min'] ?? null, 'maxValue' => $data['salary_max'], 'unitText' => 'YEAR']] : null,
+            ];
+        }
+        if ($source->provider === 'remotive') {
+            return [
+                'title' => $data['title'] ?? '', 'description' => $data['description'] ?? '', 'employer' => $data['company_name'] ?? null,
+                'posted_at' => isset($data['publication_date']) ? $data['publication_date'].'Z' : null,
+                'location' => $limit($data['candidate_required_location'] ?? null), 'work_type' => 'remote',
+                'employment_types' => [str_replace('_', ' ', (string) ($data['job_type'] ?? ''))],
+                'application_url' => $data['url'] ?? $item->source_url,
+            ];
+        }
+        if ($source->provider === 'wwr') {
+            [$employer, $title] = array_pad(explode(': ', (string) ($data['title'] ?? ''), 2), 2, '');
+            return [
+                'title' => $title, 'description' => $data['description'] ?? '', 'employer' => $employer,
+                'posted_at' => $data['pubDate'] ?? null, 'expires_at' => $data['expires_at'] ?? null,
+                'location' => $limit($data['region'] ?? null), 'work_type' => 'remote', 'employment_types' => [$data['type'] ?? ''],
+                'application_url' => $data['link'] ?? $item->source_url,
+            ];
+        }
+        if ($source->provider === 'hn') {
+            // "Acme | Senior Frontend Engineer | Remote (EU) | Full-time | https://acme.com/jobs"
+            $parts = array_values(array_filter(array_map('trim', explode('|', (string) ($data['title'] ?? '')))));
+            $role = collect($parts)->slice(1)->first(fn ($part) => preg_match('/engineer|developer|programmer|designer|scientist|architect|devops|sre|lead|cto|full.?stack|front.?end|back.?end/i', $part)) ?? ($parts[1] ?? '');
+            $places = array_filter($parts, fn ($part) => preg_match('/remote|on.?site|hybrid|in.office/i', $part));
+            $text = (string) ($data['comment_text'] ?? '');
+            preg_match_all('~https?://[^\s"<>]+~', html_entity_decode($text), $links);
+            $links = array_map(fn ($link) => rtrim($link, '.,);'), $links[0]);
+            $apply = collect($links)->first(fn ($link) => JobKey::ats($link)) ?? $links[0] ?? $item->source_url;
+            return [
+                'title' => $role, 'description' => $text, 'employer' => preg_replace('~\s*\(?https?://\S+\)?~', '', $parts[0] ?? ''),
+                'posted_at' => $data['created_at'] ?? null, 'location' => $limit(implode(', ', $places)),
+                'work_type' => preg_grep('/remote/i', $places) ? 'remote' : (preg_grep('/hybrid/i', $places) ? 'hybrid' : ($places ? 'onsite' : null)),
+                'application_url' => $apply,
+            ];
+        }
         throw new RuntimeException('Unsupported provider.');
     }
 
@@ -194,7 +339,7 @@ class SourceReader
     public function saved(ImportSource $source, OpportunitySource $item): ?array
     {
         $saved = $item->payload && match ($source->provider) {
-            'greenhouse' => isset($item->payload['content']), 'lever', 'ashby' => true, default => false,
+            'greenhouse' => isset($item->payload['content']), 'jsonld' => false, default => in_array($source->provider, self::FROM_LIST, true),
         };
         return $saved ? $this->read($source, $item) : null;
     }

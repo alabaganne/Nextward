@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Importing\OpportunityImporter;
 use App\Importing\SourceHttp;
+use App\Importing\SourceReader;
 use App\Jobs\ImportOpportunitySource;
 use App\Models\Company;
 use App\Models\ImportRun;
@@ -35,7 +36,7 @@ class ImportAdminController extends Controller
     {
         $filters = $request->validate([
             'source_id' => 'nullable|integer|exists:import_sources,id',
-            'state' => 'nullable|in:all,pending,review,unmatched,published,closed,rejected',
+            'state' => 'nullable|in:all,pending,review,unmatched,lead,published,closed,rejected',
             'page' => 'nullable|integer|min:1|max:10000',
         ]);
         $filters['state'] ??= 'review';
@@ -144,13 +145,13 @@ class ImportAdminController extends Controller
         $data = $request->validate([
             'key' => ['required', 'string', 'max:120', 'regex:/^[a-z0-9][a-z0-9_-]*$/', Rule::unique('import_sources')->ignore($source?->id)],
             'name' => 'required|string|max:255',
-            'provider' => 'required|in:jsonld,greenhouse,lever,ashby',
+            'provider' => 'required|in:jsonld,greenhouse,lever,ashby,workable,recruitee,himalayas,remoteok,remotive,wwr,hn',
             'url' => 'required|url:http,https|max:2048',
             'allowed_domains' => 'required|array|min:1|max:20',
             'allowed_domains.*' => 'required|string|max:253|regex:/^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?\.[a-z]{2,}$/',
             'permission_status' => 'required|in:pending,approved,revoked',
             'permission_notes' => 'nullable|required_if:permission_status,approved|string|min:20|max:10000',
-            'publication_mode' => 'required|in:review,automatic',
+            'publication_mode' => 'required|in:review,automatic,leads',
             'enabled' => 'required|boolean',
             'company_id' => 'nullable|integer|exists:companies,id',
             'cadence_hours' => 'required|integer|min:1|max:168',
@@ -163,8 +164,12 @@ class ImportAdminController extends Controller
             'settings.scope' => 'nullable|in:all,reachable',
             'settings.freshness_hours' => 'nullable|integer|min:24|max:2160',
             'settings.curated_snapshot' => 'nullable|boolean',
+            'settings.pages' => 'nullable|integer|min:1|max:50',
         ]);
-        $data['settings'] = collect($data['settings'] ?? [])->only(['employer_name', 'job_path_prefix', 'authoritative_employer', 'scope', 'freshness_hours', 'curated_snapshot'])->all();
+        $data['settings'] = collect($data['settings'] ?? [])->only(['employer_name', 'job_path_prefix', 'authoritative_employer', 'scope', 'freshness_hours', 'curated_snapshot', 'pages'])->all();
+        if (in_array($data['provider'], SourceReader::BOARDS, true) && $data['publication_mode'] !== 'leads') {
+            throw ValidationException::withMessages(['publication_mode' => 'Remote job boards only feed job leads; their listings are never published.']);
+        }
         if ($source && ($source->url !== $data['url'] || $source->provider !== $data['provider'] || $source->allowed_domains !== $data['allowed_domains']) && $data['permission_status'] === 'approved' && $source->permission_notes === $data['permission_notes']) {
             throw ValidationException::withMessages(['permission_notes' => 'Record a fresh permission review when changing the source URL, provider, or allowed domains.']);
         }

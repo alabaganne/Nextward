@@ -72,7 +72,7 @@ class JobKey
                 'greenhouse' => 'https://job-boards.greenhouse.io/'.$ats['slug'].'/jobs/'.$ats['id'],
                 'lever' => 'https://jobs.lever.co/'.$ats['slug'].'/'.$ats['id'],
                 'ashby' => 'https://jobs.ashbyhq.com/'.$ats['slug'].'/'.$ats['id'],
-                'workable' => 'https://apply.workable.com/'.$ats['slug'].'/j/'.$ats['id'],
+                'workable' => 'https://apply.workable.com/'.($ats['slug'] !== '' ? $ats['slug'].'/' : '').'j/'.$ats['id'],
                 'recruitee' => 'https://'.$ats['slug'].'.recruitee.com/o/'.$ats['id'],
             };
         }
@@ -89,7 +89,7 @@ class JobKey
             'greenhouse-api' => '~boards-api\.greenhouse\.io/v1/boards/([\w-]+)/jobs/(\d+)~i',
             'lever' => '~jobs\.(?:eu\.)?lever\.co/([\w.-]+)/([0-9a-f]{8}-[0-9a-f-]{27})~i',
             'ashby' => '~jobs\.ashbyhq\.com/([^/?#]+)/([0-9a-f]{8}-[0-9a-f-]{27})~i',
-            'workable' => '~apply\.workable\.com/([\w-]+)/j/([A-Z0-9]+)~i',
+            'workable' => '~apply\.workable\.com/(?:(?!j/)([\w-]+)/)?j/([A-Z0-9]+)~i',
             'recruitee' => '~([\w-]+)\.recruitee\.com/o/([\w-]+)~i',
         ];
         foreach ($patterns as $provider => $pattern) {
@@ -110,6 +110,19 @@ class JobKey
             'workable' => 'https://apply.workable.com/api/v1/widget/accounts/'.$slug.'?details=true',
             'recruitee' => 'https://'.$slug.'.recruitee.com/api/offers',
             default => null,
+        };
+    }
+
+    // The hosts an import source for that board may read.
+    public static function boardDomains(string $provider, string $slug): array
+    {
+        return match ($provider) {
+            'greenhouse' => ['boards-api.greenhouse.io', 'job-boards.greenhouse.io', 'boards.greenhouse.io'],
+            'lever' => ['api.lever.co', 'jobs.lever.co'],
+            'ashby' => ['api.ashbyhq.com', 'jobs.ashbyhq.com'],
+            'workable' => ['apply.workable.com'],
+            'recruitee' => [$slug.'.recruitee.com'],
+            default => [],
         };
     }
 

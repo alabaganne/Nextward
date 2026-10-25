@@ -2,7 +2,7 @@
 
 Unfinished work, small fixes and chores that are not on the roadmap (`FUTURE_PLANS.md`).
 
-## Match imports to the owner's job search (do on 25 October 2026)
+## Match imports to the owner's job search (done 25 October 2026)
 
 Update `CandidateProfiles` and the resume profile so imports favour the roles the owner would actually take. Today a profile only checks kind, level, field, skills and a plain country list; it doesn't know about visas or remote from Tunisia.
 
@@ -17,6 +17,8 @@ To do:
 - Let `opportunities:profile` save these preferences (`--wants` text or new options) and set them on the owner's resume profile.
 - Add sources for US and European employers that sponsor visas or hire fully remote worldwide (Greenhouse, Lever and Ashby boards), and point source discovery at them.
 - Tests for the new place and visa rules, then update `AGENTS.md` ("Profiles decide what is added") and `README.md`.
+
+Done: `needs_visa` and countries on profiles (`opportunities:profile --countries= --needs-visa`, rule in `App\Leads\Eligibility`), Workable and Recruitee boards plus 14 new employer boards in `ImportSourceSeeder`, and source discovery can suggest Workable and Recruitee boards.
 
 ## Finish resumes, themes and credits (done)
 

@@ -103,7 +103,7 @@ class OpportunityImporter
             $cycle = $source->last_discovered_at;
             // These providers are read from the saved list payload, so only items still on the board are current.
             $items = $source->items()->where('state', '!=', 'rejected')
-            ->when(in_array($source->provider, ['greenhouse', 'lever', 'ashby'], true), fn ($q) => $q->where('last_discovered_at', '>=', $cycle))
+            ->when(in_array($source->provider, SourceReader::FROM_LIST, true), fn ($q) => $q->where('last_discovered_at', '>=', $cycle))
             ->when($onlyNew, fn ($query) => $query->where(fn ($query) => $query->whereNull('last_verified_at')->orWhere('state', 'unmatched')), fn ($query) => $query->where(function ($query) use ($refreshBefore, $refreshOperator, $recheck) {
                 $query->whereNull('last_verified_at')->orWhere('state', 'pending');
                 $query->orWhere('last_verified_at', $refreshOperator, $recheck ? now()->addSecond() : $refreshBefore);
@@ -111,12 +111,18 @@ class OpportunityImporter
                 $query->where('state', '!=', 'closed')->orWhere('last_discovered_at', '>=', $cycle);
             })->orderByRaw('CASE WHEN last_verified_at IS NULL THEN 0 ELSE 1 END')->orderBy('last_verified_at')->orderBy('id');
             // A board title outside the scope is rejected before any page is read; a URL slug alone is not enough to reject.
-            $outOfScope = [];
-            $items = $focus || $scopeTitle
-                ? $items->cursor()->filter(function ($item) use ($focus, $scopeTitle, &$outOfScope) {
+            $outOfScope = []; $notWanted = [];
+            // Job board listings for job leads are only read when the title is a role the owner looks for.
+            $leadTitles = $source->publication_mode === 'leads' ? config('leads.board_titles') : null;
+            $items = $focus || $scopeTitle || $leadTitles
+                ? $items->cursor()->filter(function ($item) use ($focus, $scopeTitle, $leadTitles, &$outOfScope, &$notWanted) {
                     $title = $this->focusTitle($item, slug: false);
                     if ($scopeTitle && ! $item->opportunity_id && $title !== null && ! preg_match($scopeTitle, $title)) {
                         $outOfScope[] = $item->id;
+                        return false;
+                    }
+                    if ($leadTitles && $item->state === 'pending' && $title !== null && ! preg_match($leadTitles, ImportFocus::title($title))) {
+                        $notWanted[] = $item->id;
                         return false;
                     }
                     return ! $focus || preg_match($focus, $this->focusTitle($item));
@@ -126,6 +132,8 @@ class OpportunityImporter
                 OpportunitySource::whereIn('id', $outOfScope)->update(['state' => 'rejected', 'error' => 'Outside IT scope.']);
             }
             $stats['rejected'] += count($outOfScope);
+            if ($notWanted) { OpportunitySource::whereIn('id', $notWanted)->update(['state' => 'rejected', 'error' => 'Not a role the job leads look for.']); }
+            $stats['rejected'] += count($notWanted);
 
             $newIds = [];
             // Listings that pass the cheap checks wait here so the AI can read them in one batch.
@@ -139,9 +147,14 @@ class OpportunityImporter
                 if (microtime(true) > $deadline || $http->requests >= $source->max_requests - 2 || ($maxNew && count($newIds) >= $maxNew)) { break; }
                 try {
                     $data = $normalizer->normalize($reader->read($source, $item));
-                    $item->update(['normalized_data' => $data, 'last_verified_at' => now(), 'error' => null, 'application_url' => $data['application_url']]);
+                    if ($source->publication_mode === 'leads') { $data = $this->employerAts($source, $item, $data); }
+                    $item->update(['normalized_data' => $data, 'last_verified_at' => now(), 'error' => null, 'application_url' => $data['application_url'],
+                        'url_key' => JobKey::url($data['ats_url'] ?? $item->source_url)]);
                     $stats['processed']++;
-                    if ($this->expired($data)) {
+                    if ($source->publication_mode === 'leads' && $item->state === 'pending' && $this->olderThan($data, $item, config('leads.board_max_age_days'))) {
+                        $item->update(['state' => 'rejected', 'error' => 'Posted more than '.config('leads.board_max_age_days').' days ago.']);
+                        $stats['rejected']++;
+                    } elseif ($this->expired($data)) {
                         $this->closeSource($item);
                         $stats['closed']++;
                     } elseif (! $item->opportunity_id && ($reason = $this->skipReason($source, $item, $data))) {
@@ -251,6 +264,8 @@ class OpportunityImporter
                 } elseif ($profiles && ! $item->opportunity_id && ! $profiles->wants($data, $this->fieldName($data), $data['skills'] ?? (new OpportunityNormalizer())->skills($data['title'], $data['description']))) {
                     $item->update(['state' => 'unmatched', 'error' => 'No candidate profile wants it.']);
                     $stats['rejected']++;
+                } elseif ($source->publication_mode === 'leads') {
+                    $item->update(['state' => 'lead', 'error' => null]);
                 } elseif ($source->publication_mode === 'automatic' || $item->opportunity_id) {
                     $role = $this->publish($item);
                     if ($role->wasRecentlyCreated) { $newIds[] = $role->id; }
@@ -273,6 +288,7 @@ class OpportunityImporter
         if (! $source->isApproved() || ! $item->normalized_data || ! $item->last_verified_at || $item->last_verified_at->lt(now()->subHours($source->freshnessHours()))) {
             throw new RuntimeException('Publishing requires an approved source and recently verified content.');
         }
+        if ($source->publication_mode === 'leads') { throw new RuntimeException('Job board listings only show in job leads.'); }
         $data = $item->normalized_data;
         if ($this->expired($data)) { throw new RuntimeException('This opportunity has expired.'); }
         return DB::transaction(function () use ($item, $source, $data) {
@@ -457,7 +473,7 @@ class OpportunityImporter
     // The title known before any page is fetched: board payloads carry it, and board job URLs end with a title slug.
     private function focusTitle(OpportunitySource $item, bool $slug = true): ?string
     {
-        $title = $item->payload['title'] ?? $item->payload['text'] ?? ($slug ? rawurldecode((string) parse_url($item->source_url, PHP_URL_PATH)) : null);
+        $title = $item->payload['title'] ?? $item->payload['text'] ?? $item->payload['position'] ?? ($slug ? rawurldecode((string) parse_url($item->source_url, PHP_URL_PATH)) : null);
         return $title === null ? null : ImportFocus::title((string) $title);
     }
 
@@ -465,6 +481,31 @@ class OpportunityImporter
     {
         $posted = ! empty($data['posted_at']) ? Carbon::parse($data['posted_at']) : $item->first_seen_at;
         return $posted !== null && $posted->lt(now()->subDays($days));
+    }
+
+    // A job board listing that links to the employer's own ATS (Greenhouse, Lever, Ashby, Workable, Recruitee) keeps that
+    // link, and the employer board is saved as a pending source for an admin to approve.
+    private function employerAts(ImportSource $source, OpportunitySource $item, array $data): array
+    {
+        preg_match_all('~https?:(?:\\\\?/){2}[^\s"\'<>]+~', json_encode($item->payload, JSON_UNESCAPED_SLASHES) ?: '', $links);
+        $links = array_map(fn ($link) => stripslashes(html_entity_decode($link)), [$data['application_url'], ...$links[0]]);
+        foreach ($links as $link) {
+            if (! ($ats = JobKey::ats($link))) { continue; }
+            $data['ats_url'] = JobKey::url($link);
+            $board = $ats['slug'] !== '' ? JobKey::boardUrl($ats['provider'], $ats['slug']) : null;
+            $key = $ats['provider'].'-'.Str::slug($ats['slug']);
+            if ($board && ! ImportSource::where('key', $key)->orWhere('url', $board)->exists()) {
+                ImportSource::create([
+                    'key' => $key, 'name' => $data['employer'].' ('.ucfirst($ats['provider']).')', 'provider' => $ats['provider'], 'url' => $board,
+                    'allowed_domains' => JobKey::boardDomains($ats['provider'], $ats['slug']), 'permission_status' => 'pending', 'enabled' => false,
+                    'permission_notes' => 'Found through a '.$source->name.' listing on '.now()->toDateString().'. Check the board before approving.',
+                    'publication_mode' => 'automatic', 'settings' => ['scope' => 'reachable', 'authoritative_employer' => true] + ($ats['provider'] === 'greenhouse' ? [] : ['employer_name' => $data['employer']]),
+                    'cadence_hours' => 24, 'request_delay_ms' => 1000, 'max_requests' => 20,
+                ]);
+            }
+            break;
+        }
+        return $data;
     }
 
     // Returns why a newly found listing is not imported, or null when it should be.

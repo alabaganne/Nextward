@@ -16,6 +16,8 @@ class SourceDiscovery
         'greenhouse' => 'https://boards-api.greenhouse.io/v1/boards/%s/jobs',
         'lever' => 'https://api.lever.co/v0/postings/%s?mode=json',
         'ashby' => 'https://api.ashbyhq.com/posting-api/job-board/%s',
+        'workable' => 'https://apply.workable.com/api/v1/widget/accounts/%s?details=true',
+        'recruitee' => 'https://%s.recruitee.com/api/offers',
     ];
 
     public array $usage = ['input_tokens' => 0, 'output_tokens' => 0, 'web_searches' => 0];
@@ -82,11 +84,11 @@ class SourceDiscovery
             $settings = ['scope' => 'all', 'job_path_prefix' => $this->prefix($input['job_path_prefix'] ?? '')];
         } else {
             $data = json_decode($body, true);
-            $records = $provider === 'lever' ? $data : ($data['jobs'] ?? null);
+            $records = match ($provider) { 'lever' => $data, 'recruitee' => $data['offers'] ?? null, default => $data['jobs'] ?? null };
             if (! is_array($records)) { return ['skipped', $name, 'Rejected: the board answer is not a job list.']; }
             $jobs = count($records);
             if ($jobs === 0) { return ['skipped', $name, 'Rejected: the board has no open jobs right now.']; }
-            $links = array_filter(array_map(fn ($job) => parse_url($job['absolute_url'] ?? $job['hostedUrl'] ?? $job['jobUrl'] ?? '', PHP_URL_HOST), $records));
+            $links = array_filter(array_map(fn ($job) => parse_url($job['absolute_url'] ?? $job['hostedUrl'] ?? $job['jobUrl'] ?? $job['careers_url'] ?? $job['url'] ?? '', PHP_URL_HOST), $records));
             $domains = array_values(array_unique([$apiHost, ...$links]));
             $settings = ['scope' => 'reachable', 'authoritative_employer' => true] + ($provider === 'greenhouse' ? [] : ['employer_name' => $company]);
             $url = $provider === 'greenhouse' ? $url.'?content=true' : $url;
@@ -114,7 +116,7 @@ class SourceDiscovery
 Find up to {$max} new places where Nextward can read IT jobs and internships abroad: software engineering, web and mobile development, and data science and AI.
 
 Good finds:
-- Companies that hire for these roles remotely worldwide, or in Europe, North America, the Gulf or Asia with relocation or visa help, and publish their jobs on Greenhouse, Lever or Ashby. Give the board token from the board URL: boards.greenhouse.io/<token>, job-boards.greenhouse.io/<token>, jobs.lever.co/<token>, or jobs.ashbyhq.com/<token>.
+- Companies that hire for these roles remotely worldwide, or in Europe, North America, the Gulf or Asia with relocation or visa help, and publish their jobs on Greenhouse, Lever, Ashby, Workable or Recruitee. Give the board token from the board URL: boards.greenhouse.io/<token>, job-boards.greenhouse.io/<token>, jobs.lever.co/<token>, jobs.ashbyhq.com/<token>, apply.workable.com/<token> or <token>.recruitee.com.
 - Employer career sites outside Tunisia whose job pages carry JobPosting structured data. Give the https URL of the sitemap that lists the job pages, and the path that every job page starts with (for example /jobs/).
 
 Do not suggest Tunisian job sites or sites on a .tn domain.

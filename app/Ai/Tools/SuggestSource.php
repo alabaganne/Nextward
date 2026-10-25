@@ -37,8 +37,8 @@ class SuggestSource implements Tool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'provider' => $schema->string()->enum(['greenhouse', 'lever', 'ashby', 'sitemap'])->required(),
-            'board' => $schema->string()->description('Board token for Greenhouse, Lever or Ashby; full https sitemap URL for a sitemap.')->required(),
+            'provider' => $schema->string()->enum(['greenhouse', 'lever', 'ashby', 'workable', 'recruitee', 'sitemap'])->required(),
+            'board' => $schema->string()->description('Board token for Greenhouse, Lever, Ashby, Workable or Recruitee; full https sitemap URL for a sitemap.')->required(),
             'company' => $schema->string()->description('Employer or site name.')->required(),
             'job_path_prefix' => $schema->string()->description('For a sitemap, the path every job page starts with, such as /jobs/. Empty for job boards.')->required(),
             'why' => $schema->string()->description('One sentence: where they hire and what developer roles they list.')->required(),
