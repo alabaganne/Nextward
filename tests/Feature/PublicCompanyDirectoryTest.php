@@ -30,7 +30,7 @@ class PublicCompanyDirectoryTest extends TestCase
         $this->field = Field::create(['name' => 'Web Development']);
     }
 
-    public function test_guests_see_companies_hiring_now_with_their_latest_roles()
+    public function test_guests_see_companies_hiring_now_with_their_open_role_counts()
     {
         $atlas = Company::create(['name' => 'Atlas Cloud', 'city_id' => $this->city->id]);
         foreach (['First role', 'Second role', 'Third role', 'Fourth role'] as $title) {
@@ -46,7 +46,6 @@ class PublicCompanyDirectoryTest extends TestCase
             ->where('companies.data.0.name', 'Atlas Cloud')
             ->where('companies.data.0.location', 'Tunis')
             ->where('companies.data.0.open_roles_count', 4)
-            ->has('companies.data.0.roles', 3)
             ->where('companies.data.0.url', $atlas->publicUrl())
             ->where('seo.robots', 'index, follow, max-image-preview:large'));
 
@@ -57,7 +56,7 @@ class PublicCompanyDirectoryTest extends TestCase
             ->where('seo.robots', 'noindex, follow'));
     }
 
-    public function test_cards_and_company_pages_show_job_counts_the_description_and_hiring_facts()
+    public function test_cards_show_the_description_and_company_pages_show_hiring_facts()
     {
         $atlas = Company::create(['name' => 'Atlas Cloud', 'city_id' => $this->city->id, 'about' => 'Atlas Cloud builds hosting tools for small teams.', 'website' => 'https://www.atlas.example']);
         $atlas->forceFill(['stage' => 'startup', 'size' => '51-200', 'founded_year' => 2018, 'careers_url' => 'https://www.atlas.example/careers', 'verified_at' => now()])->save();
@@ -69,8 +68,7 @@ class PublicCompanyDirectoryTest extends TestCase
         Company::create(['name' => 'Quiet Labs']);
 
         $this->get('/companies?show=all')->assertOk()->assertInertia(fn (Assert $page) => $page
-            ->where('companies.data.0.open_jobs_count', 2)
-            ->where('companies.data.0.open_internships_count', 1)
+            ->where('companies.data.0.open_roles_count', 3)
             ->where('companies.data.0.about', 'Atlas Cloud builds hosting tools for small teams.')
             ->where('companies.data.1.about', null));
 
@@ -103,12 +101,11 @@ class PublicCompanyDirectoryTest extends TestCase
     public function test_the_french_directory_links_to_french_pages()
     {
         $company = Company::create(['name' => 'Atlas Cloud']);
-        $role = $this->opportunity($company, 'Backend intern');
+        $this->opportunity($company, 'Backend intern');
 
         $this->get('/fr/companies')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('Companies/Directory')
-            ->where('companies.data.0.url', $company->publicUrl('fr'))
-            ->where('companies.data.0.roles.0.url', $role->publicUrl('fr')));
+            ->where('companies.data.0.url', $company->publicUrl('fr')));
     }
 
     public function test_signed_in_users_get_the_public_directory_and_the_workspace_list_under_app()

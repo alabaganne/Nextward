@@ -12,8 +12,7 @@ const text = (en, french) => fr.value ? french : en;
 // The workspace links to its own pages; the public site to the public ones.
 const link = (url) => isAppPath(page.url) ? appPath(url) : sitePath(url);
 const href = computed(() => props.company.href || link(props.company.url));
-const jobs = computed(() => props.company.open_jobs_count ?? 0);
-const internships = computed(() => props.company.open_internships_count ?? 0);
+const count = computed(() => props.company.open_roles_count || 0);
 const details = computed(() => [
     props.company.location,
     { startup: text('Startup', 'Start-up'), established: text('Established', 'Établie') }[props.company.stage],
@@ -36,29 +35,12 @@ const details = computed(() => [
             </div>
         </div>
 
-        <p v-if="company.about" class="mt-3.5 text-[13.5px] leading-6 text-slate-600 line-clamp-3" dir="auto">{{ company.about }}</p>
-        <p v-else class="mt-3.5 text-[13.5px] leading-6 text-slate-400">{{ text('No description yet.', 'Pas encore de description.') }}</p>
+        <p v-if="company.about" class="mt-4 text-sm leading-6 text-slate-600 line-clamp-3" dir="auto">{{ company.about }}</p>
+        <p v-else class="mt-4 text-sm leading-6 text-slate-400">{{ text('No description yet.', 'Pas encore de description.') }}</p>
 
-        <dl class="mt-4 grid grid-cols-2 gap-2">
-            <div class="rounded-xl px-3 py-2.5" :class="jobs ? 'bg-[#EEF4FF]' : 'bg-paper-2'">
-                <dt class="text-xs font-semibold" :class="jobs ? 'text-blue-700' : 'text-slate-500'">{{ text('Jobs', 'Emplois') }}</dt>
-                <dd class="font-display text-[22px] font-semibold leading-tight" :class="jobs ? 'text-navy-900' : 'text-slate-400'">{{ jobs }}</dd>
-            </div>
-            <div class="rounded-xl px-3 py-2.5" :class="internships ? 'bg-[#EEF4FF]' : 'bg-paper-2'">
-                <dt class="text-xs font-semibold" :class="internships ? 'text-blue-700' : 'text-slate-500'">{{ text('Internships', 'Stages') }}</dt>
-                <dd class="font-display text-[22px] font-semibold leading-tight" :class="internships ? 'text-navy-900' : 'text-slate-400'">{{ internships }}</dd>
-            </div>
-        </dl>
-
-        <ul v-if="company.roles?.length" class="mt-4 space-y-2 text-sm" :aria-label="text(`Latest roles at ${company.name}`, `Dernières offres chez ${company.name}`)">
-            <li v-for="role in company.roles" :key="role.id" class="flex items-baseline gap-2 min-w-0">
-                <span class="shrink-0 rounded-md bg-paper-2 px-1.5 py-0.5 text-[11px] font-semibold text-ink-700">{{ role.kind === 'job' ? text('Job', 'Emploi') : text('Internship', 'Stage') }}</span>
-                <Link :href="link(role.url)" class="truncate text-ink-700 hover:text-blue-700" :title="role.title">{{ role.title }}</Link>
-            </li>
-        </ul>
         <div class="mt-auto pt-4">
-            <Link :href="href" class="flex items-center justify-between gap-3 border-t border-line pt-4 text-sm font-semibold" :class="jobs + internships ? 'text-blue-700' : 'text-slate-500'">
-                {{ jobs + internships ? text('View company and roles', 'Voir l’entreprise et ses offres') : text('No open roles right now', 'Aucune offre ouverte') }}<span class="sr-only"> {{ text('at', 'chez') }} {{ company.name }}</span>
+            <Link :href="href" class="flex items-center justify-between gap-3 border-t border-line pt-4 text-sm font-semibold" :class="count ? 'text-blue-700' : 'text-slate-500'">
+                <span>{{ count ? text(`${count} open ${count === 1 ? 'role' : 'roles'}`, `${count} ${count === 1 ? 'offre ouverte' : 'offres ouvertes'}`) : text('No open roles right now', 'Aucune offre ouverte') }}<span class="sr-only"> {{ text('at', 'chez') }} {{ company.name }}</span></span>
                 <ArrowRight :size="16" aria-hidden="true" />
             </Link>
         </div>

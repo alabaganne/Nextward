@@ -41,7 +41,7 @@ class CompanyController extends Controller
                         ->orWhereHas('user', fn ($query) => $query->where('name', 'like', $term))
                         ->orWhereHas('city', fn ($query) => $query->where('name', 'like', $term)));
                 })
-                ->when($filters['hiring'] ?? false, fn ($query) => $query->whereHas('opportunities', fn ($query) => $query->available())), null, 3)
+                ->when($filters['hiring'] ?? false, fn ($query) => $query->whereHas('opportunities', fn ($query) => $query->available())))
                 ->paginate(12)
                 ->withQueryString()
                 ->through(fn ($company) => [...PublicCompanyController::card($company, $request), 'href' => route('companies.show', $company->id, false)]),

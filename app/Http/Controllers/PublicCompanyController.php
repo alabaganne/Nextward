@@ -34,7 +34,7 @@ class PublicCompanyController extends Controller
                 $query->where(fn ($query) => $query->where('name', 'like', $term)->orWhere('location', 'like', $term)
                     ->orWhereHas('user', fn ($query) => $query->where('name', 'like', $term))
                     ->orWhereHas('city', fn ($query) => $query->where('name', 'like', $term)));
-            }), $open, 3)->paginate(24)->withQueryString();
+            }), $open)->paginate(24)->withQueryString();
         abort_if($companies->currentPage() > max(1, $companies->lastPage()), 404);
 
         return Inertia::render('Companies/Directory', [
@@ -45,17 +45,13 @@ class PublicCompanyController extends Controller
         ]);
     }
 
-    // Companies with their open roles counted and the newest few loaded, most open roles first.
-    public static function cards($query, ?\Closure $open = null, int $roles = 0)
+    // Companies with their open roles counted, most open roles first.
+    public static function cards($query, ?\Closure $open = null)
     {
         $open ??= fn ($query) => $query->available();
 
         return $query->with(['user', 'city'])
-            ->withCount(['opportunities as open_roles_count' => $open,
-                'opportunities as open_jobs_count' => fn ($query) => $open($query)->where('kind', 'job'),
-                'opportunities as open_internships_count' => fn ($query) => $open($query)->where('kind', 'internship')])
-            ->when($roles, fn ($query) => $query->with(['opportunities' => fn ($query) => $open($query)
-                ->with('translations')->orderByRaw('COALESCE(posted_at, first_seen_at, created_at) DESC')->orderByDesc('id')->limit($roles)]))
+            ->withCount(['opportunities as open_roles_count' => $open])
             ->orderByDesc('open_roles_count')->orderBy('name');
     }
 
@@ -74,14 +70,6 @@ class PublicCompanyController extends Controller
             'size' => $company->size,
             'url' => $company->publicUrl($locale),
             'open_roles_count' => $company->open_roles_count,
-            'open_jobs_count' => $company->open_jobs_count,
-            'open_internships_count' => $company->open_internships_count,
-            'roles' => $company->relationLoaded('opportunities') ? $company->opportunities->map(fn ($opportunity) => [
-                'id' => $opportunity->id,
-                'title' => $opportunity->titleFor($locale),
-                'kind' => $opportunity->kind,
-                'url' => $opportunity->publicUrl($locale),
-            ])->values() : [],
         ];
     }
 
