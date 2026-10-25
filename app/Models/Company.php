@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Importing\JobKey;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
@@ -30,6 +31,9 @@ class Company extends Model
         static::saving(function (Company $company) {
             if ($company->isDirty('logo_url')) {
                 $company->logo_fetched_at = null;
+            }
+            if ($company->isDirty('name')) {
+                $company->name_key = JobKey::company((string) $company->name) ?: null;
             }
         });
         static::deleted(function (Company $company) {

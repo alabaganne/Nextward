@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Importing\JobKey;
 use App\Support\LanguageGuess;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -21,6 +22,7 @@ class Opportunity extends Model
         'remote_eligibility', 'applicant_scope', 'relocation', 'visa_sponsorship', 'eligible_countries',
         'excluded_countries', 'eligibility_evidence', 'language', 'pay_min', 'pay_max',
         'pay_currency', 'compensation_status', 'moderation_overrides', 'merged_into_id',
+        'job_key', 'first_posted_at', 'date_source', 'reposted_at', 'min_years',
     ];
 
     protected $attributes = [
@@ -42,6 +44,8 @@ class Opportunity extends Model
         'closing_at' => 'date:Y-m-d',
         'start_date' => 'date:Y-m-d',
         'posted_at' => 'datetime',
+        'first_posted_at' => 'datetime',
+        'reposted_at' => 'datetime',
         'first_seen_at' => 'datetime',
         'last_verified_at' => 'datetime',
         'content_updated_at' => 'datetime',
@@ -59,6 +63,10 @@ class Opportunity extends Model
     protected static function booted(): void
     {
         static::saving(function (Opportunity $opportunity) {
+            if (! $opportunity->job_key || $opportunity->isDirty(['title', 'company_id', 'location'])) {
+                $company = $opportunity->relationLoaded('company') && ! $opportunity->isDirty('company_id') ? $opportunity->company : Company::find($opportunity->company_id);
+                $opportunity->job_key = JobKey::key((string) $company?->name, (string) $opportunity->title, $opportunity->location);
+            }
             if (! $opportunity->language && $opportunity->description) {
                 $opportunity->language = LanguageGuess::guess($opportunity->title."\n".$opportunity->description);
             }
@@ -72,11 +80,13 @@ class Opportunity extends Model
             if ($opportunity->origin === 'native' && $opportunity->publication_status === 'published') {
                 $opportunity->posted_at ??= now();
             }
+            $opportunity->first_posted_at ??= $opportunity->posted_at;
         });
 
         static::updating(function (Opportunity $opportunity) {
             $contentChanges = array_diff(array_keys($opportunity->getDirty()), [
                 'last_verified_at', 'first_seen_at', 'updated_at', 'moderation_overrides',
+                'job_key', 'first_posted_at', 'date_source', 'reposted_at',
             ]);
             if ($contentChanges) {
                 $opportunity->content_updated_at = now();

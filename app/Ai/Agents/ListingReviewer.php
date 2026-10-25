@@ -38,6 +38,7 @@ You get several listings, each starting with "Listing <id>". Answer once for eve
 - work_type: "remote", "hybrid" or "onsite" when the listing says so, otherwise "unknown".
 - employment_types: the contract types the listing states; empty when it does not say.
 - program_type: "pfe" for final-year (PFE) internships, "summer" for summer internships, "apprenticeship" for apprenticeships or work-study, "graduate" for graduate programmes, otherwise "none".
+- min_years: the fewest years of work experience the listing requires, such as 5 for "5+ years"; 0 when it does not say.
 - skills: every language, framework, tool, platform, method or certification from the skills list that the role asks for or will clearly use, most important first, at most 15. Pick the most specific name (React Native for a mobile React role rather than React; Embedded C rather than C when the listing says embedded C), and include basics the listing names, such as HTML, CSS, Git, SQL or REST. Write each name exactly as in the list and never invent one; leave out anything the list does not have.
 - applicant_scope: who can apply.
   - "anywhere": people in any country can apply. Either the role is remote and the listing says it is open worldwide or has no location limit, or the employer offers visa sponsorship or relocation without limiting nationalities. A short list of excluded countries (for example sanctioned countries) still counts as "anywhere"; list them in excluded_countries.
@@ -70,6 +71,7 @@ PROMPT;
                 'work_type' => $choice(['remote', 'hybrid', 'onsite', 'unknown']),
                 'employment_types' => $schema->array()->items($schema->string()->enum(['FULL_TIME', 'PART_TIME', 'CONTRACTOR', 'TEMPORARY', 'INTERN']))->required(),
                 'program_type' => $choice(['pfe', 'summer', 'apprenticeship', 'graduate', 'none']),
+                'min_years' => $schema->integer()->required(),
                 'skills' => $schema->array()->items($this->skills ? $schema->string()->enum($this->skills) : $schema->string())->required(),
                 'applicant_scope' => $choice(['anywhere', 'listed', 'local', 'unknown']),
                 'eligible_countries' => $countries(),

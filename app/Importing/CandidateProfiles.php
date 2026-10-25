@@ -2,6 +2,7 @@
 
 namespace App\Importing;
 
+use App\Leads\Eligibility;
 use App\Models\Candidate;
 use App\Models\Field;
 use App\Models\SearchProfile;
@@ -34,6 +35,7 @@ class CandidateProfiles
                     'seniority' => $preferences['seniority'] ?? [],
                     'countries' => $preferences['countries'] ?? [],
                     'country' => $candidate->country_code,
+                    'needs_visa' => $preferences['needs_visa'] ?? false,
                 ]);
             })->values()->all();
 
@@ -85,10 +87,17 @@ class CandidateProfiles
         return ['fields' => $count('fields')->all(), 'skills' => $count('skills')->keys()->take(15)->all()];
     }
 
+    // With needs_visa (someone in Tunisia who needs a visa to work abroad), on-site and hybrid roles need visa sponsorship
+    // or relocation, remote roles must be open to Tunisia, and preferred countries only limit the visa roles.
     private function place(array $data, array $profile): bool
     {
         $country = $profile['country'];
         if ($country && in_array($country, $data['excluded_countries'] ?? [], true)) { return false; }
+        if (! empty($profile['needs_visa'])) {
+            $class = Eligibility::classify($data)['class'];
+            if ($class === 'excluded') { return false; }
+            if ($class !== 'visa') { return true; }
+        }
         if (! $profile['countries']) { return true; }
         $countries = array_filter([$data['country_code'] ?? null, ...array_column($data['locations'] ?? [], 'country_code')]);
         return array_intersect($countries, $profile['countries']) || ($data['work_type'] ?? null) === 'remote';
@@ -106,6 +115,7 @@ class CandidateProfiles
             'seniority' => $list($profile['seniority'] ?? []),
             'countries' => array_map('strtoupper', $list($profile['countries'] ?? [])),
             'country' => preg_match('/^[A-Z]{2}$/', $country) ? $country : null,
+            'needs_visa' => (bool) ($profile['needs_visa'] ?? false),
         ];
     }
 }

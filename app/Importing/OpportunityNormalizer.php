@@ -121,7 +121,16 @@ class OpportunityNormalizer
             'pay_min' => $minimum, 'pay_max' => $maximum, 'pay_currency' => $currency, 'pay_unit' => $period,
             'compensation_status' => ($minimum ?? $maximum) !== null ? (($minimum ?? $maximum) > 0 ? 'paid' : 'unpaid') : 'unspecified',
             'requisition_id' => is_scalar($input['requisition_id'] ?? null) ? (string) $input['requisition_id'] : null,
+            'min_years' => $this->years($description),
         ];
+    }
+
+    // The most years of experience the listing asks for, such as 5 in "5+ years of experience", or null.
+    public function years(string $description): ?int
+    {
+        preg_match_all('/\b(\d{1,2})\s*(?:\+|plus)?\s*(?:(?:-|to|à)\s*\d{1,2}\s*)?(?:years?|yrs?|ans|années)\b(?:\s+(?:of|d[\x27’]|de))?(?:\s+[\w\/.+#-]+){0,5}?\s+(?:experience|expérience|exp\b)/iu', $description, $matches);
+        $years = array_filter(array_map('intval', $matches[1]), fn ($n) => $n > 0 && $n <= 25);
+        return $years ? max($years) : null;
     }
 
     public function text(string $html): string

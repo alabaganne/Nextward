@@ -90,11 +90,14 @@ class OpportunityImporter
             foreach ($discover ? array_chunk($snapshot['items'], 200) : [] as $chunk) {
                 $rows = array_map(fn ($item) => [
                     'import_source_id' => $source->id, 'external_id' => Str::limit($item['external_id'], 191, ''),
-                    'source_url' => $item['source_url'], 'payload' => $item['payload'] ? json_encode($item['payload'], JSON_THROW_ON_ERROR) : null,
+                    'source_url' => $item['source_url'], 'url_key' => JobKey::url($item['source_url']),
+                    'payload' => $item['payload'] ? json_encode($item['payload'], JSON_THROW_ON_ERROR) : null,
                     'state' => 'pending', 'first_seen_at' => $started, 'last_discovered_at' => $started,
                     'missing_runs' => 0, 'missing_since' => null, 'created_at' => $started, 'updated_at' => $started,
                 ], $chunk);
-                OpportunitySource::upsert($rows, ['import_source_id', 'external_id'], ['source_url', 'payload', 'last_discovered_at', 'missing_runs', 'missing_since', 'updated_at']);
+                // JSON-LD pages save their JobPosting when read, so a new discovery keeps it.
+                $update = ['source_url', 'url_key', 'payload', 'last_discovered_at', 'missing_runs', 'missing_since', 'updated_at'];
+                OpportunitySource::upsert($rows, ['import_source_id', 'external_id'], $source->provider === 'jsonld' ? array_diff($update, ['payload']) : $update);
             }
             if ($discover) { $source->update(['last_discovered_at' => $started]); }
             $cycle = $source->last_discovered_at;
@@ -289,7 +292,7 @@ class OpportunityImporter
                     }
                 }
             }
-            $opportunity ??= $this->sameRoleOnOtherBoard($company, $item, $data) ?? new Opportunity();
+            $opportunity ??= $this->sameRole($company, $item, $data) ?? new Opportunity();
             $hash = hash('sha256', json_encode($data, JSON_THROW_ON_ERROR));
             $hasEmployerSource = $opportunity->exists && $opportunity->sources()->where('id', '!=', $item->id)
                 ->whereHas('importSource', fn ($q) => $q->where('settings->authoritative_employer', true))->exists();
@@ -315,6 +318,7 @@ class OpportunityImporter
                 $opportunity->fill($fields)->save();
                 if (! array_key_exists('skills', $overrides)) { $opportunity->skills()->sync($this->skillIdsFor($data)); }
             }
+            $this->keepFirstDate($opportunity, $source, $data);
             $item->update(['opportunity_id' => $opportunity->id, 'state' => 'published', 'content_hash' => $hash, 'error' => null]);
             return $opportunity;
         });
@@ -328,7 +332,7 @@ class OpportunityImporter
         DB::transaction(function () use ($opportunity, $item, $review, $data, $overrides) {
             $item->update(['ai_review' => $review, 'normalized_data' => $data]);
             foreach (['kind', 'seniority', 'work_type', 'employment_types', 'program_type', 'applicant_scope', 'eligible_countries',
-                'excluded_countries', 'remote_eligibility', 'relocation', 'visa_sponsorship', 'eligibility_evidence'] as $key) {
+                'excluded_countries', 'remote_eligibility', 'relocation', 'visa_sponsorship', 'eligibility_evidence', 'min_years'] as $key) {
                 if (array_key_exists($key, $data) && ! array_key_exists($key, $overrides)) { $opportunity->{$key} = $data[$key]; }
             }
             $opportunity->field_id = $this->classify($data);
@@ -387,9 +391,12 @@ class OpportunityImporter
             // Boards rarely give the employer site, so the same name in the same country is treated as one company.
             $identity = 'employer:'.hash('sha256', $this->normalizeName($data['employer']).'|'.($data['country_code'] ?? ''));
         }
+        $nameKey = JobKey::company($data['employer']);
         $company = Company::where('import_identity', $identity)->first()
             ?? ($host ? Company::where('domain', $host)->first() : null)
-            ?? Company::whereRaw('LOWER(name) = ?', [mb_strtolower(trim($data['employer']))])->first();
+            ?? Company::whereRaw('LOWER(name) = ?', [mb_strtolower(trim($data['employer']))])->first()
+            // "Notion Labs, Inc." on one board and "Notion" on another are one company, unless their websites differ.
+            ?? ($nameKey !== '' ? Company::where('name_key', $nameKey)->get()->first(fn ($c) => ! $host || ! $c->domain || $c->domain === $host) : null);
         if (! $company) {
             $company = new Company();
             $company->forceFill(['import_identity' => $identity, 'name' => $data['employer'], 'website' => $data['website'],
@@ -398,15 +405,46 @@ class OpportunityImporter
         return $company;
     }
 
-    private function sameRoleOnOtherBoard(Company $company, OpportunitySource $item, array $data): ?Opportunity
+    // The same job already listed: on another board, or closed and posted again (a repost) on this one.
+    // A second open listing on the same board with the same title is a separate opening.
+    private function sameRole(Company $company, OpportunitySource $item, array $data): ?Opportunity
     {
-        $title = $this->normalizeTitle($data['title']);
+        $title = JobKey::title($data['title'], $data['location']);
         return Opportunity::where('company_id', $company->id)->where('origin', 'imported')->where('kind', $data['kind'])
-            ->where('status', 'open')->whereNull('merged_into_id')
-            ->where('first_seen_at', '>=', now()->subDays(config('importer.retention_days')))
-            ->whereDoesntHave('sources', fn ($q) => $q->where('import_source_id', $item->import_source_id))
-            ->latest('id')->limit(50)->get()
-            ->first(fn ($role) => $role->country_code === $data['country_code'] && $this->normalizeTitle($role->title) === $title);
+            ->whereNull('merged_into_id')->where('first_seen_at', '>=', now()->subDays(config('importer.dedupe_days')))
+            ->with('sources:id,opportunity_id,import_source_id')->latest('id')->limit(50)->get()
+            ->first(function ($role) use ($item, $data, $title) {
+                if ($role->status === 'open' && $role->sources->contains('import_source_id', $item->import_source_id)) { return false; }
+                $place = $role->country_code === $data['country_code'] || ! $role->country_code || ! $data['country_code']
+                    || in_array('remote', [$role->work_type, $data['work_type']], true);
+                return $place && JobKey::similar(JobKey::title($role->title, $role->location), $title) >= config('importer.same_title');
+            });
+    }
+
+    // Keeps the first date the job was posted. An employer ATS date beats a board date, and a later date for a job
+    // seen before marks a repost instead of a new job.
+    private function keepFirstDate(Opportunity $role, ImportSource $source, array $data): void
+    {
+        $rank = ['seen' => 0, 'board' => 1, 'jsonld' => 2, 'ats' => 3];
+        $from = self::dateSource($source->provider);
+        $posted = ! empty($data['posted_at']) ? Carbon::parse($data['posted_at']) : null;
+        $known = $role->first_posted_at;
+        if (! $posted) {
+            $role->first_posted_at ??= $role->first_seen_at ?? now();
+            $role->date_source ??= 'seen';
+        } elseif (! $known || $rank[$from] > $rank[$role->date_source ?? 'seen'] || $posted->lt($known)) {
+            [$role->first_posted_at, $role->date_source] = [$posted, $from];
+        } elseif ($posted->gt($known->copy()->addDay()) && (! $role->reposted_at || $role->reposted_at->lt($posted))) {
+            $role->reposted_at = $posted;
+        }
+        if ($role->isDirty()) { $role->save(); }
+    }
+
+    public static function dateSource(string $provider): string
+    {
+        return match ($provider) {
+            'greenhouse', 'lever', 'ashby', 'workable', 'recruitee' => 'ats', 'jsonld' => 'jsonld', default => 'board',
+        };
     }
 
     private function normalizeName(string $name): string
@@ -414,13 +452,6 @@ class OpportunityImporter
         $name = mb_strtolower(Str::ascii($name));
         $name = preg_replace('/\b(s\.?a\.?r\.?l|suarl|sa|sas|spa|inc|ltd|llc|gmbh|group|groupe)\b\.?/', ' ', $name);
         return Str::squish(preg_replace('/[^a-z0-9]+/', ' ', $name));
-    }
-
-    private function normalizeTitle(string $title): string
-    {
-        $title = mb_strtolower(Str::ascii($title));
-        $title = preg_replace('~\((?:[hfm]\s*/\s*[hfm](?:\s*/\s*nb)?|nb)\)~', ' ', $title);
-        return Str::squish(preg_replace('/[^a-z0-9]+/', ' ', $title));
     }
 
     // The title known before any page is fetched: board payloads carry it, and board job URLs end with a title slug.
@@ -478,6 +509,7 @@ class OpportunityImporter
         if (($review['work_type'] ?? 'unknown') !== 'unknown') { $data['work_type'] = $review['work_type']; }
         if (! empty($review['employment_types'])) { $data['employment_types'] = array_values(array_unique($review['employment_types'])); }
         if (($review['program_type'] ?? 'none') !== 'none') { $data['program_type'] = $review['program_type']; }
+        if (! empty($review['min_years'])) { $data['min_years'] = min(30, (int) $review['min_years']); }
         if (! empty($review['skills'])) { $data['skills'] = array_values(array_intersect(array_unique($review['skills']), $this->skillNames())); }
         if (isset($review['applicant_scope'])) {
             foreach (['eligible_countries', 'excluded_countries'] as $key) {

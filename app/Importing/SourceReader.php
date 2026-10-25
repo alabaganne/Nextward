@@ -121,6 +121,8 @@ class SourceReader
         if ($source->provider === 'jsonld') {
             $data = $this->jobPosting($this->http->get($item->source_url));
             if (! $data) { throw new RuntimeException('No valid JobPosting object found; review the source.'); }
+            // Kept so the page can be parsed again without reading it.
+            $item->payload = $data;
             $identifier = $data['identifier'] ?? null;
             $website = $data['hiringOrganization']['sameAs'] ?? $data['hiringOrganization']['url'] ?? null;
             // Boards often link the employer to their own company page, which is not the employer site.
