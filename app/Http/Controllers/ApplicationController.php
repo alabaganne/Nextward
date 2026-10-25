@@ -274,8 +274,8 @@ class ApplicationController extends Controller
 
         rescue(fn () => Lead::fromApplication($application));
 
-        return redirect()->route('applications.show', $application)->with('toast', [
-            'type' => 'store', 'message' => 'Saved to your tracker. This does not submit an application to the employer.',
+        return back()->with('toast', [
+            'type' => 'store', 'message' => 'Marked as applied and saved to your tracker. This does not submit an application to the employer.',
         ]);
     }
 

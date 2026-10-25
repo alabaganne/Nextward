@@ -11,6 +11,7 @@ import { downloadCvDocx } from '@/utils/cvDocx';
 import { downloadLetterDocx, letterFileName } from '@/utils/letterDocx';
 import { appPath } from '@/utils/url';
 import { useEditorGuards } from '@/utils/editor';
+import { markOpened } from '@/composables/useOpportunityActivity';
 
 defineOptions({ layout: (_h, page) => h(AppShell, { active: 'kits', fill: true }, () => page) });
 const props = defineProps({ kit: { type: Object, required: true }, themes: { type: Object, required: true }, locales: { type: Array, default: () => [] } });
@@ -115,6 +116,19 @@ const useToApply = async () => {
 	} catch (e) { /* storage may be off */ }
 	router.visit(route('applications.create', role.value.id));
 };
+const applyThere = computed(() => role.value.is_open && role.value.application_mode === 'external' && role.value.application_url && !kit.value.application_id);
+const tracking = ref(false);
+const markApplied = async () => {
+	if (!(await save())) return;
+	tracking.value = true;
+	router.post(route('applications.track', role.value.id), {}, {
+		preserveScroll: true,
+		preserveState: true,
+		onSuccess: (page) => { kit.value = { ...kit.value, application_id: page.props.kit?.application_id }; },
+		onError: (errors) => { error.value = Object.values(errors)[0] || 'This could not be saved. Please try again.'; },
+		onFinish: () => { tracking.value = false; },
+	});
+};
 const hasApply = computed(() => !!kit.value.application_id || applyHere.value || !!(role.value.is_open && role.value.application_url));
 const meta = computed(() => [role.value.company, `Written in ${kit.value.language}`].filter(Boolean).join(' · '));
 const ready = computed(() => kit.value.status !== 'queued' && !(kit.value.status === 'failed' && !kit.value.cv));
@@ -149,7 +163,10 @@ const ready = computed(() => kit.value.status !== 'queued' && !(kit.value.status
 			<button type="button" class="cbtn h-10 !py-0 !px-4 !text-sm disabled:opacity-60" :class="hasApply ? 'cbtn-secondary' : 'cbtn-primary'" :disabled="saving || !dirty" @click="save">{{ saving ? 'Saving…' : 'Save' }}</button>
 			<Link v-if="kit.application_id" :href="route('applications.show', kit.application_id)" class="cbtn cbtn-primary h-10 !py-0 !px-4 !text-sm">See your application</Link>
 			<button v-else-if="applyHere" type="button" class="cbtn cbtn-primary h-10 !py-0 !px-4 !text-sm" @click="useToApply"><Send class="size-4" aria-hidden="true" />Apply with this CV</button>
-			<a v-else-if="role.is_open && role.application_url" :href="role.application_url" target="_blank" rel="noopener noreferrer" class="cbtn cbtn-primary h-10 !py-0 !px-4 !text-sm">Apply on their site <ArrowUpRight class="size-4" aria-hidden="true" /></a>
+			<template v-else-if="role.is_open && role.application_url">
+				<button v-if="applyThere" type="button" class="cbtn cbtn-secondary h-10 !py-0 !px-4 !text-sm disabled:opacity-60" :disabled="tracking" @click="markApplied"><Check class="size-4" aria-hidden="true" />{{ tracking ? 'Saving…' : 'I applied' }}</button>
+				<a :href="role.application_url" target="_blank" rel="noopener noreferrer" class="cbtn cbtn-primary h-10 !py-0 !px-4 !text-sm" @click="markOpened(role)" @auxclick="markOpened(role)">Apply on their site <ArrowUpRight class="size-4" aria-hidden="true" /></a>
+			</template>
 		</template>
 
 		<template #notice>

@@ -14,15 +14,15 @@ class OpportunityActivityController extends Controller
 
     public function opened(Request $request, Opportunity $opportunity)
     {
-        abort_unless($request->user()->isCandidate(), 403);
+        abort_unless($candidate = $request->user()->ensureCandidateProfile(), 403);
 
         DB::table('opportunity_views')->upsert([[
-            'candidate_id' => $request->user()->userable_id,
+            'candidate_id' => $candidate->id,
             'opportunity_id' => $opportunity->id,
             'viewed_at' => now(),
         ]], ['candidate_id', 'opportunity_id'], ['viewed_at']);
         if (Lead::enabledFor($request->user())) {
-            rescue(fn () => Lead::where('candidate_id', $request->user()->userable_id)->where('opportunity_id', $opportunity->id)->get()->each(fn ($lead) => $lead->advance('opened')->save()));
+            rescue(fn () => Lead::where('candidate_id', $candidate->id)->where('opportunity_id', $opportunity->id)->get()->each(fn ($lead) => $lead->advance('opened')->save()));
         }
 
         return response()->noContent();

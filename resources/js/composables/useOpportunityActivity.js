@@ -73,7 +73,8 @@ export function markOpened(opportunity) {
     if (typeof window === 'undefined') return;
     state.views[opportunity.id] = new Date().toISOString();
     persist();
-    if (isCandidate(currentUser)) axios.post(`/app/opportunities/${opportunity.id}/opened`).catch(() => {});
+    // Admins are candidates too; the server makes their candidate profile if they have none yet.
+    if (isCandidate(currentUser) || currentUser?.is_admin) axios.post(`/app/opportunities/${opportunity.id}/opened`).catch(() => {});
 }
 
 export function toggleSaved(opportunity) {

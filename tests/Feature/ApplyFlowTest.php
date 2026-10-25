@@ -148,6 +148,21 @@ class ApplyFlowTest extends TestCase
         $this->assertDatabaseHas('applications', ['candidate_id' => $admin->userable_id, 'opportunity_id' => $external->id, 'channel' => 'external']);
     }
 
+    public function test_opening_and_marking_an_outside_listing_applied_stays_on_the_page(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $external = Opportunity::where('application_mode', 'external')->whereNotNull('application_url')->get()->first(fn ($opportunity) => $opportunity->isOpen());
+
+        $this->actingAs($admin)->post(route('opportunities.opened', $external))->assertNoContent();
+        $admin->refresh();
+        $this->assertDatabaseHas('opportunity_views', ['candidate_id' => $admin->userable_id, 'opportunity_id' => $external->id]);
+
+        $this->actingAs($admin)->from('/app/opportunities/'.$external->id)
+            ->post(route('applications.track', $external))
+            ->assertRedirect('/app/opportunities/'.$external->id);
+        $this->assertDatabaseHas('applications', ['candidate_id' => $admin->userable_id, 'opportunity_id' => $external->id, 'channel' => 'external', 'status' => 'submitted']);
+    }
+
     public function test_admins_cannot_move_their_own_application(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
