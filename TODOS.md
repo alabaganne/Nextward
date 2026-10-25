@@ -20,6 +20,14 @@ To do:
 
 Done: `needs_visa` and countries on profiles (`opportunities:profile --countries= --needs-visa`, rule in `App\Leads\Eligibility`), Workable and Recruitee boards plus 14 new employer boards in `ImportSourceSeeder`, and source discovery can suggest Workable and Recruitee boards.
 
+## Set up job leads (owner)
+
+Job leads, the company check and the Gmail import are built (`README.md#job-leads`). Still to do by the owner:
+- Import the old `jobs.json` once (Import on `/app/leads` or `php artisan leads:import jobs.json`) and check that its `list` values became the right statuses.
+- Import a Tsenta CSV export and LinkedIn's `Job Applications.csv`, if you have them.
+- Create the Google Cloud OAuth client, set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in production, then press Connect Gmail.
+- Run `php artisan companies:research --limit=50` once on production with the AI on, and look at Imports > Review queue > Waiting for company check after the next import.
+
 ## Finish resumes, themes and credits (done)
 
 The plan: candidates keep up to 10 resumes (uploaded PDFs, exports of their profile, AI translations) with one main resume; resumes and kit CVs use the six Resume Studio themes, printed by headless Chrome; kits are written in the listing's own language; credits are on (20 at sign-up, 5 a month, 1 credit per AI call).
