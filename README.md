@@ -132,7 +132,20 @@ php artisan opportunities:import-csv storage/app/opportunities/found.csv
 
 It needs the same sources there (`php artisan db:seed --class=ImportSourceSeeder`). Listings already on the server, listings removed there earlier, and listings checked more than 48 hours before the import are skipped, so run the scraper again for a fresh file when needed. Running it twice adds nothing new. Once imported, the server's scheduler re-checks them like any other listing; without it they move to draft 48 hours after their last check.
 
-Use a clean production database. The seed preserves existing data, including any demo data already present. The old complete demo dataset lives in `tests/Fixtures/DemoSeeder.php` for explicit workflow tests. Never deploy a demo database or run the standalone demo account/activity seeders in production.
+Use a clean production database. The seed preserves existing data, including any demo data already present. The old complete demo dataset lives in `tests/Fixtures/DemoSeeder.php` for explicit workflow tests. Never deploy a demo database or run the other demo account/activity seeders in production; `DemoAccountsSeeder` below is the one exception.
+
+### Demo accounts
+
+`DemoAccountsSeeder` adds two accounts for trying both sides of the site, and is safe to run in production:
+
+```bash
+php artisan db:seed --class=DemoAccountsSeeder --force
+```
+
+- `company@example.com` (Demo Company): four published listings (three jobs and a summer internship) and a draft.
+- `student@example.com` (Demo Student, a candidate): applications to three of those listings, at Interview, In review and Submitted, plus the 20 welcome credits.
+
+Both use the password `password`, set again on every run. Running it again adds nothing else. Model events are off while it runs, so it sends no email, queues no AI translation or review and adds no indexing notices. It does not use Faker, which production installs leave out. Like every `example.com` account, the demo student never counts as a profile for imports.
 
 ## Job leads
 
