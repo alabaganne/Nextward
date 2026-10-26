@@ -20,6 +20,7 @@ use App\Models\OpportunitySource;
 use App\Models\User;
 use Database\Seeders\ImportSourceSeeder;
 use Database\Seeders\OpportunitySeeder;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
@@ -174,6 +175,54 @@ class OpportunityImportTest extends TestCase
         $this->assertSame('Job is not open to candidates in Tunisia.', OpportunitySource::where('external_id', '2')->value('error'));
         $this->assertSame('Posted more than 30 days ago.', OpportunitySource::where('external_id', '4')->value('error'));
         Http::assertNotSent(fn ($request) => str_contains($request->url(), 'boards-api.greenhouse.io/v1/boards/acme/jobs/'));
+    }
+
+    public function test_a_run_reads_up_to_200_listings_and_the_next_run_carries_on(): void
+    {
+        Http::fake([
+            '*/robots.txt' => Http::response('', 404),
+            'boards-api.greenhouse.io/v1/boards/acme/jobs*' => Http::response(['jobs' => array_map(fn ($id) => $this->greenhouseJob($id, "Backend Engineer Team {$id}", 'Remote', 1), range(1, 205))]),
+        ]);
+        $source = $this->source(['key' => 'greenhouse-acme', 'provider' => 'greenhouse', 'url' => 'https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true',
+            'allowed_domains' => ['boards-api.greenhouse.io', 'job-boards.greenhouse.io'], 'publication_mode' => 'review']);
+
+        $first = app(OpportunityImporter::class)->run($source, 500);
+        $this->travel(31)->seconds();
+        $second = app(OpportunityImporter::class)->run($source->fresh(), 500);
+
+        $this->assertSame([200, true], [$first['processed'], $first['pending']]);
+        $this->assertSame([5, false], [$second['processed'], $second['pending']]);
+        $this->artisan('opportunities:import --limit=201 --sync')->expectsOutputToContain('Limit must be between 1 and 200.')->assertFailed();
+        $this->assertTrue(collect(app(Schedule::class)->events())
+            ->contains(fn ($event) => str_contains((string) $event->command, 'opportunities:import --due --limit=200')));
+    }
+
+    public function test_a_listing_keeps_the_date_it_was_posted_and_the_date_it_was_added(): void
+    {
+        Http::fake([
+            '*/robots.txt' => Http::response('', 404),
+            'boards-api.greenhouse.io/v1/boards/acme/jobs*' => Http::response(['jobs' => [$this->greenhouseJob(1, 'Backend Engineer', 'Remote', 5)]]),
+        ]);
+        $source = $this->source(['key' => 'greenhouse-acme', 'provider' => 'greenhouse', 'url' => 'https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true',
+            'allowed_domains' => ['boards-api.greenhouse.io', 'job-boards.greenhouse.io']]);
+        app(OpportunityImporter::class)->run($source);
+        $role = Opportunity::sole();
+        $added = $role->added_at->copy();
+
+        $this->assertTrue($role->posted_at->isSameDay(now()->subDays(5)));
+        $this->assertTrue($added->equalTo(now()));
+        $this->travel(1)->days();
+        app(OpportunityImporter::class)->run($source->fresh());
+        $this->assertTrue($role->fresh()->added_at->equalTo($added));
+        $this->get($role->fresh()->public_url)->assertInertia(fn ($page) => $page
+            ->where('opportunity.posted_at', $role->posted_at->toIso8601String())->where('opportunity.added_at', $added->toIso8601String()));
+
+        // An employer post is added when it is first published, not while it is a draft.
+        $draft = Opportunity::create(['title' => 'Frontend Engineer', 'description' => str_repeat('Build the web app. ', 10), 'company_id' => $role->company_id,
+            'field_id' => Field::first()->id, 'origin' => 'native', 'application_mode' => 'internal', 'publication_status' => 'draft']);
+        $this->assertNull($draft->added_at);
+        $draft->update(['publication_status' => 'published']);
+        $this->assertNotNull($draft->fresh()->added_at);
     }
 
     public function test_old_imported_roles_are_closed_by_reconcile(): void

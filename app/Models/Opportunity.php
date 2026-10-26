@@ -47,6 +47,7 @@ class Opportunity extends Model
         'first_posted_at' => 'datetime',
         'reposted_at' => 'datetime',
         'first_seen_at' => 'datetime',
+        'added_at' => 'datetime',
         'last_verified_at' => 'datetime',
         'content_updated_at' => 'datetime',
         'expires_at' => 'datetime',
@@ -67,6 +68,10 @@ class Opportunity extends Model
                 $company = $opportunity->relationLoaded('company') && ! $opportunity->isDirty('company_id') ? $opportunity->company : Company::find($opportunity->company_id);
                 $opportunity->job_key = JobKey::key((string) $company?->name, (string) $opportunity->title, $opportunity->location);
             }
+            // The first time it goes live on Nextward; posted_at stays the employer's date.
+            if (! $opportunity->added_at && $opportunity->publication_status === 'published') {
+                $opportunity->added_at = now();
+            }
             if (! $opportunity->language && $opportunity->description) {
                 $opportunity->language = LanguageGuess::guess($opportunity->title."\n".$opportunity->description);
             }
@@ -86,7 +91,7 @@ class Opportunity extends Model
         static::updating(function (Opportunity $opportunity) {
             $contentChanges = array_diff(array_keys($opportunity->getDirty()), [
                 'last_verified_at', 'first_seen_at', 'updated_at', 'moderation_overrides',
-                'job_key', 'first_posted_at', 'date_source', 'reposted_at',
+                'job_key', 'first_posted_at', 'date_source', 'reposted_at', 'added_at',
             ]);
             if ($contentChanges) {
                 $opportunity->content_updated_at = now();

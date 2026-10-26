@@ -4,6 +4,8 @@ return [
     'user_agent' => 'NextwardBot/1.0 (+'.rtrim(env('APP_URL', 'http://localhost'), '/').'/about)',
     'timezone' => 'Africa/Tunis',
     'max_run_seconds' => 240,
+    // Listings one import run reads at most; a source with more carries on in another run 30 seconds later.
+    'run_limit' => (int) env('OPPORTUNITY_RUN_LIMIT', 200),
     'max_response_bytes' => 5 * 1024 * 1024,
     'max_sitemaps' => 30,
     'max_discoveries' => 50000,

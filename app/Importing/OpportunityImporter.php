@@ -35,6 +35,7 @@ class OpportunityImporter
         $lock = Cache::lock('opportunity-import:'.$source->id, 350);
         if (! $dryRun && ! $lock->get()) { return ['status' => 'locked', 'pending' => false]; }
         $started = now(); $clock = microtime(true);
+        $limit = max(1, min($limit, (int) config('importer.run_limit')));
         $refreshBefore = $started->copy()->subHours($source->cadence_hours);
         $refreshOperator = '<=';
         if ($source->cadence_hours === 24) {
@@ -74,7 +75,7 @@ class OpportunityImporter
             }
 
             if ($dryRun) {
-                foreach (array_slice($snapshot['items'], 0, max(1, min($limit, 100))) as $discovery) {
+                foreach (array_slice($snapshot['items'], 0, $limit) as $discovery) {
                     $item = new OpportunitySource([...$discovery, 'first_seen_at' => $started]);
                     try {
                         $data = $normalizer->normalize($reader->read($source, $item));
@@ -127,8 +128,8 @@ class OpportunityImporter
                         return false;
                     }
                     return ! $focus || preg_match($focus, $this->focusTitle($item));
-                })->take(max(1, min($limit, 100)))->collect()
-                : $items->limit(max(1, min($limit, 100)))->get();
+                })->take($limit)->collect()
+                : $items->limit($limit)->get();
             if ($outOfScope && ! $dryRun) {
                 OpportunitySource::whereIn('id', $outOfScope)->update(['state' => 'rejected', 'error' => 'Outside IT scope.']);
             }

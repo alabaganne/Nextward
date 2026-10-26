@@ -89,9 +89,7 @@ class OpportunityResource extends JsonResource
             'compensation_status' => $this->compensation_status,
             'created_at' => $this->created_at?->diffForHumans(),
             'posted_at' => $this->posted_at?->toIso8601String(),
-            'posted_label' => $this->posted_at
-                ? __('Posted :time', ['time' => $this->posted_at->diffForHumans()])
-                : __('Added to Nextward :time', ['time' => $this->first_seen_at?->diffForHumans() ?? __('recently')]),
+            'added_at' => ($this->added_at ?? $this->first_seen_at)?->toIso8601String(),
             'first_seen_at' => $this->first_seen_at?->toIso8601String(),
             'last_verified_at' => $this->last_verified_at?->toIso8601String(),
             'last_verified_label' => $this->last_verified_at?->diffForHumans(),

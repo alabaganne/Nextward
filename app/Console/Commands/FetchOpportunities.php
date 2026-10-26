@@ -48,7 +48,7 @@ class FetchOpportunities extends Command
         foreach ($sources->shuffle() as $source) {
             if (count($added) >= $count) { break; }
             try {
-                $result = $importer->run($source->fresh(), 100, onlyNew: true, maxNew: $count - count($added), focus: $focus, focusFields: $focusFields, profiles: $profiles, maxAgeDays: $days);
+                $result = $importer->run($source->fresh(), config('importer.run_limit'), onlyNew: true, maxNew: $count - count($added), focus: $focus, focusFields: $focusFields, profiles: $profiles, maxAgeDays: $days);
             } catch (\Throwable $e) {
                 $this->warn($source->key.': skipped, '.$e->getMessage());
                 continue;

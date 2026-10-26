@@ -59,7 +59,7 @@ class FetchNewOpportunities implements ShouldQueue
         $source = ImportSource::find(array_shift($sources));
         if ($source?->isApproved()) {
             try {
-                $result = $importer->run($source, 100, onlyNew: true, maxNew: $state['count'] - count($state['added']),
+                $result = $importer->run($source, config('importer.run_limit'), onlyNew: true, maxNew: $state['count'] - count($state['added']),
                     profiles: CandidateProfiles::load(), maxAgeDays: (int) config('importer.fetch_max_age_days'));
                 $state['added'] = [...$state['added'], ...($result['new'] ?? [])];
             } catch (Throwable $e) {

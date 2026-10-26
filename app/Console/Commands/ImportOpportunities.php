@@ -15,7 +15,8 @@ class ImportOpportunities extends Command
     public function handle(OpportunityImporter $importer): int
     {
         $limit = filter_var($this->option('limit'), FILTER_VALIDATE_INT);
-        if (! $limit || $limit < 1 || $limit > 100) { $this->error('Limit must be between 1 and 100.'); return self::FAILURE; }
+        $max = (int) config('importer.run_limit');
+        if (! $limit || $limit < 1 || $limit > $max) { $this->error("Limit must be between 1 and {$max}."); return self::FAILURE; }
         $sources = ImportSource::where('enabled', true)->where('permission_status', 'approved')
             ->when($this->option('source'), fn ($q) => $q->whereIn('key', $this->option('source')))
             ->when($this->option('due'), fn ($q) => $q->where(fn ($q) => $q->whereNull('next_run_at')->orWhere('next_run_at', '<=', now())))->get();

@@ -28,7 +28,7 @@ const payLabel = computed(() => {
     return `${amount ?? ''} ${pay.currency || text('(currency not specified)', '(devise non précisée)')}${pay.unit ? ` / ${periods[pay.unit] || pay.unit}` : ''}`;
 });
 const displayDate = computed(() => {
-    const date = props.opportunity.posted_at || props.opportunity.first_seen_at;
+    const date = props.opportunity.posted_at || props.opportunity.added_at;
     return date ? new Intl.DateTimeFormat(fr.value ? 'fr-FR' : 'en-GB', { dateStyle: 'medium', timeZone: 'Africa/Tunis' }).format(new Date(date)) : '';
 });
 const seniorityLabel = computed(() => ({ entry: text('Entry level', 'Débutant'), graduate: text('Graduate', 'Jeune diplômé'), mid: text('Mid level', 'Confirmé'), senior: 'Senior', lead: text('Lead', 'Responsable'), executive: text('Executive', 'Direction') }[props.opportunity.seniority] || props.opportunity.seniority));
