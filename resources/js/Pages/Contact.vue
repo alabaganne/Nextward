@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/Public.vue';
-import Sparkle from '@/Shared/Sparkle.vue';
+import LandingHero from '@/Components/Landing/LandingHero.vue';
 import { previousPageUrl } from '@/composables/usePreviousPage';
 
 const page = usePage();
@@ -36,9 +36,11 @@ const asksForPage = computed(() => ['help', 'bug', 'listing'].includes(form.topi
 const asksForScreenshot = computed(() => ['help', 'bug'].includes(form.topic));
 const pageFilled = ref(false);
 const sent = ref(false);
-const label = 'mb-1.5 block text-[14px] font-semibold text-navy';
-const field = 'w-full rounded-xl border border-line bg-white px-3.5 py-[11px] text-[15px] text-ink focus-visible:border-brand focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand aria-invalid:border-[#dc2626]';
-const error = 'mt-1.5 text-[13px] text-[#b91c1c]';
+const label = 'mb-2 block text-[14px] font-medium text-navy';
+const field = 'w-full rounded-card border border-slate-300 bg-white px-4 py-3 text-[15px] text-ink placeholder:text-muted-2 focus-visible:border-brand focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-brand aria-invalid:border-red-600';
+const error = 'mt-1.5 text-[13px] text-red-700';
+const answer = 'grid size-10 shrink-0 place-items-center rounded-card bg-blue-50 text-brand';
+const link = 'focus-ring font-medium text-brand hover:text-navy';
 const hint = 'mt-1.5 text-[13px] text-subtle-2';
 
 onMounted(() => {
@@ -58,49 +60,38 @@ const submit = () => form
 
 <template>
 	<PublicLayout>
-		<div class="landing">
-			<section aria-labelledby="contact-title" class="hero-dark">
-				<div class="public-container hero-grid hero-pad">
-					<div>
-						<p class="landing-label">{{ text('Help and contact', 'Aide et contact') }}</p>
-						<h1 id="contact-title" class="hero-title">{{ text('How can we help?', 'Comment pouvons-nous vous aider ?') }}</h1>
-						<p class="hero-lead">{{ text('Ask for help with anything, report a bug or suggest a feature. We read every message and answer by email.', 'Demandez de l’aide sur n’importe quel sujet, signalez un bug ou proposez une idée. Nous lisons chaque message et répondons par e-mail.') }}</p>
-					</div>
-					<figure class="hero-stage w-[min(100%,320px)]">
-						<img src="/nextward-assets/mascots/04-mentor-pointing.svg" alt="" width="768" height="768" fetchpriority="high" />
-						<Sparkle style="top: 14%; right: 10%; --i: 0" />
-						<Sparkle class="is-sky" style="top: 30%; left: 12%; width: 14px; height: 14px; --i: 1" />
-					</figure>
-				</div>
-			</section>
+		<div class="landing bg-pale">
+			<LandingHero title-id="contact-title" overlap :label="text('Help and contact', 'Aide et contact')" :lead="text('Ask for help with anything, report a bug or suggest a feature. We read every message and answer by email.', 'Demandez de l’aide sur n’importe quel sujet, signalez un bug ou proposez une idée. Nous lisons chaque message et répondons par e-mail.')">
+				{{ text('How can we', 'Comment pouvons-nous') }} <span class="accent">{{ text('help?', 'vous aider ?') }}</span>
+			</LandingHero>
 
-			<section class="public-container py-20 grid lg:grid-cols-[1.4fr_1fr] gap-14">
-				<div>
-					<h2 class="section-title !mt-0">{{ text('Send us a message', 'Envoyez-nous un message') }}</h2>
+			<div class="public-container hero-overlap grid items-start gap-8 pb-20 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+				<section class="rounded-card border border-line bg-white p-8 max-[768px]:p-5" aria-labelledby="message-title">
+					<h2 id="message-title" class="text-[length:clamp(24px,2.4vw,30px)] leading-[1.25] text-navy">{{ text('Send us a message', 'Envoyez-nous un message') }}</h2>
 
-					<div v-if="sent" class="mt-8 flex gap-3.5 rounded-2xl border border-[#bbf7d0] bg-[#f0fdf4] px-6 py-[22px]" role="status">
-						<Icon name="check-circle" class="size-6 shrink-0 text-[#16a34a]" />
+					<div v-if="sent" class="mt-7 flex gap-3.5 rounded-card bg-green-50 px-6 py-[22px]" role="status">
+						<Icon name="check-circle" class="size-6 shrink-0 text-green-600" />
 						<div>
-							<p class="font-semibold text-navy">{{ text('Thanks, your message is on its way.', 'Merci, votre message est bien parti.') }}</p>
-							<p class="mt-1 text-slate-600">{{ text('We will reply to', 'Nous répondrons à') }} {{ form.email }}.</p>
-							<button type="button" class="mt-3 font-semibold text-brand hover:text-brand-dark focus-ring" @click="sent = false">{{ text('Send another message', 'Envoyer un autre message') }}</button>
+							<p class="font-medium text-navy">{{ text('Thanks, your message is on its way.', 'Merci, votre message est bien parti.') }}</p>
+							<p class="mt-1 text-subtle">{{ text('We will reply to', 'Nous répondrons à') }} {{ form.email }}.</p>
+							<button type="button" class="mt-3" :class="link" @click="sent = false">{{ text('Send another message', 'Envoyer un autre message') }}</button>
 						</div>
 					</div>
 
-					<form v-else class="mt-8 grid gap-5 rounded-2xl border border-line bg-white p-7" novalidate @submit.prevent="submit">
+					<form v-else class="mt-7 grid gap-6" novalidate @submit.prevent="submit">
 						<fieldset>
 							<legend :class="label">{{ text('What is it about?', 'Quel est le sujet ?') }}</legend>
-							<div class="mt-1 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-								<label v-for="item in topics" :key="item.value" :class="['m-0 flex cursor-pointer flex-col gap-1 rounded-xl border p-3.5 text-[14px] font-semibold text-navy transition-colors duration-160 has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-brand', form.topic === item.value ? 'border-brand bg-blue-50' : 'border-line bg-white hover:border-[#b9c8ef]']">
+							<div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+								<label v-for="item in topics" :key="item.value" :class="['m-0 flex cursor-pointer flex-col gap-1 rounded-card border p-4 transition-colors duration-160 has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-brand', form.topic === item.value ? 'border-brand bg-blue-50' : 'border-line bg-white hover:border-brand/40']">
 									<input v-model="form.topic" type="radio" name="topic" :value="item.value" class="sr-only" />
 									<Icon :name="item.icon" class="size-[22px] text-brand" />
-									<span class="mt-1 text-[14px] leading-[1.3] font-semibold text-navy">{{ item.label }}</span>
-									<span class="hidden text-[12.5px] leading-[1.45] font-normal text-subtle-2 sm:block">{{ item.hint }}</span>
+									<span class="mt-1.5 text-[14px] leading-[1.35] font-medium text-navy">{{ item.label }}</span>
+									<span class="hidden text-[12.5px] leading-[1.5] text-subtle-2 sm:block">{{ item.hint }}</span>
 								</label>
 							</div>
 							<p v-if="form.errors.topic" :class="error">{{ form.errors.topic }}</p>
 						</fieldset>
-						<div class="grid sm:grid-cols-2 gap-5">
+						<div class="grid gap-6 sm:grid-cols-2">
 							<div>
 								<label for="contact-name" :class="label">{{ text('Your name', 'Votre nom') }}</label>
 								<input id="contact-name" :class="field" v-model="form.name" type="text" autocomplete="name" maxlength="120" required :aria-invalid="!!form.errors.name" :aria-describedby="form.errors.name ? 'contact-name-error' : null" />
@@ -126,7 +117,7 @@ const submit = () => form
 						</div>
 						<div v-if="asksForScreenshot">
 							<label for="contact-screenshot" :class="label">{{ text('Screenshot (optional)', 'Capture d’écran (facultatif)') }}</label>
-							<input id="contact-screenshot" type="file" accept="image/png,image/jpeg,image/webp" class="block w-full text-[14px] text-gray-600 file:mr-3 file:cursor-pointer file:rounded-[10px] file:border file:border-line file:bg-pale file:px-3.5 file:py-2 file:font-semibold file:text-navy" :aria-invalid="!!form.errors.screenshot" aria-describedby="contact-screenshot-hint" @change="pickScreenshot" />
+							<input id="contact-screenshot" type="file" accept="image/png,image/jpeg,image/webp" class="block w-full text-[14px] text-subtle file:mr-3 file:cursor-pointer file:rounded-card file:border-0 file:bg-pale file:px-4 file:py-2.5 file:font-medium file:text-navy hover:file:bg-blue-100" :aria-invalid="!!form.errors.screenshot" aria-describedby="contact-screenshot-hint" @change="pickScreenshot" />
 							<p v-if="form.errors.screenshot" :class="error">{{ form.errors.screenshot }}</p>
 							<p id="contact-screenshot-hint" :class="hint">
 								{{ text('PNG, JPG or WebP, up to 5 MB.', 'PNG, JPG ou WebP, 5 Mo maximum.') }}
@@ -137,26 +128,27 @@ const submit = () => form
 							<label for="contact-website">Website</label>
 							<input id="contact-website" v-model="form.website" type="text" tabindex="-1" autocomplete="off" />
 						</div>
-						<button type="submit" class="cta cta-primary focus-ring disabled:cursor-wait disabled:opacity-70" :disabled="form.processing">
+						<button type="submit" class="cta cta-primary focus-ring disabled:cursor-wait disabled:opacity-70 sm:justify-self-start" :disabled="form.processing">
 							{{ form.processing ? text('Sending…', 'Envoi…') : text('Send message', 'Envoyer le message') }}<Icon name="arrow-right" class="action-icon" />
 						</button>
 					</form>
-				</div>
+				</section>
 
-				<aside class="self-start rounded-2xl bg-pale p-8">
-					<h3 class="font-display text-xl font-semibold text-navy">{{ text('Quick answers', 'Réponses rapides') }}</h3>
-					<ul class="mt-5 grid gap-4 text-[15px] leading-[1.6] text-gray-600">
-						<li class="flex gap-3"><Icon name="lifebuoy" class="mt-[3px] size-5 shrink-0 text-brand" /><span>{{ text('Forgot your password?', 'Mot de passe oublié ?') }} <Link :href="`${prefix}/forgot-password`" class="font-semibold text-brand hover:text-brand-dark focus-ring">{{ text('Get a reset link', 'Recevoir un lien') }}</Link>.</span></li>
-						<li class="flex gap-3"><Icon name="mail" class="mt-[3px] size-5 shrink-0 text-brand" /><span>{{ text('No confirmation email? Check your spam folder, then ask for a new one from the banner in your dashboard.', 'Pas d’e-mail de confirmation ? Regardez dans vos spams, puis demandez-en un nouveau depuis le bandeau de votre tableau de bord.') }}</span></li>
-						<li class="flex gap-3"><Icon name="exclamation-triangle" class="mt-[3px] size-5 shrink-0 text-brand" /><span>{{ text('To fix or remove a listing, you can also use “Report an issue” on the listing page.', 'Pour corriger ou retirer une offre, vous pouvez aussi utiliser « Signaler un problème » sur la page de l’offre.') }}</span></li>
-						<li class="flex gap-3"><Icon name="briefcase" class="mt-[3px] size-5 shrink-0 text-brand" /><span>{{ text('Employers can post roles for free after creating a company account.', 'Les employeurs peuvent publier des offres gratuitement après avoir créé un compte entreprise.') }}</span></li>
+				<aside class="rounded-card border border-line bg-white p-8 max-[768px]:p-5" aria-labelledby="answers-title">
+					<img src="/nextward-assets/mascots/04-mentor-pointing.svg" alt="" width="768" height="768" loading="lazy" class="size-24" />
+					<h2 id="answers-title" class="mt-4 text-[22px] leading-[1.35] text-navy">{{ text('Quick answers', 'Réponses rapides') }}</h2>
+					<ul class="mt-6 grid gap-5 text-[15px] leading-[1.65] text-subtle">
+						<li class="flex gap-4"><span :class="answer"><Icon name="lifebuoy" class="size-5" /></span><span>{{ text('Forgot your password?', 'Mot de passe oublié ?') }} <Link :href="`${prefix}/forgot-password`" :class="link">{{ text('Get a reset link', 'Recevoir un lien') }}</Link>.</span></li>
+						<li class="flex gap-4"><span :class="answer"><Icon name="mail" class="size-5" /></span><span>{{ text('No confirmation email? Check your spam folder, then ask for a new one from the banner in your dashboard.', 'Pas d’e-mail de confirmation ? Regardez dans vos spams, puis demandez-en un nouveau depuis le bandeau de votre tableau de bord.') }}</span></li>
+						<li class="flex gap-4"><span :class="answer"><Icon name="exclamation-triangle" class="size-5" /></span><span>{{ text('To fix or remove a listing, you can also use “Report an issue” on the listing page.', 'Pour corriger ou retirer une offre, vous pouvez aussi utiliser « Signaler un problème » sur la page de l’offre.') }}</span></li>
+						<li class="flex gap-4"><span :class="answer"><Icon name="briefcase" class="size-5" /></span><span>{{ text('Employers can post roles for free after creating a company account.', 'Les employeurs peuvent publier des offres gratuitement après avoir créé un compte entreprise.') }}</span></li>
 					</ul>
-					<div class="mt-8 pt-6 border-t border-line text-sm text-slate-600">
-						<p>{{ text('Prefer email?', 'Vous préférez l’e-mail ?') }} <a :href="`mailto:${contactEmail}`" class="font-semibold text-brand hover:text-brand-dark focus-ring">{{ contactEmail }}</a></p>
-						<p class="mt-2"><Link :href="`${prefix}/register?account=company`" class="font-semibold text-brand hover:text-brand-dark focus-ring">{{ text('Post a role', 'Publier une offre') }}</Link> · <Link :href="`${prefix}/opportunities`" class="font-semibold text-brand hover:text-brand-dark focus-ring">{{ text('Browse opportunities', 'Voir les offres') }}</Link></p>
+					<div class="mt-8 rounded-card bg-pale p-5 text-[14.5px] leading-[1.6] text-subtle">
+						<p>{{ text('Prefer email?', 'Vous préférez l’e-mail ?') }} <a :href="`mailto:${contactEmail}`" class="break-all" :class="link">{{ contactEmail }}</a></p>
+						<p class="mt-2"><Link :href="`${prefix}/register?account=company`" :class="link">{{ text('Post a role', 'Publier une offre') }}</Link> · <Link :href="`${prefix}/opportunities`" :class="link">{{ text('Browse roles', 'Voir les offres') }}</Link></p>
 					</div>
 				</aside>
-			</section>
+			</div>
 		</div>
 	</PublicLayout>
 </template>

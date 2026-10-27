@@ -8,7 +8,7 @@ import TagInput from '@/Components/Cv/TagInput.vue';
 const cv = defineModel({ type: Object, required: true });
 const props = defineProps({ section: { type: String, required: true } });
 
-const label = 'block text-[13px] font-semibold text-ink-700';
+const label = 'block text-[14px] font-medium text-navy';
 const field = 'fld mt-1.5 !py-2.5 !text-[14px]';
 
 const contactHints = ['Email', 'Phone', 'City, country', 'Website or LinkedIn'];
@@ -84,7 +84,7 @@ const removeContact = (index) => { cv.value.contact = contact.value.filter((_, a
 						<button type="button" class="grid place-items-center size-9 shrink-0 rounded-lg text-muted-2 hover:bg-red-50 hover:text-red-700 focus-visible:outline-2 focus-visible:outline-blue-500" :aria-label="`Remove contact line ${index + 1}`" @click="removeContact(index)"><X class="size-4" aria-hidden="true" /></button>
 					</div>
 				</div>
-				<button v-if="contact.length < 8" type="button" class="mt-2 inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[13px] font-semibold text-blue-700 hover:bg-blue-50" @click="addContact"><Plus class="size-4" aria-hidden="true" /> Add a line</button>
+				<button v-if="contact.length < 8" type="button" class="mt-2 inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[13px] font-medium text-blue-700 hover:bg-blue-50" @click="addContact"><Plus class="size-4" aria-hidden="true" /> Add a line</button>
 			</div>
 		</div>
 
@@ -95,11 +95,11 @@ const removeContact = (index) => { cv.value.contact = contact.value.filter((_, a
 		</div>
 
 		<div v-else-if="list" class="grid gap-3">
-			<div v-for="(item, index) in items" :key="index" data-entry class="rounded-[14px] border transition-colors" :class="open === index ? 'border-blue-200 bg-white' : 'border-line bg-paper-2 hover:border-slate-300'">
+			<div v-for="(item, index) in items" :key="index" data-entry class="rounded-card border transition-colors" :class="open === index ? 'border-blue-200 bg-white' : 'border-line bg-paper-2 hover:border-slate-300'">
 				<div class="flex items-center gap-1 pr-2">
-					<button type="button" class="flex-1 min-w-0 flex items-center gap-3 text-left px-4 py-3.5 rounded-[14px] focus-visible:outline-2 focus-visible:outline-blue-500" :aria-expanded="open === index" @click="open = open === index ? -1 : index">
+					<button type="button" class="flex-1 min-w-0 flex items-center gap-3 text-left px-4 py-3.5 rounded-card focus-visible:outline-2 focus-visible:outline-blue-500" :aria-expanded="open === index" @click="open = open === index ? -1 : index">
 						<span class="min-w-0 flex-1">
-							<span class="block text-[14.5px] font-semibold text-ink truncate" dir="auto">{{ list.title(item) }}</span>
+							<span class="block text-[14.5px] font-medium text-ink truncate" dir="auto">{{ list.title(item) }}</span>
 							<span v-if="list.meta(item)" class="block text-[12.5px] text-muted truncate mt-0.5" dir="auto">{{ list.meta(item) }}</span>
 						</span>
 						<ChevronDown class="size-4 shrink-0 text-muted-2 transition-transform" :class="{ 'rotate-180': open === index }" aria-hidden="true" />
@@ -114,7 +114,7 @@ const removeContact = (index) => { cv.value.contact = contact.value.filter((_, a
 						<label :class="label">Job title<input v-model="item.title" dir="auto" :class="field"></label>
 						<label :class="label">Company<input v-model="item.company" dir="auto" :class="field"></label>
 						<label :class="label">Location<input v-model="item.location" dir="auto" :class="field" placeholder="City, country"></label>
-						<label class="flex items-center gap-2 text-[13px] font-semibold text-ink-700 @lg:self-end @lg:pb-3"><input v-model="item.current" type="checkbox" class="rounded"> I work here now</label>
+						<label class="flex items-center gap-2 text-[14px] font-medium text-navy @lg:self-end @lg:pb-3"><input v-model="item.current" type="checkbox" class="rounded"> I work here now</label>
 						<label :class="label">Start<input v-model="item.start" dir="auto" :class="field" placeholder="2024-09"></label>
 						<label :class="label">End<input v-model="item.end" dir="auto" :class="field" :disabled="item.current" :placeholder="item.current ? 'Now' : '2025-06'"></label>
 						<div class="@lg:col-span-2">
@@ -138,8 +138,8 @@ const removeContact = (index) => { cv.value.contact = contact.value.filter((_, a
 				</div>
 			</div>
 
-			<p v-if="!items.length" class="rounded-[14px] border border-dashed border-line px-5 py-8 text-center text-sm text-muted">Nothing here yet. This section is left off your CV until you add something.</p>
-			<button type="button" class="justify-self-start inline-flex items-center gap-1.5 rounded-[10px] border border-line bg-white px-3.5 py-2 text-[13.5px] font-semibold text-ink hover:border-blue-300 hover:text-blue-700" @click="add"><Plus class="size-4" aria-hidden="true" /> {{ list.add }}</button>
+			<p v-if="!items.length" class="rounded-card border border-dashed border-line px-5 py-8 text-center text-sm text-muted">Nothing here yet. This section is left off your CV until you add something.</p>
+			<button type="button" class="cta cta-secondary cta-sm justify-self-start" @click="add"><Plus class="size-4" aria-hidden="true" /> {{ list.add }}</button>
 		</div>
 
 		<div v-else-if="section === 'skills'">

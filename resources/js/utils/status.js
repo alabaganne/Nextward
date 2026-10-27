@@ -2,22 +2,22 @@
 // Status colours stay literal hex — they're outside the brand ramp.
 
 const PILLS = {
-	submitted: { label: 'Submitted', text: '#5b6677', bg: '#eef2f9', dot: '#8a93a3' },
-	viewed: { label: 'Viewed', text: '#1d4ed8', bg: '#eef4ff', dot: '#2563eb' },
+	submitted: { label: 'Submitted', text: '#4b5670', bg: '#f2f6ff', dot: '#8a93a3' },
+	viewed: { label: 'Viewed', text: '#0039d1', bg: '#e6edff', dot: '#0047ff' },
 	review: { label: 'In review', text: '#b45309', bg: '#fef3c7', dot: '#d97706' },
 	interview: { label: 'Interview', text: '#047857', bg: '#dcfce7', dot: '#059669' },
 	offer: { label: 'Offer', text: '#6d28d9', bg: '#ede9fe', dot: '#7c3aed' },
-	closed: { label: 'Closed', text: '#5b6677', bg: '#eef2f9', dot: '#8a93a3' },
+	closed: { label: 'Closed', text: '#4b5670', bg: '#f2f6ff', dot: '#8a93a3' },
 
 	// Legacy statuses from the pre-redesign schema.
 	accepted: { label: 'Accepted', text: '#047857', bg: '#dcfce7', dot: '#059669' },
-	rejected: { label: 'Closed', text: '#5b6677', bg: '#eef2f9', dot: '#8a93a3' },
+	rejected: { label: 'Closed', text: '#4b5670', bg: '#f2f6ff', dot: '#8a93a3' },
 };
 
-const NEUTRAL = { text: '#5b6677', bg: '#eef2f9', dot: '#8a93a3' };
+const NEUTRAL = { text: '#4b5670', bg: '#f2f6ff', dot: '#8a93a3' };
 const SUCCESS = { text: '#047857', bg: '#dcfce7', dot: '#059669' };
 const WARNING = { text: '#b45309', bg: '#fef3c7', dot: '#d97706' };
-const INFO = { text: '#1d4ed8', bg: '#eef4ff', dot: '#2563eb' };
+const INFO = { text: '#0039d1', bg: '#e6edff', dot: '#0047ff' };
 const DANGER = { text: '#dc2626', bg: '#fef2f2', dot: '#dc2626' };
 
 // Import items, sources, permissions and runs on the admin Imports pages.
@@ -54,8 +54,8 @@ export function statusPill(status, set = 'application') {
 	return (
 		PILLS[key] || {
 			label: key.charAt(0).toUpperCase() + key.slice(1),
-			text: '#5b6677',
-			bg: '#eef2f9',
+			text: '#4b5670',
+			bg: '#f2f6ff',
 			dot: '#8a93a3',
 		}
 	);

@@ -34,7 +34,8 @@ const history = computed(() => [
 	{ key: 'education', title: text('Education', 'Formation'), rows: (props.candidate.education || []).map((row) => ({ title: row.school, sub: [row.degree, row.field].filter(Boolean).join(' · '), dates: dates(row) })) },
 	{ key: 'projects', title: text('Projects', 'Projets'), rows: (props.candidate.projects || []).map((row) => ({ title: row.name, body: row.summary, url: row.url })) },
 ].filter((list) => list.rows.length));
-const button = 'inline-flex items-center justify-center gap-1.5 font-semibold text-sm px-4 py-2.5 rounded-[10px] transition-colors';
+const button = 'cta focus-ring gap-2 px-5 py-2.5 text-[13.5px]';
+const card = 'rounded-card border border-line bg-white p-6 sm:p-8';
 const preview = computed(() => ({
 	pending: text('Preview. This profile is waiting for review and is not public yet.', 'Aperçu. Ce profil attend une validation et n’est pas encore public.'),
 	declined: text('Preview. This profile was not approved, so only you and the Nextward team can see it.', 'Aperçu. Ce profil n’a pas été validé : seuls vous et l’équipe Nextward pouvez le voir.'),
@@ -44,51 +45,55 @@ const preview = computed(() => ({
 
 <template>
 	<div>
-		<div class="public-container max-w-6xl! py-12">
-			<nav class="text-sm text-slate-600" :aria-label="text('Breadcrumb', 'Fil d’Ariane')"><Link v-if="inApp" :href="route('talent.index')" class="hover:text-brand">Talent</Link><Link v-else :href="`${prefix}/candidates`" class="hover:text-brand">{{ text('Candidate profiles', 'Profils de candidats') }}</Link> <span aria-hidden="true">/</span> <span class="text-navy">{{ candidate.name }}</span></nav>
+		<section :class="inApp ? 'public-container pt-12' : 'hero-dark'">
+			<div :class="!inApp && 'public-container relative z-[1] pt-10 pb-14 max-[768px]:pt-8 max-[768px]:pb-10'">
+				<nav class="flex flex-wrap gap-2 text-[14px]" :class="inApp ? 'text-subtle' : 'text-mist'" :aria-label="text('Breadcrumb', 'Fil d’Ariane')"><Link v-if="inApp" :href="route('talent.index')" class="focus-ring rounded-sm hover:text-brand">Talent</Link><Link v-else :href="`${prefix}/candidates`" class="focus-ring rounded-sm hover:text-white">{{ text('Candidate profiles', 'Profils de candidats') }}</Link><span aria-hidden="true">/</span><span aria-current="page" :class="inApp ? 'text-navy' : 'text-white'">{{ candidate.name }}</span></nav>
 
-			<p v-if="status !== 'approved'" class="mt-6 rounded-xl bg-[#fef3c7] px-5 py-3.5 text-sm font-semibold text-[#92400e]" role="status">{{ preview }}</p>
+				<p v-if="status !== 'approved'" class="mt-6 rounded-card bg-amber-50 px-5 py-3.5 text-[14px] font-medium text-amber-900" role="status">{{ preview }}</p>
 
-			<ProfileBanner class="mt-6" :name="candidate.name" :headline="candidate.headline || candidate.field || text('Candidate', 'Candidat')" :items="[{ icon: GraduationCap, label: candidate.field }, { icon: MapPin, label: candidate.location }, { icon: Briefcase, label: experience }]">
-				<a v-if="candidate.contact?.resume_url" :href="candidate.contact.resume_url" target="_blank" rel="noopener nofollow" :class="[button, 'bg-blue-600 text-white hover:bg-blue-700']"><FileText :size="15" aria-hidden="true" />{{ text('Resume', 'CV') }}</a>
-				<a v-if="candidate.website" :href="candidate.website" target="_blank" rel="noopener noreferrer nofollow" :class="[button, 'bg-white text-navy-900 hover:bg-[#eef2f7]']">{{ text('Portfolio', 'Portfolio') }}<ArrowUpRight :size="15" aria-hidden="true" /></a>
-				<a v-if="candidate.linkedin_profile_url" :href="candidate.linkedin_profile_url" target="_blank" rel="noopener noreferrer nofollow" :class="[button, 'bg-white text-navy-900 hover:bg-[#eef2f7]']">LinkedIn<ArrowUpRight :size="15" aria-hidden="true" /></a>
-			</ProfileBanner>
+				<ProfileBanner :flat="!inApp" :class="inApp ? 'mt-6' : 'mt-8'" :name="candidate.name" :headline="candidate.headline || candidate.field || text('Candidate', 'Candidat')" :items="[{ icon: GraduationCap, label: candidate.field }, { icon: MapPin, label: candidate.location }, { icon: Briefcase, label: experience }]">
+					<a v-if="candidate.contact?.resume_url" :href="candidate.contact.resume_url" target="_blank" rel="noopener nofollow" :class="[button, 'cta-light']"><FileText :size="15" aria-hidden="true" />{{ text('Resume', 'CV') }}</a>
+					<a v-if="candidate.website" :href="candidate.website" target="_blank" rel="noopener noreferrer nofollow" :class="[button, 'cta-ghost']">{{ text('Portfolio', 'Portfolio') }}<ArrowUpRight :size="15" aria-hidden="true" /></a>
+					<a v-if="candidate.linkedin_profile_url" :href="candidate.linkedin_profile_url" target="_blank" rel="noopener noreferrer nofollow" :class="[button, 'cta-ghost']">LinkedIn<ArrowUpRight :size="15" aria-hidden="true" /></a>
+				</ProfileBanner>
+			</div>
+		</section>
 
-			<div class="mt-6 grid gap-6 items-start lg:grid-cols-[minmax(0,1fr)_300px]">
+		<div :class="inApp ? 'pb-12' : 'bg-pale pt-12 pb-20 max-[768px]:pt-8'">
+			<div class="public-container grid gap-6 items-start lg:grid-cols-[minmax(0,1fr)_320px]" :class="inApp && 'pt-6'">
 				<div class="grid gap-6 min-w-0">
-					<section v-if="candidate.about" class="bg-white border border-line rounded-2xl p-6 sm:p-8" aria-labelledby="about-title">
-						<h2 id="about-title" class="font-display text-xl font-semibold">{{ text('About', 'À propos') }}</h2>
-						<p class="mt-4 whitespace-pre-line text-slate-700 leading-8" dir="auto">{{ candidate.about }}</p>
+					<section v-if="candidate.about" :class="card" aria-labelledby="about-title">
+						<h2 id="about-title" class="text-[22px] leading-snug font-medium text-navy">{{ text('About', 'À propos') }}</h2>
+						<p class="mt-4 whitespace-pre-line text-[16px] text-ink-700 leading-8" dir="auto">{{ candidate.about }}</p>
 					</section>
 
-					<section v-for="list in history" :key="list.key" class="bg-white border border-line rounded-2xl p-6 sm:p-8" :aria-labelledby="`${list.key}-title`">
-						<h2 :id="`${list.key}-title`" class="font-display text-xl font-semibold">{{ list.title }}</h2>
+					<section v-for="list in history" :key="list.key" :class="card" :aria-labelledby="`${list.key}-title`">
+						<h2 :id="`${list.key}-title`" class="text-[22px] leading-snug font-medium text-navy">{{ list.title }}</h2>
 						<ul class="mt-2">
-							<li v-for="(row, index) in list.rows" :key="index" class="py-4 border-b border-line last:border-b-0 last:pb-0">
+							<li v-for="(row, index) in list.rows" :key="index" class="py-5 border-b border-line last:border-b-0 last:pb-0">
 								<div class="flex items-baseline justify-between gap-x-3 gap-y-0.5 flex-wrap">
-									<h3 class="font-semibold text-navy-900" dir="auto">{{ row.title }}</h3>
-									<span v-if="row.dates" class="text-sm text-slate-500">{{ row.dates }}</span>
+									<h3 class="text-[17px] font-medium text-navy" dir="auto">{{ row.title }}</h3>
+									<span v-if="row.dates" class="text-[14px] text-subtle-2">{{ row.dates }}</span>
 								</div>
-								<p v-if="row.sub" class="text-[15px] text-slate-700 mt-0.5" dir="auto">{{ row.sub }}</p>
-								<p v-if="row.body" class="text-[15px] text-slate-600 mt-2 leading-7 whitespace-pre-line" dir="auto">{{ row.body }}</p>
-								<a v-if="row.url" :href="row.url" target="_blank" rel="noopener noreferrer nofollow" class="inline-flex items-center gap-1 text-sm font-semibold text-blue-700 hover:underline mt-1.5 break-all">{{ row.url }}<ArrowUpRight :size="14" aria-hidden="true" /></a>
+								<p v-if="row.sub" class="text-[15px] text-ink-700 mt-1" dir="auto">{{ row.sub }}</p>
+								<p v-if="row.body" class="text-[15px] text-subtle mt-2 leading-7 whitespace-pre-line" dir="auto">{{ row.body }}</p>
+								<a v-if="row.url" :href="row.url" target="_blank" rel="noopener noreferrer nofollow" class="inline-flex items-center gap-1 text-[14px] font-medium text-brand transition-colors duration-180 hover:text-navy mt-2 break-all">{{ row.url }}<ArrowUpRight :size="14" aria-hidden="true" /></a>
 							</li>
 						</ul>
 					</section>
 				</div>
 
 				<aside class="grid gap-6 min-w-0">
-					<section v-if="candidate.contact" class="bg-white border border-line rounded-2xl p-6" aria-labelledby="contact-title">
-						<h2 id="contact-title" class="font-display text-lg font-semibold">{{ text('Contact', 'Contact') }}</h2>
+					<section v-if="candidate.contact" class="rounded-card border border-line bg-white p-6" aria-labelledby="contact-title">
+						<h2 id="contact-title" class="text-[20px] font-medium text-navy">{{ text('Contact', 'Contact') }}</h2>
 						<ul class="mt-4 grid gap-3 text-[15px]">
-							<li><a :href="`mailto:${candidate.contact.email}`" class="flex items-center gap-2.5 font-semibold text-blue-700 hover:underline min-w-0"><span class="grid size-[34px] shrink-0 place-items-center rounded-[10px] bg-blue-50"><Mail :size="16" aria-hidden="true" /></span><span class="break-all">{{ candidate.contact.email }}</span></a></li>
-							<li v-if="candidate.contact.phone_number"><a :href="`tel:${candidate.contact.phone_number.replace(/\s+/g, '')}`" class="flex items-center gap-2.5 font-semibold text-blue-700 hover:underline"><span class="grid size-[34px] shrink-0 place-items-center rounded-[10px] bg-blue-50"><Phone :size="16" aria-hidden="true" /></span>{{ candidate.contact.phone_number }}</a></li>
+							<li><a :href="`mailto:${candidate.contact.email}`" class="flex items-center gap-3 font-medium text-brand transition-colors duration-180 hover:text-navy min-w-0"><span class="grid size-[38px] shrink-0 place-items-center rounded-card bg-blue-50 text-brand"><Mail :size="16" aria-hidden="true" /></span><span class="break-all">{{ candidate.contact.email }}</span></a></li>
+							<li v-if="candidate.contact.phone_number"><a :href="`tel:${candidate.contact.phone_number.replace(/\s+/g, '')}`" class="flex items-center gap-3 font-medium text-brand transition-colors duration-180 hover:text-navy"><span class="grid size-[38px] shrink-0 place-items-center rounded-card bg-blue-50 text-brand"><Phone :size="16" aria-hidden="true" /></span>{{ candidate.contact.phone_number }}</a></li>
 						</ul>
 					</section>
 
-					<section v-if="candidate.skills.length || candidate.languages.length" class="bg-white border border-line rounded-2xl p-6" aria-labelledby="skills-title">
-						<h2 id="skills-title" class="font-display text-lg font-semibold">{{ candidate.skills.length ? text('Skills', 'Compétences') : text('Languages', 'Langues') }}</h2>
+					<section v-if="candidate.skills.length || candidate.languages.length" class="rounded-card border border-line bg-white p-6" aria-labelledby="skills-title">
+						<h2 id="skills-title" class="text-[20px] font-medium text-navy">{{ candidate.skills.length ? text('Skills', 'Compétences') : text('Languages', 'Langues') }}</h2>
 						<SkillList class="mt-4" :skills="candidate.skills" :languages="candidate.languages" :fr="fr" />
 					</section>
 				</aside>

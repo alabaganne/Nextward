@@ -10,6 +10,11 @@ Prototype helpers under `design/tailwind/` are historical references, not build
 configuration or instructions to replace the approved public/auth designs. See
 [INTEGRATION.md](INTEGRATION.md) for the current Laravel 13, Vue 3, Inertia 3,
 Tailwind 4, and Vite 8 integration.
+
+> **Redesign (26 October 2026).** The whole app, workspace included, now
+> follows the Hired 128 Plus Webflow template: the fonts, tokens and patterns
+> below are live everywhere.
+
 ---
 
 ## 1. Personality
@@ -18,11 +23,11 @@ Nextward is a **calm, modern, trustworthy SaaS product** for students,
 professionals and companies, covering internships and jobs.
 
 - **Clean, not flashy.** White space does the work. One accent colour, used with intent.
-- **Editorial headings, friendly body.** A geometric display face for headings; a
-  warm humanist sans for body copy.
+- **One friendly geometric face.** Poppins for headings and body; uppercase,
+  widely spaced labels and buttons.
 - **Flat surfaces.** Use spacing, thin neutral borders, and dividers for separation.
   Avoid adding card or button shadows and decorative glows.
-- **Generous radii** (12–26px). Nothing is sharp-cornered.
+- **Soft corners** (10px, `rounded-card`). Nothing is sharp-cornered.
 - **Restrained motion.** Subtle colour and underline changes, without hover lifts
   or layout movement. Keep content visible and respect reduced motion.
 
@@ -39,125 +44,127 @@ Current tokens are defined with Tailwind 4 `@theme` in
 
 | Token | Hex | Use |
 |---|---|---|
-| `blue-50` | `#eef4ff` | Tinted backgrounds, soft chips |
-| `blue-100` | `#dbe7ff` | Chip borders, soft outlines |
-| `blue-200` | `#b9d0ff` | Hover borders on cards |
-| `blue-300` | `#8ab2ff` | Hover borders, avatar gradient stops |
-| `blue-400` | `#5a8dff` | Gradient stops |
-| `blue-500` | `#3b82f6` | Accents, focus rings |
-| `blue-600` | `#2563eb` | **Primary action.** Buttons, active nav, links |
-| `blue-700` | `#1d4ed8` | Primary hover, link text |
-| `navy-700/800/900` | `#0f2150` / `#0a1738` / `#070f26` | Dark sections, sidebar, footer, hero panels |
-| `ink` | `#0c1322` | Primary text |
-| `ink-700` | `#283449` | Secondary-strong text, labels |
-| `muted` | `#5b6677` | Body/secondary text |
-| `muted-2` | `#8a93a3` | Tertiary text, meta, icon strokes |
-| `line` | `#e7ebf1` | Default hairline borders |
+| `brand` / `blue-600` | `#0047ff` | **Primary action.** Buttons, active nav, links |
+| `brand-dark` / `blue-700` | `#003ad6` | Primary hover, link text |
+| `blue-50` / `pale` / `paper-2` | `#f2f6ff` | Ice bands, footer, app background, soft chips |
+| `blue-100` / `blue-200` | `#e2eaff` / `#c4d4ff` | Chip borders, soft outlines |
+| `blue-300` / `blue-400` | `#96b3ff` / `#5f8bff` | Light text and accents on navy |
+| `blue-500` | `#2f6bff` | The highlighted heading word on navy |
+| `navy` / `navy-800` / `ink` | `#001f6d` | Headings, hero, dark bands, sidebar |
+| `navy-600` / `navy-700` / `navy-900` | `#183b94` / `#0b2a80` / `#00175a` | Navy hovers and deeper panels |
+| `ink-700` | `#2c3a63` | Long reading text, labels |
+| `subtle` / `muted` | `#656d80` | Body and secondary text |
+| `subtle-2` / `muted-2` | `#6b7387` / `#8d94a6` | Meta text, placeholders, icon strokes |
+| `mist` / `mist-2` | `#d6def5` / `#a9b7dc` | Body text on navy |
+| `line` | `#e6e9f0` | Default hairline borders |
 | `line-2` | `#eef1f6` | Inner dividers (lighter) |
 | `paper` | `#ffffff` | Cards, surfaces |
-| `paper-2` | `#f6f8fc` | App background, inset wells |
-| `paper-3` | `#eef2f9` | Neutral chips, subtle fills |
+| `paper-3` | `#e8eefc` | Neutral chips, subtle fills |
 
-**Status colours** (used for pills/badges — keep these literal hex, they're outside the brand ramp):
+`slate-*` and `gray-*` are the same blue-grey ramp (`#f7f8fb` to `#0f1424`),
+with 500 and darker passing AA contrast on white.
+
+**Status colours** for pills live in `resources/js/utils/status.js` (literal hex,
+used by `StatusPill`). In templates use Tailwind's green, amber, red and violet
+50/700 pairs for the same meanings.
 
 | Meaning | Text | Background |
 |---|---|---|
 | Success / Interview / Applied | `#047857` | `#dcfce7` |
 | Warning / In review | `#b45309` | `#fef3c7` |
-| Info / Viewed | `blue-700` | `blue-50` |
+| Info / Viewed | `#0039d1` | `#e6edff` |
 | Offer | `#6d28d9` | `#ede9fe` |
-| Neutral / Submitted / Closed | `muted` | `paper-3` |
+| Neutral / Submitted / Closed | `#4b5670` | `#f2f6ff` |
 | Danger / Destructive | `#dc2626` | `#fef2f2` (border `#fecaca`) |
 
-**Company/avatar logos** use a 140° linear gradient, picked per-company and kept
-consistent across screens:
-`linear-gradient(140deg,#6366f1,#4338ca)` (Novabyte), `…#3b82f6,#1d4ed8` (Atlas),
-`…#10b981,#047857` (Greenfield), `…#f59e0b,#d97706` (Stride), `…#ec4899,#be185d` (Lumen),
-`…#06b6d4,#0e7490` (Vertex), `…#0ea5e9,#0369a1` (Realinflo). Initials in white,
-`font-display`, bold.
+**Company and person initials** sit on a solid colour: `logoColor(name)` in
+`resources/js/utils/brand.js` picks one from a small set (cobalt, navy, light
+cobalt, green, amber, pink, teal) by the name, so a company always gets the same
+one. No gradients. Initials are white, `font-medium`.
 
 ---
 
 ## 3. Typography
 
-Workspace typography uses two families; public/auth body text uses Inter
-(`font-sans`) with the same display family.
+One family everywhere: **Poppins** (`font-sans`, `font-body` and `font-display`
+all point at it), weights 400, 500 and 600. Keep text light like the template:
+body, labels and buttons 400, headings and numbers 500; 600 only for the logo
+and small count badges.
 
-- **Display — `Space Grotesk`** (`font-display`): all headings, numbers/stats,
-  logo wordmark, eyebrows, button-like figures. Weights 500–700.
-- **Body — `Plus Jakarta Sans`** (`font-body`): everything else. Weights 400–800.
-- **Public/auth body — `Inter`** (`font-sans`). Weights 400–800.
-
-All three are self-hosted: the woff2 files (Latin and Latin Extended) live in
-`resources/fonts/` and the `@font-face` rules in `resources/css/fonts.css`.
-Do not load fonts from Google Fonts or any other outside service; the privacy
-policy says pages contact no other site for fonts. To add a weight or family,
-add its woff2 file there and a matching `@font-face` rule.
+The woff2 files (Latin and Latin Extended) live in `resources/fonts/` and the
+`@font-face` rules in `resources/css/fonts.css`. Do not load fonts from Google
+Fonts or any other outside service; the privacy policy says pages contact no
+other site for fonts. To add a weight, add its woff2 file there and a matching
+`@font-face` rule.
 
 Scale & conventions:
 
-- Page H1 (workspace): `font-display text-[32px] font-semibold tracking-[-.02em]`
-- Section H2: `font-display font-semibold tracking-[-.02em] text-[clamp(30px,4vw,46px)]`
-- Card title: `font-display text-[18px] font-semibold`
-- Body: `text-[15px]` / `text-[15.5px]`, `leading-[1.6]`–`1.7`, colour `muted` or `ink-700`
-- Tighten tracking on large display text (`tracking-[-.02em]`); never on body.
+- Hero H1: 500, `clamp(40px,5.6vw,72px)`, `leading-[1.1]`
+- Section H2: 400, `clamp(30px,3.4vw,46px)`, `leading-[1.2]`
+- Card title: `text-[19px]`–`[22px] font-medium`
+- Body: `text-[16px]`–`[18px]`, `leading-[1.7]`, colour `subtle` or `ink-700`
+- No negative letter spacing; uppercase labels and buttons use `tracking-caps` (.1em).
 - `text-wrap: pretty` / `text-balance` on headings where supported.
 
 ### The eyebrow (signature element)
 Small uppercase blue label above most section/page titles:
 ```html
-<span class="font-display text-[12.5px] font-semibold tracking-[.18em] uppercase text-blue-600">Overview</span>
+<span class="text-[15px] tracking-caps uppercase text-brand">Overview</span>
 ```
 
 ---
 
 ## 4. Shape, surfaces, spacing
 
-- **Radii:** cards `rounded-[18px]`, large feature panels `rounded-[26px]`,
-  controls/buttons `rounded-[12px]`, chips/pills `rounded-full` or `rounded-lg`,
-  small inner items `rounded-[10px]`–`[11px]`.
+- **Radii:** cards, buttons, fields and chips `rounded-card` (10px); small tags
+  `rounded-md`.
 - **Surfaces:** flat fills and borders. There are no shadow tokens; never add
   `shadow-*` or `box-shadow` to cards, menus, drawers or the navbar.
-- **Borders:** `border border-line` for cards; `border-line-2` for inner dividers.
+- **Borders:** workspace cards are white with no border on the ice page
+  (`bg-white rounded-card`); inside a white card, use an ice tint (`bg-pale`)
+  for inner blocks and `border-line-2` for dividers. Public cards on white keep
+  `border border-line`.
   Never put a border on only one side (top accent stripe, left quote bar) of a
   card, panel, quote or email block; use no border, a soft tint, or a solid
   blue fill with light text instead.
 - **Page max width:** `max-w-wrap` (1200px), centered; responsive workspace
   gutters. Public/auth spacing follows their existing layouts.
-- **Rhythm:** cards padded `p-6`/`p-[22px]`; gaps `gap-4`/`gap-6`. Use
+- **Rhythm:** cards padded `p-6`/`px-7 py-6`; gaps `gap-4`/`gap-6`. Use
   spacing to establish groups before adding another card.
 
 ---
 
 ## 5. Core workspace component patterns
 
-**Primary button**
-```html
-<a class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors">Label</a>
-```
-
-**Secondary button**
-```html
-<a class="inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-colors">Label</a>
-```
+**Buttons** are the shared `.cta` classes in `resources/css/elements.css`, the
+same on public pages and in the workspace: `cta cta-primary` (cobalt),
+`cta cta-secondary` (white with a cobalt border), `cta cta-light` and
+`cta cta-ghost` (on navy), and `cta cta-danger` (red outline) for delete.
+Add `cta-sm` for smaller buttons in rows, cards and tool bars. Buttons are
+weight 400.
+Every button, `role="button"` element and `<summary>` shows a pointer cursor
+(set once in `elements.css`), so there is no need to add `cursor-pointer`.
 
 **Card**
 ```html
-<article class="bg-white border border-line rounded-[18px] p-6 transition-colors hover:border-blue-200"> … </article>
+<article class="bg-white border border-transparent rounded-card p-6 transition-colors hover:border-brand/40"> … </article>
 ```
 
-**Tag / chip** — `inline-flex items-center px-[11px] py-[5px] rounded-lg text-xs font-semibold bg-paper-3 text-ink-700`
+**Tag / chip** — `inline-flex items-center px-2.5 py-[5px] rounded-md text-xs font-medium bg-pale text-ink-700`
 
-**Status pill**
-```html
-<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-[11px] py-[5px] rounded-full text-[#047857] bg-[#dcfce7]">
-  <span class="w-1.5 h-1.5 rounded-full bg-[#059669]"></span> Interview
-</span>
-```
+**Status pill** — `<StatusPill :status="…" />`: a `rounded-md` pill with a dot,
+coloured from `utils/status.js`.
 
-**Input** — `border-[1.5px] border-line rounded-[11px] px-3.5 py-3 text-[14.5px] bg-white focus:outline-none focus:border-blue-500 placeholder:text-muted-2`
+**Input** — `.fld` from `workspace.css`: filled ice (`bg-pale`) with no visible
+border, 15.5px weight 400, `rounded-card`, a cobalt border and white fill on
+focus. A field that sits straight on the ice page gets `bg-white`. Labels are
+14px navy with no extra weight. Checkboxes use `.ck`.
 
-**Avatar / logo** — `w-12 h-12 rounded-[13px] grid place-items-center text-white font-bold font-display` + inline gradient `style`.
+**Page header** — `PageHeader.vue` with `title`, `description`, an optional
+uppercase `label`, and `tone="navy"` for a navy band with line art (the
+dashboard), which also takes `#title`, `#actions` and `#art` slots.
+
+**Avatar / logo** — `CompanyLogo`, or `size-12 rounded-card grid place-items-center text-white font-medium` on `logoColor(name)`.
 
 **Icons:** use library components: the shared `Icon.vue` wrapper uses
 `@heroicons/vue` for public/auth UI; workspace components import named icons from
@@ -168,7 +175,10 @@ handwrite SVG paths, embed SVG icon strings, or substitute Unicode/emoji icons.
 
 ## 6. Layout chrome
 
-- **Workspace (signed-in)**: dark navy sidebar (248px) + white topbar with search (the Input style, a clear button, and `/` focuses it from anywhere outside a text field).
+- **Workspace (signed-in)**: a navy sidebar (248px) with the thin line art, light
+  links and a solid cobalt active item, and a white 72px topbar with search (a
+  `rounded-card` field with a clear button; `/` focuses it from anywhere outside a
+  text field), credits, notifications and the account menu. The page background is ice.
   In HTML this is the `<app-shell active="…">…</app-shell>` wrapper. In Vue it's the
   `AppShell` persistent layout with `<slot/>`. The page only writes the content;
   the chrome is never duplicated per page.
@@ -192,10 +202,11 @@ handwrite SVG paths, embed SVG icon strings, or substitute Unicode/emoji icons.
 
 ## 8. Voice
 
-- Headings: confident, short, sentence case. ("Find your next opportunity.")
+- Headings: confident, short, sentence case. ("Find your next role.")
 - Body: plain, warm, second person. No corporate filler, no exclamation spam.
-- Buttons: verb-first ("Explore opportunities", "Save preferences", "Message recruiter").
-- Say "opportunity" when a sentence covers both internships and jobs, and
-  "candidate" when it covers both students and professionals.
+- Buttons: verb-first ("Browse roles", "Save preferences", "Message recruiter").
+- Say "role" ("offre" in French) when a sentence covers both internships and jobs,
+  and "candidate" when it covers both students and professionals. "Opportunity"
+  stays a code name only.
 - Numbers are concrete; never invent metric slop to fill space. One thousand no's
   for every yes — if a section feels empty, solve it with layout, not filler.

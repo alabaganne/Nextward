@@ -1,5 +1,5 @@
 <template>
-	<div class="mb-6 flex size-12 items-center justify-center rounded-full border border-[#dce5f8] bg-[#f1f5ff] text-brand"><icon name="mail" class="size-[23px]" /></div>
+	<div class="mb-6 flex size-12 items-center justify-center rounded-card bg-blue-50 text-brand"><icon name="mail" class="size-[23px]" /></div>
 	<auth-heading kicker="Almost there" description="Follow the link in your verification email to confirm your address and get started.">Check your inbox.</auth-heading>
 	<auth-feedback :status="verificationLinkSent ? 'A new verification link is on its way. Check your inbox and spam folder.' : ''" :errors="form.errors" />
 	<form @submit.prevent="submit" :aria-busy="form.processing">

@@ -40,16 +40,16 @@ watch(hiring, reload);
 	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-wrap mx-auto">
 		<PageHeader title="Companies" description="Employers with roles on Nextward.">
 			<template v-if="page.props.auth?.user?.is_admin" #actions>
-				<Link class="cbtn cbtn-primary h-11 !py-0" :href="route('companies.create')">Add company</Link>
+				<Link class="cta cta-primary h-11 !py-0" :href="route('companies.create')">Add company</Link>
 			</template>
 		</PageHeader>
 
 		<div class="flex items-center gap-3 mb-5 flex-wrap">
-			<label class="flex items-center gap-2.5 bg-white border border-line rounded-[12px] px-3.5 h-11 flex-1 min-w-[240px] focus-within:border-blue-500 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-blue-600">
+			<label class="flex items-center gap-2.5 bg-white border border-line rounded-card px-3.5 h-11 flex-1 min-w-[240px] focus-within:border-blue-500 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-blue-600">
 				<Search class="size-[18px] text-muted-2 shrink-0" aria-hidden="true" />
 				<input v-model="search" class="border-0 bg-transparent p-0 outline-none focus:ring-0 text-[14.5px] w-full" type="search" placeholder="Search by company or city" aria-label="Search companies">
 			</label>
-			<label class="inline-flex items-center gap-2.5 h-11 px-4 rounded-[12px] border border-line bg-white text-sm font-semibold cursor-pointer select-none">
+			<label class="inline-flex items-center gap-2.5 h-11 px-4 rounded-card border border-line bg-white text-sm font-medium cursor-pointer select-none">
 				<input v-model="hiring" type="checkbox" class="ck">
 				Hiring now
 			</label>
@@ -61,9 +61,9 @@ watch(hiring, reload);
 			<CompanyCard v-for="company in companies.data" :key="company.id" :company="company" />
 		</div>
 
-		<div v-else class="flex flex-col items-center text-center py-16 px-5 bg-white border border-line rounded-[16px]">
+		<div v-else class="flex flex-col items-center text-center py-16 px-5 bg-white border border-line rounded-card">
 			<Building2 class="size-8 text-muted-2 mb-3" aria-hidden="true" />
-			<h2 class="font-display text-lg font-semibold">No companies found</h2>
+			<h2 class="text-[20px] leading-[1.35] text-navy">No companies found</h2>
 			<p class="text-muted text-sm mt-1.5">Try another name or city, or turn off "Hiring now".</p>
 		</div>
 

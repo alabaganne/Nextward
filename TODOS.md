@@ -2,6 +2,13 @@
 
 Unfinished work, small fixes and chores that are not on the roadmap (`FUTURE_PLANS.md`).
 
+## Finish the redesign (started 26 October 2026)
+
+The app now uses the Hired 128 Plus look (`LANDING_PAGE_DESIGN.md`). Done (27 October 2026): fonts and colours, header (one "Get started" button), footer, hero, closing card, role and guide cards, pagination, every public page (home, roles, companies, talent, blog and articles, about, contact, privacy, terms), the sign-in pages, the emails and the unsubscribe page, and the workspace (sidebar, top bar, shared panels and every signed-in page, with lighter text, borderless cards, filled ice fields and a navy dashboard header, checked in the browser). Copy now says "roles" instead of "opportunities". The old `Sparkle` hero and its CSS are gone.
+
+Still to do:
+- Swap in the white Nextward logo once the owner has it (header and footer in `Public.vue`, sidebar in `AppSidebar.vue`).
+
 ## Match imports to the owner's job search (done 25 October 2026)
 
 Update `CandidateProfiles` and the resume profile so imports favour the roles the owner would actually take. Today a profile only checks kind, level, field, skills and a plain country list; it doesn't know about visas or remote from Tunisia.

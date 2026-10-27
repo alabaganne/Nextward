@@ -73,7 +73,7 @@ class RegisteredUserController extends Controller
             'terms' => 'accepted',
         ], [
             'terms.accepted' => __('Please agree to the terms of use and the privacy policy to create an account.'),
-            'account_type.required' => __('Choose whether you want to find opportunities or hire candidates.'),
+            'account_type.required' => __('Choose whether you want to find roles or hire candidates.'),
             'company_logo.required_if' => __('Upload a company logo before creating a company account.'),
             'website.required_if' => __('Add your company website before creating a company account.'),
             'about.required_if' => __('Tell candidates about your company before creating a company account.'),

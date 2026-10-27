@@ -20,7 +20,7 @@ class OpportunityFeedbackController extends Controller
             ...$data, 'opportunity_id' => $opportunity->id, 'user_id' => $request->user()?->id,
             'status' => 'open', 'created_at' => now(), 'updated_at' => now(),
         ]);
-        return back()->with('toast', ['type' => 'store', 'message' => 'Thanks. We will review this opportunity.']);
+        return back()->with('toast', ['type' => 'store', 'message' => 'Thanks. We will review this role.']);
     }
 
     public function claim(Request $request, Company $company)

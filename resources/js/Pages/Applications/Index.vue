@@ -30,9 +30,9 @@ const description = computed(() => isCandidate.value
 
 const buckets = [
 	{ key: 'all', label: 'All', dot: 'bg-blue-500' },
-	{ key: 'review', label: 'In review', dot: 'bg-[#d97706]' },
-	{ key: 'interview', label: 'Interview', dot: 'bg-[#059669]' },
-	{ key: 'offer', label: 'Offer', dot: 'bg-[#7c3aed]' },
+	{ key: 'review', label: 'In review', dot: 'bg-amber-600' },
+	{ key: 'interview', label: 'Interview', dot: 'bg-emerald-600' },
+	{ key: 'offer', label: 'Offer', dot: 'bg-violet-600' },
 	{ key: 'closed', label: 'Closed', dot: 'bg-muted-2' },
 ];
 
@@ -54,7 +54,7 @@ const partyName = (application) => (isCandidate.value ? application.company?.nam
 			<button
 				v-for="bucket in buckets"
 				:key="bucket.key"
-				class="chip inline-flex items-center gap-2 h-10 px-4 rounded-full border text-sm font-semibold whitespace-nowrap transition-colors"
+				class="chip inline-flex items-center gap-2 h-10 px-4 rounded-full border text-sm font-medium whitespace-nowrap transition-colors"
 				:class="{ 'is-active': status === bucket.key }"
 				type="button"
 				:aria-pressed="status === bucket.key"
@@ -67,8 +67,8 @@ const partyName = (application) => (isCandidate.value ? application.company?.nam
 		</div>
 
 		<!-- TABLE -->
-		<div class="bg-white border border-line rounded-[18px] overflow-hidden">
-			<div class="grid grid-cols-[1fr_150px_130px_40px] gap-4 px-[22px] py-3 border-b border-line-2 bg-paper-2 max-[760px]:hidden [&_span]:text-[11.5px] [&_span]:tracking-[.08em] [&_span]:uppercase [&_span]:text-muted-2 [&_span]:font-bold [&_span:last-child]:text-right">
+		<div class="bg-white border border-transparent rounded-card overflow-hidden">
+			<div class="grid grid-cols-[1fr_150px_130px_40px] gap-4 px-[22px] py-3 border-b border-line-2 bg-paper-2 max-[760px]:hidden [&_span]:text-[11.5px] [&_span]:tracking-[.08em] [&_span]:uppercase [&_span]:text-muted-2 [&_span]:font-medium [&_span:last-child]:text-right">
 				<span>{{ isCandidate ? 'Role' : 'Applicant · Role' }}</span><span>Applied</span><span>Status</span><span></span>
 			</div>
 			<div>
@@ -80,9 +80,9 @@ const partyName = (application) => (isCandidate.value ? application.company?.nam
 					:href="route('applications.show', application.id)"
 				>
 					<div class="flex items-center gap-3.5 min-w-0">
-						<CompanyLogo class="w-[46px] h-[46px] rounded-[12px] text-[15px]" :name="partyName(application)" :src="isCandidate ? application.company?.image : null" />
+						<CompanyLogo class="w-[46px] h-[46px] rounded-card text-[15px]" :name="partyName(application)" :src="isCandidate ? application.company?.image : null" />
 						<div>
-							<b class="text-[15px] font-semibold block">{{ application.opportunity.title }}</b>
+							<b class="text-[15px] font-medium block">{{ application.opportunity.title }}</b>
 							<span class="text-[13px] text-muted">{{ partyName(application) }} · {{ application.opportunity.city?.name }}</span>
 						</div>
 					</div>
@@ -93,11 +93,11 @@ const partyName = (application) => (isCandidate.value ? application.company?.nam
 
 				<div v-if="!rows.length && status !== 'all'" class="px-[22px] py-8 text-[14px] text-muted">
 					No applications with this status.
-					<button class="font-semibold text-blue-700" type="button" @click="setFilter('all')">Show all</button>
+					<button class="font-medium text-blue-700" type="button" @click="setFilter('all')">Show all</button>
 				</div>
 				<div v-else-if="!rows.length" class="px-[22px] py-8 text-[14px] text-muted">
 					No applications here yet.
-					<Link v-if="isCandidate" class="font-semibold text-blue-700" :href="route('app.opportunities.index')">Browse opportunities</Link>
+					<Link v-if="isCandidate" class="font-medium text-blue-700" :href="route('app.opportunities.index')">Browse roles</Link>
 				</div>
 			</div>
 		</div>

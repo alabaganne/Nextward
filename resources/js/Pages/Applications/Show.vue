@@ -103,14 +103,14 @@ const saveTracking = () => trackingForm.patch(route('applications.tracking.updat
 		<div class="flex items-center gap-2 text-[13.5px] text-muted font-medium mb-[22px] [&_svg]:w-3.5 [&_svg]:h-3.5 [&_svg]:text-muted-2">
 			<Link class="hover:text-blue-700" :href="route('applications.index')">Applications</Link>
 			<component :is="icons.chevron" aria-hidden="true" />
-			<span class="text-ink-700 font-semibold">{{ application.opportunity.title }}</span>
+			<span class="text-ink-700 font-medium">{{ application.opportunity.title }}</span>
 		</div>
 
 		<!-- STATUS BANNER -->
-		<div class="flex items-center gap-4 bg-white border border-line rounded-[18px] px-6 py-[18px] mb-[22px]">
-			<div class="w-11 h-11 rounded-[12px] grid place-items-center shrink-0 [&_svg]:w-[22px] [&_svg]:h-[22px]" :style="{ background: stage.bg, color: stage.color }"><component :is="icons.calendarCheck" aria-hidden="true" /></div>
+		<div class="flex items-center gap-4 bg-white border border-transparent rounded-card px-6 py-[18px] mb-[22px]">
+			<div class="w-11 h-11 rounded-card grid place-items-center shrink-0 [&_svg]:w-[22px] [&_svg]:h-[22px]" :style="{ background: stage.bg, color: stage.color }"><component :is="icons.calendarCheck" aria-hidden="true" /></div>
 			<div>
-				<b class="text-base font-display font-semibold block">{{ stage.title }}</b>
+				<b class="text-base font-medium block">{{ stage.title }}</b>
 				<span class="text-[13.5px] text-muted">{{ stage.note }}</span>
 			</div>
 			<div class="ml-auto text-right text-[13px] text-muted-2 max-[680px]:hidden">
@@ -122,147 +122,147 @@ const saveTracking = () => trackingForm.patch(route('applications.tracking.updat
 		<div class="grid grid-cols-[1fr_350px] gap-6 items-start max-[1080px]:grid-cols-1">
 			<!-- LEFT -->
 			<div class="flex flex-col gap-4">
-				<section class="bg-white border border-line rounded-[18px] overflow-hidden px-8 py-[30px]">
+				<section class="bg-white border border-transparent rounded-card overflow-hidden px-8 py-[30px]">
 					<div class="flex items-start gap-[18px]">
-						<CompanyLogo class="w-[62px] h-[62px] rounded-[16px] text-[22px]" :name="application.company.name" :src="application.company.image" />
+						<CompanyLogo class="w-[62px] h-[62px] rounded-card text-[22px]" :name="application.company.name" :src="application.company.image" />
 						<div>
-							<h1 class="font-display text-[26px] font-semibold leading-[1.12]">{{ application.opportunity.title }}</h1>
-							<p class="text-[15px] text-muted mt-1.5"><b class="text-ink-700 font-semibold">{{ application.company.name }}</b> · {{ application.opportunity.field.name }}</p>
+							<h1 class="text-[length:clamp(28px,2.6vw,36px)] font-medium leading-[1.15] text-navy">{{ application.opportunity.title }}</h1>
+							<p class="text-[15px] text-muted mt-1.5"><b class="text-ink-700 font-medium">{{ application.company.name }}</b> · {{ application.opportunity.field.name }}</p>
 						</div>
 					</div>
 					<div class="flex flex-wrap gap-2.5 mt-[22px] [&_.m]:flex [&_.m]:items-center [&_.m]:gap-[7px] [&_.m]:text-[13.5px] [&_.m]:text-ink-700 [&_.m]:font-medium [&_.m]:bg-paper-2 [&_.m]:border [&_.m]:border-line-2 [&_.m]:px-[13px] [&_.m]:py-2 [&_.m]:rounded-[9px] [&_svg]:w-[15px] [&_svg]:h-[15px] [&_svg]:text-blue-600">
 						<span class="m"><component :is="icons.pin" aria-hidden="true" />{{ application.opportunity.city.name }}</span>
 						<span class="m"><component :is="icons.clock" aria-hidden="true" />{{ application.opportunity.closing_at ? `Closes ${application.opportunity.closing_at}` : 'No deadline listed' }}</span>
-						<Link class="m no-underline" :href="appPath(application.opportunity.public_url) || route('app.opportunities.show', application.opportunity.id)"><component :is="icons.external" aria-hidden="true" />View opportunity</Link>
+						<Link class="m no-underline" :href="appPath(application.opportunity.public_url) || route('app.opportunities.show', application.opportunity.id)"><component :is="icons.external" aria-hidden="true" />View role</Link>
 					</div>
 				</section>
 
 				<!-- TIMELINE -->
-				<section v-if="!isExternal" class="bg-white border border-line rounded-[18px] px-8 max-[560px]:px-5 py-[30px]">
-					<h2 class="font-display text-[18px] font-semibold mb-1.5">Application progress</h2>
+				<section v-if="!isExternal" class="bg-white border border-transparent rounded-card px-8 max-[560px]:px-5 py-[30px]">
+					<h2 class="mb-1.5 text-[20px] leading-[1.35] text-navy">Application progress</h2>
 					<p class="text-[13.5px] text-muted mb-[18px]">Submission date and current application stage.</p>
 					<div class="relative pl-[34px] before:content-[''] before:absolute before:left-[11px] before:top-1.5 before:bottom-2.5 before:w-0.5 before:bg-line">
 						<div class="relative pb-[26px]">
 							<span class="absolute -left-[34px] top-0 w-6 h-6 rounded-full bg-blue-600 border-2 border-blue-600 text-white grid place-items-center [&_svg]:w-[13px] [&_svg]:h-[13px]"><component :is="icons.check" aria-hidden="true" /></span>
-							<b class="text-[15px] font-display font-semibold block">Application submitted</b>
-							<div class="text-[13px] text-muted mt-[3px]">{{ application.created_at }}</div>
+							<b class="text-[15px] font-medium block">Application submitted</b>
+							<div class="text-[15px] text-subtle mt-1">{{ application.created_at }}</div>
 						</div>
 						<div v-if="normalizedStatus !== 'submitted'" class="relative">
 							<span class="absolute -left-[34px] top-0 w-6 h-6 rounded-full border-2 text-white grid place-items-center [&_svg]:w-[13px] [&_svg]:h-[13px]" :style="{ background: stage.border, borderColor: stage.border }"><component :is="icons.dot" aria-hidden="true" /></span>
-							<b class="text-[15px] font-display font-semibold block">{{ stage.title }}</b>
-							<div class="text-[13px] text-muted mt-[3px]">Updated {{ application.updated_at }}</div>
+							<b class="text-[15px] font-medium block">{{ stage.title }}</b>
+							<div class="text-[15px] text-subtle mt-1">Updated {{ application.updated_at }}</div>
 						</div>
 						<div v-else class="relative">
 							<span class="absolute -left-[34px] top-0 w-6 h-6 rounded-full bg-white border-2 border-line text-muted-2 grid place-items-center"></span>
-							<b class="text-[15px] font-display font-semibold block text-muted-2">Awaiting review</b>
-							<div class="text-[13px] text-muted mt-[3px]">Pending review by {{ application.company.name }}</div>
+							<b class="text-[15px] font-medium block text-muted-2">Awaiting review</b>
+							<div class="text-[15px] text-subtle mt-1">Pending review by {{ application.company.name }}</div>
 						</div>
 					</div>
 				</section>
 
 				<!-- SUBMITTED APPLICATION -->
-				<section v-if="!isExternal" class="bg-white border border-line rounded-[18px] px-8 max-[560px]:px-5 py-[30px]">
-					<h2 class="font-display text-[18px] font-semibold mb-1.5">{{ isCandidate ? 'Your submitted application' : 'Submitted application' }}</h2>
+				<section v-if="!isExternal" class="bg-white border border-transparent rounded-card px-8 max-[560px]:px-5 py-[30px]">
+					<h2 class="mb-1.5 text-[20px] leading-[1.35] text-navy">{{ isCandidate ? 'Your submitted application' : 'Submitted application' }}</h2>
 					<p class="text-[13.5px] text-muted mb-[18px]">The current application details shared with {{ application.company.name }}.</p>
 
 					<div v-if="application.cover_letter" class="py-4">
-						<div class="text-xs tracking-[.06em] uppercase text-muted-2 font-bold mb-2">Cover note</div>
+						<div class="text-xs tracking-[.06em] uppercase text-muted-2 font-medium mb-2">Cover note</div>
 						<p class="text-[15px] leading-[1.7] text-ink-700 whitespace-pre-line">{{ application.cover_letter }}</p>
 					</div>
 
 					<div v-if="application.message" class="py-4 border-t border-line-2">
-						<div class="text-xs tracking-[.06em] uppercase text-muted-2 font-bold mb-2">Message to the company</div>
+						<div class="text-xs tracking-[.06em] uppercase text-muted-2 font-medium mb-2">Message to the company</div>
 						<p class="text-[15px] leading-[1.7] text-ink-700 whitespace-pre-line">{{ application.message }}</p>
 					</div>
 
 					<div v-if="application.attachments.length" class="py-4 border-t border-line-2">
-						<div class="text-xs tracking-[.06em] uppercase text-muted-2 font-bold mb-2">Attachments</div>
+						<div class="text-xs tracking-[.06em] uppercase text-muted-2 font-medium mb-2">Attachments</div>
 						<div class="flex flex-wrap gap-3 mt-1">
 							<a
 								v-for="attachment in application.attachments"
 								:key="attachment.url || attachment.name"
-								class="flex items-center gap-[11px] bg-paper-2 border border-line rounded-[12px] px-[15px] py-3 no-underline hover:border-blue-300 transition-colors"
+								class="flex items-center gap-[11px] bg-paper-2 border border-line rounded-card px-[15px] py-3 no-underline hover:border-blue-300 transition-colors"
 								:href="attachment.url"
 								target="_blank"
 								rel="noopener"
 							>
-								<span class="w-[38px] h-[38px] rounded-[9px] bg-[#fee2e2] text-[#dc2626] grid place-items-center shrink-0 text-[10px] font-extrabold font-display">{{ (attachment.name || '').split('.').pop().slice(0, 3).toUpperCase() || 'DOC' }}</span>
-								<span><b class="text-[13.5px] text-ink block font-semibold">{{ attachment.name }}</b><span v-if="attachment.resume || attachment.size" class="text-xs text-muted">{{ [attachment.resume && 'Resume', attachment.size && `${Math.round(attachment.size / 1024)} KB`].filter(Boolean).join(' · ') }}</span></span>
+								<span class="w-[38px] h-[38px] rounded-[9px] bg-red-100 text-red-600 grid place-items-center shrink-0 text-[10px] font-extrabold">{{ (attachment.name || '').split('.').pop().slice(0, 3).toUpperCase() || 'DOC' }}</span>
+								<span><b class="text-[13.5px] text-ink block font-medium">{{ attachment.name }}</b><span v-if="attachment.resume || attachment.size" class="text-xs text-muted">{{ [attachment.resume && 'Resume', attachment.size && `${Math.round(attachment.size / 1024)} KB`].filter(Boolean).join(' · ') }}</span></span>
 								<span class="ml-1.5 text-muted-2 [&_svg]:w-[17px] [&_svg]:h-[17px]"><component :is="icons.download" aria-hidden="true" /></span>
 							</a>
 						</div>
 					</div>
 				</section>
-				<form v-if="isExternal && isCandidate" class="bg-white border border-line rounded-[18px] p-8" @submit.prevent="saveTracking">
-					<h2 class="font-display text-lg font-semibold mb-2">Your private application tracker</h2>
+				<form v-if="isExternal && isCandidate" class="bg-white border border-transparent rounded-card p-8" @submit.prevent="saveTracking">
+					<h2 class="mb-2 text-[20px] leading-[1.35] text-navy">Your private application tracker</h2>
 					<p class="text-sm text-muted mb-5">Record what happened on the employer's website. Notes and updates here are never sent to the employer.</p>
 					<p v-for="(error, key) in trackingForm.errors" :key="key" class="text-sm text-red-600 mb-2" role="alert">{{ error }}</p>
 					<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
-						<label class="text-sm font-semibold">Your status<select v-model="trackingForm.status" class="fld mt-2"><option value="submitted">Applied</option><option value="review">In review</option><option value="interview">Interview</option><option value="offer">Offer</option><option value="closed">Closed</option></select></label>
-						<label class="text-sm font-semibold">Date applied<input v-model="trackingForm.applied_at" class="fld mt-2" type="date" required></label>
+						<label class="text-sm font-medium">Your status<select v-model="trackingForm.status" class="fld mt-2"><option value="submitted">Applied</option><option value="review">In review</option><option value="interview">Interview</option><option value="offer">Offer</option><option value="closed">Closed</option></select></label>
+						<label class="text-sm font-medium">Date applied<input v-model="trackingForm.applied_at" class="fld mt-2" type="date" required></label>
 					</div>
-					<label class="block text-sm font-semibold mt-5">Private notes<textarea v-model="trackingForm.candidate_notes" class="fld mt-2" maxlength="10000"></textarea></label>
-					<button type="submit" class="cbtn bg-blue-600 text-white mt-4" :disabled="trackingForm.processing">Save your update</button>
-					<button type="button" class="cbtn text-red-700 ml-2 mt-4" @click="withdraw">Remove tracking record</button>
+					<label class="block text-sm font-medium mt-5">Private notes<textarea v-model="trackingForm.candidate_notes" class="fld mt-2" maxlength="10000"></textarea></label>
+					<button type="submit" class="cta cta-primary mt-4" :disabled="trackingForm.processing">Save your update</button>
+					<button type="button" class="cta cta-danger ml-2 mt-4" @click="withdraw">Remove tracking record</button>
 				</form>
 			</div>
 
 			<!-- RIGHT -->
 			<div class="flex flex-col gap-4 sticky top-[94px]">
-				<section v-if="canReply" class="bg-white border border-line rounded-[18px] px-6 py-[22px]">
-					<h3 class="text-sm tracking-[.04em] text-muted font-bold font-display mb-4">REVIEW</h3>
+				<section v-if="canReply" class="bg-white border border-transparent rounded-card px-6 py-[22px]">
+					<h3 class="mb-4 text-[13px] tracking-caps text-brand uppercase">REVIEW</h3>
 					<form class="mb-5 pb-5 border-b border-line-2" @submit.prevent="reply(reviewForm.status)">
-						<label class="block text-[13px] font-semibold text-ink-700 mb-2" for="review-stage">Application stage</label>
+						<label class="block text-[14px] font-medium text-navy mb-2" for="review-stage">Application stage</label>
 						<select id="review-stage" v-model="reviewForm.status" class="fld" :disabled="reviewForm.processing" :aria-invalid="!!reviewForm.errors.status" :aria-describedby="reviewForm.errors.status ? 'review-stage-error' : undefined">
 							<option value="" disabled>Select a stage</option>
 							<option value="viewed">Viewed</option>
 							<option value="review">In review</option>
 							<option value="interview">Interview</option>
 						</select>
-						<button class="cbtn w-full mt-2.5 bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 disabled:opacity-50" type="submit" :disabled="reviewForm.processing || !reviewForm.status || reviewForm.status === normalizedStatus">{{ reviewForm.processing ? 'Updating…' : 'Update stage' }}</button>
+						<button class="cta w-full mt-2.5 cta-secondary disabled:opacity-50" type="submit" :disabled="reviewForm.processing || !reviewForm.status || reviewForm.status === normalizedStatus">{{ reviewForm.processing ? 'Updating…' : 'Update stage' }}</button>
 					</form>
 					<p v-if="reviewForm.errors.status" id="review-stage-error" class="text-sm text-red-600 mb-4" role="alert">{{ reviewForm.errors.status }}</p>
-					<button class="w-full justify-center inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 [&_svg]:w-[17px] [&_svg]:h-[17px]" type="button" :disabled="reviewForm.processing" @click="reply('offer')">
+					<button class="cta cta-primary w-full disabled:opacity-50 [&_svg]:w-[17px] [&_svg]:h-[17px]" type="button" :disabled="reviewForm.processing" @click="reply('offer')">
 						Advance to offer <component :is="icons.arrow" aria-hidden="true" />
 					</button>
-					<button class="w-full justify-center mt-2.5 inline-flex items-center font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all disabled:opacity-50" type="button" :disabled="reviewForm.processing" :aria-expanded="confirmingDisqualify" @click="confirmingDisqualify = true">
+					<button class="cta cta-secondary w-full mt-2.5 disabled:opacity-50" type="button" :disabled="reviewForm.processing" :aria-expanded="confirmingDisqualify" @click="confirmingDisqualify = true">
 						Disqualify
 					</button>
-					<div v-if="confirmingDisqualify" class="mt-2.5 rounded-[12px] border border-red-200 bg-red-50 p-4">
+					<div v-if="confirmingDisqualify" class="mt-2.5 rounded-card border border-red-200 bg-red-50 p-4">
 						<p class="text-[13.5px] text-red-900" role="alert">Mark this application as not selected? We'll let the applicant know. This can't be undone.</p>
 						<div class="flex gap-2.5 mt-3">
-							<button class="cbtn flex-1 !px-3 !py-2.5 !text-sm bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700" type="button" @click="confirmingDisqualify = false">Cancel</button>
-							<button class="cbtn flex-1 !px-3 !py-2.5 !text-sm bg-[#dc2626] text-white hover:bg-[#b91c1c] disabled:opacity-50" type="button" :disabled="reviewForm.processing" @click="reply('closed')">Yes, disqualify</button>
+							<button class="cta flex-1 !px-3 !py-2.5 !text-sm cta-secondary" type="button" @click="confirmingDisqualify = false">Cancel</button>
+							<button class="cta flex-1 !px-3 !py-2.5 !text-sm cta-danger disabled:opacity-50" type="button" :disabled="reviewForm.processing" @click="reply('closed')">Yes, disqualify</button>
 						</div>
 					</div>
 				</section>
 
-				<section class="bg-white border border-line rounded-[18px] px-6 py-[22px]">
-					<h3 class="text-sm tracking-[.04em] text-muted font-bold font-display mb-4">APPLICATION DETAILS</h3>
-					<div class="flex items-center justify-between py-[11px] text-sm"><span class="text-muted">Application ID</span><span class="font-semibold text-ink-700 font-display">#{{ application.id }}</span></div>
-					<div class="flex items-center justify-between py-[11px] text-sm border-t border-line-2"><span class="text-muted">Submitted</span><span class="font-semibold text-ink-700 font-display">{{ application.created_at }}</span></div>
-					<div class="flex items-center justify-between py-[11px] text-sm border-t border-line-2"><span class="text-muted">Last update</span><span class="font-semibold text-ink-700 font-display">{{ application.updated_at }}</span></div>
-					<div class="flex items-center justify-between py-[11px] text-sm border-t border-line-2"><span class="text-muted">Stage</span><span class="font-semibold font-display" :style="{ color: stage.color }">{{ stage.label }}</span></div>
+				<section class="bg-white border border-transparent rounded-card px-6 py-[22px]">
+					<h3 class="mb-4 text-[13px] tracking-caps text-brand uppercase">APPLICATION DETAILS</h3>
+					<div class="flex items-center justify-between py-[11px] text-sm"><span class="text-muted">Application ID</span><span class="font-medium text-ink-700">#{{ application.id }}</span></div>
+					<div class="flex items-center justify-between py-[11px] text-sm border-t border-line-2"><span class="text-muted">Submitted</span><span class="font-medium text-ink-700">{{ application.created_at }}</span></div>
+					<div class="flex items-center justify-between py-[11px] text-sm border-t border-line-2"><span class="text-muted">Last update</span><span class="font-medium text-ink-700">{{ application.updated_at }}</span></div>
+					<div class="flex items-center justify-between py-[11px] text-sm border-t border-line-2"><span class="text-muted">Stage</span><span class="font-medium" :style="{ color: stage.color }">{{ stage.label }}</span></div>
 				</section>
 
-				<section class="bg-white border border-line rounded-[18px] px-6 py-[22px]">
-					<h3 class="text-sm tracking-[.04em] text-muted font-bold font-display mb-4">{{ isCandidate ? 'COMPANY' : 'APPLICANT' }}</h3>
+				<section class="bg-white border border-transparent rounded-card px-6 py-[22px]">
+					<h3 class="mb-4 text-[13px] tracking-caps text-brand uppercase">{{ isCandidate ? 'COMPANY' : 'APPLICANT' }}</h3>
 					<div class="flex items-center gap-[13px] mb-4">
-						<CompanyLogo class="w-[46px] h-[46px] rounded-[12px] text-base" :name="counterpart.name" :src="counterpart.role === 'Company' ? counterpart.image : null" />
-						<div><b class="font-display text-base block">{{ counterpart.name }}</b><span class="text-[13px] text-muted">{{ counterpart.role }}</span></div>
+						<CompanyLogo class="w-[46px] h-[46px] rounded-card text-base" :name="counterpart.name" :src="counterpart.role === 'Company' ? counterpart.image : null" />
+						<div><b class="text-base block">{{ counterpart.name }}</b><span class="text-[13px] text-muted">{{ counterpart.role }}</span></div>
 					</div>
 					<div v-if="counterpart.email" class="flex items-center gap-3 py-[9px] text-sm text-ink-700 [&_svg]:w-[17px] [&_svg]:h-[17px] [&_svg]:text-muted-2 [&_svg]:shrink-0"><component :is="icons.mail" aria-hidden="true" />{{ counterpart.email }}</div>
 					<div v-if="counterpart.phone_number" class="flex items-center gap-3 py-[9px] text-sm text-ink-700 [&_svg]:w-[17px] [&_svg]:h-[17px] [&_svg]:text-muted-2 [&_svg]:shrink-0"><component :is="icons.phone" aria-hidden="true" />{{ counterpart.phone_number }}</div>
 					<div v-if="counterpart.city?.name" class="flex items-center gap-3 py-[9px] text-sm text-ink-700 [&_svg]:w-[17px] [&_svg]:h-[17px] [&_svg]:text-muted-2 [&_svg]:shrink-0"><component :is="icons.pin" aria-hidden="true" />{{ counterpart.city.name }}</div>
-					<Link v-if="!isCandidate && !isExternal" class="w-full justify-center mt-[14px] inline-flex items-center font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all" :href="route('candidates.show', application.candidate.id)">View profile</Link>
-					<Link v-if="!isExternal && counterpart.user_id" class="w-full justify-center mt-[14px] inline-flex items-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors [&_svg]:w-[17px] [&_svg]:h-[17px]" :href="route('messages.show', counterpart.user_id)">
+					<Link v-if="!isCandidate && !isExternal" class="cta cta-secondary w-full mt-[14px]" :href="route('candidates.show', application.candidate.id)">View profile</Link>
+					<Link v-if="!isExternal && counterpart.user_id" class="cta cta-primary w-full mt-[14px] [&_svg]:w-[17px] [&_svg]:h-[17px]" :href="route('messages.show', counterpart.user_id)">
 						{{ isCandidate ? 'Message recruiter' : 'Message applicant' }} <component :is="icons.arrow" aria-hidden="true" />
 					</Link>
 				</section>
 
 				<template v-if="isCandidate && open && !isExternal">
-					<Link class="w-full justify-center inline-flex items-center font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700 transition-all" :href="route('applications.edit', application.id)">Edit application</Link>
-					<button class="w-full justify-center inline-flex items-center font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] bg-white text-[#dc2626] border border-[#fecaca] hover:bg-[#fef2f2] transition-colors" type="button" @click="withdraw">Withdraw application</button>
+					<Link class="cta cta-secondary w-full" :href="route('applications.edit', application.id)">Edit application</Link>
+					<button class="cta cta-danger w-full" type="button" @click="withdraw">Withdraw application</button>
 				</template>
 			</div>
 		</div>

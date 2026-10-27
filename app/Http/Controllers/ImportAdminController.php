@@ -228,7 +228,7 @@ class ImportAdminController extends Controller
             throw ValidationException::withMessages(['publication' => $exception->getMessage()]);
         }
         $this->audit($request, 'opportunity.published', $published->id, $item->import_source_id, ['item_id' => $item->id]);
-        return back()->with('toast', ['type' => 'update', 'message' => 'Opportunity reviewed. Suppressed listings stay hidden until explicitly restored.']);
+        return back()->with('toast', ['type' => 'update', 'message' => 'Role reviewed. Suppressed listings stay hidden until explicitly restored.']);
     }
 
     public function reject(Request $request, OpportunitySource $item)
@@ -306,9 +306,9 @@ class ImportAdminController extends Controller
             $roles = Opportunity::whereIn('id', $ids)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
             $duplicate = $roles->get($opportunity->id);
             $survivor = $roles->get((int) $data['survivor_id']);
-            abort_if($duplicate->id === $survivor->id || $duplicate->merged_into_id || $survivor->merged_into_id, 422, 'Select two distinct, unmerged opportunities.');
+            abort_if($duplicate->id === $survivor->id || $duplicate->merged_into_id || $survivor->merged_into_id, 422, 'Select two distinct, unmerged roles.');
             abort_unless($duplicate->company_id === $survivor->company_id, 422, 'Verify and consolidate the employer identity before merging different companies.');
-            abort_if($duplicate->origin === 'native' && $survivor->origin !== 'native', 422, 'Keep the employer-managed opportunity as the survivor.');
+            abort_if($duplicate->origin === 'native' && $survivor->origin !== 'native', 422, 'Keep the employer-managed role as the survivor.');
             foreach (DB::table('likes')->where('opportunity_id', $duplicate->id)->get() as $like) {
                 DB::table('likes')->insertOrIgnore(['candidate_id' => $like->candidate_id, 'opportunity_id' => $survivor->id]);
             }

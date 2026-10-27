@@ -1,4 +1,12 @@
 /* Element defaults: focus outlines, labels and form fields. */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+input:is([type="button"], [type="submit"], [type="reset"]):not(:disabled),
+::file-selector-button,
+summary {
+	cursor: pointer;
+}
+
 button:focus-visible,
 [role="button"]:focus-visible,
 a:focus-visible {
@@ -7,7 +15,7 @@ a:focus-visible {
 }
 
 label {
-	@apply block text-sm font-medium text-gray-700;
+	@apply block text-[14px] text-navy;
 }
 
 /* Use an outline for focus instead of the forms plugin's box-shadow ring. */
@@ -25,9 +33,41 @@ textarea:focus-visible {
 }
 
 input[type="checkbox"] {
-	@apply h-4 w-4 text-blue-600 border-gray-300 rounded-sm;
+	@apply h-4 w-4 rounded-[4px] border-slate-300 text-brand;
 }
 
 textarea {
 	resize: none;
+}
+
+.focus-ring:focus-visible {
+	@apply outline-2 outline-offset-3 outline-brand;
+}
+
+/* Buttons on every page: uppercase with wide letter spacing, 10px corners. */
+.cta {
+	@apply inline-flex cursor-pointer items-center justify-center gap-3 rounded-card border px-[30px] py-[13px] text-center text-[15px] leading-6 font-normal tracking-caps uppercase transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-60;
+}
+/* A label.cta wrapping a hidden file input shows the ring for that input. */
+.cta:has(input:focus-visible) {
+	@apply outline-2 outline-offset-2 outline-brand;
+}
+.cta-primary {
+	@apply border-brand bg-brand text-white hover:bg-transparent hover:text-navy;
+}
+.cta-secondary {
+	@apply border-brand bg-white text-navy hover:bg-brand hover:text-white;
+}
+.cta-light {
+	@apply border-white bg-white text-brand hover:bg-transparent hover:text-white;
+}
+.cta-ghost {
+	@apply border-white/70 bg-transparent text-white hover:border-white hover:bg-white hover:text-brand;
+}
+.cta-danger {
+	@apply border-red-600 bg-white text-red-700 hover:bg-red-600 hover:text-white;
+}
+/* Smaller buttons for rows, cards and tool bars. */
+.cta-sm {
+	@apply gap-2 px-4 py-2 text-[13px] leading-5;
 }

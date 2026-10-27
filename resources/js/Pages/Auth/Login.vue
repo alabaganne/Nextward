@@ -6,8 +6,8 @@
 			<auth-field id="email" :label="text('Email address', 'Adresse e-mail')" type="email" v-model="form.email" :error="form.errors.email" :placeholder="text('you@example.com', 'vous@exemple.com')" required autofocus autocomplete="username" />
 			<auth-field id="password" :label="text('Password', 'Mot de passe')" type="password" v-model="form.password" :error="form.errors.password" required autocomplete="current-password" />
 		</div>
-		<div class="my-6 flex flex-wrap items-center justify-between gap-3 text-[12px]">
-			<label class="m-0 inline-flex cursor-pointer items-center gap-[9px] text-[12px] font-normal text-subtle"><breeze-checkbox name="remember" v-model:checked="form.remember" /><span>{{ text('Keep me logged in', 'Rester connecté') }}</span></label>
+		<div class="my-6 flex flex-wrap items-center justify-between gap-3 text-[14px]">
+			<label class="m-0 inline-flex cursor-pointer items-center gap-2.5 text-[14px] font-normal text-subtle"><breeze-checkbox name="remember" v-model:checked="form.remember" /><span>{{ text('Keep me logged in', 'Rester connecté') }}</span></label>
 			<Link v-if="canResetPassword" :href="`${prefix}/forgot-password`" :class="classes.link">{{ text('Forgot password?', 'Mot de passe oublié ?') }}</Link>
 		</div>
 		<breeze-button :disabled="form.processing">{{ form.processing ? text('Logging in…', 'Connexion…') : text('Log in', 'Se connecter') }}<icon name="arrow-right" /></breeze-button>

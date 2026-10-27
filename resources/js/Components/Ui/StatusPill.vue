@@ -13,7 +13,7 @@ const pill = computed(() => statusPill(props.status, props.set));
 
 <template>
 	<span
-		class="inline-flex items-center gap-1.5 text-xs font-semibold px-[11px] py-[5px] rounded-full whitespace-nowrap"
+		class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-[5px] rounded-md whitespace-nowrap"
 		:style="{ color: pill.text, background: pill.bg }"
 	>
 		<span class="w-1.5 h-1.5 rounded-full" :style="{ background: pill.dot }"></span>

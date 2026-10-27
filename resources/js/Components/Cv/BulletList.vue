@@ -47,6 +47,6 @@ const keydown = (event, index) => {
 			></textarea>
 			<button type="button" class="mt-1.5 grid place-items-center size-7 shrink-0 rounded-lg text-muted-2 hover:bg-red-50 hover:text-red-700 focus-visible:outline-2 focus-visible:outline-blue-500" :aria-label="`Remove point ${index + 1}`" @click="remove(index)"><X class="size-4" aria-hidden="true" /></button>
 		</div>
-		<button type="button" class="justify-self-start inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[13px] font-semibold text-blue-700 hover:bg-blue-50" @click="insert(items.length)"><Plus class="size-4" aria-hidden="true" /> Add a point</button>
+		<button type="button" class="justify-self-start inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[13px] font-medium text-blue-700 hover:bg-blue-50" @click="insert(items.length)"><Plus class="size-4" aria-hidden="true" /> Add a point</button>
 	</div>
 </template>

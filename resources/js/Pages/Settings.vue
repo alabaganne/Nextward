@@ -239,142 +239,142 @@ const deleteAccount = () =>
 				<button
 					v-for="item in tabs"
 					:key="item.key"
-					class="flex cursor-pointer items-center gap-[11px] rounded-[11px] px-[13px] py-[11px] text-left font-body text-[14.5px] font-semibold transition-colors"
-					:class="tab === item.key ? 'bg-blue-50 text-blue-700' : 'text-muted hover:bg-white hover:text-ink'"
+					class="flex cursor-pointer items-center gap-[11px] rounded-card px-[13px] py-[11px] text-left font-body text-[14.5px] font-medium transition-colors"
+					:class="tab === item.key ? 'bg-white text-brand' : 'text-subtle hover:bg-white hover:text-navy'"
 					type="button"
 					:aria-pressed="tab === item.key"
 					@click="tab = item.key"
 				>
 					<component :is="item.icon" class="size-[18px] shrink-0" :class="tab === item.key ? 'text-blue-600' : 'text-muted-2'" aria-hidden="true" /> {{ item.label }}
-					<span v-if="errorTabs.includes(item.key)" class="ml-auto w-2 h-2 rounded-full bg-[#dc2626]" aria-label="Has errors"></span>
+					<span v-if="errorTabs.includes(item.key)" class="ml-auto w-2 h-2 rounded-full bg-red-600" aria-label="Has errors"></span>
 				</button>
 			</div>
 
 			<!-- PANELS -->
 			<div>
 				<form v-if="tab !== 'security'" id="settings-details" class="scroll-mt-24" @submit.prevent="saveAccount">
-					<p v-if="hasAccountErrors" class="text-sm text-[#dc2626] font-semibold mb-[18px] rounded-[12px] bg-[#fef2f2] px-4 py-3" role="alert">
+					<p v-if="hasAccountErrors" class="text-sm text-red-600 font-medium mb-[18px] rounded-card bg-red-50 px-4 py-3" role="alert">
 						Please fix the fields marked in red<template v-if="errorTabs.some((key) => key !== tab)"> (also on
 							<template v-for="(key, index) in errorTabs.filter((key) => key !== tab)" :key="key">{{ index ? ', ' : '' }}<button type="button" class="underline" @click="tab = key">{{ tabs.find((item) => item.key === key)?.label }}</button></template>)</template>.
 					</p>
-					<p v-else-if="appliedNote && accountForm.isDirty" class="text-sm text-blue-700 font-semibold mb-[18px] rounded-[12px] bg-blue-50 px-4 py-3" role="status">Details from your resume are filled in on the Profile and Resume tabs. Check them, then press Save changes.</p>
+					<p v-else-if="appliedNote && accountForm.isDirty" class="text-[15px] text-blue-700 mb-[18px] rounded-card bg-white px-6 py-4" role="status">Details from your resume are filled in on the Profile and Resume tabs. Check them, then press Save changes.</p>
 
 					<!-- PROFILE -->
 					<template v-if="tab === 'profile'">
-						<div class="bg-white border border-line rounded-[18px] mb-[18px]">
-							<div class="px-[22px] py-[18px] border-b border-line-2">
-								<h3 class="font-display text-[16.5px] font-semibold">Personal details</h3>
-								<p class="text-[13px] text-muted mt-[3px]">Your name and how people can reach you.</p>
+						<div class="bg-white border border-transparent rounded-card mb-[18px]">
+							<div class="px-7 pt-6 pb-1 max-[560px]:px-5">
+								<h3 class="text-[20px] leading-[1.35] text-navy">Personal details</h3>
+								<p class="text-[15px] text-subtle mt-1">Your name and how people can reach you.</p>
 							</div>
-							<div class="px-[22px] py-[22px] grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
+							<div class="px-7 pt-5 pb-7 max-[560px]:px-5 grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
 								<label class="block">
-									<span class="block text-[13px] font-semibold mb-[7px] text-ink-700">Full name</span>
+									<span class="block text-[14px] font-medium mb-2 text-navy">Full name</span>
 									<input v-model="accountForm.name" class="fld" type="text" autocomplete="name">
-									<span v-if="accountForm.errors.name" data-error class="block text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.name }}</span>
+									<span v-if="accountForm.errors.name" data-error class="block text-[13px] text-red-700 mt-2">{{ accountForm.errors.name }}</span>
 								</label>
 								<div>
-									<span class="block text-[13px] font-semibold mb-[7px] text-ink-700">Email</span>
+									<span class="block text-[14px] font-medium mb-2 text-navy">Email</span>
 									<div class="fld flex items-center justify-between gap-3 bg-paper-3">
 										<span class="truncate">{{ settings.email }}</span>
-										<button type="button" class="text-[13px] font-semibold text-blue-700 hover:underline shrink-0" @click="openEmailSettings">Change</button>
+										<button type="button" class="text-[13px] font-medium text-blue-700 hover:underline shrink-0" @click="openEmailSettings">Change</button>
 									</div>
 								</div>
 								<label v-if="isCandidate" class="block col-span-2 max-[560px]:col-span-1">
-									<span class="block text-[13px] font-semibold mb-[7px] text-ink-700">Username</span>
+									<span class="block text-[14px] font-medium mb-2 text-navy">Username</span>
 									<span class="fld flex items-center gap-0.5 has-[:focus-visible]:border-blue-500">
 										<span class="text-muted shrink-0 max-[560px]:hidden">{{ profileBase }}</span>
 										<input v-model="accountForm.username" class="border-0 bg-transparent p-0 outline-none focus:ring-0 w-full min-w-0" type="text" maxlength="30" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="your-name" aria-describedby="username-note">
 									</span>
-									<span v-if="accountForm.errors.username" data-error class="block text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.username }}</span>
-									<span v-else id="username-note" class="block text-xs text-muted mt-[7px]">Your username is also your public profile link. Use lowercase letters, numbers and dashes. Leave it empty to use your name.</span>
+									<span v-if="accountForm.errors.username" data-error class="block text-[13px] text-red-700 mt-2">{{ accountForm.errors.username }}</span>
+									<span v-else id="username-note" class="block text-[13px] text-subtle mt-2">Your username is also your public profile link. Use lowercase letters, numbers and dashes. Leave it empty to use your name.</span>
 								</label>
 								<label class="block">
-									<span class="block text-[13px] font-semibold mb-[7px] text-ink-700">Phone</span>
+									<span class="block text-[14px] font-medium mb-2 text-navy">Phone</span>
 									<input v-model="accountForm.phone_number" class="fld" type="tel" autocomplete="tel">
-									<span v-if="accountForm.errors.phone_number" data-error class="block text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.phone_number }}</span>
+									<span v-if="accountForm.errors.phone_number" data-error class="block text-[13px] text-red-700 mt-2">{{ accountForm.errors.phone_number }}</span>
 								</label>
 								<label class="block">
-									<span class="block text-[13px] font-semibold mb-[7px] text-ink-700">LinkedIn URL</span>
+									<span class="block text-[14px] font-medium mb-2 text-navy">LinkedIn URL</span>
 									<input v-model="accountForm.linkedin_profile_url" class="fld" type="url" placeholder="https://linkedin.com/in/…">
-									<span v-if="accountForm.errors.linkedin_profile_url" data-error class="block text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.linkedin_profile_url }}</span>
+									<span v-if="accountForm.errors.linkedin_profile_url" data-error class="block text-[13px] text-red-700 mt-2">{{ accountForm.errors.linkedin_profile_url }}</span>
 								</label>
 								<label class="block">
-									<span class="block text-[13px] font-semibold mb-[7px] text-ink-700">{{ isCandidate ? 'Website or portfolio' : 'Website' }}</span>
+									<span class="block text-[14px] font-medium mb-2 text-navy">{{ isCandidate ? 'Website or portfolio' : 'Website' }}</span>
 									<input v-model="accountForm.website" class="fld" type="url" placeholder="https://…">
-									<span v-if="accountError('website')" data-error class="block text-xs text-[#dc2626] mt-[7px]">{{ accountError('website') }}</span>
+									<span v-if="accountError('website')" data-error class="block text-[13px] text-red-700 mt-2">{{ accountError('website') }}</span>
 								</label>
 							</div>
 						</div>
 
-						<div class="bg-white border border-line rounded-[18px] mb-[18px]">
-							<div class="px-[22px] py-[18px] border-b border-line-2">
-								<h3 class="font-display text-[16.5px] font-semibold">About you</h3>
-								<p class="text-[13px] text-muted mt-[3px]">{{ isCandidate ? 'What companies see first on your profile.' : 'A short intro shown on your profile.' }}</p>
+						<div class="bg-white border border-transparent rounded-card mb-[18px]">
+							<div class="px-7 pt-6 pb-1 max-[560px]:px-5">
+								<h3 class="text-[20px] leading-[1.35] text-navy">About you</h3>
+								<p class="text-[15px] text-subtle mt-1">{{ isCandidate ? 'What companies see first on your profile.' : 'A short intro shown on your profile.' }}</p>
 							</div>
-							<div class="px-[22px] py-[22px]">
+							<div class="px-7 pt-5 pb-7 max-[560px]:px-5">
 								<div v-if="isCandidate" class="grid grid-cols-2 gap-4 mb-4 max-[560px]:grid-cols-1">
 									<label class="block">
-										<span class="block text-[13px] font-semibold mb-[7px] text-ink-700">Headline</span>
+										<span class="block text-[14px] font-medium mb-2 text-navy">Headline</span>
 										<input v-model="accountForm.headline" class="fld" maxlength="255" placeholder="Your role or area of interest">
-										<span v-if="accountError('headline')" data-error class="block text-xs text-[#dc2626] mt-[7px]">{{ accountError('headline') }}</span>
+										<span v-if="accountError('headline')" data-error class="block text-[13px] text-red-700 mt-2">{{ accountError('headline') }}</span>
 									</label>
 									<label class="block">
-										<span class="block text-[13px] font-semibold mb-[7px] text-ink-700">Field of work or study</span>
+										<span class="block text-[14px] font-medium mb-2 text-navy">Field of work or study</span>
 										<select v-model="accountForm.field_id" class="fld">
 											<option :value="null">Not selected</option>
 											<option v-for="field in fields" :key="field.id" :value="field.id">{{ field.name }}</option>
 										</select>
-										<span v-if="accountForm.errors.field_id" data-error class="block text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.field_id }}</span>
+										<span v-if="accountForm.errors.field_id" data-error class="block text-[13px] text-red-700 mt-2">{{ accountForm.errors.field_id }}</span>
 									</label>
 									<label class="block">
-										<span class="block text-[13px] font-semibold mb-[7px] text-ink-700">Years of experience</span>
+										<span class="block text-[14px] font-medium mb-2 text-navy">Years of experience</span>
 										<input v-model.number="accountForm.experience_years" class="fld" type="number" min="0" max="80">
-										<span v-if="accountError('experience_years')" data-error class="block text-xs text-[#dc2626] mt-[7px]">{{ accountError('experience_years') }}</span>
+										<span v-if="accountError('experience_years')" data-error class="block text-[13px] text-red-700 mt-2">{{ accountError('experience_years') }}</span>
 									</label>
 									<label class="block">
-										<span class="block text-[13px] font-semibold mb-[7px] text-ink-700">Languages</span>
+										<span class="block text-[14px] font-medium mb-2 text-navy">Languages</span>
 										<input v-model="languagesText" class="fld" placeholder="Arabic, French, English">
-										<span v-if="accountError('languages')" data-error class="block text-xs text-[#dc2626] mt-[7px]">{{ accountError('languages') }}</span>
+										<span v-if="accountError('languages')" data-error class="block text-[13px] text-red-700 mt-2">{{ accountError('languages') }}</span>
 									</label>
 									<label class="block col-span-2 max-[560px]:col-span-1">
-										<span class="block text-[13px] font-semibold mb-[7px] text-ink-700">Skills</span>
+										<span class="block text-[14px] font-medium mb-2 text-navy">Skills</span>
 										<input v-model="skillsText" class="fld" placeholder="Python, React, Docker">
 										<span class="block text-xs text-muted-2 mt-[7px]">Comma-separated. Shown on your profile and used to match roles.</span>
-										<span v-if="accountError('preferences.skills')" data-error class="block text-xs text-[#dc2626] mt-[7px]">{{ accountError('preferences.skills') }}</span>
+										<span v-if="accountError('preferences.skills')" data-error class="block text-[13px] text-red-700 mt-2">{{ accountError('preferences.skills') }}</span>
 									</label>
 								</div>
 								<label class="block">
-									<span class="block text-[13px] font-semibold mb-[7px] text-ink-700">About</span>
+									<span class="block text-[14px] font-medium mb-2 text-navy">About</span>
 									<textarea v-model="accountForm.about" class="fld"></textarea>
-									<span v-if="accountForm.errors.about" data-error class="block text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.about }}</span>
+									<span v-if="accountForm.errors.about" data-error class="block text-[13px] text-red-700 mt-2">{{ accountForm.errors.about }}</span>
 									<span class="block text-xs text-muted-2 mt-[7px]">Brief intro shown at the top of your profile.</span>
 								</label>
 							</div>
 						</div>
 
-						<div class="bg-white border border-line rounded-[18px] mb-[18px]">
-							<div class="px-[22px] py-[18px] border-b border-line-2">
-								<h3 class="font-display text-[16.5px] font-semibold">Location</h3>
-								<p class="text-[13px] text-muted mt-[3px]">Where you are based.</p>
+						<div class="bg-white border border-transparent rounded-card mb-[18px]">
+							<div class="px-7 pt-6 pb-1 max-[560px]:px-5">
+								<h3 class="text-[20px] leading-[1.35] text-navy">Location</h3>
+								<p class="text-[15px] text-subtle mt-1">Where you are based.</p>
 							</div>
-							<div class="px-[22px] py-[22px] grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
+							<div class="px-7 pt-5 pb-7 max-[560px]:px-5 grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
 								<label class="block">
-									<span class="block text-[13px] font-semibold mb-[7px] text-ink-700">City or location</span>
+									<span class="block text-[14px] font-medium mb-2 text-navy">City or location</span>
 									<input v-model="accountForm.location" class="fld" placeholder="Your location anywhere in the world">
-									<span v-if="accountForm.errors.location" data-error class="block text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.location }}</span>
+									<span v-if="accountForm.errors.location" data-error class="block text-[13px] text-red-700 mt-2">{{ accountForm.errors.location }}</span>
 								</label>
 								<label class="block">
-									<span class="block text-[13px] font-semibold mb-[7px] text-ink-700">Country code</span>
+									<span class="block text-[14px] font-medium mb-2 text-navy">Country code</span>
 									<input v-model="accountForm.country_code" class="fld" maxlength="2" placeholder="TN, FR, US...">
-									<span v-if="accountForm.errors.country_code" data-error class="block text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.country_code }}</span>
+									<span v-if="accountForm.errors.country_code" data-error class="block text-[13px] text-red-700 mt-2">{{ accountForm.errors.country_code }}</span>
 								</label>
 								<label class="block">
-									<span class="block text-[13px] font-semibold mb-[7px] text-ink-700">City</span>
+									<span class="block text-[14px] font-medium mb-2 text-navy">City</span>
 									<select v-model="accountForm.city_id" class="fld">
 										<option :value="null">Not selected</option>
 										<option v-for="city in cities" :key="city.id" :value="city.id">{{ city.name }}</option>
 									</select>
-									<span v-if="accountForm.errors.city_id" data-error class="block text-xs text-[#dc2626] mt-[7px]">{{ accountForm.errors.city_id }}</span>
+									<span v-if="accountForm.errors.city_id" data-error class="block text-[13px] text-red-700 mt-2">{{ accountForm.errors.city_id }}</span>
 								</label>
 							</div>
 						</div>
@@ -382,37 +382,37 @@ const deleteAccount = () =>
 
 					<!-- RESUME & EXPERIENCE -->
 					<template v-if="tab === 'resume'">
-						<div class="bg-white border border-line rounded-[18px] mb-[18px]">
-							<div class="px-[22px] py-[18px] border-b border-line-2">
-								<h3 class="font-display text-[16.5px] font-semibold">Resume</h3>
-								<p class="text-[13px] text-muted mt-[3px]">Your resumes live on your profile page: upload PDFs, make one from this profile with a theme, translate them and pick the main one. The main one is read to fill in your profile and used with your profile to tailor CVs and cover letters.</p>
+						<div class="bg-white border border-transparent rounded-card mb-[18px]">
+							<div class="px-7 pt-6 pb-1 max-[560px]:px-5">
+								<h3 class="text-[20px] leading-[1.35] text-navy">Resume</h3>
+								<p class="text-[15px] text-subtle mt-1">Your resumes live on your profile page: upload PDFs, make one from this profile with a theme, translate them and pick the main one. The main one is read to fill in your profile and used with your profile to tailor CVs and cover letters.</p>
 							</div>
-							<div class="px-[22px] py-[22px]">
+							<div class="px-7 pt-5 pb-7 max-[560px]:px-5">
 								<div class="flex items-center justify-between gap-4 flex-wrap">
 									<div class="flex items-center gap-3 min-w-0">
 										<FileText class="w-5 h-5 text-muted shrink-0" aria-hidden="true" />
-										<a v-if="mainResume" :href="route('profile.resume.show')" class="text-[14px] font-semibold text-blue-700 hover:underline truncate">{{ mainResume.name }}</a>
+										<a v-if="mainResume" :href="route('profile.resume.show')" class="text-[14px] font-medium text-blue-700 hover:underline truncate">{{ mainResume.name }}</a>
 										<span v-else class="text-[13.5px] text-muted">No resume yet.</span>
 									</div>
-									<a :href="`${route('profile.show')}#resumes`" class="cbtn cbtn-secondary">Manage your resumes</a>
+									<a :href="`${route('profile.show')}#resumes`" class="cta cta-secondary">Manage your resumes</a>
 								</div>
-								<div v-if="mainResume && mainResume.source === 'uploaded' && !review" class="mt-4 rounded-[14px] bg-blue-50 px-4 py-3.5 flex items-center justify-between gap-3 flex-wrap">
+								<div v-if="mainResume && mainResume.source === 'uploaded' && !review" class="mt-4 rounded-card bg-blue-50 px-4 py-3.5 flex items-center justify-between gap-3 flex-wrap">
 									<p class="text-[13.5px] text-ink-700">Save time: we read your main resume and suggest profile details. You check them before anything is saved.<template v-if="!aiFree"> Uses 1 credit.</template></p>
-									<button class="cbtn bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60" type="button" :disabled="reading" @click="readResume">{{ reading ? 'Reading your resume…' : 'Fill my profile from this resume' }}</button>
+									<button class="cta cta-primary disabled:opacity-60" type="button" :disabled="reading" @click="readResume">{{ reading ? 'Reading your resume…' : 'Fill my profile from this resume' }}</button>
 								</div>
 								<p v-if="mainResume && mainResume.source === 'profile'" class="mt-4 text-[13px] text-muted">Your main resume is made from this profile. After you save changes here, open it on your profile page and press “Refresh from my profile”.</p>
-								<p v-if="readError" class="text-xs text-[#dc2626] mt-[10px]" role="alert">{{ readError }} <a v-if="readBillingUrl" :href="readBillingUrl" class="underline font-semibold">Get credits</a></p>
+								<p v-if="readError" class="text-xs text-red-600 mt-[10px]" role="alert">{{ readError }} <a v-if="readBillingUrl" :href="readBillingUrl" class="underline font-medium">Get credits</a></p>
 								<div v-if="review" class="mt-4">
-									<h4 class="font-display text-[15px] font-semibold">From your resume</h4>
+									<h4 class="text-[15px] font-medium">From your resume</h4>
 									<p v-if="!review.length" class="text-[13.5px] text-muted mt-1">Your profile already has everything we found.</p>
 									<template v-else>
 										<p class="text-[13px] text-muted mt-1 mb-3">Tick what you want to use. It fills the form; nothing is saved until you press Save changes.</p>
 										<ul class="flex flex-col gap-2">
 											<li v-for="row in review" :key="row.key">
-												<label class="flex gap-3 items-start rounded-[12px] bg-paper-3 px-3.5 py-3 cursor-pointer">
+												<label class="flex gap-3 items-start rounded-card bg-paper-3 px-3.5 py-3 cursor-pointer">
 													<input v-model="row.use" type="checkbox" class="mt-1">
 													<span class="min-w-0 text-[13.5px]">
-														<b class="font-semibold block">{{ row.label }}</b>
+														<b class="font-medium block">{{ row.label }}</b>
 														<span class="block text-ink-700 whitespace-pre-line break-words">{{ row.next }}</span>
 														<span v-if="row.now" class="block text-muted mt-1 break-words">Now: {{ row.now }}</span>
 													</span>
@@ -421,152 +421,152 @@ const deleteAccount = () =>
 										</ul>
 									</template>
 									<div class="flex gap-2.5 mt-3">
-										<button v-if="review.length" class="cbtn bg-blue-600 text-white hover:bg-blue-700" type="button" @click="applyReview">Use selected</button>
-										<button class="cbtn cbtn-secondary" type="button" @click="review = null">Close</button>
+										<button v-if="review.length" class="cta cta-primary" type="button" @click="applyReview">Use selected</button>
+										<button class="cta cta-secondary" type="button" @click="review = null">Close</button>
 									</div>
 								</div>
 							</div>
 						</div>
 
-						<div class="bg-white border border-line rounded-[18px] mb-[18px] px-[22px] pt-1 pb-[22px]">
+						<div class="bg-white border border-transparent rounded-card mb-[18px] px-7 pt-1 pb-7 max-[560px]:px-5">
 							<HistoryList v-model="accountForm.experience" name="experience" title="Experience" add-label="Add a job" :fields="historyFields.experience" :errors="accountForm.errors" />
 						</div>
-						<div class="bg-white border border-line rounded-[18px] mb-[18px] px-[22px] pt-1 pb-[22px]">
+						<div class="bg-white border border-transparent rounded-card mb-[18px] px-7 pt-1 pb-7 max-[560px]:px-5">
 							<HistoryList v-model="accountForm.education" name="education" title="Education" add-label="Add a school" :fields="historyFields.education" :errors="accountForm.errors" />
 						</div>
-						<div class="bg-white border border-line rounded-[18px] mb-[18px] px-[22px] pt-1 pb-[22px]">
+						<div class="bg-white border border-transparent rounded-card mb-[18px] px-7 pt-1 pb-7 max-[560px]:px-5">
 							<HistoryList v-model="accountForm.projects" name="projects" title="Projects" add-label="Add a project" :fields="historyFields.projects" :errors="accountForm.errors" />
 						</div>
 					</template>
 
 					<!-- JOB PREFERENCES -->
-					<div v-if="tab === 'preferences'" class="bg-white border border-line rounded-[18px] mb-[18px]">
-						<div class="px-[22px] py-[18px] border-b border-line-2">
-							<h3 class="font-display text-[16.5px] font-semibold">Job preferences</h3>
-							<p class="text-[13px] text-muted mt-[3px]">These shape your dashboard. You can still browse every opportunity. Manage email alerts in Saved searches.</p>
+					<div v-if="tab === 'preferences'" class="bg-white border border-transparent rounded-card mb-[18px]">
+						<div class="px-7 pt-6 pb-1 max-[560px]:px-5">
+							<h3 class="text-[20px] leading-[1.35] text-navy">Job preferences</h3>
+							<p class="text-[15px] text-subtle mt-1">These shape your dashboard. You can still browse every role. Manage email alerts in Saved searches.</p>
 						</div>
-						<div class="px-[22px] py-[22px]">
-							<p v-if="accountForm.errors.preferences" data-error class="text-xs text-[#dc2626] mb-4">{{ accountForm.errors.preferences }}</p>
-							<fieldset class="mb-5"><legend class="text-[13px] font-semibold mb-2 text-ink-700">Opportunity types</legend><div class="flex gap-5 text-sm"><label class="flex gap-2 items-center"><input v-model="accountForm.preferences.kinds" type="checkbox" value="internship"> Internships</label><label class="flex gap-2 items-center"><input v-model="accountForm.preferences.kinds" type="checkbox" value="job"> Jobs</label></div><p v-if="accountError('preferences.kinds')" data-error class="text-xs text-[#dc2626] mt-[7px]">{{ accountError('preferences.kinds') }}</p></fieldset>
-							<fieldset class="mb-5"><legend class="text-[13px] font-semibold mb-2 text-ink-700">Work arrangements</legend><div class="flex flex-wrap gap-5 text-sm"><label v-for="mode in ['onsite', 'hybrid', 'remote']" :key="mode" class="flex gap-2 items-center capitalize"><input v-model="accountForm.preferences.work_types" type="checkbox" :value="mode"> {{ mode }}</label></div><p v-if="accountError('preferences.work_types')" data-error class="text-xs text-[#dc2626] mt-[7px]">{{ accountError('preferences.work_types') }}</p></fieldset>
+						<div class="px-7 pt-5 pb-7 max-[560px]:px-5">
+							<p v-if="accountForm.errors.preferences" data-error class="text-xs text-red-600 mb-4">{{ accountForm.errors.preferences }}</p>
+							<fieldset class="mb-5"><legend class="text-[14px] font-medium mb-2 text-navy">Role types</legend><div class="flex gap-5 text-sm"><label class="flex gap-2 items-center"><input v-model="accountForm.preferences.kinds" type="checkbox" value="internship"> Internships</label><label class="flex gap-2 items-center"><input v-model="accountForm.preferences.kinds" type="checkbox" value="job"> Jobs</label></div><p v-if="accountError('preferences.kinds')" data-error class="text-xs text-red-600 mt-[7px]">{{ accountError('preferences.kinds') }}</p></fieldset>
+							<fieldset class="mb-5"><legend class="text-[14px] font-medium mb-2 text-navy">Work arrangements</legend><div class="flex flex-wrap gap-5 text-sm"><label v-for="mode in ['onsite', 'hybrid', 'remote']" :key="mode" class="flex gap-2 items-center capitalize"><input v-model="accountForm.preferences.work_types" type="checkbox" :value="mode"> {{ mode }}</label></div><p v-if="accountError('preferences.work_types')" data-error class="text-xs text-red-600 mt-[7px]">{{ accountError('preferences.work_types') }}</p></fieldset>
 							<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
 								<label class="block col-span-2 max-[560px]:col-span-1">
-									<span class="block text-[13px] font-semibold mb-[7px] text-ink-700">Target countries</span>
+									<span class="block text-[14px] font-medium mb-2 text-navy">Target countries</span>
 									<input v-model="targetCountries" class="fld" placeholder="TN, FR, DE">
 									<span class="block text-xs text-muted-2 mt-[7px]">Comma-separated country codes. Leave empty to explore all locations.</span>
-									<span v-if="accountError('preferences.countries')" data-error class="block text-xs text-[#dc2626] mt-[7px]">{{ accountError('preferences.countries') }}</span>
+									<span v-if="accountError('preferences.countries')" data-error class="block text-[13px] text-red-700 mt-2">{{ accountError('preferences.countries') }}</span>
 								</label>
 								<label class="block">
-									<span class="block text-[13px] font-semibold mb-[7px] text-ink-700">Fields of interest</span>
+									<span class="block text-[14px] font-medium mb-2 text-navy">Fields of interest</span>
 									<select v-model="accountForm.preferences.fields" class="fld" multiple><option v-for="field in fields" :key="field.id" :value="field.id">{{ field.name }}</option></select>
-									<span v-if="accountError('preferences.fields')" data-error class="block text-xs text-[#dc2626] mt-[7px]">{{ accountError('preferences.fields') }}</span>
+									<span v-if="accountError('preferences.fields')" data-error class="block text-[13px] text-red-700 mt-2">{{ accountError('preferences.fields') }}</span>
 								</label>
 								<label class="block">
-									<span class="block text-[13px] font-semibold mb-[7px] text-ink-700">Experience levels</span>
+									<span class="block text-[14px] font-medium mb-2 text-navy">Experience levels</span>
 									<select v-model="accountForm.preferences.seniority" class="fld capitalize" multiple><option v-for="level in ['entry','graduate','mid','senior','lead','executive']" :key="level" :value="level">{{ level }}</option></select>
-									<span v-if="accountError('preferences.seniority')" data-error class="block text-xs text-[#dc2626] mt-[7px]">{{ accountError('preferences.seniority') }}</span>
+									<span v-if="accountError('preferences.seniority')" data-error class="block text-[13px] text-red-700 mt-2">{{ accountError('preferences.seniority') }}</span>
 								</label>
 							</div>
 							<label class="flex gap-2 items-start mt-5 text-sm"><input v-model="accountForm.preferences.include_unknown_eligibility" type="checkbox" class="mt-1"> Include remote roles whose eligibility from Tunisia is unknown. Check the employer's requirements before applying.</label>
-							<p v-if="accountError('preferences.include_unknown_eligibility')" data-error class="text-xs text-[#dc2626] mt-[7px]">{{ accountError('preferences.include_unknown_eligibility') }}</p>
+							<p v-if="accountError('preferences.include_unknown_eligibility')" data-error class="text-xs text-red-600 mt-[7px]">{{ accountError('preferences.include_unknown_eligibility') }}</p>
 							<label class="flex gap-2 items-start mt-3 text-sm"><input v-model="accountForm.preferences.needs_visa" type="checkbox" class="mt-1"> I need a visa to work abroad. On-site and hybrid roles in other countries then only count when they offer visa sponsorship or relocation, and remote roles must be open to people in my country.</label>
-							<p v-if="accountError('preferences.needs_visa')" data-error class="text-xs text-[#dc2626] mt-[7px]">{{ accountError('preferences.needs_visa') }}</p>
+							<p v-if="accountError('preferences.needs_visa')" data-error class="text-xs text-red-600 mt-[7px]">{{ accountError('preferences.needs_visa') }}</p>
 						</div>
 					</div>
 
-					<div class="sticky bottom-4 z-10 bg-white border border-line rounded-[18px] px-[22px] py-4 flex justify-end items-center gap-2.5 flex-wrap">
-						<span v-if="hasAccountErrors" class="text-[13.5px] font-semibold text-[#dc2626]">Not saved. Fix the fields marked in red.</span>
+					<div class="sticky bottom-4 z-10 bg-white border border-line rounded-card px-[22px] py-4 flex justify-end items-center gap-2.5 flex-wrap">
+						<span v-if="hasAccountErrors" class="text-[13.5px] font-medium text-red-600">Not saved. Fix the fields marked in red.</span>
 						<span v-else-if="accountForm.isDirty" class="text-[13.5px] text-muted">You have unsaved changes.</span>
-						<span v-else-if="accountForm.recentlySuccessful" class="text-[13.5px] font-semibold text-[#047857]">Saved.</span>
-						<button class="cbtn bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60" type="submit" :disabled="accountForm.processing">{{ accountForm.processing ? 'Saving…' : 'Save changes' }}</button>
+						<span v-else-if="accountForm.recentlySuccessful" class="text-[13.5px] font-medium text-emerald-700">Saved.</span>
+						<button class="cta cta-primary disabled:opacity-60" type="submit" :disabled="accountForm.processing">{{ accountForm.processing ? 'Saving…' : 'Save changes' }}</button>
 					</div>
 				</form>
 
 				<!-- SECURITY -->
 				<section v-if="tab === 'security'">
-					<form id="settings-email" class="bg-white border border-line rounded-[18px] mb-[18px] scroll-mt-24" @submit.prevent="changeEmail">
-						<div class="px-[22px] py-[18px] border-b border-line-2">
-							<h3 class="font-display text-[16.5px] font-semibold">Email address</h3>
-							<p class="text-[13px] text-muted mt-[3px]">You sign in with this email, and we send your alerts and messages to it.</p>
+					<form id="settings-email" class="bg-white border border-transparent rounded-card mb-[18px] scroll-mt-24" @submit.prevent="changeEmail">
+						<div class="px-7 pt-6 pb-1 max-[560px]:px-5">
+							<h3 class="text-[20px] leading-[1.35] text-navy">Email address</h3>
+							<p class="text-[15px] text-subtle mt-1">You sign in with this email, and we send your alerts and messages to it.</p>
 						</div>
-						<div class="px-[22px] py-[22px]">
+						<div class="px-7 pt-5 pb-7 max-[560px]:px-5">
 							<div class="flex items-center gap-2.5 flex-wrap">
-								<b class="text-[14.5px] font-semibold break-all">{{ settings.email }}</b>
-								<span v-if="settings.email_verified" class="text-xs font-semibold px-[11px] py-[5px] rounded-full bg-[#dcfce7] text-[#047857]">Verified</span>
-								<span v-else class="text-xs font-semibold px-[11px] py-[5px] rounded-full bg-[#fef3c7] text-[#b45309]">Not verified</span>
-								<span v-if="!settings.email_verified && verificationSent" class="text-[13px] font-semibold text-[#047857]" role="status">Link sent. Check your inbox.</span>
-								<button v-else-if="!settings.email_verified" type="button" class="text-[13px] font-semibold text-blue-700 hover:underline" @click="resendVerification">Send the verification link again</button>
+								<b class="text-[14.5px] font-medium break-all">{{ settings.email }}</b>
+								<span v-if="settings.email_verified" class="text-xs font-medium px-[11px] py-[5px] rounded-full bg-green-100 text-emerald-700">Verified</span>
+								<span v-else class="text-xs font-medium px-[11px] py-[5px] rounded-full bg-amber-100 text-amber-700">Not verified</span>
+								<span v-if="!settings.email_verified && verificationSent" class="text-[13px] font-medium text-emerald-700" role="status">Link sent. Check your inbox.</span>
+								<button v-else-if="!settings.email_verified" type="button" class="text-[13px] font-medium text-blue-700 hover:underline" @click="resendVerification">Send the verification link again</button>
 							</div>
-							<div v-if="settings.pending_email" class="mt-4 rounded-[14px] bg-blue-50 px-4 py-3.5 flex items-center justify-between gap-3 flex-wrap" role="status">
+							<div v-if="settings.pending_email" class="mt-4 rounded-card bg-blue-50 px-4 py-3.5 flex items-center justify-between gap-3 flex-wrap" role="status">
 								<p class="text-[13.5px] text-ink-700 min-w-0">We sent a link to <b class="break-all">{{ settings.email }}</b> to confirm the change to <b class="break-all">{{ settings.pending_email }}</b>. Open it within 60 minutes. Nothing changes until you do.</p>
-								<button type="button" class="cbtn cbtn-secondary !px-3.5 !py-2 !text-[13.5px]" @click="cancelEmailChange">Cancel the change</button>
+								<button type="button" class="cta cta-secondary !px-3.5 !py-2 !text-[13.5px]" @click="cancelEmailChange">Cancel the change</button>
 							</div>
 							<p class="text-[13px] text-muted mt-5 mb-4">{{ settings.email_verified ? 'To change it, we first send a link to your current email so you can confirm. Then you verify the new address.' : 'Your email is not verified yet, so you can correct it here. We then send a verification link to the new address.' }}</p>
 							<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
 								<div>
-									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="settings-new-email">New email</label>
+									<label class="block text-[14px] font-medium mb-2 text-navy" for="settings-new-email">New email</label>
 									<input id="settings-new-email" v-model="emailForm.email" class="fld" type="email" autocomplete="email" required>
-									<div v-if="emailForm.errors.email" class="text-xs text-[#dc2626] mt-[7px]">{{ emailForm.errors.email }}</div>
+									<div v-if="emailForm.errors.email" class="text-xs text-red-600 mt-[7px]">{{ emailForm.errors.email }}</div>
 								</div>
 								<div>
-									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="settings-email-password">Current password</label>
+									<label class="block text-[14px] font-medium mb-2 text-navy" for="settings-email-password">Current password</label>
 									<input id="settings-email-password" v-model="emailForm.password" class="fld" type="password" autocomplete="current-password" required>
-									<div v-if="emailForm.errors.password" class="text-xs text-[#dc2626] mt-[7px]">{{ emailForm.errors.password }}</div>
+									<div v-if="emailForm.errors.password" class="text-xs text-red-600 mt-[7px]">{{ emailForm.errors.password }}</div>
 								</div>
 							</div>
 						</div>
-						<div class="px-[22px] py-4 border-t border-line-2 flex justify-end gap-2.5 bg-white rounded-b-[18px]">
-							<button class="cbtn bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60" type="submit" :disabled="emailForm.processing">{{ emailForm.processing ? 'Sending…' : settings.email_verified ? 'Send confirmation link' : 'Change email' }}</button>
+						<div class="px-[22px] py-4 border-t border-line-2 flex justify-end gap-2.5 bg-white rounded-b-card">
+							<button class="cta cta-primary disabled:opacity-60" type="submit" :disabled="emailForm.processing">{{ emailForm.processing ? 'Sending…' : settings.email_verified ? 'Send confirmation link' : 'Change email' }}</button>
 						</div>
 					</form>
 
-					<form class="bg-white border border-line rounded-[18px] mb-[18px]" @submit.prevent="savePassword">
-						<div class="px-[22px] py-[18px] border-b border-line-2">
-							<h3 class="font-display text-[16.5px] font-semibold">Password</h3>
-							<p class="text-[13px] text-muted mt-[3px]">Use a strong password you don't reuse elsewhere.</p>
+					<form class="bg-white border border-transparent rounded-card mb-[18px]" @submit.prevent="savePassword">
+						<div class="px-7 pt-6 pb-1 max-[560px]:px-5">
+							<h3 class="text-[20px] leading-[1.35] text-navy">Password</h3>
+							<p class="text-[15px] text-subtle mt-1">Use a strong password you don't reuse elsewhere.</p>
 						</div>
-						<div class="px-[22px] py-[22px]">
+						<div class="px-7 pt-5 pb-7 max-[560px]:px-5">
 							<div class="mb-4">
-								<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="current-password">Current password</label>
+								<label class="block text-[14px] font-medium mb-2 text-navy" for="current-password">Current password</label>
 								<input id="current-password" v-model="passwordForm.current_password" class="fld" type="password" placeholder="••••••••" autocomplete="current-password">
-								<div v-if="passwordForm.errors.current_password" class="text-xs text-[#dc2626] mt-[7px]">{{ passwordForm.errors.current_password }}</div>
+								<div v-if="passwordForm.errors.current_password" class="text-xs text-red-600 mt-[7px]">{{ passwordForm.errors.current_password }}</div>
 							</div>
 							<div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
 								<div class="mb-4">
-									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="new-password">New password</label>
+									<label class="block text-[14px] font-medium mb-2 text-navy" for="new-password">New password</label>
 									<input id="new-password" v-model="passwordForm.password" class="fld" type="password" placeholder="••••••••" autocomplete="new-password">
-									<div v-if="passwordForm.errors.password" class="text-xs text-[#dc2626] mt-[7px]">{{ passwordForm.errors.password }}</div>
+									<div v-if="passwordForm.errors.password" class="text-xs text-red-600 mt-[7px]">{{ passwordForm.errors.password }}</div>
 								</div>
 								<div class="mb-4">
-									<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="confirm-password">Confirm new password</label>
+									<label class="block text-[14px] font-medium mb-2 text-navy" for="confirm-password">Confirm new password</label>
 									<input id="confirm-password" v-model="passwordForm.password_confirmation" class="fld" type="password" placeholder="••••••••" autocomplete="new-password">
 								</div>
 							</div>
 						</div>
-						<div class="px-[22px] py-4 border-t border-line-2 flex justify-end gap-2.5 bg-white rounded-b-[18px]">
-							<span v-if="passwordForm.recentlySuccessful" class="self-center text-[13.5px] font-semibold text-[#047857]">Password updated.</span>
-							<button class="cbtn bg-blue-600 text-white hover:bg-blue-700" type="submit" :disabled="passwordForm.processing">Update password</button>
+						<div class="px-[22px] py-4 border-t border-line-2 flex justify-end gap-2.5 bg-white rounded-b-card">
+							<span v-if="passwordForm.recentlySuccessful" class="self-center text-[13.5px] font-medium text-emerald-700">Password updated.</span>
+							<button class="cta cta-primary" type="submit" :disabled="passwordForm.processing">Update password</button>
 						</div>
 					</form>
 
-					<div class="bg-white border border-line rounded-[18px] mb-[18px]">
-						<div class="px-[22px] py-[18px] border-b border-line-2">
-							<h3 class="font-display text-[16.5px] font-semibold text-[#b91c1c]">Danger zone</h3>
-							<p class="text-[13px] text-muted mt-[3px]">Irreversible actions. Please be certain.</p>
+					<div class="bg-white border border-transparent rounded-card mb-[18px]">
+						<div class="px-7 pt-6 pb-1 max-[560px]:px-5">
+							<h3 class="text-red-700 text-[20px] leading-[1.35] text-navy">Danger zone</h3>
+							<p class="text-[15px] text-subtle mt-1">Irreversible actions. Please be certain.</p>
 						</div>
-						<div class="px-[22px] py-[22px]">
+						<div class="px-7 pt-5 pb-7 max-[560px]:px-5">
 							<div class="flex items-center justify-between gap-[18px]">
 								<div>
-									<b class="text-[14.5px] font-semibold block">Delete account</b>
+									<b class="text-[14.5px] font-medium block">Delete account</b>
 									<span class="text-[13px] text-muted block mt-0.5">Permanently remove your profile, applications, and messages.</span>
 								</div>
-								<button v-if="!confirmingDelete" ref="deleteButton" class="cbtn !px-[18px] !py-2.5 bg-[#dc2626] text-white hover:bg-[#b91c1c] whitespace-nowrap" type="button" @click="startDelete">
+								<button v-if="!confirmingDelete" ref="deleteButton" class="cta !px-[18px] !py-2.5 cta-danger whitespace-nowrap" type="button" @click="startDelete">
 									Delete account
 								</button>
 							</div>
-							<form v-if="confirmingDelete" class="mt-[18px] rounded-[14px] border border-[#fecaca] bg-[#fef2f2] p-[18px]" @submit.prevent="deleteAccount" @keydown.esc="cancelDelete">
-								<p class="text-[13.5px] text-[#991b1b] font-semibold">This can't be undone. Your profile, applications, and messages will be deleted for good.</p>
-								<label class="block text-[13px] font-semibold mt-4 mb-[7px] text-ink-700" for="delete-password">Enter your password to confirm</label>
+							<form v-if="confirmingDelete" class="mt-[18px] rounded-card border border-red-200 bg-red-50 p-[18px]" @submit.prevent="deleteAccount" @keydown.esc="cancelDelete">
+								<p class="text-[13.5px] text-red-800 font-medium">This can't be undone. Your profile, applications, and messages will be deleted for good.</p>
+								<label class="block text-[14px] font-medium mt-4 mb-2 text-navy" for="delete-password">Enter your password to confirm</label>
 								<input
 									id="delete-password"
 									ref="deletePassword"
@@ -578,10 +578,10 @@ const deleteAccount = () =>
 									:aria-invalid="!!deleteForm.errors.password"
 									:aria-describedby="deleteForm.errors.password ? 'delete-password-error' : undefined"
 								>
-								<div v-if="deleteForm.errors.password" id="delete-password-error" class="text-xs text-[#dc2626] mt-[7px]" role="alert">{{ deleteForm.errors.password }}</div>
+								<div v-if="deleteForm.errors.password" id="delete-password-error" class="text-xs text-red-600 mt-[7px]" role="alert">{{ deleteForm.errors.password }}</div>
 								<div class="flex flex-wrap gap-2.5 mt-4">
-									<button class="cbtn cbtn-secondary !px-[18px] !py-2.5" type="button" @click="cancelDelete">Cancel</button>
-									<button class="cbtn !px-[18px] !py-2.5 bg-[#dc2626] text-white hover:bg-[#b91c1c] disabled:opacity-60" type="submit" :disabled="deleteForm.processing || !deleteForm.password">
+									<button class="cta cta-secondary !px-[18px] !py-2.5" type="button" @click="cancelDelete">Cancel</button>
+									<button class="cta !px-[18px] !py-2.5 cta-danger disabled:opacity-60" type="submit" :disabled="deleteForm.processing || !deleteForm.password">
 										{{ deleteForm.processing ? 'Deleting…' : 'Delete account' }}
 									</button>
 								</div>

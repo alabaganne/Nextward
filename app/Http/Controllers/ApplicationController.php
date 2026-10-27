@@ -86,7 +86,7 @@ class ApplicationController extends Controller
         $request->user()->ensureCandidateProfile() ?? abort(403);
         $application = DB::transaction(function () use ($request, $opportunity) {
             $request->user()->userable()->lockForUpdate()->first();
-            abort_if(Application::where('candidate_id', $request->user()->userable_id)->where('opportunity_id', $opportunity->id)->exists(), 409, 'You already have an application for this opportunity.');
+            abort_if(Application::where('candidate_id', $request->user()->userable_id)->where('opportunity_id', $opportunity->id)->exists(), 409, 'You already have an application for this role.');
             return Application::create([
             'candidate_id' => $request->user()->userable->id,
             'opportunity_id' => $opportunity->id,

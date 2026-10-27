@@ -22,9 +22,9 @@
 <x-slot:footer>
 <x-mail::footer>
 @php($home = rtrim(config('app.url'), '/'))
-[Browse opportunities]({{ $home }}/opportunities) · [Settings]({{ $home }}/settings) · [Contact]({{ $home }}/contact)
+[Browse roles]({{ $home }}/opportunities) · [Settings]({{ $home }}/settings) · [Contact]({{ $home }}/contact)
 
-{{ config('app.name') }} · Internships and jobs in Tunisia and worldwide.<br>
+{{ config('app.name') }} · IT internships and jobs around the world.<br>
 © {{ date('Y') }} {{ config('app.name') }}
 </x-mail::footer>
 </x-slot:footer>

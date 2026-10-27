@@ -136,13 +136,13 @@ const useToApply = () => {
 </script>
 
 <template>
-    <section id="cover-letter" class="bg-white border border-line rounded-2xl p-6 sm:p-8 scroll-mt-24" aria-labelledby="kit-title">
+    <section id="cover-letter" class="bg-white border border-line rounded-card p-6 sm:p-8 scroll-mt-24" aria-labelledby="kit-title">
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div class="max-w-xl">
-                <h2 id="kit-title" class="font-display text-xl font-semibold flex items-center gap-2"><Sparkles :size="19" class="text-blue-700" aria-hidden="true" />{{ text('Cover letter for this role', 'Lettre de motivation pour cette offre') }}</h2>
+                <h2 id="kit-title" class="text-[22px] font-medium flex items-center gap-2"><Sparkles :size="19" class="text-blue-700" aria-hidden="true" />{{ text('Cover letter for this role', 'Lettre de motivation pour cette offre') }}</h2>
                 <p class="text-sm text-slate-600 leading-6 mt-2">{{ text('Written from your profile and resume. Edit it here, then copy it or download it as a Word file.', 'Rédigée à partir de votre profil et de votre CV. Modifiez-la ici, puis copiez-la ou téléchargez-la en fichier Word.') }}</p>
             </div>
-            <fieldset class="flex rounded-lg bg-paper-2 p-1 text-sm font-semibold">
+            <fieldset class="flex rounded-card bg-paper-2 p-1 text-sm font-medium">
                 <legend class="sr-only">{{ text('Language of the letter', 'Langue de la lettre') }}</legend>
                 <label v-for="option in languages" :key="option.code" class="cursor-pointer rounded-md px-3 py-1.5 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand" :class="locale === option.code ? 'bg-white text-navy' : 'text-slate-600'" :title="option.original ? text('The language of this listing', 'La langue de cette offre') : null">
                     <input v-model="locale" type="radio" :value="option.code" class="sr-only">{{ option.label }}
@@ -158,21 +158,21 @@ const useToApply = () => {
             </p>
         </div>
 
-        <div v-else-if="kit.status === 'queued'" class="mt-6 rounded-xl bg-paper-2 px-5 py-8 text-center" role="status">
+        <div v-else-if="kit.status === 'queued'" class="mt-6 rounded-card bg-paper-2 px-5 py-8 text-center" role="status">
             <RefreshCw class="w-7 h-7 text-blue-700 mx-auto animate-spin" aria-hidden="true" />
             <p class="font-semibold mt-3">{{ text('Writing your cover letter…', 'Rédaction de votre lettre…') }}</p>
             <p class="text-sm text-slate-600 mt-1">{{ text('This usually takes under a minute.', 'Cela prend en général moins d’une minute.') }}</p>
         </div>
 
-        <div v-else-if="kit.status === 'failed' && !letter" class="mt-6 rounded-xl bg-paper-2 px-5 py-8 text-center">
+        <div v-else-if="kit.status === 'failed' && !letter" class="mt-6 rounded-card bg-paper-2 px-5 py-8 text-center">
             <p class="font-semibold">{{ kit.error || text('Something went wrong.', 'Une erreur est survenue.') }}</p>
             <button type="button" class="cta cta-primary mt-4" @click="rewrite">{{ text('Try again', 'Réessayer') }}</button>
         </div>
 
         <div v-else class="mt-6">
-            <p class="rounded-xl bg-blue-50 px-4 py-3 text-sm text-blue-900">{{ text('Read it through and fix anything that is not exactly right before you send it.', 'Relisez-la et corrigez ce qui n’est pas tout à fait juste avant de l’envoyer.') }}</p>
+            <p class="rounded-card bg-blue-50 px-4 py-3 text-sm text-blue-900">{{ text('Read it through and fix anything that is not exactly right before you send it.', 'Relisez-la et corrigez ce qui n’est pas tout à fait juste avant de l’envoyer.') }}</p>
             <label class="sr-only" for="cover-letter-text">{{ text('Cover letter', 'Lettre de motivation') }}</label>
-            <textarea id="cover-letter-text" v-model="letter" :lang="kit.locale" dir="auto" rows="16" maxlength="20000" class="mt-4 w-full rounded-xl border-line p-4 text-[15px] leading-7 text-slate-800 focus:border-brand focus:ring-brand" @input="edited" @blur="save" />
+            <textarea id="cover-letter-text" v-model="letter" :lang="kit.locale" dir="auto" rows="16" maxlength="20000" class="mt-4 w-full rounded-card border-line p-4 text-[15px] leading-7 text-slate-800 focus:border-brand focus:ring-brand" @input="edited" @blur="save" />
             <div class="mt-3 flex flex-wrap items-center gap-3">
                 <button type="button" class="cta cta-primary !py-2.5" @click="copy"><Copy :size="17" aria-hidden="true" />{{ copied ? text('Copied', 'Copiée') : text('Copy', 'Copier') }}</button>
                 <button type="button" class="cta cta-secondary !py-2.5" :disabled="exporting || !letter.trim()" @click="exportDocx"><Download :size="17" aria-hidden="true" />{{ text('Word (.docx)', 'Word (.docx)') }}</button>

@@ -24,20 +24,20 @@ const icons = {
 <template>
 	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-wrap mx-auto">
 		<div class="flex items-center gap-2 text-[13.5px] text-muted font-medium mb-[22px] [&_svg]:w-3.5 [&_svg]:h-3.5 [&_svg]:text-muted-2">
-			<Link class="hover:text-blue-700" :href="route('app.opportunities.index')">Opportunities</Link>
+			<Link class="hover:text-blue-700" :href="route('app.opportunities.index')">Roles</Link>
 			<component :is="icons.chevron" aria-hidden="true" />
 			<Link class="hover:text-blue-700" :href="route('app.opportunities.show', opportunity.id)">{{ opportunity.title }}</Link>
 			<component :is="icons.chevron" aria-hidden="true" />
-			<span class="text-ink-700 font-semibold">Applicants</span>
+			<span class="text-ink-700 font-medium">Applicants</span>
 		</div>
 
 		<div class="mb-[22px]">
-			<h1 class="font-display text-[28px] font-semibold tracking-[-.02em] leading-tight">Applicants</h1>
-			<p class="text-muted text-[15px] mt-1.5">Everyone who applied to <b class="text-ink-700 font-semibold">{{ opportunity.title }}</b>.</p>
+			<h1 class="text-[length:clamp(28px,2.6vw,36px)] font-medium leading-[1.15] text-navy">Applicants</h1>
+			<p class="text-muted text-[15px] mt-1.5">Everyone who applied to <b class="text-ink-700 font-medium">{{ opportunity.title }}</b>.</p>
 		</div>
 
-		<div class="bg-white border border-line rounded-[18px] overflow-hidden">
-			<div class="grid grid-cols-[1fr_150px_130px_40px] gap-4 px-[22px] py-3 border-b border-line-2 bg-paper-2 max-[760px]:hidden [&_span]:text-[11.5px] [&_span]:tracking-[.08em] [&_span]:uppercase [&_span]:text-muted-2 [&_span]:font-bold [&_span:last-child]:text-right">
+		<div class="bg-white border border-transparent rounded-card overflow-hidden">
+			<div class="grid grid-cols-[1fr_150px_130px_40px] gap-4 px-[22px] py-3 border-b border-line-2 bg-paper-2 max-[760px]:hidden [&_span]:text-[11.5px] [&_span]:tracking-[.08em] [&_span]:uppercase [&_span]:text-muted-2 [&_span]:font-medium [&_span:last-child]:text-right">
 				<span>Applicant</span><span>Applied</span><span>Status</span><span></span>
 			</div>
 			<Link
@@ -48,9 +48,9 @@ const icons = {
 				:href="route('applications.show', application.id)"
 			>
 				<div class="flex items-center gap-3.5 min-w-0">
-					<CompanyLogo class="w-[46px] h-[46px] rounded-[12px] text-[15px]" :name="application.candidate?.name" />
+					<CompanyLogo class="w-[46px] h-[46px] rounded-card text-[15px]" :name="application.candidate?.name" />
 					<div>
-						<b class="text-[15px] font-semibold block">{{ application.candidate?.name }}</b>
+						<b class="text-[15px] font-medium block">{{ application.candidate?.name }}</b>
 						<span class="text-[13px] text-muted">{{ application.candidate?.email }}</span>
 					</div>
 				</div>

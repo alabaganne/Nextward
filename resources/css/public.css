@@ -3,39 +3,22 @@
 .public-container {
 	@apply mx-auto w-[calc(100%-2.5rem)] max-w-[1200px] sm:w-[calc(100%-5rem)];
 }
-.focus-ring:focus-visible {
-	@apply outline-2 outline-offset-3 outline-brand;
+/* Thin curved lines on navy and cobalt surfaces. */
+.line-art, .band-navy, .hero-dark {
+	background-image: url('../images/hero-lines.svg');
+	background-size: cover;
+	background-position: center;
 }
 
-/* Buttons */
-.cta {
-	@apply inline-flex items-center justify-center gap-3 whitespace-nowrap rounded-lg px-5 py-3 text-center font-semibold transition-colors duration-200;
-}
-.cta-primary {
-	@apply bg-brand text-white hover:bg-brand-dark;
-}
-.cta-secondary {
-	@apply border border-navy/20 bg-transparent text-navy hover:border-brand/40 hover:text-brand;
-}
-.cta-light {
-	@apply bg-white text-navy hover:bg-blue-50;
-}
-.cta-ghost {
-	@apply border border-white/45 text-white hover:border-white hover:bg-white/8;
-}
-
-/* Page sections: white and cool grey surfaces, navy headings, cobalt actions. */
+/* Page sections: white and ice blue surfaces, navy headings, cobalt actions. */
 .landing {
 	@apply bg-white text-navy;
 }
-.landing h1, .landing h2, .landing h3 {
-	@apply font-display;
-}
 .landing-label {
-	@apply flex items-center gap-2.5 text-[12px] font-semibold tracking-[.14em] text-brand uppercase;
+	@apply flex items-center gap-2.5 text-[15px] leading-6 tracking-caps text-brand uppercase;
 }
 .landing-link {
-	@apply inline-flex items-center gap-2 rounded-[2px] py-[5px] text-[15px] font-semibold text-brand transition-colors duration-180 hover:text-brand-dark;
+	@apply inline-flex items-center gap-2 rounded-[2px] py-[5px] text-[14px] font-medium tracking-caps text-brand uppercase transition-colors duration-180 hover:text-navy;
 }
 .landing-link .action-icon {
 	@apply transition-transform duration-180 motion-reduce:transition-none;
@@ -55,31 +38,56 @@
 .band-pale {
 	@apply bg-pale;
 }
+.band-navy {
+	@apply bg-navy text-white;
+}
 .section-title {
-	@apply mt-3 text-[length:clamp(30px,3.4vw,44px)] leading-[1.1] font-bold tracking-[-.045em] text-balance;
+	@apply mt-3 text-[length:clamp(30px,3.4vw,46px)] leading-[1.2] font-normal text-navy text-balance;
 }
 .section-title:first-child {
 	@apply mt-0;
 }
+.band-navy .section-title, .hero-dark .section-title {
+	@apply text-white;
+}
+.band-navy .landing-label {
+	@apply text-white/85;
+}
+.band-navy .accent {
+	@apply text-blue-400;
+}
 .section-description {
-	@apply mt-4 max-w-[560px] text-[16px] leading-[1.75] text-subtle;
+	@apply mt-4 max-w-[560px] text-[17px] leading-[1.7] text-subtle;
+}
+.band-navy .section-description {
+	@apply text-mist;
 }
 .section-head {
-	@apply mb-8 flex flex-wrap items-end justify-between gap-x-8 gap-y-4;
+	@apply mb-10 flex flex-wrap items-end justify-between gap-x-8 gap-y-4;
+}
+/* Centred title block above a grid. */
+.section-intro {
+	@apply mx-auto mb-14 max-w-[740px] text-center max-[768px]:mb-10;
+}
+.section-intro .landing-label {
+	@apply justify-center;
+}
+.section-intro .section-description {
+	@apply mx-auto;
 }
 .panel {
-	@apply rounded-[18px] border border-line bg-white;
+	@apply rounded-card border border-line bg-white;
 }
 
-/* Hero */
+/* Hero: deep navy with thin line art. */
 .hero-dark {
 	@apply relative overflow-hidden bg-navy text-white;
 }
 .hero-dark .landing-label {
-	@apply text-blue-200;
+	@apply text-white/85;
 }
 .hero-dark .accent {
-	@apply text-blue-300;
+	@apply text-blue-500;
 }
 .hero-dark .hero-lead {
 	@apply text-mist;
@@ -87,51 +95,24 @@
 .hero-dark .focus-ring:focus-visible {
 	@apply outline-white;
 }
-.hero-pad {
-	@apply pt-18 pb-21 max-[768px]:pt-11 max-[768px]:pb-13;
-}
-.hero-grid {
-	@apply grid grid-cols-[minmax(0,1.05fr)_minmax(0,.95fr)] items-center gap-14 max-[1024px]:gap-9 max-[768px]:grid-cols-1;
+.hero-overlap {
+	@apply relative z-[2] -mt-[88px] max-[768px]:-mt-[72px];
 }
 .hero-title {
-	@apply mt-[18px] text-[length:clamp(40px,5vw,66px)] leading-[1.02] font-bold tracking-[-.055em] text-balance;
+	@apply mt-[18px] text-[length:clamp(40px,5.6vw,72px)] leading-[1.1] font-medium text-balance;
 }
 .hero-lead {
-	@apply mt-[22px] max-w-[540px] text-[18px] leading-[1.7] text-gray-600 max-[768px]:text-[16.5px];
+	@apply mt-[22px] max-w-[580px] text-[18px] leading-[1.7] text-subtle max-[768px]:text-[16.5px];
 }
 .hero-buttons {
-	@apply mt-8 flex flex-wrap items-center gap-x-5 gap-y-3;
-}
-.hero-buttons .cta {
-	@apply px-[22px] py-3.5 text-[15px];
-}
-
-/* Mascot stage and sparkles, shared with the sign-in pages. */
-.hero-stage { position: relative; margin: 0; isolation: isolate; }
-.hero-stage::before { content: ''; position: absolute; z-index: -1; inset: 14% 4% 6%; border-radius: 50%; background: var(--color-navy-600); }
-.hero-stage img { position: relative; width: 100%; height: auto; animation: stage-rise 700ms cubic-bezier(.2, .7, .2, 1) both; }
-.hero-stage img + img { animation-delay: 120ms; }
-.hero-stage .sparkle { animation: sparkle-pop 500ms ease-out both; animation-delay: calc(500ms + var(--i, 0) * 140ms); }
-.landing .hero-stage {
-	@apply w-[min(100%,440px)] justify-self-center max-[768px]:w-[min(100%,320px)];
-}
-.sparkle {
-	@apply absolute size-[22px] text-coral;
-}
-.sparkle.is-sky {
-	@apply text-blue-300;
-}
-@keyframes stage-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
-@keyframes sparkle-pop { 0% { opacity: 0; transform: scale(.4) rotate(-30deg); } 70% { transform: scale(1.12); } 100% { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) {
-	.hero-stage img, .hero-stage .sparkle { animation: none; }
+	@apply mt-9 flex flex-wrap items-center gap-x-5 gap-y-3;
 }
 
 /* Search field with a leading icon */
-.field { position: relative; }
-.field > svg { position: absolute; left: 14px; top: 50%; width: 18px; height: 18px; color: var(--color-subtle-2); transform: translateY(-50%); pointer-events: none; }
+.field { position: relative; display: block; }
+.field > svg { position: absolute; left: 16px; top: 50%; width: 18px; height: 18px; color: var(--color-subtle-2); transform: translateY(-50%); pointer-events: none; }
 .field input, .field select {
-	@apply h-12 w-full rounded-[10px] border border-line bg-white pl-[42px] text-[15px] text-ink placeholder:text-muted-2;
+	@apply h-[52px] w-full rounded-card border border-slate-300 bg-white pl-[46px] text-[15px] text-ink placeholder:text-muted-2;
 }
 .field input:focus, .field select:focus {
 	@apply border-brand shadow-none outline-2 outline-offset-0 outline-brand;
@@ -139,48 +120,60 @@
 
 /* Chips, also used in the workspace */
 .chip {
-	@apply inline-flex min-h-[38px] items-center gap-2 rounded-full border border-line bg-white px-3.5 py-[7px] text-[14px] font-semibold text-ink-700 transition-colors duration-180 hover:border-blue-300 hover:text-brand-dark;
+	@apply inline-flex min-h-[40px] items-center gap-2 rounded-card border border-line bg-white px-4 py-[7px] text-[14px] text-navy transition-colors duration-180 hover:border-brand hover:text-brand;
 }
 .chip svg {
 	@apply size-4 shrink-0 text-brand;
 }
 .chip.is-active {
-	@apply border-navy-900 bg-navy-900 text-white hover:border-navy-900;
+	@apply border-brand bg-brand text-white hover:text-white;
+}
+
+/* Icon tile used in feature grids */
+.icon-tile {
+	@apply grid size-[50px] shrink-0 place-items-center rounded-lg bg-blue-50 text-brand;
+}
+.band-navy .icon-tile {
+	@apply bg-white/20 text-white;
 }
 
 /* Guide lists */
 .guide-grid {
-	@apply grid grid-cols-2 gap-7 max-[768px]:grid-cols-1;
-}
-.guide-grid.is-three {
-	@apply grid-cols-3 gap-6 max-[1024px]:grid-cols-2 max-[768px]:grid-cols-1;
+	@apply grid grid-cols-3 gap-x-7 gap-y-12 max-[1024px]:grid-cols-2 max-[768px]:grid-cols-1;
 }
 .guide-category {
-	@apply text-[11.5px] font-semibold tracking-[.12em] text-brand uppercase;
+	@apply text-[13px] tracking-caps text-brand uppercase;
 }
 
-/* Questions and answers in native disclosures */
+/* Questions and answers in native disclosures, split by hairlines. */
 .faq-list {
-	@apply grid gap-2.5;
+	@apply grid gap-7;
 }
 .faq-item {
-	@apply rounded-[14px] border border-line bg-white;
+	@apply border-b border-navy/10 pb-7 last:border-b-0 last:pb-0;
 }
 .faq-item summary {
-	@apply flex cursor-pointer list-none items-center justify-between gap-5 rounded-[14px] px-5 py-[18px] text-[15.5px] font-semibold;
+	@apply flex cursor-pointer list-none items-start justify-between gap-6 rounded-[4px] text-[19px] leading-[1.5] text-navy max-[768px]:text-[17px];
 }
 .faq-item summary::-webkit-details-marker { display: none; }
 .faq-toggle {
-	@apply size-[18px] shrink-0 text-brand transition-transform duration-180 motion-reduce:transition-none;
+	@apply grid size-10 shrink-0 place-items-center rounded-full border border-navy text-navy transition-[rotate,background-color,color] duration-180 motion-reduce:transition-none;
+}
+.faq-toggle svg {
+	@apply size-[18px];
 }
 .faq-item[open] .faq-toggle {
-	@apply rotate-45;
+	@apply rotate-180 border-brand bg-brand text-white;
 }
 .faq-item > p {
-	@apply max-w-[640px] px-5 pb-5 text-[15px] leading-[1.8] text-gray-600;
+	@apply mt-4 max-w-[640px] pr-16 text-[16px] leading-[1.75] text-subtle max-[768px]:pr-0;
 }
 
-/* The closing banner sits flush on the footer, even on short pages. */
+/* The closing card sits flush on the footer, even on short pages. */
 main:has(> .landing > .closing-band) { display: flex; flex-direction: column; }
 main > .landing:has(> .closing-band) { display: flex; flex: 1; flex-direction: column; }
 .landing > .closing-band { margin-top: auto; }
+/* Without the closing card, a hairline keeps an ice page apart from the ice footer. */
+main:not(:has(.closing-band)) + footer {
+	@apply border-t border-navy/10;
+}

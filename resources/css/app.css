@@ -14,57 +14,75 @@
 
 @theme {
   --font-sans:
-    Inter, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    Poppins, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  --font-body: 'Plus Jakarta Sans', Inter, ui-sans-serif, system-ui, sans-serif;
-  --font-display: 'Space Grotesk', Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-body: Poppins, ui-sans-serif, system-ui, sans-serif;
+  --font-display: Poppins, ui-sans-serif, system-ui, sans-serif;
 
-  /* Nextward brand */
-  --color-brand: #2563eb;
-  --color-brand-dark: #1d4ed8;
-  --color-brand-soft: #93b4fa;
-  --color-navy: #0a1738;
-  --color-pale: #f6f8fc;
-  --color-coral: #f78c78;
+  /* Nextward brand: cobalt actions, deep navy headings and bands, ice blue surfaces. */
+  --color-brand: #0047ff;
+  --color-brand-dark: #003ad6;
+  --color-brand-soft: #96b3ff;
+  --color-navy: #001f6d;
+  --color-pale: #f2f6ff;
 
-  /* Public pages: grey text on white, light text on navy. */
-  --color-subtle: #586171;
-  --color-subtle-2: #67707e;
-  --color-mist: #c5cddc;
-  --color-mist-2: #a9b4c8;
+  /* Blue-grey text on white, light text on navy. */
+  --color-subtle: #656d80;
+  --color-subtle-2: #6b7387;
+  --color-mist: #d6def5;
+  --color-mist-2: #a9b7dc;
 
-  --color-gray-50: #f8fafc;
-  --color-gray-100: #f1f5f9;
-  --color-gray-200: #e2e8f0;
-  --color-gray-300: #cbd5e1;
-  --color-gray-400: #94a3b8;
-  --color-gray-500: #64748b;
-  --color-gray-600: #475569;
-  --color-gray-700: #334155;
-  --color-gray-800: #1e293b;
-  --color-gray-900: #0f172a;
-  --color-gray-950: #020617;
+  --color-blue-50: #f2f6ff;
+  --color-blue-100: #e2eaff;
+  --color-blue-200: #c4d4ff;
+  --color-blue-300: #96b3ff;
+  --color-blue-400: #5f8bff;
+  --color-blue-500: #2f6bff;
+  --color-blue-600: #0047ff;
+  --color-blue-700: #003ad6;
+  --color-blue-800: #002fae;
+  --color-blue-900: #002788;
+  --color-blue-950: #001f6d;
 
+  --color-slate-50: #f7f8fb;
+  --color-slate-100: #eef1f6;
+  --color-slate-200: #e2e6ee;
+  --color-slate-300: #c9cfdb;
+  --color-slate-400: #9aa2b4;
+  --color-slate-500: #6b7387;
+  --color-slate-600: #565e73;
+  --color-slate-700: #424a60;
+  --color-slate-800: #2c3349;
+  --color-slate-900: #1b2135;
+  --color-slate-950: #0f1424;
 
-  /* Workspace design tokens shared by the dashboard and management screens. */
-  --color-blue-50: #eef4ff;
-  --color-blue-100: #dbe7ff;
-  --color-blue-200: #b9d0ff;
-  --color-blue-300: #8ab2ff;
-  --color-blue-400: #5a8dff;
-  --color-navy-600: #1b2b57;
-  --color-navy-700: #0f2150;
-  --color-navy-800: #0a1738;
-  --color-navy-900: #070f26;
-  --color-ink: #0c1322;
-  --color-ink-700: #283449;
-  --color-muted: #5b6677;
-  --color-muted-2: #8a93a3;
-  --color-line: #e7ebf1;
+  --color-gray-50: #f7f8fb;
+  --color-gray-100: #eef1f6;
+  --color-gray-200: #e2e6ee;
+  --color-gray-300: #c9cfdb;
+  --color-gray-400: #9aa2b4;
+  --color-gray-500: #6b7387;
+  --color-gray-600: #565e73;
+  --color-gray-700: #424a60;
+  --color-gray-800: #2c3349;
+  --color-gray-900: #1b2135;
+  --color-gray-950: #0f1424;
+
+  --color-navy-600: #183b94;
+  --color-navy-700: #0b2a80;
+  --color-navy-800: #001f6d;
+  --color-navy-900: #00175a;
+  --color-ink: #001f6d;
+  --color-ink-700: #2c3a63;
+  --color-muted: #656d80;
+  --color-muted-2: #8d94a6;
+  --color-line: #e6e9f0;
   --color-line-2: #eef1f6;
   --color-paper: #ffffff;
-  --color-paper-2: #f6f8fc;
-  --color-paper-3: #eef2f9;
+  --color-paper-2: #f2f6ff;
+  --color-paper-3: #e8eefc;
+  --radius-card: 10px;
+  --tracking-caps: .1em;
   --radius-sm2: 12px;
   --radius-xl2: 18px;
   --radius-2xl2: 26px;

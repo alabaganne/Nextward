@@ -55,7 +55,7 @@ class OpportunityController extends Controller
             'filters' => $filters,
             'opportunities' => OpportunityResource::collection($results),
             'category' => $category,
-            'categoryLabel' => $categories[$category] ?? 'Explore opportunities',
+            'categoryLabel' => $categories[$category] ?? 'Explore roles',
             'countries' => $countries,
             'counts' => $counts + ['days' => config('importer.retention_days')],
             'fields' => Field::withCount(['opportunities' => fn ($query) => $query->available()->searchFilters(array_diff_key($queryFilters, ['fields' => true, 'field' => true]))])->orderBy('name')->get(),
@@ -168,7 +168,7 @@ class OpportunityController extends Controller
         return redirect($opportunity->publication_status === 'published'
             ? route('app.opportunities.show', ['opportunity' => $opportunity->id.'-'.$opportunity->slug])
             : route('opportunities.edit', $opportunity))
-            ->with('toast', ['type' => 'store', 'message' => 'Your opportunity has been saved.']);
+            ->with('toast', ['type' => 'store', 'message' => 'Your role has been saved.']);
     }
 
     public function show(Opportunity $opportunity)
@@ -266,7 +266,7 @@ class OpportunityController extends Controller
         return redirect($opportunity->publication_status === 'published'
             ? route('app.opportunities.show', ['opportunity' => $opportunity->id.'-'.$opportunity->slug])
             : route('opportunities.edit', $opportunity))
-            ->with('toast', ['type' => 'update', 'message' => 'Opportunity updated successfully.']);
+            ->with('toast', ['type' => 'update', 'message' => 'Role updated successfully.']);
     }
 
     public function destroy(Opportunity $opportunity)
@@ -275,7 +275,7 @@ class OpportunityController extends Controller
         $opportunity->update(['status' => 'closed', 'publication_status' => 'suppressed']);
         return Redirect::route('dashboard')->with('toast', [
             'type' => 'destroy',
-            'message' => 'Opportunity removed from public discovery. Application history is retained.',
+            'message' => 'Role removed from public discovery. Application history is retained.',
         ]);
     }
 

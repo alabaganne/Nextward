@@ -118,7 +118,7 @@ class PublicSeo
                 ? Str::limit("{$openRoles} ".($openRoles === 1 ? 'offre ouverte' : 'stages et emplois ouverts')." chez {$name}".($location ? " ({$location})" : '').'. '.($about ?: 'Consultez les exigences, le lieu et la façon de postuler sur Nextward.'), 155)
                 : Str::limit($about ?: "{$name} sur Nextward : profil de l’entreprise et anciens stages et emplois.", 155))
             : ($openRoles
-                ? Str::limit("{$openRoles} open ".($openRoles === 1 ? 'opportunity' : 'internships and jobs')." at {$name}".($location ? " ({$location})" : '').'. '.($about ?: 'See the requirements, location and how to apply on Nextward.'), 155)
+                ? Str::limit("{$openRoles} open ".($openRoles === 1 ? 'role' : 'internships and jobs')." at {$name}".($location ? " ({$location})" : '').'. '.($about ?: 'See the requirements, location and how to apply on Nextward.'), 155)
                 : Str::limit($about ?: "{$name} on Nextward: company profile and past internships and jobs.", 155));
         $seo = self::base(request(), ($fr ? "Stages et emplois chez {$name}" : $name.' internships and jobs').' | Nextward', $description, $company->isIndexable($openRoles));
         $seo['canonical'] = $company->publicUrl($fr ? 'fr' : 'en');
@@ -135,7 +135,7 @@ class PublicSeo
             'address' => $location || $company->country_code ? array_filter(['@type' => 'PostalAddress', 'addressLocality' => $location, 'addressCountry' => $company->country_code]) : null,
         ]), [
             '@context' => 'https://schema.org', '@type' => 'BreadcrumbList', 'itemListElement' => [
-                ['@type' => 'ListItem', 'position' => 1, 'name' => $fr ? 'Opportunités' : 'Opportunities', 'item' => self::url($fr ? '/fr/opportunities' : '/opportunities')],
+                ['@type' => 'ListItem', 'position' => 1, 'name' => $fr ? 'Offres' : 'Roles', 'item' => self::url($fr ? '/fr/opportunities' : '/opportunities')],
                 ['@type' => 'ListItem', 'position' => 2, 'name' => $name, 'item' => $seo['canonical']],
             ],
         ]];
@@ -293,7 +293,7 @@ class PublicSeo
         }
         $seo['structured_data'] = [$job, [
             '@context' => 'https://schema.org', '@type' => 'BreadcrumbList', 'itemListElement' => [
-                ['@type' => 'ListItem', 'position' => 1, 'name' => $fr ? 'Opportunités' : 'Opportunities', 'item' => self::url($fr ? '/fr/opportunities' : '/opportunities')],
+                ['@type' => 'ListItem', 'position' => 1, 'name' => $fr ? 'Offres' : 'Roles', 'item' => self::url($fr ? '/fr/opportunities' : '/opportunities')],
                 ['@type' => 'ListItem', 'position' => 2, 'name' => $title, 'item' => $seo['canonical']],
             ],
         ]];

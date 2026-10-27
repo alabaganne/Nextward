@@ -139,7 +139,7 @@ const ready = computed(() => kit.value.status !== 'queued' && !(kit.value.status
 		<template #title>
 			<Link :href="route('kits.index')" class="icon-btn shrink-0 -ml-2" aria-label="Back to CV & letters"><ArrowLeft class="size-5" /></Link>
 			<div class="min-w-0">
-				<h1 class="font-display text-[17px] font-semibold text-ink truncate" dir="auto">{{ role.title || 'CV & letter' }}</h1>
+				<h1 class="text-[17px] font-medium text-ink truncate" dir="auto">{{ role.title || 'CV & letter' }}</h1>
 				<p class="text-[13px] text-muted truncate" dir="auto">{{ meta }}</p>
 			</div>
 		</template>
@@ -148,7 +148,7 @@ const ready = computed(() => kit.value.status !== 'queued' && !(kit.value.status
 			<span class="hidden xl:inline-flex items-center gap-1.5 text-[13px] text-muted mr-1" role="status">
 				<template v-if="saving">Saving…</template>
 				<template v-else-if="dirty"><span class="size-2 rounded-full bg-amber-500" aria-hidden="true" />Unsaved changes</template>
-				<template v-else><Check class="size-4 text-[#047857]" aria-hidden="true" />All changes saved</template>
+				<template v-else><Check class="size-4 text-emerald-700" aria-hidden="true" />All changes saved</template>
 			</span>
 			<Menu width="w-64">
 				<template #button="{ open, toggle }">
@@ -160,34 +160,34 @@ const ready = computed(() => kit.value.status !== 'queued' && !(kit.value.status
 				<div class="h-px bg-line-2 my-1.5" />
 				<button :class="menuItem" class="!text-red-700 hover:!bg-red-50 hover:!text-red-800" role="menuitem" type="button" @click="remove"><Trash2 class="size-4 text-red-600" />Delete</button>
 			</Menu>
-			<button type="button" class="cbtn h-10 !py-0 !px-4 !text-sm disabled:opacity-60" :class="hasApply ? 'cbtn-secondary' : 'cbtn-primary'" :disabled="saving || !dirty" @click="save">{{ saving ? 'Saving…' : 'Save' }}</button>
-			<Link v-if="kit.application_id" :href="route('applications.show', kit.application_id)" class="cbtn cbtn-primary h-10 !py-0 !px-4 !text-sm">See your application</Link>
-			<button v-else-if="applyHere" type="button" class="cbtn cbtn-primary h-10 !py-0 !px-4 !text-sm" @click="useToApply"><Send class="size-4" aria-hidden="true" />Apply with this CV</button>
+			<button type="button" class="cta h-10 !py-0 !px-4 !text-sm disabled:opacity-60" :class="hasApply ? 'cta-secondary' : 'cta-primary'" :disabled="saving || !dirty" @click="save">{{ saving ? 'Saving…' : 'Save' }}</button>
+			<Link v-if="kit.application_id" :href="route('applications.show', kit.application_id)" class="cta cta-primary h-10 !py-0 !px-4 !text-sm">See your application</Link>
+			<button v-else-if="applyHere" type="button" class="cta cta-primary h-10 !py-0 !px-4 !text-sm" @click="useToApply"><Send class="size-4" aria-hidden="true" />Apply with this CV</button>
 			<template v-else-if="role.is_open && role.application_url">
-				<button v-if="applyThere" type="button" class="cbtn cbtn-secondary h-10 !py-0 !px-4 !text-sm disabled:opacity-60" :disabled="tracking" @click="markApplied"><Check class="size-4" aria-hidden="true" />{{ tracking ? 'Saving…' : 'I applied' }}</button>
-				<a :href="role.application_url" target="_blank" rel="noopener noreferrer" class="cbtn cbtn-primary h-10 !py-0 !px-4 !text-sm" @click="markOpened(role)" @auxclick="markOpened(role)">Apply on their site <ArrowUpRight class="size-4" aria-hidden="true" /></a>
+				<button v-if="applyThere" type="button" class="cta cta-secondary h-10 !py-0 !px-4 !text-sm disabled:opacity-60" :disabled="tracking" @click="markApplied"><Check class="size-4" aria-hidden="true" />{{ tracking ? 'Saving…' : 'I applied' }}</button>
+				<a :href="role.application_url" target="_blank" rel="noopener noreferrer" class="cta cta-primary h-10 !py-0 !px-4 !text-sm" @click="markOpened(role)" @auxclick="markOpened(role)">Apply on their site <ArrowUpRight class="size-4" aria-hidden="true" /></a>
 			</template>
 		</template>
 
 		<template #notice>
-			<p v-if="kit.error" class="mb-4 rounded-xl bg-red-50 px-4 py-3 text-[13px] text-red-800" role="alert">{{ kit.error }}</p>
-			<p v-if="error" class="mb-4 rounded-xl bg-red-50 px-4 py-3 text-[13px] text-red-800" role="alert">{{ error }}</p>
-			<p class="mb-7 rounded-xl bg-blue-50 px-4 py-3 text-[13px] leading-relaxed text-blue-900">Check every line before you use it. The AI only had your profile and resume to work with, so fix anything that is not exactly right.</p>
+			<p v-if="kit.error" class="mb-4 rounded-card bg-red-50 px-4 py-3 text-[13px] text-red-800" role="alert">{{ kit.error }}</p>
+			<p v-if="error" class="mb-4 rounded-card bg-red-50 px-4 py-3 text-[13px] text-red-800" role="alert">{{ error }}</p>
+			<p class="mb-7 rounded-card bg-blue-50 px-4 py-3 text-[13px] leading-relaxed text-blue-900">Check every line before you use it. The AI only had your profile and resume to work with, so fix anything that is not exactly right.</p>
 		</template>
 
 		<template #letter-actions>
-			<button type="button" class="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 font-semibold text-blue-700 hover:bg-blue-50" :disabled="!letter.trim()" @click="copyLetter"><Copy class="size-3.5" aria-hidden="true" />{{ copied ? 'Copied' : 'Copy the letter' }}</button>
+			<button type="button" class="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 font-medium text-blue-700 hover:bg-blue-50" :disabled="!letter.trim()" @click="copyLetter"><Copy class="size-3.5" aria-hidden="true" />{{ copied ? 'Copied' : 'Copy the letter' }}</button>
 		</template>
 
 		<template #preview-actions>
 			<Menu width="w-56">
 				<template #button="{ open, toggle }">
-					<button type="button" class="inline-flex items-center gap-2 h-9 px-3.5 rounded-[10px] bg-white ring-1 ring-line text-[13.5px] font-semibold text-ink hover:ring-blue-300" aria-haspopup="menu" :aria-expanded="open" @click="toggle"><Download class="size-4" aria-hidden="true" />Download<ChevronDown class="size-4 text-muted-2" aria-hidden="true" /></button>
+					<button type="button" class="cta cta-secondary cta-sm" aria-haspopup="menu" :aria-expanded="open" @click="toggle"><Download class="size-4" aria-hidden="true" />Download<ChevronDown class="size-4 text-muted-2" aria-hidden="true" /></button>
 				</template>
-				<p class="px-3 pt-1.5 pb-1 text-[11.5px] font-semibold uppercase tracking-[.08em] text-muted-2">CV</p>
+				<p class="px-3 pt-1.5 pb-1 text-[11.5px] font-medium uppercase tracking-[.08em] text-muted-2">CV</p>
 				<button :class="menuItem" role="menuitem" type="button" @click="pdf(route('kits.cv', kit.id))"><FileText class="size-4 text-muted-2" />PDF</button>
 				<button :class="menuItem" role="menuitem" type="button" @click="cvDocx"><FileText class="size-4 text-muted-2" />Word</button>
-				<p class="px-3 pt-2.5 pb-1 text-[11.5px] font-semibold uppercase tracking-[.08em] text-muted-2">Cover letter</p>
+				<p class="px-3 pt-2.5 pb-1 text-[11.5px] font-medium uppercase tracking-[.08em] text-muted-2">Cover letter</p>
 				<button :class="menuItem" role="menuitem" type="button" :disabled="!letter.trim()" @click="pdf(route('kits.letter', kit.id))"><FileText class="size-4 text-muted-2" />PDF</button>
 				<button :class="menuItem" role="menuitem" type="button" :disabled="!letter.trim()" @click="letterDocx"><FileText class="size-4 text-muted-2" />Word</button>
 			</Menu>
@@ -196,19 +196,19 @@ const ready = computed(() => kit.value.status !== 'queued' && !(kit.value.status
 
 	<div v-else class="flex-1 overflow-y-auto">
 		<div class="px-8 max-[680px]:px-5 pt-7 pb-14">
-			<Link :href="route('kits.index')" class="inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-muted hover:text-blue-700"><ArrowLeft class="size-4" aria-hidden="true" /> CV & letters</Link>
-			<h1 class="font-display text-2xl font-semibold text-ink mt-3" dir="auto">{{ role.title || 'CV & letter' }}</h1>
+			<Link :href="route('kits.index')" class="inline-flex items-center gap-1.5 text-[13.5px] font-medium text-muted hover:text-blue-700"><ArrowLeft class="size-4" aria-hidden="true" /> CV & letters</Link>
+			<h1 class="mt-3 text-[length:clamp(28px,2.6vw,36px)] font-medium leading-[1.15] text-navy" dir="auto">{{ role.title || 'CV & letter' }}</h1>
 			<p class="text-sm text-muted mt-1" dir="auto">{{ meta }}</p>
 
-			<div v-if="kit.status === 'queued'" class="mt-8 bg-white border border-line rounded-[18px] px-6 py-14 text-center" role="status">
+			<div v-if="kit.status === 'queued'" class="mt-8 bg-white border border-transparent rounded-card px-6 py-14 text-center" role="status">
 				<RefreshCw class="size-8 text-blue-600 mx-auto animate-spin" aria-hidden="true" />
-				<p class="font-display text-lg font-semibold mt-4">Writing your CV and cover letter…</p>
+				<p class="text-lg font-medium mt-4">Writing your CV and cover letter…</p>
 				<p class="text-sm text-muted mt-1">This usually takes under a minute. You can leave this page and come back.</p>
 			</div>
-			<div v-else class="mt-8 bg-white border border-line rounded-[18px] px-6 py-14 text-center">
-				<p class="font-display text-lg font-semibold">{{ kit.error || 'Something went wrong.' }}</p>
+			<div v-else class="mt-8 bg-white border border-transparent rounded-card px-6 py-14 text-center">
+				<p class="text-lg font-medium">{{ kit.error || 'Something went wrong.' }}</p>
 				<p v-if="error" class="text-sm text-red-700 mt-2" role="alert">{{ error }}</p>
-				<button class="cbtn cbtn-primary mt-6" type="button" @click="regenerate">Try again</button>
+				<button class="cta cta-primary mt-6" type="button" @click="regenerate">Try again</button>
 			</div>
 		</div>
 	</div>

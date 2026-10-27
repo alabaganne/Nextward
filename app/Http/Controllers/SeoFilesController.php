@@ -42,7 +42,7 @@ class SeoFilesController extends Controller
             '- Founder: '.$brand['founder']['name'].' ('.$brand['founder']['url'].')',
             '- Contact: '.$brand['email'],
             '',
-            '## Find opportunities',
+            '## Find roles',
             $link('All internships and jobs', '/opportunities', $copy['opportunities']['description']),
             $link('Internships', '/opportunities/internships', $copy['internships']['description']),
             $link('Jobs', '/opportunities/jobs', $copy['jobs']['description']),

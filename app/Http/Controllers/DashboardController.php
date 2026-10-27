@@ -59,7 +59,7 @@ class DashboardController extends Controller
                 if (!empty($preferences[$key])) {
                     $query->whereIn($column, $preferences[$key]);
                     $reasons[] = match ($key) {
-                        'kinds' => 'Matches your opportunity types',
+                        'kinds' => 'Matches your role types',
                         'work_types' => 'Matches your work arrangement',
                         'fields' => 'Matches your fields of interest',
                         'seniority' => 'Matches your experience preference',
@@ -96,7 +96,7 @@ class DashboardController extends Controller
                 return false;
             })->take(6)->values();
             $props['recommended'] = OpportunityResource::collection($recommended);
-            $props['recommendation_reasons'] = $reasons ?: ['Recent opportunities to explore. Add preferences in Settings for a closer match.'];
+            $props['recommendation_reasons'] = $reasons ?: ['Recent roles to explore. Add preferences in Settings for a closer match.'];
         }
 
         $props['is_new_user'] = $this->isNewUser($user, $applications ?? null);

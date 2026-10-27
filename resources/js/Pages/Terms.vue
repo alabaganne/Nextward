@@ -22,7 +22,7 @@ const sections = computed(() => [
 	{ id: 'candidates', title: text('For candidates', 'Pour les candidats'), body: [
 		[
 			text('Only send your own CV and files, and make sure what you write is true.', 'N’envoyez que votre propre CV et vos propres fichiers, et vérifiez que ce que vous écrivez est exact.'),
-			text('Nextward helps you find and apply to opportunities. We are not the employer and we cannot promise you an interview or a job.', 'Nextward vous aide à trouver des offres et à y postuler. Nous ne sommes pas l’employeur et ne pouvons pas vous promettre un entretien ou un poste.'),
+			text('Nextward helps you find and apply to roles. We are not the employer and we cannot promise you an interview or a job.', 'Nextward vous aide à trouver des offres et à y postuler. Nous ne sommes pas l’employeur et ne pouvons pas vous promettre un entretien ou un poste.'),
 			text('Applying through Nextward is free. Never pay anyone to get an internship or a job listed here, and tell us if a company asks you to.', 'Postuler via Nextward est gratuit. Ne payez jamais pour obtenir un stage ou un emploi publié ici, et prévenez-nous si une entreprise vous le demande.'),
 		],
 	] },
@@ -78,7 +78,7 @@ const sections = computed(() => [
 			:toc-label="text('On this page', 'Sur cette page')"
 			:sections="sections"
 		>
-			<p class="mt-12 text-sm text-slate-500">{{ text('See also our', 'Voir aussi notre') }} <Link :href="`${prefix}/privacy`" class="text-blue-700 underline underline-offset-4">{{ text('privacy policy', 'politique de confidentialité') }}</Link>.</p>
+			<p class="mt-14 rounded-card bg-pale px-6 py-5 text-[15px] text-subtle">{{ text('See also our', 'Voir aussi notre') }} <Link :href="`${prefix}/privacy`" class="focus-ring font-medium text-brand underline underline-offset-4 hover:text-navy">{{ text('privacy policy', 'politique de confidentialité') }}</Link>.</p>
 		</LegalPage>
 	</PublicLayout>
 </template>

@@ -42,15 +42,15 @@ watch([field, resume], reload);
 		<PageHeader title="Talent" description="Candidates who chose to share their profile. The Nextward team checks each one before it shows here." />
 
 		<div class="flex items-center gap-3 mb-5 flex-wrap">
-			<label class="flex items-center gap-2.5 bg-white border border-line rounded-[12px] px-3.5 h-11 flex-1 min-w-[240px] focus-within:border-blue-500 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-blue-600">
+			<label class="flex items-center gap-2.5 bg-white border border-line rounded-card px-3.5 h-11 flex-1 min-w-[240px] focus-within:border-blue-500 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-blue-600">
 				<Search class="size-[18px] text-muted-2 shrink-0" aria-hidden="true" />
 				<input v-model="search" class="border-0 bg-transparent p-0 outline-none focus:ring-0 text-[14.5px] w-full" type="search" placeholder="Search by name, role, skill or location" aria-label="Search candidates">
 			</label>
-			<select v-model="field" class="fld !w-auto h-11 !py-0" aria-label="Field">
+			<select v-model="field" class="fld !w-auto h-11 !py-0 bg-white" aria-label="Field">
 				<option value="">All fields</option>
 				<option v-for="item in fields" :key="item.id" :value="item.id">{{ item.name }}</option>
 			</select>
-			<label class="inline-flex items-center gap-2.5 h-11 px-4 rounded-[12px] border border-line bg-white text-sm font-semibold cursor-pointer select-none">
+			<label class="inline-flex items-center gap-2.5 h-11 px-4 rounded-card border border-line bg-white text-sm font-medium cursor-pointer select-none">
 				<input v-model="resume" type="checkbox" class="ck">
 				Resume shared
 			</label>
@@ -62,9 +62,9 @@ watch([field, resume], reload);
 			<CandidateCard v-for="candidate in candidates.data" :key="candidate.id" :candidate="candidate" />
 		</div>
 
-		<div v-else class="flex flex-col items-center text-center py-16 px-5 bg-white border border-line rounded-[16px]">
+		<div v-else class="flex flex-col items-center text-center py-16 px-5 bg-white border border-line rounded-card">
 			<Users class="size-8 text-muted-2 mb-3" aria-hidden="true" />
-			<h2 class="font-display text-lg font-semibold">No candidates found</h2>
+			<h2 class="text-[20px] leading-[1.35] text-navy">No candidates found</h2>
 			<p class="text-muted text-sm mt-1.5">Try another name, skill or field.</p>
 		</div>
 

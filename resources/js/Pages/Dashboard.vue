@@ -1,5 +1,5 @@
 <script setup>
-import { Bookmark, Briefcase, Building2, CalendarCheck, ChevronRight, FileText, GraduationCap } from '@lucide/vue';
+import { ArrowRight, Bookmark, BookOpen, Briefcase, Building2, CalendarCheck, ChevronRight, Database, FileText, GraduationCap, Target } from '@lucide/vue';
 import { computed, h } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { appPath } from '@/utils/url';
@@ -35,15 +35,29 @@ const managedRolesHref = computed(() => `${route('companies.show', user.value?.u
 const partyName = (application) => (isCompany.value ? application.candidate?.name : application.company?.name) || '';
 
 const description = computed(() => {
-	if (isAdmin.value) return 'Keep opportunities, companies, and candidates up to date.';
+	if (isAdmin.value) return 'Keep roles, companies, and candidates up to date.';
 	if (isCompany.value) return 'Review your roles and keep applications moving.';
 	return 'Here is where your search stands today.';
 });
 
+const mascot = computed(() => {
+	if (isAdmin.value) return { src: '/nextward-assets/mascots/04-mentor-pointing.svg', width: 768, height: 768 };
+	if (isCompany.value) return { src: '/nextward-assets/mascots/18-recruiter-mentor.webp', width: 900, height: 900 };
+	return { src: '/nextward-assets/mascots/17-student-presenter.webp', width: 900, height: 900 };
+});
+
+const adminLinks = [
+	{ label: 'Review queue', route: 'imports.review', icon: Database },
+	{ label: 'Job leads', route: 'leads.index', icon: Target },
+	{ label: 'Companies', route: 'app.companies.index', icon: Building2 },
+	{ label: 'Candidates', route: 'candidates.index', icon: GraduationCap },
+	{ label: 'Fields', route: 'fields.index', icon: BookOpen },
+];
+
 const cards = computed(() => {
 	if (isAdmin.value) {
 		return [
-			{ label: 'Open opportunities', value: props.opportunities_count, icon: Briefcase, href: route('app.opportunities.index') },
+			{ label: 'Open roles', value: props.opportunities_count, icon: Briefcase, href: route('app.opportunities.index') },
 			{ label: 'Companies', value: props.companies_count, icon: Building2, href: route('app.companies.index') },
 			{ label: 'Candidates', value: props.candidates_count, icon: GraduationCap, href: route('candidates.index') },
 		];
@@ -65,84 +79,96 @@ const cards = computed(() => {
 
 <template>
 	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-wrap mx-auto">
-		<PageHeader :title="`${is_new_user ? 'Welcome' : 'Welcome back'}, ${firstName}`" document-title="Dashboard" :description="description">
+		<PageHeader tone="navy" label="Dashboard" :title="`${is_new_user ? 'Welcome' : 'Welcome back'}, ${firstName}`" document-title="Dashboard" :description="description">
+			<template #title>{{ is_new_user ? 'Welcome' : 'Welcome back' }}, <span class="accent">{{ firstName }}</span></template>
 			<template #actions>
-				<Link v-if="isCompany" class="cbtn cbtn-secondary h-11 !py-0" :href="managedRolesHref">Manage your roles</Link>
-				<Link v-else-if="!isAdmin" class="cbtn cbtn-primary h-11 !py-0" :href="route('app.opportunities.index')">Browse opportunities</Link>
+				<template v-if="isAdmin">
+					<Link class="cta cta-light" :href="route('imports.review')">Review queue</Link>
+					<Link class="cta cta-ghost" :href="route('leads.index')">Job leads</Link>
+				</template>
+				<template v-else-if="isCompany">
+					<Link class="cta cta-light" :href="route('opportunities.create')">Post a role</Link>
+					<Link class="cta cta-ghost" :href="managedRolesHref">Manage your roles</Link>
+				</template>
+				<template v-else>
+					<Link class="cta cta-light" :href="route('app.opportunities.index')">Browse roles<ArrowRight class="size-[18px]" aria-hidden="true" /></Link>
+					<Link class="cta cta-ghost" :href="route('settings', { tab: 'preferences' })">Job preferences</Link>
+				</template>
+			</template>
+			<template #art>
+				<img :src="mascot.src" alt="" :width="mascot.width" :height="mascot.height" decoding="async" class="h-[210px] w-auto" />
 			</template>
 		</PageHeader>
 
-		<div class="grid grid-cols-3 gap-4 mb-6 max-[480px]:gap-2">
+		<div class="grid grid-cols-3 gap-5 mb-7 max-[760px]:grid-cols-1 max-[760px]:gap-3">
 			<Link
 				v-for="card in cards"
 				:key="card.label"
 				:href="card.href"
-				class="group bg-white border border-line rounded-[16px] p-5 max-[480px]:p-4 transition-colors hover:border-blue-300 focus-visible:outline-2 focus-visible:outline-blue-500"
+				class="group flex items-center gap-5 rounded-card border border-transparent bg-white p-6 transition-colors hover:border-brand/40 focus-visible:outline-2 focus-visible:outline-brand max-[760px]:p-5"
 			>
-				<div class="flex items-center justify-between gap-2 text-muted">
-					<span class="text-sm font-semibold leading-snug">{{ card.label }}</span>
-					<component :is="card.icon" class="size-[18px] shrink-0 text-muted-2 group-hover:text-blue-600 transition-colors max-[480px]:hidden" aria-hidden="true" />
-				</div>
-				<div class="font-display text-[34px] max-[480px]:text-[28px] font-semibold mt-3 leading-none">{{ card.value ?? 0 }}</div>
+				<span class="grid size-14 shrink-0 place-items-center rounded-card bg-pale text-brand transition-colors group-hover:bg-brand group-hover:text-white">
+					<component :is="card.icon" class="size-6" aria-hidden="true" />
+				</span>
+				<span class="min-w-0">
+					<span class="block text-[36px] font-medium leading-none text-navy">{{ card.value ?? 0 }}</span>
+					<span class="mt-2 block text-[13px] tracking-caps text-subtle uppercase">{{ card.label }}</span>
+				</span>
 			</Link>
 		</div>
 
-		<div class="grid gap-5 items-start max-[1080px]:grid-cols-1" :class="recommended.length ? 'grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]' : 'grid-cols-1'">
-			<section class="bg-white border border-line rounded-[16px] overflow-hidden">
-				<div class="flex items-center justify-between gap-4 px-5 py-4 border-b border-line-2">
-					<h2 class="font-display text-[17px] font-semibold">{{ isAdmin ? 'Manage the catalog' : 'Recent applications' }}</h2>
-					<Link v-if="!isAdmin && applications.length" class="text-sm font-semibold text-blue-700 hover:underline" :href="route('applications.index')">View all</Link>
+		<div class="grid gap-6 items-start max-[1080px]:grid-cols-1" :class="recommended.length ? 'grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]' : 'grid-cols-1'">
+			<section class="rounded-card bg-white overflow-hidden">
+				<div class="flex items-center justify-between gap-4 px-7 pt-6 pb-4 max-[560px]:px-5">
+					<h2 class="text-[20px] leading-[1.35] text-navy">{{ isAdmin ? 'Manage the catalog' : 'Recent applications' }}</h2>
+					<Link v-if="!isAdmin && applications.length" class="landing-link !py-0 text-[13px]!" :href="route('applications.index')">View all<ArrowRight class="action-icon size-4" aria-hidden="true" /></Link>
 				</div>
 
 				<Link
-					v-for="(application, index) in applications"
+					v-for="application in applications"
 					:key="application.id"
-					class="flex items-center gap-3.5 px-5 py-3.5 transition-colors hover:bg-paper-2"
-					:class="{ 'border-b border-line-2': index !== applications.length - 1 }"
+					class="flex items-center gap-4 border-t border-line-2 px-7 py-4 transition-colors hover:bg-pale max-[560px]:px-5"
 					:href="route('applications.show', application.id)"
 				>
-					<CompanyLogo class="size-10 rounded-[10px] text-[14px]" :name="partyName(application)" :src="isCompany ? null : application.company?.image" />
+					<CompanyLogo class="size-11 rounded-card text-[14px]" :name="partyName(application)" :src="isCompany ? null : application.company?.image" />
 					<div class="flex-1 min-w-0">
-						<b class="text-[15px] font-semibold block truncate">{{ application.opportunity.title }}</b>
-						<span class="text-[13px] text-muted block truncate">{{ [partyName(application), application.opportunity.city?.name].filter(Boolean).join(', ') }}</span>
+						<b class="block truncate text-[16px] font-medium text-navy">{{ application.opportunity.title }}</b>
+						<span class="mt-0.5 block truncate text-[14px] text-subtle">{{ [partyName(application), application.opportunity.city?.name].filter(Boolean).join(', ') }}</span>
 					</div>
 					<StatusPill :status="application.status" />
-					<span class="text-[13px] text-muted-2 whitespace-nowrap max-[760px]:hidden">{{ application.created_at }}</span>
-					<ChevronRight class="size-4 text-muted-2 shrink-0 max-[760px]:hidden" aria-hidden="true" />
+					<span class="text-[13.5px] text-subtle-2 whitespace-nowrap max-[760px]:hidden">{{ application.created_at }}</span>
+					<ChevronRight class="size-4 text-subtle-2 shrink-0 max-[760px]:hidden" aria-hidden="true" />
 				</Link>
 
-				<div v-if="!applications.length" class="px-5 py-8 text-[14.5px] text-muted">
-					<div v-if="isAdmin" class="flex flex-wrap gap-x-6 gap-y-3">
-						<Link class="font-semibold text-blue-700 hover:underline" :href="route('imports.review')">Review queue</Link>
-						<Link class="font-semibold text-blue-700 hover:underline" :href="route('app.companies.index')">Companies</Link>
-						<Link class="font-semibold text-blue-700 hover:underline" :href="route('candidates.index')">Candidates</Link>
-						<Link class="font-semibold text-blue-700 hover:underline" :href="route('fields.index')">Fields</Link>
+				<div v-if="!applications.length" class="px-7 pb-7 text-[15px] leading-[1.7] text-subtle max-[560px]:px-5">
+					<div v-if="isAdmin" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+						<Link v-for="item in adminLinks" :key="item.route" class="group flex items-center gap-3 rounded-card bg-pale px-4 py-3.5 text-navy transition-colors hover:bg-brand hover:text-white" :href="route(item.route)">
+							<component :is="item.icon" class="size-5 text-brand transition-colors group-hover:text-white" aria-hidden="true" />{{ item.label }}
+						</Link>
 					</div>
-					<p v-else-if="isCompany">No applications yet. Keep your <Link class="font-semibold text-blue-700 hover:underline" :href="managedRolesHref">role details</Link> up to date to attract candidates.</p>
-					<p v-else>You have not applied anywhere yet. <Link class="font-semibold text-blue-700 hover:underline" :href="route('app.opportunities.index')">Find a role</Link> to get started.</p>
+					<p v-else-if="isCompany">No applications yet. Keep your <Link class="text-brand hover:underline" :href="managedRolesHref">role details</Link> up to date to attract candidates.</p>
+					<p v-else>You have not applied anywhere yet. <Link class="text-brand hover:underline" :href="route('app.opportunities.index')">Find a role</Link> to get started.</p>
 				</div>
 			</section>
 
-			<section v-if="recommended.length" class="bg-white border border-line rounded-[16px] overflow-hidden">
-				<div class="flex items-center justify-between gap-4 px-5 py-4 border-b border-line-2">
-					<h2 class="font-display text-[17px] font-semibold">Picked for you</h2>
-					<Link class="text-sm font-semibold text-blue-700 hover:underline" :href="route('settings', { tab: 'preferences' })">Preferences</Link>
+			<section v-if="recommended.length" class="rounded-card bg-white overflow-hidden">
+				<div class="flex items-center justify-between gap-4 px-7 pt-6 max-[560px]:px-5">
+					<h2 class="text-[20px] leading-[1.35] text-navy">Picked for you</h2>
+					<Link class="landing-link !py-0 text-[13px]!" :href="route('settings', { tab: 'preferences' })">Preferences</Link>
 				</div>
-				<p class="px-5 pt-3.5 text-[13px] text-muted">{{ recommendation_reasons.join('. ') }}</p>
-				<div class="py-1.5">
-					<Link
-						v-for="item in recommended"
-						:key="item.id"
-						class="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-paper-2"
-						:href="appPath(item.public_url) || route('app.opportunities.show', item.id)"
-					>
-						<CompanyLogo class="size-9 rounded-[9px] text-[12px]" :name="item.company?.name || ''" :src="item.company?.image" />
-						<div class="min-w-0">
-							<b class="text-sm font-semibold block truncate">{{ item.title }}</b>
-							<span class="text-[12.5px] text-muted block truncate">{{ [item.company?.name, item.location_label || item.city?.name].filter(Boolean).join(', ') }}</span>
-						</div>
-					</Link>
-				</div>
+				<p class="px-7 pt-2 pb-3 text-[14px] leading-[1.6] text-subtle max-[560px]:px-5">{{ recommendation_reasons.join('. ') }}</p>
+				<Link
+					v-for="item in recommended"
+					:key="item.id"
+					class="flex items-center gap-3.5 border-t border-line-2 px-7 py-3.5 transition-colors hover:bg-pale max-[560px]:px-5"
+					:href="appPath(item.public_url) || route('app.opportunities.show', item.id)"
+				>
+					<CompanyLogo class="size-10 rounded-card text-[13px]" :name="item.company?.name || ''" :src="item.company?.image" />
+					<div class="min-w-0">
+						<b class="block truncate text-[15px] font-medium text-navy">{{ item.title }}</b>
+						<span class="mt-0.5 block truncate text-[13.5px] text-subtle">{{ [item.company?.name, item.location_label || item.city?.name].filter(Boolean).join(', ') }}</span>
+					</div>
+				</Link>
 			</section>
 		</div>
 	</div>

@@ -29,21 +29,21 @@ const checked = computed(() => facts.value.checked_at && new Date(`${facts.value
 </script>
 
 <template>
-	<section class="bg-white border border-line rounded-2xl p-6" aria-labelledby="company-facts-title">
-		<h2 id="company-facts-title" class="font-display text-lg font-semibold">{{ text('Company facts', 'Infos sur l’entreprise') }}</h2>
+	<section class="bg-white border border-line rounded-card p-6" aria-labelledby="company-facts-title">
+		<h2 id="company-facts-title" class="text-[20px] font-medium text-navy">{{ text('Company facts', 'Infos sur l’entreprise') }}</h2>
 		<ul v-if="rows.length" class="mt-4 grid gap-3.5 text-[14.5px]">
 			<li v-for="row in rows" :key="row.label" class="flex items-center gap-3 min-w-0">
-				<span class="grid size-[34px] shrink-0 place-items-center rounded-[10px] bg-blue-50 text-blue-700"><component :is="row.icon" :size="16" aria-hidden="true" /></span>
+				<span class="grid size-[38px] shrink-0 place-items-center rounded-card bg-blue-50 text-brand"><component :is="row.icon" :size="16" aria-hidden="true" /></span>
 				<span class="min-w-0">
-					<span class="block text-xs text-slate-500">{{ row.label }}</span>
-					<a v-if="row.href" :href="row.href" target="_blank" rel="noopener noreferrer nofollow" class="inline-flex items-center gap-1 font-semibold text-blue-700 hover:underline break-all">{{ row.value }}<ArrowUpRight :size="14" class="shrink-0" aria-hidden="true" /></a>
-					<span v-else class="block font-semibold text-navy-900 break-words">{{ row.value }}</span>
+					<span class="block text-[12.5px] text-subtle-2">{{ row.label }}</span>
+					<a v-if="row.href" :href="row.href" target="_blank" rel="noopener noreferrer nofollow" class="inline-flex items-center gap-1 font-medium text-brand transition-colors duration-180 hover:text-navy break-all">{{ row.value }}<ArrowUpRight :size="14" class="shrink-0" aria-hidden="true" /></a>
+					<span v-else class="block font-medium text-navy break-words">{{ row.value }}</span>
 				</span>
 			</li>
 		</ul>
-		<p v-else class="mt-3 text-sm text-slate-400">{{ text('No company facts yet.', 'Pas encore d’infos sur cette entreprise.') }}</p>
-		<p v-if="checked" class="mt-5 flex items-start gap-2 rounded-xl bg-[#EEF4FF] px-3.5 py-3 text-[13px] leading-5 text-blue-900">
-			<BadgeCheck :size="16" class="mt-0.5 shrink-0 text-blue-700" aria-hidden="true" />
+		<p v-else class="mt-3 text-[14px] text-slate-400">{{ text('No company facts yet.', 'Pas encore d’infos sur cette entreprise.') }}</p>
+		<p v-if="checked" class="mt-5 flex items-start gap-2 rounded-card bg-pale px-3.5 py-3 text-[13px] leading-5 text-navy">
+			<BadgeCheck :size="16" class="mt-0.5 shrink-0 text-brand" aria-hidden="true" />
 			<span>{{ text(`Verified: we found and checked ${facts.site || 'its website'} on ${checked}.`, `Vérifiée : nous avons trouvé et vérifié ${facts.site || 'son site'} le ${checked}.`) }}</span>
 		</p>
 	</section>

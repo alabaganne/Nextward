@@ -37,16 +37,16 @@ const remove = (index) => {
 </script>
 
 <template>
-	<div class="w-full flex flex-wrap items-center gap-1.5 border-[1.5px] border-line rounded-[11px] bg-white p-2 cursor-text transition-colors focus-within:border-blue-500" @click.self="input?.focus()">
-		<span v-for="(item, index) in items" :key="`${item}-${index}`" class="inline-flex items-center gap-1 rounded-lg bg-blue-50 text-blue-900 text-[13.5px] font-medium pl-2.5 pr-1 py-1" dir="auto">
+	<div class="w-full flex flex-wrap items-center gap-1.5 border border-transparent rounded-card bg-pale p-2 cursor-text transition-colors hover:border-blue-200 focus-within:border-brand focus-within:bg-white" @click.self="input?.focus()">
+		<span v-for="(item, index) in items" :key="`${item}-${index}`" class="inline-flex items-center gap-1 rounded-md bg-white text-navy text-[13.5px] pl-2.5 pr-1 py-1" dir="auto">
 			{{ item }}
-			<button type="button" class="grid place-items-center size-5 rounded-md text-blue-700 hover:bg-blue-100 focus-visible:outline-2 focus-visible:outline-blue-500" :aria-label="`Remove ${item}`" @click="remove(index)"><X class="size-3.5" aria-hidden="true" /></button>
+			<button type="button" class="grid place-items-center size-5 rounded-md text-blue-700 hover:bg-blue-100 focus-visible:outline-2 focus-visible:outline-brand" :aria-label="`Remove ${item}`" @click="remove(index)"><X class="size-3.5" aria-hidden="true" /></button>
 		</span>
 		<input
 			ref="input"
 			v-model="draft"
 			dir="auto"
-			class="flex-1 min-w-[140px] border-0 bg-transparent px-1.5 py-1 text-[14px] outline-none focus:ring-0 placeholder:text-muted-2"
+			class="flex-1 min-w-[140px] border-0 bg-transparent px-1.5 py-1 text-[15px] text-navy outline-none focus:ring-0 placeholder:text-subtle-2"
 			:placeholder="items.length ? 'Add another…' : placeholder"
 			:aria-label="label"
 			@keydown="keydown"

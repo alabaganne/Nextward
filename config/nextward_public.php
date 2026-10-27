@@ -22,7 +22,7 @@ return [
         'jobs' => ['title' => 'Jobs worldwide | Nextward', 'description' => 'Find first jobs and experienced roles across full-time, part-time, and contract employment. Compare locations, salary, and requirements.'],
         'companies' => ['title' => 'Companies hiring in IT | Nextward', 'description' => 'Find companies hiring IT interns and professionals around the world. Search by name or city and see every open internship and job.'],
         'about' => ['title' => 'About Nextward | IT internships and jobs, made clearer', 'description' => 'Why Nextward exists, what it covers, where every listing comes from, and who builds it. IT internships and jobs around the world.'],
-        'contact' => ['title' => 'Contact Nextward', 'description' => 'Contact Nextward about opportunities, source partnerships, employer hiring, or a problem with a listing.'],
+        'contact' => ['title' => 'Contact Nextward', 'description' => 'Contact Nextward about roles, source partnerships, employer hiring, or a problem with a listing.'],
         'privacy' => ['title' => 'Privacy policy | Nextward', 'description' => 'What data Nextward keeps, why, who sees it, how long it is kept, and how to delete your account. Covers Tunisian law 2004-63 and the GDPR.'],
         'terms' => ['title' => 'Terms of use | Nextward', 'description' => 'The rules for using Nextward: accounts, applications, company listings, imported listings from other sites, and what is not allowed.'],
         'blog' => ['title' => 'Career guides for students and professionals | Nextward', 'description' => 'Practical advice for finding internships and jobs, preparing applications, assessing eligibility, and hiring candidates.'],
@@ -43,7 +43,7 @@ return [
     // Home page questions, shown on the page and sent as FAQPage data.
     'faq' => [
         'en' => [
-            ['q' => 'Do I need an account to look at opportunities?', 'a' => 'No. You can search and read every listing without an account. You need one to save roles, apply on Nextward, track your applications and use the AI tools.'],
+            ['q' => 'Do I need an account to look at roles?', 'a' => 'No. You can search and read every listing without an account. You need one to save roles, apply on Nextward, track your applications and use the AI tools.'],
             ['q' => 'Is Nextward free?', 'a' => 'Yes. Browsing, saving, applying, alerts and tracking are free for everyone. The AI tools are free too while we launch. Later, tailored CVs and cover letters will use paid credits, every account gets one free, and prices will be shown before anything is charged.'],
             ['q' => 'What is a PFE internship?', 'a' => 'A PFE (projet de fin d’études) is the final-year internship that many engineering and business programmes require, mostly in Tunisia and France. Use the PFE search to see only these roles.'],
             ['q' => 'What does a company see when I apply?', 'a' => 'On Nextward, the company sees your profile (headline, field and skills), the cover letter you send and your CV and files. Roles on other websites use their own forms, and opening their link does not send your CV.'],

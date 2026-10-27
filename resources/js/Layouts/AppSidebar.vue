@@ -38,7 +38,7 @@ const badges = computed(() => page.props.badges || {});
 
 const main = computed(() => [
 	{ id: 'dashboard', label: 'Dashboard', route: 'dashboard', icon: LayoutDashboard },
-	{ id: 'opportunities', label: 'Opportunities', route: 'app.opportunities.index', icon: Compass },
+	{ id: 'opportunities', label: 'Roles', route: 'app.opportunities.index', icon: Compass },
 	...(isCandidate.value || isCompany.value ? [{ id: 'applications', label: 'Applications', route: 'applications.index', icon: FileText, badge: badges.value.applications }] : []),
 	...(isCompany.value ? [{ id: 'roles', label: 'My roles', href: `${route('companies.show', user.value?.userable_id)}#opportunities`, icon: Briefcase }] : []),
 	...(isCandidate.value ? [
@@ -77,26 +77,26 @@ watch(() => props.active, (id) => {
 const total = (group) => group.children.reduce((sum, child) => sum + (child.badge || 0), 0);
 
 const navItem = (active, size = 'px-3 py-2.5 text-[14.5px]') => [
-	'flex items-center gap-3 rounded-[10px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-blue-400',
+	'flex items-center gap-3 rounded-card transition-colors focus-visible:outline-2 focus-visible:outline-white',
 	size,
-	active ? 'bg-white/[.09] text-white [&_svg]:text-blue-300' : 'text-[#aeb9cf] hover:bg-white/[.06] hover:text-white',
+	active ? 'bg-brand text-white' : 'text-mist-2 hover:bg-white/10 hover:text-white',
 ];
-const badge = 'ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-blue-600 px-1.5 text-[11px] font-bold text-white';
+const badge = 'ml-auto grid h-5 min-w-5 place-items-center rounded-md bg-white px-1.5 text-[11px] font-semibold text-navy';
 </script>
 
 <template>
 	<aside
 		id="workspace-navigation"
-		class="flex flex-col sticky top-0 h-dvh bg-navy-900 text-[#aeb9cf] px-3.5 pt-5 pb-4 overflow-y-auto max-[900px]:fixed max-[900px]:left-0 max-[900px]:z-50 max-[900px]:w-[264px] max-[900px]:transition-[transform,visibility] max-[900px]:duration-200"
+		class="line-art flex flex-col sticky top-0 h-dvh bg-navy text-mist-2 px-3.5 pt-5 pb-4 overflow-y-auto max-[900px]:fixed max-[900px]:left-0 max-[900px]:z-50 max-[900px]:w-[264px] max-[900px]:transition-[transform,visibility] max-[900px]:duration-200"
 		:class="mobileOpen ? 'max-[900px]:translate-x-0' : 'max-[900px]:-translate-x-full max-[900px]:invisible'"
 		aria-label="Workspace"
 	>
 		<div class="flex items-center justify-between px-2.5 pb-6">
-			<Link :href="route('dashboard')" class="flex items-center gap-2.5 rounded-lg focus-visible:outline-2 focus-visible:outline-blue-400">
+			<Link :href="route('dashboard')" class="flex items-center gap-2.5 rounded-lg focus-visible:outline-2 focus-visible:outline-white">
 				<img src="/brand/nextward/symbol-192.png" alt="" class="size-9 shrink-0" width="36" height="36">
-				<span class="font-display text-white text-[19px] font-semibold tracking-[-.01em]">Nextward</span>
+				<span class="text-white text-[20px] font-semibold">Nextward</span>
 			</Link>
-			<button class="hidden max-[900px]:grid place-items-center size-8 rounded-lg text-[#aeb9cf] hover:bg-white/10 hover:text-white" type="button" aria-label="Close navigation" @click="$emit('close')">
+			<button class="hidden max-[900px]:grid place-items-center size-8 rounded-lg text-mist-2 hover:bg-white/10 hover:text-white" type="button" aria-label="Close navigation" @click="$emit('close')">
 				<X class="size-5" />
 			</button>
 		</div>
@@ -117,7 +117,7 @@ const badge = 'ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-blue-
 		</nav>
 
 		<template v-if="isAdmin">
-			<div class="text-xs text-[#6b7894] font-semibold px-3 pt-6 pb-2">Admin</div>
+			<div class="px-3 pt-7 pb-2 text-[12px] tracking-caps text-mist-2/70 uppercase">Admin</div>
 			<nav class="flex flex-col gap-0.5" aria-label="Admin">
 				<template v-for="item in admin" :key="item.id">
 					<template v-if="item.children">
@@ -165,9 +165,9 @@ const badge = 'ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-blue-
 
 		<div class="flex-1"></div>
 
-		<div class="border-t border-white/[.07] pt-3 mt-4 flex flex-col gap-0.5">
+		<div class="border-t border-white/10 pt-3 mt-4 flex flex-col gap-0.5">
 			<Link :class="navItem(false, 'px-3 py-2.5 text-[13.5px]')" :href="route('home')" @click="$emit('close')">Nextward website</Link>
-			<Link :class="navItem(false, 'px-3 py-2.5 text-[13.5px]')" :href="route('blog.index')" @click="$emit('close')">Career guides</Link>
+			<Link :class="navItem(false, 'px-3 py-2.5 text-[13.5px]')" :href="route('blog.index')" @click="$emit('close')">Blog</Link>
 			<Link :class="navItem(false, 'px-3 py-2.5 text-[13.5px]')" :href="route('contact')" @click="$emit('close')">Help and feedback</Link>
 		</div>
 	</aside>

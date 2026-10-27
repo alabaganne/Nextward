@@ -2,14 +2,15 @@
 defineProps({ title: { type: String, required: true }, body: String, mascot: String });
 </script>
 <template>
-    <section class="closing-band relative overflow-hidden bg-brand text-white [&_.focus-ring:focus-visible]:outline-white">
-        <div class="public-container flex flex-wrap items-center justify-between gap-x-10 gap-y-6 py-16 max-[768px]:py-11">
-            <img v-if="mascot" :src="`/nextward-assets/mascots/${mascot}.svg`" alt="" width="768" height="768" loading="lazy" class="-my-4 size-[140px] shrink-0 max-[768px]:m-0 max-[768px]:size-[104px]" />
-            <div class="max-w-[576px] flex-[1_1_320px]">
-                <h2 class="section-title mt-0 text-[length:clamp(28px,3vw,38px)] text-white">{{ title }}</h2>
-                <p v-if="body" class="mt-3 leading-7 text-blue-100">{{ body }}</p>
+    <section class="closing-band relative [&_.focus-ring:focus-visible]:outline-white">
+        <div class="absolute inset-x-0 bottom-0 h-1/2 bg-pale" aria-hidden="true"></div>
+        <div class="public-container relative">
+            <div class="relative overflow-hidden line-art rounded-card bg-brand px-8 py-20 text-center text-white max-[768px]:px-6 max-[768px]:py-14">
+                <img v-if="mascot" :src="`/nextward-assets/mascots/${mascot}.svg`" alt="" width="768" height="768" loading="lazy" class="pointer-events-none absolute bottom-0 left-6 hidden size-[160px] min-[1100px]:block" />
+                <h2 class="section-title mx-auto max-w-[640px] text-white">{{ title }}</h2>
+                <p v-if="body" class="mx-auto mt-4 max-w-[560px] text-[17px] leading-[1.7] text-blue-50">{{ body }}</p>
+                <div class="mt-9 flex flex-wrap justify-center gap-4"><slot /></div>
             </div>
-            <div class="flex flex-wrap gap-3"><slot /></div>
         </div>
     </section>
 </template>

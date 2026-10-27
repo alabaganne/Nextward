@@ -33,29 +33,29 @@ const submitMerge = () => merge.post(route('imports.opportunities.merge', props.
                 <div class="flex items-center gap-2 text-[13.5px] text-muted font-medium mb-3 [&_svg]:size-3.5">
                     <Link class="hover:text-blue-700" :href="route('imports.review')">Review queue</Link>
                     <ChevronRight aria-hidden="true" />
-                    <span class="text-ink-700 font-semibold">Listing {{ opportunity.id }}</span>
+                    <span class="text-ink-700 font-medium">Listing {{ opportunity.id }}</span>
                 </div>
             </template>
             <template #description>{{ opportunity.company }} · {{ opportunity.kind }} · {{ opportunity.location || 'No location' }}</template>
             <template #actions>
-                <a v-if="opportunity.publication_status === 'published'" class="cbtn cbtn-secondary border border-line" :href="opportunity.public_url">Open page <ExternalLink class="size-4" aria-hidden="true" /></a>
+                <a v-if="opportunity.publication_status === 'published'" class="cta cta-secondary border border-line" :href="opportunity.public_url">Open page <ExternalLink class="size-4" aria-hidden="true" /></a>
             </template>
         </PageHeader>
 
-        <div v-if="Object.keys(page.props.errors || {}).length" class="bg-[#fef2f2] border border-[#fecaca] text-[#dc2626] rounded-[12px] p-4 mb-5 text-[14px]" role="alert"><p v-for="(error, key) in page.props.errors" :key="key">{{ error }}</p></div>
+        <div v-if="Object.keys(page.props.errors || {}).length" class="bg-red-50 border border-red-200 text-red-600 rounded-card p-4 mb-5 text-[14px]" role="alert"><p v-for="(error, key) in page.props.errors" :key="key">{{ error }}</p></div>
 
         <div class="flex flex-wrap gap-2 mb-6">
             <StatusPill set="import" :status="opportunity.publication_status" />
             <StatusPill set="import" :status="opportunity.status === 'closed' ? 'closed' : 'open'" />
-            <span class="inline-flex items-center text-xs font-semibold px-[11px] py-[5px] rounded-full bg-paper-3 text-ink-700">{{ opportunity.origin === 'imported' ? 'Imported' : 'Posted by the company' }}</span>
+            <span class="inline-flex items-center text-[14px] font-medium px-[11px] py-[5px] rounded-full bg-paper-3 text-navy">{{ opportunity.origin === 'imported' ? 'Imported' : 'Posted by the company' }}</span>
         </div>
-        <p v-if="opportunity.merged_into_id" class="rounded-[12px] bg-blue-50 text-blue-700 p-4 text-[14px] mb-6">This listing was merged into <Link class="font-semibold underline" :href="route('imports.opportunities.show', opportunity.merged_into_id)">listing {{ opportunity.merged_into_id }}</Link>.</p>
+        <p v-if="opportunity.merged_into_id" class="rounded-card bg-white text-blue-700 px-6 py-4 text-[15px] mb-6">This listing was merged into <Link class="font-medium underline" :href="route('imports.opportunities.show', opportunity.merged_into_id)">listing {{ opportunity.merged_into_id }}</Link>.</p>
 
         <div class="grid lg:grid-cols-[minmax(0,1fr)_340px] gap-5 items-start">
             <div class="space-y-5">
-                <form class="bg-white border border-line rounded-[18px] p-6 space-y-4" @submit.prevent="moderate">
-                    <h2 class="font-display text-[19px] font-semibold">Hide, close or correct</h2>
-                    <label class="block text-[13px] font-semibold text-ink-700">Action
+                <form class="bg-white border border-transparent rounded-card p-6 space-y-4" @submit.prevent="moderate">
+                    <h2 class="text-[20px] leading-[1.35] text-navy">Hide, close or correct</h2>
+                    <label class="block text-[14px] font-medium text-navy">Action
                         <select v-model="moderation.action" class="fld mt-1.5">
                             <option value="suppress">Hide from the site</option>
                             <option value="close">Mark as closed</option>
@@ -64,52 +64,52 @@ const submitMerge = () => merge.post(route('imports.opportunities.merge', props.
                         </select>
                     </label>
                     <div v-if="moderation.action === 'correct'" class="grid sm:grid-cols-2 gap-4">
-                        <label class="block text-[13px] font-semibold text-ink-700">Fact
+                        <label class="block text-[14px] font-medium text-navy">Fact
                             <select v-model="field" class="fld mt-1.5" @change="pickField"><option v-for="(label, key) in labels" :key="key" :value="key">{{ label }}</option></select>
                         </label>
-                        <label class="block text-[13px] font-semibold text-ink-700" :class="{ 'sm:col-span-2': !options }">Correct value
+                        <label class="block text-[14px] font-medium text-navy" :class="{ 'sm:col-span-2': !options }">Correct value
                             <select v-if="options" v-model="value" class="fld mt-1.5"><option v-for="option in options" :key="option">{{ option }}</option></select>
                             <textarea v-else v-model="value" class="fld mt-1.5" :rows="field === 'description' ? 10 : 2" required></textarea>
                         </label>
                     </div>
-                    <label class="block text-[13px] font-semibold text-ink-700">Reason and evidence<textarea v-model="moderation.reason" class="fld mt-1.5" required minlength="5" placeholder="What you checked and why"></textarea></label>
-                    <button class="cbtn cbtn-primary" :disabled="moderation.processing">Save</button>
+                    <label class="block text-[14px] font-medium text-navy">Reason and evidence<textarea v-model="moderation.reason" class="fld mt-1.5" required minlength="5" placeholder="What you checked and why"></textarea></label>
+                    <button class="cta cta-primary" :disabled="moderation.processing">Save</button>
                 </form>
 
-                <form v-if="!opportunity.merged_into_id" class="bg-white border border-line rounded-[18px] p-6 space-y-4" @submit.prevent="submitMerge">
+                <form v-if="!opportunity.merged_into_id" class="bg-white border border-transparent rounded-card p-6 space-y-4" @submit.prevent="submitMerge">
                     <div>
-                        <h2 class="font-display text-[19px] font-semibold">Merge into another listing</h2>
+                        <h2 class="text-[20px] leading-[1.35] text-navy">Merge into another listing</h2>
                         <p class="text-[14px] text-muted mt-1">For the same role posted twice by the same company. This listing is hidden and its link, saves and applications move to the one you keep. Keep the listing the company posted itself.</p>
                     </div>
-                    <label class="block text-[13px] font-semibold text-ink-700">Listing to keep (ID)<input v-model.number="merge.survivor_id" class="fld mt-1.5 max-w-[200px]" type="number" min="1" required></label>
-                    <label class="block text-[13px] font-semibold text-ink-700">Why they are the same role<textarea v-model="merge.reason" class="fld mt-1.5" required minlength="10"></textarea></label>
-                    <button class="cbtn cbtn-secondary border border-line" :disabled="merge.processing">Merge listings</button>
+                    <label class="block text-[14px] font-medium text-navy">Listing to keep (ID)<input v-model.number="merge.survivor_id" class="fld mt-1.5 max-w-[200px]" type="number" min="1" required></label>
+                    <label class="block text-[14px] font-medium text-navy">Why they are the same role<textarea v-model="merge.reason" class="fld mt-1.5" required minlength="10"></textarea></label>
+                    <button class="cta cta-secondary border border-line" :disabled="merge.processing">Merge listings</button>
                 </form>
             </div>
 
             <aside class="space-y-5">
-                <section class="bg-white border border-line rounded-[18px] p-5">
-                    <h2 class="font-display text-[16px] font-semibold mb-3">Facts</h2>
+                <section class="bg-white border border-transparent rounded-card p-5">
+                    <h2 class="text-[16px] font-medium mb-3">Facts</h2>
                     <dl class="text-[13.5px] space-y-2">
-                        <div v-for="key in ['applicant_scope', 'remote_eligibility', 'relocation', 'visa_sponsorship', 'country_code']" :key="key" class="flex justify-between gap-3"><dt class="text-muted">{{ labels[key] }}</dt><dd class="font-semibold">{{ opportunity[key] || '—' }}</dd></div>
+                        <div v-for="key in ['applicant_scope', 'remote_eligibility', 'relocation', 'visa_sponsorship', 'country_code']" :key="key" class="flex justify-between gap-3"><dt class="text-muted">{{ labels[key] }}</dt><dd class="font-medium">{{ opportunity[key] || '—' }}</dd></div>
                     </dl>
                 </section>
-                <section class="bg-white border border-line rounded-[18px] p-5">
-                    <h2 class="font-display text-[16px] font-semibold mb-3">Sources</h2>
+                <section class="bg-white border border-transparent rounded-card p-5">
+                    <h2 class="text-[16px] font-medium mb-3">Sources</h2>
                     <ul class="space-y-3 text-[13.5px]">
                         <li v-for="item in sources" :key="item.id">
-                            <div class="flex items-center justify-between gap-2"><span class="font-semibold truncate">{{ item.source_name }}</span><StatusPill set="import" :status="item.state" /></div>
+                            <div class="flex items-center justify-between gap-2"><span class="font-medium truncate">{{ item.source_name }}</span><StatusPill set="import" :status="item.state" /></div>
                             <a class="text-blue-700 break-all text-[12.5px]" :href="item.source_url" target="_blank" rel="noopener noreferrer">{{ item.source_url }}</a>
                         </li>
                         <li v-if="!sources.length" class="text-muted">Posted on Nextward, no outside source.</li>
                     </ul>
                 </section>
-                <section v-if="reports.length" class="bg-white border border-line rounded-[18px] p-5">
-                    <h2 class="font-display text-[16px] font-semibold mb-3">Open reports</h2>
+                <section v-if="reports.length" class="bg-white border border-transparent rounded-card p-5">
+                    <h2 class="text-[16px] font-medium mb-3">Open reports</h2>
                     <ul class="space-y-3 text-[13.5px]">
-                        <li v-for="report in reports" :key="report.id"><span class="font-semibold capitalize">{{ String(report.reason).replaceAll('_', ' ') }}</span><p class="text-muted mt-0.5 whitespace-pre-wrap">{{ report.details }}</p></li>
+                        <li v-for="report in reports" :key="report.id"><span class="font-medium capitalize">{{ String(report.reason).replaceAll('_', ' ') }}</span><p class="text-muted mt-0.5 whitespace-pre-wrap">{{ report.details }}</p></li>
                     </ul>
-                    <Link class="inline-block mt-3 text-[13px] font-semibold text-blue-700" :href="route('imports.reports')">Resolve on Reports</Link>
+                    <Link class="inline-block mt-3 text-[13px] font-medium text-blue-700" :href="route('imports.reports')">Resolve on Reports</Link>
                 </section>
             </aside>
         </div>

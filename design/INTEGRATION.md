@@ -36,9 +36,9 @@ PostCSS pipeline, runtime Play CDN scripts, or a second Vite config.
 @plugin '@tailwindcss/forms';
 
 @theme {
-  --color-ink: #0c1322;
-  --color-paper-2: #f6f8fc;
-  --font-body: 'Plus Jakarta Sans', Inter, ui-sans-serif, system-ui, sans-serif;
+  --color-brand: #0047ff;
+  --color-navy: #001f6d;
+  --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
   --container-wrap: 1200px;
 }
 ```
@@ -49,10 +49,15 @@ brand/token definitions. Arbitrary-value utilities such as `text-[15.5px]` and
 
 ### 1b. Fonts
 
-Inter, Space Grotesk, and Plus Jakarta Sans are self-hosted: woff2 files in
-`resources/fonts/`, `@font-face` rules in `resources/css/fonts.css` (imported by
-`app.css`). No font is loaded from Google. `AppShell` uses `font-body` for workspace text. Public/auth pages use Inter through
-`font-sans`; all share `font-display` for headings.
+Poppins (400, 500, 600) is self-hosted: woff2 files in `resources/fonts/`,
+`@font-face` rules in `resources/css/fonts.css` (imported by `app.css`). No font
+is loaded from Google. `font-sans`, `font-body` and `font-display` all point at
+Poppins, so older classes keep working.
+
+Images used from CSS (like the hero line art, `resources/images/hero-lines.svg`)
+live in `resources/` and are referenced with a relative `url()`, so Vite serves
+them in dev and fingerprints them in the build. A `url(/...)` to `public/` breaks
+in dev, because the CSS comes from the Vite server.
 
 ### 1c. Where styles go
 
@@ -68,9 +73,9 @@ a short `<style>` block, or a file with the component's name when it is long
 | File | Holds |
 |---|---|
 | `app.css` | Tailwind setup, theme tokens, the `menu-pop` animation, the `short-screen` variant |
-| `elements.css` | Defaults for focus outlines, labels and form fields |
-| `public.css` | Public page classes: container, buttons (`.cta`), sections, hero, mascot stage, search field, chips, guide grid, FAQ |
-| `workspace.css` | Workspace classes: `.cbtn`, `.icon-btn`, `.fld`, `.ck` |
+| `elements.css` | Defaults for focus outlines, the pointer cursor on buttons, labels and form fields, plus `.focus-ring` and the `.cta` buttons used on every page (`cta-primary`, `cta-secondary`, `cta-light`, `cta-ghost`, `cta-danger`, and `cta-sm` for small ones) |
+| `public.css` | Public page classes: container, sections, hero and line art, search field, chips, guide grid, FAQ |
+| `workspace.css` | Workspace classes: `.icon-btn`, `.fld`, `.ck` |
 | `fonts.css` | Self-hosted `@font-face` rules |
 | `cv.css` | Resume and letter PDFs, inlined by `CvPdf`, not part of the site bundle |
 
@@ -192,8 +197,16 @@ rather than porting the obsolete marketing or split-auth prototype helpers.
 Shared public styles live in `resources/css/public.css`. Guide cards use
 `Components/Blog/GuideCard.vue`, and article photos are matched by slug in
 `Components/Blog/guideImages.js` (English and French slugs are both listed).
-The landing hero (`Components/Landing/LandingHero.vue`) and the cobalt closing
-banner (`Components/Landing/ClosingBanner.vue`) are shared by the landing and blog pages.
+`Components/Landing/LandingHero.vue` is the one public hero: label, title slot,
+lead, `#actions`, optional corner mascots, and `overlap`, which leaves room for a
+card the page pulls up over its bottom edge with `.hero-overlap` (the page renders
+that card itself, so it is written once). `Components/Landing/ClosingBanner.vue`
+is the cobalt closing card, and `Components/Landing/ArtPanel.vue` is the mascot on an
+ice panel with an offset block that split sections use. Guide lists use `.guide-grid`
+(three columns). Every public page uses `LandingHero`, including the legal pages
+through `Shared/LegalPage.vue`; the old `Sparkle` component and `.hero-stage` rules
+are gone. Sign-in pages share their field and link classes from
+`Components/Auth/classes.js` and use `Breeze/Button.vue` (a full-width `.cta-primary`).
 ---
 
 ## 4. Porting a page — checklist

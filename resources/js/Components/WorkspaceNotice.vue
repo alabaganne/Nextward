@@ -19,7 +19,7 @@ const isError = computed(() => style.value === styles.error);
 </script>
 
 <template>
-	<div v-if="page.props.toast?.message && !dismissed" class="fixed bottom-5 right-5 z-30 flex items-start gap-3 max-w-[calc(100vw-40px)] rounded-xl border bg-white p-4 text-sm text-ink" :class="style.border" :role="isError ? 'alert' : 'status'">
+	<div v-if="page.props.toast?.message && !dismissed" class="fixed bottom-5 right-5 z-30 flex items-start gap-3 max-w-[calc(100vw-40px)] rounded-card border bg-white p-4 text-sm text-ink" :class="style.border" :role="isError ? 'alert' : 'status'">
 		<component :is="style.icon" :size="20" class="shrink-0" :class="style.color" aria-hidden="true" />
 		<p>{{ page.props.toast.message }}</p>
 		<button class="shrink-0 text-muted hover:text-ink" type="button" aria-label="Dismiss notification" @click="dismissed = true"><X :size="18" aria-hidden="true" /></button>

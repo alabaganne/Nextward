@@ -43,8 +43,8 @@ class EmailTest extends TestCase
     private function assertBranded(string $html): void
     {
         $this->assertStringContainsString('/brand/nextward/symbol-192.png', $html);
-        $this->assertStringContainsString('#2563eb', $html);
-        $this->assertStringContainsString('Internships and jobs in Tunisia and worldwide', $html);
+        $this->assertStringContainsString('#0047ff', $html);
+        $this->assertStringContainsString('IT internships and jobs around the world', $html);
         $this->assertStringNotContainsString('Laravel', $html);
     }
 

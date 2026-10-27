@@ -4,13 +4,14 @@
 			<template v-if="fr">Votre parcours<br />commence ici.</template>
 			<template v-else>Your beginning<br />starts here.</template>
 		</auth-heading>
+		<p class="-mt-2 mb-8 rounded-card bg-pale px-5 py-4 text-[14px] leading-[1.7] text-subtle">{{ text('Already have an account?', 'Vous avez déjà un compte ?') }} <Link :href="`${prefix}/login`" :class="classes.link">{{ text('Log in', 'Se connecter') }}</Link></p>
 		<auth-feedback :errors="form.errors" />
 		<form @submit.prevent="submit" enctype="multipart/form-data" :aria-busy="form.processing">
 			<fieldset>
 				<legend :class="classes.label">{{ text('I’m joining as', 'Je m’inscris pour') }}</legend>
 				<div class="mt-2.5 grid grid-cols-2 gap-3">
 					<button type="button" :class="role(form.account_type === 'candidate')" :aria-pressed="form.account_type === 'candidate'" @click="selectAccount('candidate')">
-						<span :class="roleName"><icon name="academic-cap" />{{ text('Find opportunities', 'Trouver une opportunité') }}</span>
+						<span :class="roleName"><icon name="academic-cap" />{{ text('Find roles', 'Trouver une offre') }}</span>
 						<icon v-if="form.account_type === 'candidate'" name="check-circle" :class="roleCheck" />
 						<p :class="roleNote">{{ text('For students, graduates, and professionals.', 'Pour les étudiants, jeunes diplômés et professionnels.') }}</p>
 					</button>
@@ -60,9 +61,9 @@
 					<template v-if="isCompany">
 						<div class="min-w-0">
 							<span :class="classes.label">{{ text('Company logo', 'Logo de l’entreprise') }}</span>
-							<label for="company_logo" class="relative flex cursor-pointer items-center gap-3.5 rounded-[7px] border border-dashed border-[#b9c3d2] p-[18px] focus-within:outline-2 focus-within:outline-offset-[3px] focus-within:outline-brand hover:border-brand hover:bg-[#f8faff]">
+							<label for="company_logo" class="relative flex cursor-pointer items-center gap-3.5 rounded-card border border-dashed border-slate-300 p-5 focus-within:outline-2 focus-within:outline-offset-[3px] focus-within:outline-brand hover:border-brand hover:bg-pale">
 								<icon name="photo" class="size-[25px] shrink-0 text-brand" />
-								<span><strong class="block text-[13px] font-medium wrap-anywhere">{{ form.company_logo ? form.company_logo.name : text('Choose your company logo', 'Choisir le logo de votre entreprise') }}</strong><small class="mt-1 block text-[11px] font-normal text-subtle-2">{{ form.company_logo ? text('An image up to 2 MB. Click to replace.', 'Une image de 2 Mo maximum. Cliquez pour la remplacer.') : text('An image up to 2 MB. Click to upload.', 'Une image de 2 Mo maximum. Cliquez pour l’ajouter.') }}</small></span>
+								<span><strong class="block text-[14px] font-medium wrap-anywhere">{{ form.company_logo ? form.company_logo.name : text('Choose your company logo', 'Choisir le logo de votre entreprise') }}</strong><small class="mt-1 block text-[12.5px] font-normal text-subtle-2">{{ form.company_logo ? text('An image up to 2 MB. Click to replace.', 'Une image de 2 Mo maximum. Cliquez pour la remplacer.') : text('An image up to 2 MB. Click to upload.', 'Une image de 2 Mo maximum. Cliquez pour l’ajouter.') }}</small></span>
 								<input id="company_logo" name="company_logo" type="file" accept="image/*" :aria-label="text('Company logo', 'Logo de l’entreprise')" :aria-invalid="form.errors.company_logo ? 'true' : undefined" :aria-describedby="form.errors.company_logo ? 'company_logo-error' : undefined" @change="handleLogo" required class="absolute inset-0 size-full cursor-pointer opacity-0" />
 							</label>
 							<p v-if="form.errors.company_logo" id="company_logo-error" :class="classes.error">{{ form.errors.company_logo }}</p>
@@ -80,7 +81,7 @@
 				</div>
 			</fieldset>
 
-			<label for="terms" class="mt-7 flex cursor-pointer items-start gap-2.5 text-[13px] leading-[1.6] text-subtle">
+			<label for="terms" class="mt-8 flex cursor-pointer items-start gap-2.5 text-[14px] leading-[1.6] text-subtle">
 				<input class="mt-[3px] size-4 shrink-0 shadow-none" id="terms" name="terms" v-model="form.terms" type="checkbox" required :aria-invalid="form.errors.terms ? 'true' : undefined" :aria-describedby="form.errors.terms ? 'terms-error' : undefined" />
 				<span v-if="fr">J’accepte les <a href="/fr/terms" target="_blank" rel="noopener" :class="classes.link">conditions d’utilisation</a> et la <a href="/fr/privacy" target="_blank" rel="noopener" :class="classes.link">politique de confidentialité</a>.</span>
 				<span v-else>I agree to the <a :href="route('terms')" target="_blank" rel="noopener" :class="classes.link">terms of use</a> and the <a :href="route('privacy')" target="_blank" rel="noopener" :class="classes.link">privacy policy</a>.</span>
@@ -88,7 +89,6 @@
 			<p v-if="form.errors.terms" id="terms-error" class="ml-[26px]" :class="classes.error">{{ form.errors.terms }}</p>
 			<breeze-button class="mt-5" :disabled="form.processing">{{ form.processing ? text('Creating your account…', 'Création de votre compte…') : isCompany ? text('Create company account', 'Créer un compte entreprise') : text('Create candidate account', 'Créer un compte candidat') }}<icon name="arrow-right" /></breeze-button>
 		</form>
-		<p :class="classes.switchRow">{{ text('Already have an account?', 'Vous avez déjà un compte ?') }} <Link :href="`${prefix}/login`" :class="classes.link">{{ text('Log in', 'Se connecter') }}</Link></p>
 	</div>
 </template>
 
@@ -111,12 +111,12 @@ export default {
 	data() {
 		return {
 			classes: { ...classes },
-			roleName: 'inline-flex items-center gap-[9px] text-[13px] font-semibold max-[540px]:gap-1.5 max-[540px]:text-[12px] [&_svg]:size-5 [&_svg]:shrink-0 [&_svg]:text-brand max-[540px]:[&_svg]:size-[18px]',
+			roleName: 'inline-flex items-center gap-2.5 text-[14px] font-medium text-navy max-[540px]:gap-1.5 max-[540px]:text-[13px] [&_svg]:size-5 [&_svg]:shrink-0 [&_svg]:text-brand max-[540px]:[&_svg]:size-[18px]',
 			roleCheck: 'size-[17px] self-center text-brand max-[540px]:size-[15px]',
-			roleNote: 'col-span-full text-[11px] leading-[1.65] text-subtle',
-			section: 'mt-7 min-w-0 border-t border-navy/10 pt-[26px]',
-			sectionLegend: 'float-left mb-5 w-full font-display text-[18px] font-medium tracking-[-.025em]',
-			sectionNote: 'clear-both -mt-2.5 mb-5 text-[12px] leading-[1.7] text-subtle-2',
+			roleNote: 'col-span-full text-[12.5px] leading-[1.6] text-subtle',
+			section: 'mt-8 min-w-0 border-t border-line pt-8',
+			sectionLegend: 'float-left mb-5 w-full text-[20px] font-medium text-navy',
+			sectionNote: 'clear-both -mt-2.5 mb-5 text-[13.5px] leading-[1.7] text-subtle-2',
 			twoColumns: 'grid grid-cols-2 gap-5 max-[1024px]:grid-cols-1 max-[900px]:grid-cols-2 max-[540px]:grid-cols-1 max-[540px]:gap-[22px]',
 			form: useForm({
 				account_type: this.accountType,
@@ -150,7 +150,7 @@ export default {
 	},
 	methods: {
 		role(picked) {
-			return ['focus-ring grid grid-cols-[1fr_auto] gap-x-3 gap-y-[7px] rounded-[7px] border p-4 text-left transition-colors duration-180 max-[540px]:gap-2 max-[540px]:px-3 max-[540px]:py-3.5', picked ? 'border-brand bg-[#f1f5ff]' : 'border-[#d7dbe2] hover:border-brand-soft hover:bg-[#f8faff]'];
+			return ['focus-ring grid grid-cols-[1fr_auto] gap-x-3 gap-y-[7px] rounded-card border p-4 text-left transition-colors duration-180 max-[540px]:gap-2 max-[540px]:px-3 max-[540px]:py-3.5', picked ? 'border-brand bg-blue-50' : 'border-slate-300 hover:border-brand/40 hover:bg-pale'];
 		},
 		text(en, french) {
 			return this.fr ? french : en;

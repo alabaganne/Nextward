@@ -1,22 +1,10 @@
-/* Workspace classes shared by many pages (INTEGRATION.md §1c). */
-.cbtn {
-	@apply inline-flex items-center justify-center gap-2.5 font-semibold text-[15px] px-[22px] py-[13px] rounded-[12px] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand;
-}
-/* A label.cbtn wrapping a hidden file input shows the ring for that input. */
-.cbtn:has(input:focus-visible) {
-	@apply outline-2 outline-offset-2 outline-brand;
-}
-.cbtn-primary {
-	@apply bg-blue-600 text-white hover:bg-blue-700;
-}
-.cbtn-secondary {
-	@apply bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700;
-}
+/* Workspace classes shared by many pages (INTEGRATION.md §1c). Buttons are .cta in elements.css. */
 .icon-btn {
-	@apply relative size-10 rounded-[10px] grid place-items-center text-ink-700 transition-colors hover:bg-paper-2 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-blue-500;
+	@apply relative grid size-10 place-items-center rounded-card text-ink-700 transition-colors hover:bg-pale hover:text-brand focus-visible:outline-2 focus-visible:outline-brand;
 }
+/* Fields are filled ice, like the template's forms, with a cobalt edge on focus. */
 .fld {
-	@apply w-full border-[1.5px] border-line rounded-[11px] px-3.5 py-3 text-[14.5px] text-ink bg-white transition-colors focus:border-blue-500 placeholder:text-muted-2;
+	@apply w-full rounded-card border border-transparent bg-pale px-[18px] py-[13px] text-[15.5px] leading-6 font-normal text-navy transition-colors placeholder:text-subtle-2 hover:border-blue-200 focus:border-brand focus:bg-white;
 }
 select.fld {
 	@apply appearance-auto cursor-pointer pr-3.5;
@@ -26,10 +14,10 @@ textarea.fld {
 	@apply resize-y min-h-[92px];
 }
 .ck {
-	@apply appearance-none w-[18px] h-[18px] border-[1.5px] border-line rounded-[5px] cursor-pointer shrink-0 relative transition-all;
+	@apply relative size-[18px] shrink-0 cursor-pointer appearance-none rounded-[4px] border border-slate-300 transition-all;
 }
 .ck:checked {
-	@apply bg-blue-600 border-blue-600;
+	@apply border-brand bg-brand;
 }
 .ck:checked::after {
 	content: "";

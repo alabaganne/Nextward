@@ -22,7 +22,7 @@ onBeforeUnmount(() => document.removeEventListener('click', outside));
 			leave-active-class="transition duration-150 ease-in"
 			leave-to-class="opacity-0 -translate-y-1"
 		>
-			<div v-if="open" class="absolute right-0 top-[calc(100%+6px)] z-30 rounded-xl border border-line bg-white p-1.5" :class="width" role="menu" @click="open = false">
+			<div v-if="open" class="absolute right-0 top-[calc(100%+6px)] z-30 rounded-card border border-line bg-white p-1.5" :class="width" role="menu" @click="open = false">
 				<slot />
 			</div>
 		</Transition>

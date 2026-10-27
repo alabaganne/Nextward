@@ -97,78 +97,78 @@ const tips = [
 <template>
 	<div class="px-8 max-[680px]:px-5 pt-8 pb-14 w-full max-w-wrap mx-auto">
 		<div class="flex items-center gap-2 text-[13.5px] text-muted font-medium mb-[22px] [&_svg]:w-3.5 [&_svg]:h-3.5 [&_svg]:text-muted-2">
-			<Link class="hover:text-blue-700" :href="route('app.opportunities.index')">Opportunities</Link>
+			<Link class="hover:text-blue-700" :href="route('app.opportunities.index')">Roles</Link>
 			<component :is="icons.chevron" aria-hidden="true" />
 			<Link class="hover:text-blue-700" :href="appPath(opportunity.public_url) || route('app.opportunities.show', opportunity.id)">{{ opportunity.title }}</Link>
 			<component :is="icons.chevron" aria-hidden="true" />
-			<span class="text-ink-700 font-semibold">{{ editing ? 'Edit application' : 'Apply' }}</span>
+			<span class="text-ink-700 font-medium">{{ editing ? 'Edit application' : 'Apply' }}</span>
 		</div>
 
 		<div class="mb-6">
-			<h1 class="font-display text-[28px] font-semibold tracking-[-.02em] leading-tight">{{ editing ? 'Edit your application' : 'Introduce yourself' }}</h1>
-			<p class="text-muted text-[15px] mt-1.5">What makes you a strong candidate for this opportunity?</p>
+			<h1 class="text-[length:clamp(28px,2.6vw,36px)] font-medium leading-[1.15] text-navy">{{ editing ? 'Edit your application' : 'Introduce yourself' }}</h1>
+			<p class="text-muted text-[15px] mt-1.5">What makes you a strong candidate for this role?</p>
 		</div>
 
 		<div class="grid grid-cols-[1fr_350px] gap-6 items-start max-[1080px]:grid-cols-1">
 			<!-- FORM -->
-			<form class="bg-white border border-line rounded-[18px]" @submit.prevent="submit">
+			<form class="bg-white border border-transparent rounded-card" @submit.prevent="submit">
 				<div class="px-8 max-[560px]:px-5 py-[26px]">
 					<div class="mb-6">
-						<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="cover_letter">Cover letter</label>
-						<p class="text-[13px] text-muted mb-2.5">Tell the company a little bit about yourself and any work you’ve done that’s relevant to this opportunity.</p>
+						<label class="block text-[14px] font-medium mb-2 text-navy" for="cover_letter">Cover letter</label>
+						<p class="text-[13px] text-muted mb-2.5">Tell the company a little bit about yourself and any work you’ve done that’s relevant to this role.</p>
 						<textarea id="cover_letter" v-model="form.cover_letter" class="fld !min-h-[220px]" rows="10"></textarea>
 						<div class="flex justify-between mt-[7px] text-xs">
-							<span class="text-[#dc2626]">{{ form.errors.cover_letter }}</span>
+							<span class="text-red-600">{{ form.errors.cover_letter }}</span>
 							<span class="text-muted-2">{{ form.cover_letter.length }} / 200 min</span>
 						</div>
 					</div>
 
 					<div class="mb-6">
-						<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="message">Message <span class="text-muted-2 font-medium">(optional)</span></label>
-						<p class="text-[13px] text-muted mb-2.5">Any questions about this opportunity or the company? You can even ask for a video call.</p>
+						<label class="block text-[14px] font-medium mb-2 text-navy" for="message">Message <span class="text-muted-2 font-medium">(optional)</span></label>
+						<p class="text-[13px] text-muted mb-2.5">Any questions about this role or the company? You can even ask for a video call.</p>
 						<textarea id="message" v-model="form.message" class="fld !min-h-[130px]" rows="6"></textarea>
 						<div class="flex justify-between mt-[7px] text-xs">
-							<span class="text-[#dc2626]">{{ form.errors.message }}</span>
+							<span class="text-red-600">{{ form.errors.message }}</span>
 							<span class="text-muted-2">{{ form.message?.length || 0 }} / 100 min if provided</span>
 						</div>
 					</div>
 
 					<fieldset class="mb-6">
-						<legend class="block text-[13px] font-semibold mb-[7px] text-ink-700">Resume</legend>
+						<legend class="block text-[14px] font-medium mb-2 text-navy">Resume</legend>
 						<p class="text-[13px] text-muted mb-2.5">
 							Sent as a PDF with your application.
-							<template v-if="!resumes.length && !kits.length">You have no saved resume yet: <Link class="text-blue-700 font-semibold hover:underline" :href="`${route('profile.show')}#resumes`">add one on your profile</Link>, or attach it below.</template>
+							<template v-if="!resumes.length && !kits.length">You have no saved resume yet: <Link class="text-blue-700 font-medium hover:underline" :href="`${route('profile.show')}#resumes`">add one on your profile</Link>, or attach it below.</template>
 						</p>
 						<div class="flex flex-col gap-2">
 							<label
 								v-for="option in resumeOptions"
 								:key="option.value"
-								class="flex items-center gap-3 rounded-[12px] border px-4 py-3 cursor-pointer transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-600"
+								class="flex items-center gap-3 rounded-card border px-4 py-3 cursor-pointer transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-600"
 								:class="choice === option.value ? 'border-blue-600 bg-blue-50' : 'border-line hover:border-blue-300'"
 							>
 								<input v-model="choice" class="accent-blue-600 w-4 h-4 shrink-0" type="radio" name="resume" :value="option.value">
 								<span class="min-w-0">
-									<b class="block text-[13.5px] font-semibold text-ink truncate">{{ option.label }}</b>
+									<b class="block text-[13.5px] font-medium text-ink truncate">{{ option.label }}</b>
 									<span class="block text-xs text-muted">{{ option.hint }}</span>
 								</span>
 							</label>
 						</div>
-						<div v-if="resumeError" class="text-xs text-[#dc2626] mt-[7px]">{{ resumeError }}</div>
+						<div v-if="resumeError" class="text-xs text-red-600 mt-[7px]">{{ resumeError }}</div>
 					</fieldset>
 
 					<div>
-						<label class="block text-[13px] font-semibold mb-[7px] text-ink-700" for="attachment_files">Attachments</label>
+						<label class="block text-[14px] font-medium mb-2 text-navy" for="attachment_files">Attachments</label>
 						<p id="attachment_files-hint" class="text-[13px] text-muted mb-2.5">Up to 10 files in all, your resume included, 10&nbsp;MB each. PDF, Word, text, or RTF files: work samples or anything that supports your application.</p>
 						<input id="attachment_files" class="fld !py-[9px]" type="file" accept=".pdf,.doc,.docx,.txt,.rtf" multiple aria-describedby="attachment_files-hint" @input="pickFiles">
-						<div v-if="attachmentError" class="text-xs text-[#dc2626] mt-[7px]">{{ attachmentError }}</div>
+						<div v-if="attachmentError" class="text-xs text-red-600 mt-[7px]">{{ attachmentError }}</div>
 						<div v-if="otherAttachments.length" class="flex flex-wrap gap-2 mt-3">
-							<span v-for="attachment in otherAttachments" :key="attachment.url || attachment.name" class="inline-flex items-center px-[11px] py-[5px] rounded-lg text-xs font-semibold bg-paper-3 text-ink-700">{{ attachment.name }}</span>
+							<span v-for="attachment in otherAttachments" :key="attachment.url || attachment.name" class="inline-flex items-center px-[11px] py-[5px] rounded-lg text-[14px] font-medium bg-paper-3 text-navy">{{ attachment.name }}</span>
 						</div>
 					</div>
 				</div>
-				<div class="px-8 max-[560px]:px-5 py-4 border-t border-line-2 flex justify-end gap-2.5 bg-white rounded-b-[18px]">
-					<Link class="cbtn bg-white text-ink border border-line hover:border-blue-300 hover:text-blue-700" :href="editing ? route('applications.show', application.id) : appPath(opportunity.public_url) || route('app.opportunities.show', opportunity.id)">Cancel</Link>
-					<button class="cbtn bg-blue-600 text-white hover:bg-blue-700 [&_svg]:w-[17px] [&_svg]:h-[17px]" type="submit" :disabled="form.processing">
+				<div class="px-8 max-[560px]:px-5 py-4 border-t border-line-2 flex justify-end gap-2.5 bg-white rounded-b-card">
+					<Link class="cta cta-secondary" :href="editing ? route('applications.show', application.id) : appPath(opportunity.public_url) || route('app.opportunities.show', opportunity.id)">Cancel</Link>
+					<button class="cta cta-primary [&_svg]:w-[17px] [&_svg]:h-[17px]" type="submit" :disabled="form.processing">
 						{{ editing ? 'Save changes' : 'Submit application' }} <component :is="icons.arrow" aria-hidden="true" />
 					</button>
 				</div>
@@ -176,12 +176,12 @@ const tips = [
 
 			<!-- RIGHT -->
 			<div class="flex flex-col gap-4 sticky top-[94px]">
-				<section class="bg-white border border-line rounded-[18px] p-6">
-					<h3 class="text-sm tracking-[.04em] text-muted font-bold font-display mb-4">YOU'RE APPLYING TO</h3>
+				<section class="bg-white border border-transparent rounded-card p-6">
+					<h3 class="mb-4 text-[13px] tracking-caps text-brand uppercase">YOU'RE APPLYING TO</h3>
 					<div class="flex items-center gap-[13px] mb-4">
-						<CompanyLogo class="w-[46px] h-[46px] rounded-[12px] text-base" :name="opportunity.company.name" :src="opportunity.company.image" />
+						<CompanyLogo class="w-[46px] h-[46px] rounded-card text-base" :name="opportunity.company.name" :src="opportunity.company.image" />
 						<div>
-							<b class="font-display text-base block">{{ opportunity.title }}</b>
+							<b class="text-base block">{{ opportunity.title }}</b>
 							<span class="text-[13px] text-muted">{{ opportunity.company.name }} · {{ opportunity.location_label || opportunity.city?.name }}</span>
 						</div>
 					</div>
@@ -191,8 +191,8 @@ const tips = [
 					</div>
 				</section>
 
-				<section class="bg-white border border-line rounded-[18px] p-6">
-					<h3 class="text-sm tracking-[.04em] text-muted font-bold font-display mb-4">TIPS</h3>
+				<section class="bg-white border border-transparent rounded-card p-6">
+					<h3 class="mb-4 text-[13px] tracking-caps text-brand uppercase">TIPS</h3>
 					<ul class="list-none flex flex-col gap-[11px] [&_li]:flex [&_li]:items-start [&_li]:gap-2.5 [&_li]:text-[13.5px] [&_li]:text-ink-700 [&_li]:leading-[1.5]">
 						<li v-for="tip in tips" :key="tip">
 							<span class="w-[18px] h-[18px] rounded-md grid place-items-center shrink-0 bg-blue-50 text-blue-600 mt-px [&_svg]:w-[11px] [&_svg]:h-[11px]"><component :is="icons.check" aria-hidden="true" /></span>

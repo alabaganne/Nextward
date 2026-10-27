@@ -87,7 +87,7 @@ class OpportunityRequest extends FormRequest
                 $validator->errors()->add('pay_max', 'Maximum compensation must be at least the minimum.');
             }
             if ($this->input('compensation_status') === 'unpaid' && ((float) $this->input('pay_min', 0) > 0 || (float) $this->input('pay_max', 0) > 0)) {
-                $validator->errors()->add('compensation_status', 'An unpaid opportunity cannot advertise positive compensation.');
+                $validator->errors()->add('compensation_status', 'An unpaid role cannot advertise positive compensation.');
             }
             $allowed = $this->input('eligible_countries', []);
             $excluded = $this->input('excluded_countries', []);

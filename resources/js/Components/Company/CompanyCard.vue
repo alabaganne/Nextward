@@ -21,25 +21,25 @@ const details = computed(() => [
 </script>
 
 <template>
-    <article class="bg-white border border-line rounded-[18px] p-5 flex flex-col min-w-0 transition-colors hover:border-blue-300">
-        <div class="flex items-start gap-3.5">
-            <CompanyLogo class="size-12 rounded-xl text-base border border-line" :name="company.name" :src="company.logo" />
+    <article class="bg-white border border-line rounded-card p-6 flex flex-col min-w-0 transition-colors duration-180 hover:border-brand/40">
+        <div class="flex items-center gap-3.5">
+            <CompanyLogo class="size-12 shrink-0 rounded-card text-base border border-line" :name="company.name" :src="company.logo" />
             <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-1.5 min-w-0">
-                    <h3 class="font-display text-[17px] font-semibold leading-snug truncate"><Link :href="href" class="hover:text-blue-700">{{ company.name }}</Link></h3>
+                    <h3 class="text-[19px] font-medium leading-snug text-navy truncate"><Link :href="href" class="transition-colors duration-180 hover:text-brand">{{ company.name }}</Link></h3>
                     <VerifiedBadge v-if="company.verified" compact />
                 </div>
-                <p v-if="details.length" class="mt-0.5 flex items-center gap-1 text-xs text-slate-500 min-w-0">
+                <p v-if="details.length" class="mt-0.5 flex items-center gap-1 text-[13px] text-subtle-2 min-w-0">
                     <MapPin v-if="company.location" :size="13" class="shrink-0" aria-hidden="true" /><span class="truncate">{{ details.join(' · ') }}</span>
                 </p>
             </div>
         </div>
 
-        <p v-if="company.about" class="mt-4 text-sm leading-6 text-slate-600 line-clamp-3" dir="auto">{{ company.about }}</p>
-        <p v-else class="mt-4 text-sm leading-6 text-slate-400">{{ text('No description yet.', 'Pas encore de description.') }}</p>
+        <p v-if="company.about" class="mt-4 text-[15px] leading-[1.7] text-subtle line-clamp-3" dir="auto">{{ company.about }}</p>
+        <p v-else class="mt-4 text-[15px] leading-[1.7] text-slate-400">{{ text('No description yet.', 'Pas encore de description.') }}</p>
 
-        <div class="mt-auto pt-4">
-            <Link :href="href" class="flex items-center justify-between gap-3 border-t border-line pt-4 text-sm font-semibold" :class="count ? 'text-blue-700' : 'text-slate-500'">
+        <div class="mt-auto pt-5">
+            <Link :href="href" class="focus-ring flex items-center justify-between gap-3 border-t border-line pt-4 text-[13px] font-medium tracking-caps uppercase transition-colors duration-180" :class="count ? 'text-brand hover:text-navy' : 'text-subtle-2 hover:text-brand'">
                 <span>{{ count ? text(`${count} open ${count === 1 ? 'role' : 'roles'}`, `${count} ${count === 1 ? 'offre ouverte' : 'offres ouvertes'}`) : text('No open roles right now', 'Aucune offre ouverte') }}<span class="sr-only"> {{ text('at', 'chez') }} {{ company.name }}</span></span>
                 <ArrowRight :size="16" aria-hidden="true" />
             </Link>
