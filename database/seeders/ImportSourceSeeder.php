@@ -92,6 +92,11 @@ class ImportSourceSeeder extends Seeder
                 'allowed_domains' => $domains, 'permission_notes' => $note, 'publication_mode' => 'leads', 'cadence_hours' => $cadence,
                 'settings' => $settings + ['scope' => 'all'], 'request_delay_ms' => 1500, 'max_requests' => $requests];
         }
+        // The links in Hacker News "Who is hiring" posts: the AI opens each one and real jobs wait for review.
+        $sources[] = ['key' => 'linked-job-pages', 'name' => 'Job pages linked from Hacker News', 'provider' => 'pages',
+            'url' => 'https://news.ycombinator.com/', 'allowed_domains' => [], 'publication_mode' => 'review',
+            'permission_notes' => 'Employer job pages linked from Hacker News "Who is hiring" posts. Only the employer page is shown, with a link to apply there; the post itself is never published. Each site\'s robots rules apply. Checked on 2026-10-27.',
+            'settings' => ['scope' => 'all'], 'request_delay_ms' => 1000, 'max_requests' => 300];
         return $sources;
     }
 }

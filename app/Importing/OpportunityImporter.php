@@ -97,9 +97,9 @@ class OpportunityImporter
                     'state' => 'pending', 'first_seen_at' => $started, 'last_discovered_at' => $started,
                     'missing_runs' => 0, 'missing_since' => null, 'created_at' => $started, 'updated_at' => $started,
                 ], $chunk);
-                // JSON-LD pages save their JobPosting when read, so a new discovery keeps it.
+                // JSON-LD pages save their JobPosting when read, and linked pages their AI check, so a new discovery keeps it.
                 $update = ['source_url', 'url_key', 'payload', 'last_discovered_at', 'missing_runs', 'missing_since', 'updated_at'];
-                OpportunitySource::upsert($rows, ['import_source_id', 'external_id'], $source->provider === 'jsonld' ? array_diff($update, ['payload']) : $update);
+                OpportunitySource::upsert($rows, ['import_source_id', 'external_id'], in_array($source->provider, ['jsonld', 'pages'], true) ? array_diff($update, ['payload']) : $update);
             }
             if ($discover) { $source->update(['last_discovered_at' => $started]); }
             $cycle = $source->last_discovered_at;
@@ -148,10 +148,12 @@ class OpportunityImporter
                 }
                 if (microtime(true) > $deadline || $http->requests >= $source->max_requests - 2 || ($maxNew && count($newIds) >= $maxNew)) { break; }
                 try {
-                    $data = $normalizer->normalize($reader->read($source, $item));
+                    $input = $reader->read($source, $item);
+                    $data = $normalizer->normalize($input);
+                    if (isset($input['page_check'])) { $data['page_check'] = $input['page_check']; }
                     if ($source->publication_mode === 'leads') { $data = $this->employerAts($source, $item, $data); }
                     $item->update(['normalized_data' => $data, 'last_verified_at' => now(), 'error' => null, 'application_url' => $data['application_url'],
-                        'url_key' => JobKey::url($data['ats_url'] ?? $item->source_url)]);
+                        'url_key' => JobKey::url($data['ats_url'] ?? $data['page_check']['page_url'] ?? $item->source_url)]);
                     $stats['processed']++;
                     if ($source->publication_mode === 'leads' && $item->state === 'pending' && $this->olderThan($data, $item, config('leads.board_max_age_days'))) {
                         $item->update(['state' => 'rejected', 'error' => 'Posted more than '.config('leads.board_max_age_days').' days ago.']);
@@ -181,6 +183,9 @@ class OpportunityImporter
                     }
                 } catch (SourceBudgetException) {
                     break;
+                } catch (ListingRejected $e) {
+                    $item->update(['state' => $e->later ? $item->state : 'rejected', 'error' => Str::limit($e->getMessage(), 1000), 'last_verified_at' => now()]);
+                    if (! $e->later) { $stats['rejected']++; }
                 } catch (SourceRequestException $e) {
                     if (in_array($e->status, [404, 410], true)) {
                         $this->closeSource($item); $stats['closed']++;
@@ -366,7 +371,7 @@ class OpportunityImporter
             // When a role is listed on several boards, the first live listing owns its content.
             $isPrimary = ! $opportunity->exists || ! $opportunity->sources()->where('id', '<', $item->id)->where('state', 'published')->exists();
             if (! $opportunity->exists || ($opportunity->origin === 'imported' && ((! $hasEmployerSource && $isPrimary) || ($source->settings['authoritative_employer'] ?? false)))) {
-                $fields = collect($data)->except(['employer', 'website', 'requisition_id'])->all();
+                $fields = collect($data)->except(['employer', 'website', 'requisition_id', 'page_check'])->all();
                 // Sources often leave the language out; keep the one found earlier.
                 if (empty($fields['language']) && $opportunity->language) { unset($fields['language']); }
                 $fieldId = $this->classify($data);
@@ -450,7 +455,7 @@ class OpportunityImporter
     private function employer(ImportSource $source, array $data): Company
     {
         $host = $data['website'] ? preg_replace('/^www\./', '', strtolower((string) parse_url($data['website'], PHP_URL_HOST))) : null;
-        if ($source->provider !== 'jsonld') {
+        if (! in_array($source->provider, ['jsonld', 'pages'], true)) {
             $identity = $source->id.':'.hash('sha256', 'employer-board|'.$data['employer']);
         } elseif ($host) {
             $identity = 'domain:'.$host;

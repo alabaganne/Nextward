@@ -70,6 +70,7 @@ const date = (value) => value ? new Date(value).toLocaleString('en-GB', { day: '
                             <template v-if="item.normalized_data">{{ item.normalized_data.employer }} · {{ item.normalized_data.kind }} · {{ item.normalized_data.location || 'No location' }} · </template>
                             {{ item.source_name }} · checked {{ date(item.last_verified_at) }}
                         </p>
+                        <p v-if="item.normalized_data?.page_check" class="text-[13px] text-ink-700 mt-1.5">AI check: {{ item.normalized_data.page_check.reason }}</p>
                         <p v-if="item.error" class="text-[13px] text-red-600 mt-1.5">{{ item.error }}</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
@@ -77,7 +78,8 @@ const date = (value) => value ? new Date(value).toLocaleString('en-GB', { day: '
                         <button v-if="item.state !== 'rejected'" type="button" class="cta cta-danger cta-sm" :aria-expanded="rejectingId === item.id" @click="rejectingId = rejectingId === item.id ? null : item.id">Reject</button>
                         <Link v-if="item.opportunity" class="cta cta-secondary cta-sm" :href="route('imports.opportunities.show', item.opportunity.id)">Moderate</Link>
                         <a v-if="item.opportunity?.publication_status === 'published'" class="text-[13px] font-medium text-ink-700 px-2 py-[7px] hover:text-blue-700" :href="item.opportunity.public_url">Open page</a>
-                        <a class="inline-flex items-center gap-1 text-[13px] font-medium text-ink-700 px-2 py-[7px] hover:text-blue-700" :href="item.source_url" target="_blank" rel="noopener noreferrer">Original <ExternalLink class="size-3.5" aria-hidden="true" /></a>
+                        <a v-if="item.post_url" class="inline-flex items-center gap-1 text-[13px] font-medium text-ink-700 px-2 py-[7px] hover:text-blue-700" :href="item.post_url" target="_blank" rel="noopener noreferrer">Post <ExternalLink class="size-3.5" aria-hidden="true" /></a>
+                        <a class="inline-flex items-center gap-1 text-[13px] font-medium text-ink-700 px-2 py-[7px] hover:text-blue-700" :href="item.normalized_data?.page_check?.page_url || item.source_url" target="_blank" rel="noopener noreferrer">{{ item.post_url ? 'Job page' : 'Original' }} <ExternalLink class="size-3.5" aria-hidden="true" /></a>
                     </div>
                 </div>
                 <form v-if="rejectingId === item.id" class="mt-3 flex flex-wrap items-end gap-3" @submit.prevent="reject">

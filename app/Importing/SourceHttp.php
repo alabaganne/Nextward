@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Http;
 class SourceHttp
 {
     public int $requests = 0;
+    // The last URL read, after redirects.
+    public ?string $url = null;
     public static ?\Closure $resolveUsing = null;
     private array $robots = [];
     private float $lastRequest = 0;
@@ -37,6 +39,14 @@ class SourceHttp
         return $this->request($url);
     }
 
+    public static function skipped(string $host): bool
+    {
+        foreach (config('importer.linked_pages.skip_hosts', []) as $skip) {
+            if ($host === $skip || str_ends_with($host, '.'.$skip)) { return true; }
+        }
+        return false;
+    }
+
     public function validate(string $url): array
     {
         $parts = parse_url($url);
@@ -46,7 +56,10 @@ class SourceHttp
             throw new SourceRequestException('Only public HTTP(S) source URLs are allowed.');
         }
         $host = strtolower(rtrim($parts['host'] ?? '', '.'));
-        if (! in_array($host, $this->source->allowed_domains ?? [], true)) {
+        // Linked job pages can be on any public site, except the ones Nextward never reads.
+        if ($this->source->provider === 'pages') {
+            if (self::skipped($host)) { throw new SourceRequestException('Nextward does not read this site.'); }
+        } elseif (! in_array($host, $this->source->allowed_domains ?? [], true)) {
             throw new SourceRequestException('URL host is outside the source allowlist.');
         }
         if (filter_var($host, FILTER_VALIDATE_IP) || $host === 'localhost' || ! str_contains($host, '.')) {
@@ -127,6 +140,7 @@ class SourceHttp
         if (strlen($response->body()) > $maximum) {
             throw new SourceRequestException('Source response exceeds the size limit.');
         }
+        $this->url = $url;
         return $response->body();
     }
 

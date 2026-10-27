@@ -21,6 +21,7 @@ class SourceReader
     {
         if ($source->provider === 'himalayas') { return $this->himalayas($source); }
         if ($source->provider === 'hn') { return $this->hackerNews($source); }
+        if ($source->provider === 'pages') { return (new LinkedPages($this->http))->discover($source); }
         $body = $this->http->get($source->url);
         if ($source->provider === 'jsonld') {
             return $this->sitemap($source, $body);
@@ -183,6 +184,7 @@ class SourceReader
     public function read(ImportSource $source, OpportunitySource $item): array
     {
         $data = $item->payload ?? [];
+        if ($source->provider === 'pages') { return (new LinkedPages($this->http))->read($item); }
         if ($source->provider === 'jsonld') {
             $data = $this->jobPosting($this->http->get($item->source_url));
             if (! $data) { throw new RuntimeException('No valid JobPosting object found; review the source.'); }

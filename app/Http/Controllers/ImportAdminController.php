@@ -75,6 +75,7 @@ class ImportAdminController extends Controller
             'items' => $items->through(fn ($item) => [
                 'id' => $item->id, 'source_name' => $item->importSource->name,
                 'source_url' => $item->source_url, 'state' => $item->state, 'error' => $item->error,
+                'post_url' => $item->payload['post']['url'] ?? null,
                 'last_verified_at' => $item->last_verified_at?->toIso8601String(),
                 'normalized_data' => $item->normalized_data,
                 'opportunity' => $item->opportunity ? [
@@ -172,9 +173,10 @@ class ImportAdminController extends Controller
         $data = $request->validate([
             'key' => ['required', 'string', 'max:120', 'regex:/^[a-z0-9][a-z0-9_-]*$/', Rule::unique('import_sources')->ignore($source?->id)],
             'name' => 'required|string|max:255',
-            'provider' => 'required|in:jsonld,greenhouse,lever,ashby,workable,recruitee,himalayas,remoteok,remotive,wwr,hn',
+            'provider' => 'required|in:jsonld,greenhouse,lever,ashby,workable,recruitee,himalayas,remoteok,remotive,wwr,hn,pages',
             'url' => 'required|url:http,https|max:2048',
-            'allowed_domains' => 'required|array|min:1|max:20',
+            // Linked job pages can be on any site, so they have no allowlist.
+            'allowed_domains' => 'exclude_if:provider,pages|required|array|min:1|max:20',
             'allowed_domains.*' => 'required|string|max:253|regex:/^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?\.[a-z]{2,}$/',
             'permission_status' => 'required|in:pending,approved,revoked',
             'permission_notes' => 'nullable|required_if:permission_status,approved|string|min:20|max:10000',
@@ -193,6 +195,7 @@ class ImportAdminController extends Controller
             'settings.curated_snapshot' => 'nullable|boolean',
             'settings.pages' => 'nullable|integer|min:1|max:50',
         ]);
+        $data['allowed_domains'] ??= [];
         $data['settings'] = collect($data['settings'] ?? [])->only(['employer_name', 'job_path_prefix', 'authoritative_employer', 'scope', 'freshness_hours', 'curated_snapshot', 'pages'])->all();
         if (in_array($data['provider'], SourceReader::BOARDS, true) && $data['publication_mode'] !== 'leads') {
             throw ValidationException::withMessages(['publication_mode' => 'Remote job boards only feed job leads; their listings are never published.']);

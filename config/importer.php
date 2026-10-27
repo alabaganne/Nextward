@@ -21,6 +21,19 @@ return [
     'verify_companies' => (bool) env('OPPORTUNITY_VERIFY_COMPANIES', true),
     // `opportunities:fetch` only adds listings posted in the last this many days.
     'fetch_max_age_days' => (int) env('OPPORTUNITY_FETCH_MAX_AGE_DAYS', 14),
+    // Job pages linked from board posts (the "pages" provider): the AI opens the links in each post, follows a link or two
+    // when the first page is a home or careers page, and says whether it found a real job. Real jobs wait for review.
+    'linked_pages' => [
+        'boards' => ['hn'],
+        'links_per_post' => 3,
+        'hops' => 2,
+        'page_chars' => 8000,
+        // Sites never opened: boards whose terms forbid reading or passing on their jobs, LinkedIn, and sites with no job text.
+        'skip_hosts' => ['ycombinator.com', 'workatastartup.com', 'linkedin.com', 'lnkd.in', 'wellfound.com', 'angel.co', 'indeed.com',
+            'glassdoor.com', 'himalayas.app', 'remoteok.com', 'remotive.com', 'weworkremotely.com', 'github.com', 'gitlab.com',
+            'twitter.com', 'x.com', 'facebook.com', 'instagram.com', 'youtube.com', 'youtu.be', 't.me', 'discord.gg', 'discord.com',
+            'calendly.com', 'drive.google.com', 'docs.google.com', 'forms.gle'],
+    ],
     // Imports only add listings a candidate profile or a resume profile (`opportunities:profile`) wants.
     // `from` picks whose candidate profiles count: admins (the owner, the default) or everyone.
     // Accounts on these email domains (seeded demo accounts) are left out.
