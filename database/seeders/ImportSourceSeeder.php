@@ -30,10 +30,18 @@ class ImportSourceSeeder extends Seeder
             'automatticcareers' => ['job-boards.greenhouse.io'], 'elastic' => ['job-boards.greenhouse.io'], 'vercel' => ['job-boards.greenhouse.io'],
             'getyourguide' => ['job-boards.greenhouse.io'], 'contentful' => ['job-boards.greenhouse.io'], 'adyen' => ['job-boards.greenhouse.io'],
             'n26' => ['job-boards.greenhouse.io'], 'wolt' => ['job-boards.greenhouse.io'], 'celonis' => ['job-boards.greenhouse.io'],
+            // Y Combinator companies with offices in Europe or remote roles (ycombinator.com/jobs itself forbids scraping).
+            'stripe' => ['stripe.com'], 'coinbase' => ['www.coinbase.com'], 'reddit' => ['job-boards.greenhouse.io'], 'dropbox' => ['jobs.dropbox.com'],
+            'algolia' => ['job-boards.greenhouse.io'], 'fivetran' => ['www.fivetran.com'], 'flexport' => ['job-boards.greenhouse.io'],
+            'scaleai' => ['job-boards.greenhouse.io'], 'mixpanel' => ['job-boards.greenhouse.io'],
         ];
         $lever = ['spotify' => 'Spotify', 'toptal' => 'Toptal', 'binance' => 'Binance'];
         $ashby = ['ramp' => 'Ramp', 'notion' => 'Notion', 'linear' => 'Linear', 'posthog' => 'PostHog', 'supabase' => 'Supabase', 'zapier' => 'Zapier', 'replit' => 'Replit',
-            'n8n' => 'n8n', 'resend' => 'Resend', 'sanity' => 'Sanity'];
+            'n8n' => 'n8n', 'resend' => 'Resend', 'sanity' => 'Sanity',
+            // Y Combinator companies.
+            'clipboard' => 'Clipboard Health', 'docker' => 'Docker', 'webflow' => 'Webflow', 'vanta' => 'Vanta', 'infisical' => 'Infisical',
+            'triggerdev' => 'Trigger.dev', 'lago' => 'Lago', 'photoroom' => 'Photoroom', 'encord' => 'Encord', 'kombo' => 'Kombo',
+            'amplitude' => 'Amplitude', 'benchling' => 'Benchling', 'upflow' => 'Upflow'];
         $workable = ['huggingface' => 'Hugging Face'];
         $recruitee = ['bunq' => 'bunq'];
 
